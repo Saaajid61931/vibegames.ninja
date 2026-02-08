@@ -1,6 +1,17 @@
 # Cloudflare Deployment Runbook
 
-Use this guide to deploy VibeGames globally on Cloudflare with PostgreSQL + R2.
+Use this guide to deploy VibeGames globally on Cloudflare Workers with PostgreSQL + R2.
+
+## 0) Important: Use Workers Builds, not next-on-pages
+
+If you see errors like "routes were not configured to run with the Edge Runtime", you are using `@cloudflare/next-on-pages`.
+
+This app uses Prisma and Node runtime APIs, so deploy with OpenNext:
+
+- Build command: `npx @opennextjs/cloudflare build`
+- Deploy command: `npx @opennextjs/cloudflare deploy`
+
+Do **not** use `npx @cloudflare/next-on-pages@1`.
 
 ## 1) Prepare GitHub repo
 
@@ -37,7 +48,17 @@ Environment values needed:
 - `R2_BUCKET_NAME`
 - `R2_PUBLIC_BASE_URL` (e.g. `https://assets.vibegames.ninja`)
 
-## 4) Set app env variables in Cloudflare
+## 4) Create a Cloudflare Worker project with Git integration
+
+1. Cloudflare Dashboard -> Workers & Pages -> Create -> Workers.
+2. Connect your GitHub repository.
+3. Build settings:
+   - Build command: `npx @opennextjs/cloudflare build`
+   - Deploy command: `npx @opennextjs/cloudflare deploy`
+4. Keep Node.js compatibility enabled via `wrangler.jsonc` (`nodejs_compat` flag is already configured in this repo).
+5. Ensure worker name matches `wrangler.jsonc` (`vibegames-ninja`) or update both `name` and `services[0].service` there.
+
+## 5) Set app env variables in Cloudflare
 
 Set these in your Cloudflare project:
 
@@ -54,7 +75,7 @@ Set these in your Cloudflare project:
 - `CRON_SECRET`
 - (optional) OAuth vars: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`
 
-## 5) Apply Prisma schema
+## 6) Apply Prisma schema
 
 Run once against production DB:
 
@@ -62,7 +83,7 @@ Run once against production DB:
 npx prisma db push
 ```
 
-## 6) Configure Cloudflare cron cleanup
+## 7) Configure Cloudflare cron cleanup
 
 Create a scheduled trigger (hourly recommended) that calls:
 
@@ -71,13 +92,13 @@ Create a scheduled trigger (hourly recommended) that calls:
 
 This expires old games and deletes their R2 files.
 
-## 7) DNS and domain
+## 8) DNS and domain
 
 1. Set `vibegames.ninja` as primary domain.
 2. Redirect secondary domains (e.g. `vibegames.in`) with 301 to primary.
 3. Keep TLS enabled and always use HTTPS.
 
-## 8) Post-deploy validation checklist
+## 9) Post-deploy validation checklist
 
 1. Register/login works.
 2. Upload `.html` game works.

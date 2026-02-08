@@ -155,9 +155,12 @@ Maximum file size: 50MB (Free) / 100MB (Pro)
 1. Push this repo to GitHub
 2. Provision a managed PostgreSQL database (Neon/Supabase/RDS)
 3. Create an R2 bucket and public domain (e.g. `assets.vibegames.ninja`)
-4. Add all env vars in Cloudflare Pages/Workers
-5. Run `npx prisma db push` against production DB
-6. Deploy with Cloudflare's Next.js/OpenNext workflow
+4. Create a Cloudflare **Workers** project with Git integration
+5. Set build/deploy commands:
+   - Build: `npx @opennextjs/cloudflare build`
+   - Deploy: `npx @opennextjs/cloudflare deploy`
+6. Add all env vars in Cloudflare Worker settings
+7. Run `npx prisma db push` against production DB
 
 See the full runbook in `docs/cloudflare-deploy.md`.
 
