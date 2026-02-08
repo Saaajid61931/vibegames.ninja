@@ -1,26 +1,466 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Refined Color System */
+  --color-base: #0f1219;        /* Deep navy/charcoal */
+  --color-surface: #1a1f2e;     /* Elevated surface */
+  --color-surface-2: #242938;   /* Cards, modals */
+  --color-border: #2e3446;      /* Subtle borders */
+  --color-border-strong: #3d4455; /* Emphasis borders */
+  
+  --color-text: #f0f2f5;        /* Primary text */
+  --color-text-secondary: #8b93a6; /* Secondary/muted text */
+  --color-text-tertiary: #5c6478; /* Disabled/hint text */
+  
+  --color-primary: #6366f1;     /* Indigo - primary actions */
+  --color-primary-hover: #818cf8;
+  --color-success: #22c55e;     /* Green - success states */
+  --color-warning: #f59e0b;     /* Amber - warnings, retention */
+  --color-danger: #ef4444;      /* Red - errors, urgent */
+  
+  /* Arcade accents (used sparingly on discovery pages) */
+  --color-arcade-yellow: #facc15;
+  --color-arcade-red: #f43f5e;
+  
+  /* Semantic mappings */
+  --background: var(--color-base);
+  --foreground: var(--color-text);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Base body styles */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+html,
+body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+.container {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+/* Subtle grid background - low contrast */
+.bg-grid {
+  background-image: 
+    linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Pixel background pattern */
+.pixel-bg {
+  background-image: 
+    linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+/* Joystick decoration */
+.joystick-base {
+  width: 48px;
+  height: 48px;
+  background: var(--color-surface);
+  border: 3px solid var(--color-border-strong);
+  border-radius: 50%;
+  position: relative;
+}
+
+.joystick-base::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background: var(--color-border-strong);
+  border-radius: 50%;
+}
+
+/* Pixel Font - headings and badges only */
+.font-pixel {
+  font-family: var(--font-pixel), monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.3;
+}
+
+/* Sans font for body/forms */
+.font-sans {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Arcade font - alias to sans for cleaner body text */
+.font-arcade {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Scrollbar - refined */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* Selection */
+::selection {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   ARCADE STYLES - Discovery pages only
+   ============================================ */
+
+/* Arcade card with chunky borders */
+.card-arcade {
+  background: var(--color-surface);
+  border: 3px solid var(--color-border-strong);
+  box-shadow: 4px 4px 0 var(--color-base);
+  transition: all 0.15s ease;
+}
+
+.card-arcade:hover {
+  border-color: var(--color-primary);
+  box-shadow: 6px 6px 0 var(--color-primary);
+  transform: translate(-2px, -2px);
+}
+
+/* Arcade button */
+.btn-arcade {
+  background: var(--color-primary);
+  color: white;
+  border: 3px solid white;
+  font-family: var(--font-pixel), monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  padding: 12px 20px;
+  box-shadow: 0 4px 0 var(--color-base);
+  transition: all 0.1s ease;
+  cursor: pointer;
+}
+
+.btn-arcade:hover {
+  background: var(--color-arcade-yellow);
+  color: var(--color-base);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--color-base);
+}
+
+.btn-arcade:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--color-base);
+}
+
+/* Marquee banner */
+.marquee-wrap {
+  background: var(--color-primary);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.marquee-content {
+  display: inline-block;
+  animation: marquee 20s linear infinite;
+  font-family: var(--font-pixel), monospace;
+  font-size: 10px;
+  color: white;
+  padding: 6px 0;
+  white-space: nowrap;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@media (max-width: 640px) {
+  .marquee-content {
+    font-size: 8px;
+    padding: 5px 0;
+  }
+}
+
+/* Health bar / progress */
+.health-bar {
+  background: var(--color-surface);
+  border: 2px solid var(--color-border-strong);
+  height: 12px;
+  overflow: hidden;
+}
+
+.health-bar-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.health-bar-fill.critical { background: var(--color-danger); }
+.health-bar-fill.warning { background: var(--color-warning); }
+.health-bar-fill.healthy { background: var(--color-success); }
+
+/* Score ticker animation */
+@keyframes scorePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.score-pulse {
+  animation: scorePulse 0.3s ease;
+}
+
+/* ============================================
+   STUDIO STYLES - Utility pages
+   ============================================ */
+
+/* Clean card for forms/dashboards */
+.card-studio {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.card-studio-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  border-radius: 8px 8px 0 0;
+}
+
+/* Clean input */
+.input-studio {
+  background: var(--color-base);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 15px;
+  color: var(--color-text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input-studio:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  outline: none;
+}
+
+.input-studio::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* Clean button */
+.btn-studio {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.btn-studio:hover {
+  background: var(--color-primary-hover);
+}
+
+.btn-studio:active {
+  transform: scale(0.98);
+}
+
+.btn-studio-outline {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.btn-studio-outline:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface);
+}
+
+/* Label */
+.label-studio {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* ============================================
+   SHARED COMPONENTS
+   ============================================ */
+
+/* Game container iframe */
+.game-container {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%;
+  background: #000;
+  border: 2px solid var(--color-border-strong);
+  overflow: hidden;
+}
+
+.game-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Badge base */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-radius: 4px;
+}
+
+.badge-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.badge-success {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.badge-warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--color-warning);
+  border: 1px solid var(--color-warning);
+}
+
+.badge-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+}
+
+/* Stat card */
+.stat-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+/* Hover lift effect */
+.hover-lift {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+.mobile-scroll-row {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mobile-scroll-row::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-scroll-row > * {
+  flex: 0 0 auto;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 640px) {
+  .font-pixel {
+    font-size: 9px;
+  }
+  
+  body {
+    font-size: 15px;
+  }
+  
+  .stat-value {
+    font-size: 22px;
+  }
+
+  .marquee-content {
+    font-size: 9px;
+    padding: 6px 0;
+  }
 }

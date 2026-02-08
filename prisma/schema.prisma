@@ -1,0 +1,198 @@
+// VibeGames.ai Database Schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User & Auth Models
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  username      String?   @unique
+  password      String?
+  image         String?
+  bio           String?
+  role          String    @default("USER") // USER, CREATOR, ADMIN
+  isPro         Boolean   @default(false)
+  proExpiresAt  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  games         Game[]
+  favorites     Favorite[]
+  comments      Comment[]
+  earnings      Earnings[]
+  notifications Notification[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Game Models
+model Game {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  description String
+  instructions String?
+  thumbnail   String?
+  gameUrl     String
+  category    String    @default("OTHER") // ACTION, PUZZLE, ARCADE, etc.
+  tags        String    // Comma-separated tags
+  status      String    @default("PENDING") // DRAFT, PENDING, PUBLISHED, REJECTED, SUSPENDED, EXPIRED
+  isAIGenerated Boolean @default(true)
+  aiTool      String?   // Which AI tool was used (Claude, GPT, etc.)
+  aiModel     String?   // Specific model used (gpt-4o, claude-3-7-sonnet, etc.)
+  supportsMobile Boolean @default(false)
+  
+  isPremium   Boolean   @default(false)
+  price       Float?
+  hasAds      Boolean   @default(true)
+  
+  plays       Int       @default(0)
+  likes       Int       @default(0)
+  shares      Int       @default(0)
+  avgRating   Float     @default(0)
+  ratingCount Int       @default(0)
+  
+  // Retention: games expire after 3 days unless they get 100+ likes
+  expiresAt   DateTime? // null = permanent (has 100+ likes)
+  isPermanent Boolean   @default(false) // true when likes >= 100
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
+  
+  creatorId   String
+  creator     User      @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  analytics   GameAnalytics[]
+  favorites   Favorite[]
+  comments    Comment[]
+  reports     Report[]
+}
+
+model GameAnalytics {
+  id            String   @id @default(cuid())
+  gameId        String
+  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  date          DateTime @default(now())
+  plays         Int      @default(0)
+  uniquePlayers Int      @default(0)
+  avgSessionTime Float   @default(0)
+  bounceRate    Float    @default(0)
+  adImpressions Int      @default(0)
+  adClicks      Int      @default(0)
+  revenue       Float    @default(0)
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gameId    String
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, gameId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gameId    String
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  parentId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Earnings {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount      Float
+  type        String   // AD_REVENUE, GAME_SALE, TIP, REFERRAL
+  status      String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  description String?
+  createdAt   DateTime @default(now())
+  paidAt      DateTime?
+}
+
+model Subscription {
+  id              String    @id @default(cuid())
+  email           String
+  type            String    // CREATOR_PRO, PLAYER_PREMIUM
+  status          String    @default("active")
+  stripeCustomerId String?
+  stripeSubId     String?
+  currentPeriodEnd DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Report {
+  id          String    @id @default(cuid())
+  gameId      String
+  game        Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  reporterId  String?
+  reason      String    // COPYRIGHT, INAPPROPRIATE, MALWARE, SPAM, OTHER
+  description String?
+  status      String    @default("PENDING") // PENDING, REVIEWING, RESOLVED, DISMISSED
+  createdAt   DateTime  @default(now())
+  resolvedAt  DateTime?
+  resolvedBy  String?
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+}

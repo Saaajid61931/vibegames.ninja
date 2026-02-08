@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Summit Sprint</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="game-shell">
+    <header class="hud-bar">
+      <h1>Summit Sprint</h1>
+      <div class="hud-stats">
+        <span>Berries: <strong id="berries">0/0</strong></span>
+        <span>Dashes: <strong id="dashes">1</strong></span>
+        <span>Deaths: <strong id="deaths">0</strong></span>
+        <span>Time: <strong id="timer">00:00.00</strong></span>
+      </div>
+    </header>
+
+    <section class="canvas-wrap">
+      <canvas id="game" width="960" height="540" aria-label="Celeste style platform game"></canvas>
+      <div id="overlay" class="overlay"></div>
+    </section>
+
+    <footer class="legend">
+      <span>Move: Arrow Keys / A D</span>
+      <span>Jump: Space / Z / C</span>
+      <span>Dash: X / Shift</span>
+      <span>Restart: R</span>
+    </footer>
+  </main>
+
+  <section id="mobile-controls" class="mobile-controls" aria-label="Touch controls">
+    <div class="dpad">
+      <button class="btn" data-key="ArrowUp">Up</button>
+      <button class="btn" data-key="ArrowLeft">Left</button>
+      <button class="btn" data-key="ArrowDown">Down</button>
+      <button class="btn" data-key="ArrowRight">Right</button>
+    </div>
+    <div class="actions">
+      <button class="btn action" data-key="KeyZ">Jump</button>
+      <button class="btn action" data-key="KeyX">Dash</button>
+    </div>
+  </section>
+
+  <script src="game.js"></script>
+</body>
+</html>

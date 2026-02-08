@@ -29,9 +29,16 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+dev.log
+start.log
+nul
 
 # env files (can opt-in for committing if needed)
 .env*
+
+# local runtime uploads and db artifacts
+public/games/
+prisma/dev.db
 
 # vercel
 .vercel
