@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "vibegames-ninja",
+  "name": "vibegames",
   "main": ".open-next/worker.js",
   "compatibility_date": "2025-01-15",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
@@ -11,7 +11,7 @@
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "vibegames-ninja"
+      "service": "vibegames"
     }
   ]
 }

@@ -50,6 +50,7 @@ cp .env.example .env
 Edit `.env` with your configuration:
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/vibegames"
+DIRECT_URL="postgresql://postgres:postgres@localhost:5432/vibegames"
 AUTH_SECRET="your-secret-key-here"
 AUTH_URL="http://localhost:3000"
 AUTH_TRUST_HOST="true"

@@ -32,7 +32,9 @@ Recommended providers: Neon, Supabase, Railway, AWS RDS.
 
 1. Create database.
 2. Copy connection string.
-3. Set `DATABASE_URL` in your deployment environment.
+3. Set both URLs in your deployment environment:
+   - `DATABASE_URL`: pooling endpoint (usually `:6543`)
+   - `DIRECT_URL`: direct/session endpoint for Prisma CLI (usually `:5432`)
 
 ## 3) Create Cloudflare R2 bucket
 
@@ -56,13 +58,14 @@ Environment values needed:
    - Build command: `npx @opennextjs/cloudflare build`
    - Deploy command: `npx @opennextjs/cloudflare deploy`
 4. Keep Node.js compatibility enabled via `wrangler.jsonc` (`nodejs_compat` flag is already configured in this repo).
-5. Ensure worker name matches `wrangler.jsonc` (`vibegames-ninja`) or update both `name` and `services[0].service` there.
+5. Ensure worker name matches `wrangler.jsonc` (`vibegames`) or update both `name` and `services[0].service` there.
 
 ## 5) Set app env variables in Cloudflare
 
 Set these in your Cloudflare project:
 
 - `DATABASE_URL`
+- `DIRECT_URL`
 - `AUTH_SECRET`
 - `AUTH_URL`
 - `AUTH_TRUST_HOST`
