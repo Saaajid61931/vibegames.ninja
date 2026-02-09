@@ -114,7 +114,7 @@ export default async function HomePage() {
                   </div>
                 </div>
                 <div className="text-center p-3 sm:p-4 bg-[#1a1a2e] border-2 border-[#ff0040]">
-                  <div className="text-[10px] text-[#ff0040] mb-1 font-pixel">PLAYERS</div>
+                  <div className="text-[10px] text-[#ff0040] mb-1 font-pixel">CREATORS</div>
                   <div className="text-xl sm:text-2xl md:text-3xl font-bold text-white font-pixel">
                     {stats.creators.toString().padStart(6, '0')}
                   </div>
