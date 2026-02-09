@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { Play, Heart, Share2, Flag, MessageCircle, ChevronLeft, User, Gamepad2, ExternalLink, Smartphone, Cpu, Users, Clock } from "lucide-react"
+import { Play, Heart, Flag, MessageCircle, ChevronLeft, User, Gamepad2, ExternalLink, Smartphone, Cpu, Users, Clock } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { GamePlayer } from "@/components/games/game-player"
 import { LikeButton } from "@/components/games/like-button"
+import { ShareButton } from "@/components/games/share-button"
 import { CommentsSection } from "@/components/games/comments-section"
 import { FollowButton } from "@/components/creator/follow-button"
 import { Button } from "@/components/ui/button"
@@ -149,10 +150,7 @@ export default async function PlayPage({ params }: PageProps) {
                     initialLikes={game.likes}
                     initialLiked={isLiked}
                   />
-                  <Button variant="outline" size="sm" className="gap-2 font-arcade flex-1 sm:flex-none min-w-[108px]">
-                    <Share2 className="h-4 w-4" />
-                    [SHARE]
-                  </Button>
+                  <ShareButton title={game.title} />
                   <Button variant="ghost" size="sm" className="gap-2 text-[#4a4a6a] font-arcade flex-1 sm:flex-none min-w-[108px]">
                     <Flag className="h-4 w-4" />
                     [REPORT]

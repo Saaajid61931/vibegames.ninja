@@ -18,6 +18,7 @@ export function Header() {
 
   const navigation = [
     { name: "PLAY", href: "/games" },
+    ...(session?.user ? [{ name: "FAVES", href: "/favorites" }] : []),
     { name: "UPLOAD", href: "/upload" },
     { name: "CREATOR", href: "/creator" },
   ]
@@ -105,6 +106,12 @@ export function Header() {
                         >
                           Dashboard
                         </Link>
+                        <Link
+                          href="/favorites"
+                          className="block px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-2)]"
+                        >
+                          Favorites
+                        </Link>
                         <button
                           onClick={() => signOut()}
                           className="block w-full text-left px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-danger)] hover:bg-[var(--color-surface-2)]"
@@ -172,12 +179,15 @@ export function Header() {
                     </p>
                     <p className="text-xs text-[var(--color-text-tertiary)] truncate">{session.user.email}</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <Link href="/upload">
                       <Button className="w-full">Upload</Button>
                     </Link>
                     <Link href="/creator">
                       <Button variant="outline" className="w-full">Dashboard</Button>
+                    </Link>
+                    <Link href="/favorites">
+                      <Button variant="outline" className="w-full">Favorites</Button>
                     </Link>
                   </div>
                   <Button variant="ghost" className="w-full" onClick={() => signOut()}>

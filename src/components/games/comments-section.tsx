@@ -79,7 +79,7 @@ export function CommentsSection({
       }
 
       setComments((prev) => [data.comment as CommentItem, ...prev])
-      setCommentsCount(Number(data.commentsCount) || commentsCount + 1)
+      setCommentsCount((prev) => Number(data.commentsCount) || prev + 1)
       setContent("")
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Failed to post comment")

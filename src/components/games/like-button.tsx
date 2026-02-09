@@ -62,7 +62,8 @@ export function LikeButton({ gameId, slug, initialLikes, initialLiked }: LikeBut
       disabled={loading}
     >
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Heart className="h-4 w-4" />}
-      [{formatNumber(likes)}]
+      {liked ? "[SAVED]" : "[SAVE_FAV]"}
+      <span className="text-[10px]">{formatNumber(likes)}</span>
     </Button>
   )
 }
