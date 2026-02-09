@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
-import { Pool, neonConfig } from '@neondatabase/serverless'
+import { neonConfig } from '@neondatabase/serverless'
 
 // Configure Neon for edge environments
 neonConfig.webSocketConstructor = globalThis.WebSocket
@@ -14,8 +14,7 @@ function createPrismaClient() {
   
   // Use Neon adapter for edge/serverless environments
   if (connectionString && typeof globalThis.WebSocket !== 'undefined') {
-    const pool = new Pool({ connectionString })
-    const adapter = new PrismaNeon(pool)
+    const adapter = new PrismaNeon({ connectionString })
     return new PrismaClient({ adapter })
   }
   
