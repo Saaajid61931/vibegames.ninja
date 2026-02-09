@@ -28,6 +28,9 @@ jobs:
 
       - name: Build with OpenNext
         run: npx @opennextjs/cloudflare build
+        env:
+          # Required for Hyperdrive emulation during build
+          CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: ${{ secrets.DATABASE_URL }}
 
       - name: Deploy to Cloudflare
         uses: cloudflare/wrangler-action@v3
@@ -35,5 +38,3 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
-        # Runtime secrets are already configured in Cloudflare dashboard
-        # Only CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID needed here
