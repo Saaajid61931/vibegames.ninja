@@ -13,11 +13,5 @@
       "binding": "WORKER_SELF_REFERENCE",
       "service": "vibegames"
     }
-  ],
-  "hyperdrive": [
-    {
-      "binding": "HYPERDRIVE",
-      "id": "ae68edd380b444c1b7fa7837cff31a61"
-    }
   ]
 }
