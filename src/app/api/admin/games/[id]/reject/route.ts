@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { revalidateTag } from "next/cache"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 
@@ -19,6 +20,8 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
   if (updated.count === 0) {
     return NextResponse.json({ error: "Game not found" }, { status: 404 })
   }
+
+  revalidateTag("games", "max")
 
   const referer = request.headers.get("referer") || "/admin"
   return NextResponse.redirect(new URL(referer, request.url))

@@ -1,14 +1,13 @@
 import Link from "next/link"
-import { Gamepad2, Upload, Play, Trophy, Zap, Coins, ChevronRight, Star, Heart } from "lucide-react"
+import { unstable_cache } from "next/cache"
+import { Gamepad2, Upload, Trophy, Zap, Coins, ChevronRight, Star, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { GameCard } from "@/components/games/game-card"
 import prisma from "@/lib/prisma"
 
-export const dynamic = "force-dynamic"
-
-async function getFeaturedGames() {
+const getFeaturedGames = unstable_cache(async () => {
   const games = await prisma.game.findMany({
     where: { status: "PUBLISHED" },
     include: {
@@ -24,9 +23,9 @@ async function getFeaturedGames() {
     expiresAt: game.expiresAt,
     isPermanent: game.isPermanent,
   }))
-}
+}, ["home-featured-games"], { revalidate: 60, tags: ["games"] })
 
-async function getStats() {
+const getStats = unstable_cache(async () => {
   const [gamesCount, usersCount, totalPlays] = await Promise.all([
     prisma.game.count({ where: { status: "PUBLISHED" } }),
     prisma.user.count(),
@@ -37,10 +36,15 @@ async function getStats() {
     creators: usersCount,
     plays: totalPlays._sum.plays || 0,
   }
-}
+}, ["home-stats"], { revalidate: 60, tags: ["games", "users"] })
 
 export default async function HomePage() {
   const [games, stats] = await Promise.all([getFeaturedGames(), getStats()])
+  const normalizedGames = games.map((game) => ({
+    ...game,
+    createdAt: new Date(game.createdAt),
+    expiresAt: game.expiresAt ? new Date(game.expiresAt) : null,
+  }))
 
   const features = [
     { icon: Zap, title: "AI POWERED", desc: "Built with Claude, GPT, Cursor & more", color: "#ffff00" },
@@ -176,9 +180,9 @@ export default async function HomePage() {
               </Link>
             </div>
             
-            {games.length > 0 ? (
+            {normalizedGames.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8">
-                {games.map((game) => (
+                {normalizedGames.map((game) => (
                   <GameCard key={game.id} game={game} />
                 ))}
               </div>
@@ -209,7 +213,7 @@ export default async function HomePage() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {features.map((feature, i) => {
+              {features.map((feature) => {
                 const Icon = feature.icon
                 return (
                   <div 

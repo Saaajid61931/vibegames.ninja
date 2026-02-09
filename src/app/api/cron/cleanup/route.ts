@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { revalidateTag } from "next/cache"
 import { expireOldGames, getExpiringGames } from "@/lib/retention"
 
 // This endpoint should be called by a cron job (e.g., every hour)
@@ -18,6 +19,10 @@ export async function POST(request: NextRequest) {
     
     // Get games expiring soon (for notifications)
     const expiringGames = await getExpiringGames()
+
+    if (expiredCount > 0) {
+      revalidateTag("games", "max")
+    }
 
     return NextResponse.json({
       success: true,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { revalidateTag } from "next/cache"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { checkAndUpdatePermanentStatus, LIKES_FOR_PERMANENT } from "@/lib/retention"
@@ -93,6 +94,8 @@ export async function POST(
         })
       }
     }
+
+    revalidateTag("games", "max")
 
     return NextResponse.json({
       liked,

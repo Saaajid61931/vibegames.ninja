@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { revalidateTag } from "next/cache"
 import { v4 as uuidv4 } from "uuid"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
@@ -128,6 +129,8 @@ export async function POST(request: NextRequest) {
       await deleteGameAssetsFromR2(gameId)
       throw dbError
     }
+
+    revalidateTag("games", "max")
 
     return NextResponse.json({
       message: "Game uploaded successfully",

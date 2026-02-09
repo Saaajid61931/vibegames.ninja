@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { revalidateTag } from "next/cache"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { calculateExpirationDate } from "@/lib/retention"
@@ -25,6 +26,8 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       expiresAt: game.isPermanent ? null : game.expiresAt ?? calculateExpirationDate(),
     },
   })
+
+  revalidateTag("games", "max")
 
   const referer = request.headers.get("referer") || "/admin"
   return NextResponse.redirect(new URL(referer, request.url))

@@ -1,6 +1,6 @@
-import { Suspense } from "react"
 import Link from "next/link"
-import { Search, Gamepad2, Trophy, ChevronLeft } from "lucide-react"
+import { unstable_cache } from "next/cache"
+import { Search, Gamepad2, ChevronLeft } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { GameCard } from "@/components/games/game-card"
@@ -9,38 +9,34 @@ import { Input } from "@/components/ui/input"
 import prisma from "@/lib/prisma"
 import { CATEGORIES } from "@/lib/utils"
 
-export const dynamic = "force-dynamic"
-
-interface PageProps {
-  searchParams: Promise<{ 
-    category?: string
-    sort?: string
-    q?: string
-  }>
-}
-
-async function getGames(searchParams: { 
+type GamesSearchParams = {
   category?: string
   sort?: string
   q?: string
-}) {
+}
+
+interface PageProps {
+  searchParams: Promise<GamesSearchParams>
+}
+
+const getGames = unstable_cache(async (category?: string, sort?: string, q?: string) => {
   const where: Record<string, unknown> = {
     status: "PUBLISHED",
   }
 
-  if (searchParams.category && searchParams.category !== "all") {
-    where.category = searchParams.category.toUpperCase()
+  if (category && category !== "all") {
+    where.category = category.toUpperCase()
   }
 
-  if (searchParams.q) {
+  if (q) {
     where.OR = [
-      { title: { contains: searchParams.q } },
-      { description: { contains: searchParams.q } },
+      { title: { contains: q } },
+      { description: { contains: q } },
     ]
   }
 
-  let orderBy: Record<string, string> = { plays: "desc" }
-  switch (searchParams.sort) {
+  let orderBy: Record<string, "desc"> = { plays: "desc" }
+  switch (sort) {
     case "new":
       orderBy = { createdAt: "desc" }
       break
@@ -61,11 +57,16 @@ async function getGames(searchParams: {
   })
 
   return games
-}
+}, ["games-page-list"], { revalidate: 30, tags: ["games"] })
 
 export default async function GamesPage({ searchParams }: PageProps) {
   const params = await searchParams
-  const games = await getGames(params)
+  const games = await getGames(params.category, params.sort, params.q)
+  const normalizedGames = games.map((game) => ({
+    ...game,
+    createdAt: new Date(game.createdAt),
+    expiresAt: game.expiresAt ? new Date(game.expiresAt) : null,
+  }))
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0d0d15]">
@@ -94,7 +95,7 @@ export default async function GamesPage({ searchParams }: PageProps) {
           <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             <div className="bg-[#1a1a2e] border-2 sm:border-4 border-[#0080ff] px-3 sm:px-4 py-2">
               <span className="text-[10px] text-[#0080ff] font-pixel block">GAMES</span>
-              <span className="text-lg sm:text-xl text-white font-pixel">{games.length.toString().padStart(3, '0')}</span>
+              <span className="text-lg sm:text-xl text-white font-pixel">{normalizedGames.length.toString().padStart(3, '0')}</span>
             </div>
             <div className="bg-[#1a1a2e] border-2 sm:border-4 border-[#ff0040] px-3 sm:px-4 py-2">
               <span className="text-[10px] text-[#ff0040] font-pixel block">CREDITS</span>
@@ -172,9 +173,9 @@ export default async function GamesPage({ searchParams }: PageProps) {
         </div>
 
         {/* Games Grid */}
-        {games.length > 0 ? (
+        {normalizedGames.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {games.map((game) => (
+            {normalizedGames.map((game) => (
               <GameCard key={game.id} game={game} />
             ))}
           </div>
