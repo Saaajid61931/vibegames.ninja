@@ -77,10 +77,16 @@ export default async function HomePage() {
             <div className="max-w-5xl mx-auto text-center">
               {/* Main Title */}
               <h1 className="mb-8">
-                <span className="block text-5xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-3 sm:mb-4 font-pixel leading-[1.05]">
+                <span
+                  className="block text-5xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-3 sm:mb-4 leading-[1.05]"
+                  style={{ fontFamily: "var(--font-pixel), monospace" }}
+                >
                   AI GENERATED
                 </span>
-                <span className="block text-5xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#ffff00] font-pixel leading-[1.05] drop-shadow-[3px_3px_0_#ff0040] sm:drop-shadow-[4px_4px_0_#ff0040]">
+                <span
+                  className="block text-5xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#ffff00] leading-[1.05] drop-shadow-[3px_3px_0_#ff0040] sm:drop-shadow-[4px_4px_0_#ff0040]"
+                  style={{ fontFamily: "var(--font-pixel), monospace" }}
+                >
                   ARCADE
                 </span>
               </h1>
