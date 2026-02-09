@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import prisma from "@/lib/prisma"
 import { CATEGORIES } from "@/lib/utils"
+import { DiscoverySort, getDiscoveryOrderBy } from "@/lib/discovery"
 
 type GamesSearchParams = {
   category?: string
@@ -35,15 +36,10 @@ const getGames = unstable_cache(async (category?: string, sort?: string, q?: str
     ]
   }
 
-  let orderBy: Record<string, "desc"> = { plays: "desc" }
-  switch (sort) {
-    case "new":
-      orderBy = { createdAt: "desc" }
-      break
-    case "popular":
-      orderBy = { likes: "desc" }
-      break
-  }
+  const parsedSort: DiscoverySort = ["trending", "new", "popular", "top"].includes(sort || "")
+    ? (sort as DiscoverySort)
+    : "trending"
+  const orderBy = getDiscoveryOrderBy(parsedSort)
 
   const games = await prisma.game.findMany({
     where,
@@ -65,7 +61,6 @@ export default async function GamesPage({ searchParams }: PageProps) {
   const normalizedGames = games.map((game) => ({
     ...game,
     createdAt: new Date(game.createdAt),
-    expiresAt: game.expiresAt ? new Date(game.expiresAt) : null,
   }))
 
   return (
@@ -124,6 +119,7 @@ export default async function GamesPage({ searchParams }: PageProps) {
                 { key: "trending", label: "TRENDING" },
                 { key: "new", label: "NEW" },
                 { key: "popular", label: "POPULAR" },
+                { key: "top", label: "TOP" },
               ].map((sort) => {
                 const isActive = params.sort === sort.key || (!params.sort && sort.key === "trending")
                 return (

@@ -1,7 +1,6 @@
 import Link from "next/link"
-import { Play, Heart, User, Clock, Trophy, Smartphone } from "lucide-react"
+import { Play, Heart, User, Smartphone } from "lucide-react"
 import { formatNumber, timeAgo, CATEGORIES } from "@/lib/utils"
-import { formatRetentionStatus, LIKES_FOR_PERMANENT } from "@/lib/retention"
 
 interface GameCardProps {
   game: {
@@ -15,8 +14,6 @@ interface GameCardProps {
     aiModel?: string | null
     supportsMobile?: boolean
     createdAt: Date
-    expiresAt?: Date | null
-    isPermanent?: boolean
     creator: {
       name?: string | null
       username?: string | null
@@ -27,15 +24,7 @@ interface GameCardProps {
 
 export function GameCard({ game }: GameCardProps) {
   const category = CATEGORIES.find(c => c.value === game.category)
-  
-  const retention = formatRetentionStatus({
-    likes: game.likes,
-    expiresAt: game.expiresAt || null,
-    isPermanent: game.isPermanent || false,
-  })
-  
-  const progressPercent = Math.min(100, (game.likes / LIKES_FOR_PERMANENT) * 100)
-  
+
   return (
     <Link
       href={`/play/${game.slug}`}
@@ -55,25 +44,6 @@ export function GameCard({ game }: GameCardProps) {
             <Play className="h-10 w-10 text-[var(--color-text-tertiary)] group-hover:text-[var(--color-primary)] transition-colors" />
           </div>
         )}
-        
-        {/* Retention Badge */}
-        <div className="absolute top-2 right-2">
-          {retention.status === "permanent" ? (
-            <div className="flex items-center gap-1 px-2 py-1 bg-[var(--color-success)] text-white text-[9px] sm:text-[10px] font-bold font-pixel uppercase rounded">
-              <Trophy className="h-3 w-3" />
-              <span>Permanent</span>
-            </div>
-          ) : retention.status === "expiring" ? (
-            <div className={`flex items-center gap-1 px-2 py-1 max-w-[220px] text-[9px] sm:text-[10px] font-bold font-pixel uppercase rounded ${
-              retention.urgent 
-                ? "bg-[var(--color-danger)] text-white" 
-                : "bg-[var(--color-warning)] text-[var(--color-base)]"
-            }`}>
-              <Clock className="h-3 w-3" />
-              <span className="truncate">{retention.message}</span>
-            </div>
-          ) : null}
-        </div>
         
         {/* Play overlay on hover */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
@@ -127,38 +97,12 @@ export function GameCard({ game }: GameCardProps) {
               {formatNumber(game.plays)}
             </span>
             <span className={`flex items-center gap-1 ${
-              game.likes >= LIKES_FOR_PERMANENT 
-                ? "text-[var(--color-success)]" 
-                : "text-[var(--color-arcade-red)]"
+              game.likes > 0 ? "text-[var(--color-arcade-red)]" : "text-[var(--color-text-secondary)]"
             }`}>
               <Heart className="h-3 w-3" />
               {formatNumber(game.likes)}
             </span>
           </div>
-          
-          {/* Likes Progress Bar - Health Bar Style */}
-          {!game.isPermanent && (
-            <div className="space-y-1">
-              <div className="flex justify-between text-[10px] font-pixel">
-                <span className="text-[var(--color-text-tertiary)]">HP</span>
-                <span className={progressPercent >= 100 ? "text-[var(--color-success)]" : "text-[var(--color-warning)]"}>
-                  {Math.round(progressPercent)}%
-                </span>
-              </div>
-              <div className="health-bar">
-                <div 
-                  className={`health-bar-fill ${
-                    progressPercent >= 100 
-                      ? "healthy" 
-                      : progressPercent >= 50 
-                        ? "warning" 
-                        : "critical"
-                  }`}
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-            </div>
-          )}
         </div>
       </div>
       

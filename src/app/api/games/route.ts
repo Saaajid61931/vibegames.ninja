@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { unstable_cache } from "next/cache"
 import prisma from "@/lib/prisma"
-
-type GamesSort = "trending" | "new" | "popular" | "top"
+import { DiscoverySort, getDiscoveryOrderBy } from "@/lib/discovery"
 
 const getCachedGames = unstable_cache(
-  async (page: number, limit: number, category: string | null, sort: GamesSort, search: string | null) => {
+  async (page: number, limit: number, category: string | null, sort: DiscoverySort, search: string | null) => {
     const skip = (page - 1) * limit
 
     const where: Record<string, unknown> = {
@@ -24,20 +23,7 @@ const getCachedGames = unstable_cache(
       ]
     }
 
-    let orderBy: Record<string, "desc"> = { plays: "desc" }
-    switch (sort) {
-      case "new":
-        orderBy = { createdAt: "desc" }
-        break
-      case "popular":
-        orderBy = { likes: "desc" }
-        break
-      case "top":
-        orderBy = { avgRating: "desc" }
-        break
-      default:
-        orderBy = { plays: "desc" }
-    }
+    const orderBy = getDiscoveryOrderBy(sort)
 
     const [games, total] = await Promise.all([
       prisma.game.findMany({
@@ -75,8 +61,8 @@ export async function GET(request: NextRequest) {
     const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 50) : 20
     const category = searchParams.get("category")
     const sortParam = searchParams.get("sort") || "trending"
-    const sort: GamesSort = ["trending", "new", "popular", "top"].includes(sortParam)
-      ? (sortParam as GamesSort)
+    const sort: DiscoverySort = ["trending", "new", "popular", "top"].includes(sortParam)
+      ? (sortParam as DiscoverySort)
       : "trending"
     const search = searchParams.get("q")
 

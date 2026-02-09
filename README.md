@@ -179,7 +179,6 @@ npm run start
 
 For production, consider:
 - Enforcing rate limits on upload endpoints
-- Running cleanup cron every hour with `CRON_SECRET`
 - Adding monitoring and logging
 
 ## Contributing

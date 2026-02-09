@@ -4,10 +4,6 @@ import { addDays } from 'date-fns'
 
 const prisma = new PrismaClient()
 
-// Retention constants
-const RETENTION_DAYS = 3
-const LIKES_FOR_PERMANENT = 100
-
 async function main() {
   console.log('Seeding database...')
 
@@ -42,7 +38,7 @@ async function main() {
   })
   console.log('Created demo creator:', creator.email)
 
-  // Create demo games with varying retention statuses
+  // Create demo games
   const now = new Date()
   const games = [
     {
@@ -59,7 +55,7 @@ async function main() {
       gameUrl: '/sample-games/Neon Swing/index.html',
       status: 'PUBLISHED',
       plays: 1247,
-      likes: 156, // Over 100 = PERMANENT
+      likes: 156,
       publishedAt: now,
       isPermanent: true,
       expiresAt: null,
@@ -99,10 +95,10 @@ async function main() {
       gameUrl: '/sample-games/index.html',
       status: 'PUBLISHED',
       plays: 2341,
-      likes: 98, // Close to permanent! Only 2 likes needed
+      likes: 98,
       publishedAt: addDays(now, -2),
       isPermanent: false,
-      expiresAt: addDays(now, 1), // Expiring soon!
+      expiresAt: addDays(now, 1),
       supportsMobile: true,
     },
     {
@@ -250,25 +246,15 @@ async function main() {
   for (const gameData of games) {
     const game = await prisma.game.upsert({
       where: { slug: gameData.slug },
-      update: {
-        ...gameData,
-        expiresAt: gameData.expiresAt,
-        isPermanent: gameData.isPermanent,
-      },
+      update: gameData,
       create: {
         ...gameData,
         creatorId: creator.id,
       },
     })
-    const status = game.isPermanent ? 'PERMANENT' : `expires in ${RETENTION_DAYS} days, needs ${LIKES_FOR_PERMANENT - game.likes} more likes`
-    console.log(`Created game: ${game.title} (${status})`)
+    console.log(`Created game: ${game.title} (${game.likes} likes)`)
   }
 
-  console.log('')
-  console.log('=== RETENTION RULES ===')
-  console.log(`- Games expire after ${RETENTION_DAYS} days`)
-  console.log(`- Games with ${LIKES_FOR_PERMANENT}+ likes become PERMANENT`)
-  console.log('')
   console.log('Seeding complete!')
 }
 

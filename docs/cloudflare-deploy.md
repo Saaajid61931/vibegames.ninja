@@ -86,14 +86,9 @@ Run once against production DB:
 npx prisma db push
 ```
 
-## 7) Configure Cloudflare cron cleanup
+## 7) Configure optional scheduled tasks
 
-Create a scheduled trigger (hourly recommended) that calls:
-
-- `POST /api/cron/cleanup`
-- header: `Authorization: Bearer <CRON_SECRET>`
-
-This expires old games and deletes their R2 files.
+If you use scheduled jobs in your deployment, keep them non-destructive and scoped to analytics/reporting workflows.
 
 ## 8) DNS and domain
 
@@ -108,4 +103,4 @@ This expires old games and deletes their R2 files.
 3. Upload `.zip` game with nested assets works.
 4. Thumbnail renders in game cards.
 5. Game opens from R2 URL in play page.
-6. Manual cleanup call succeeds.
+6. Optional scheduled jobs run successfully.

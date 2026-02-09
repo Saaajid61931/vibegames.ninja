@@ -29,6 +29,8 @@ model User {
   sessions      Session[]
   games         Game[]
   favorites     Favorite[]
+  followers     CreatorFollow[] @relation("CreatorFollowers")
+  following     CreatorFollow[] @relation("CreatorFollowing")
   comments      Comment[]
   earnings      Earnings[]
   notifications Notification[]
@@ -96,9 +98,9 @@ model Game {
   avgRating   Float     @default(0)
   ratingCount Int       @default(0)
   
-  // Retention: games expire after 3 days unless they get 100+ likes
-  expiresAt   DateTime? // null = permanent (has 100+ likes)
-  isPermanent Boolean   @default(false) // true when likes >= 100
+  // Legacy retention fields (no longer used for automatic expiration)
+  expiresAt   DateTime?
+  isPermanent Boolean   @default(false)
   
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -135,6 +137,20 @@ model Favorite {
   createdAt DateTime @default(now())
 
   @@unique([userId, gameId])
+}
+
+model CreatorFollow {
+  id         String   @id @default(cuid())
+  followerId String
+  creatorId  String
+  createdAt  DateTime @default(now())
+
+  follower User @relation("CreatorFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  creator  User @relation("CreatorFollowers", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, creatorId])
+  @@index([creatorId])
+  @@index([followerId])
 }
 
 model Comment {

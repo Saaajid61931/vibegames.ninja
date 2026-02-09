@@ -10,11 +10,7 @@ import {
   Heart,
   Eye,
   Edit,
-  Trash2,
-  ExternalLink,
-  Shield,
-  Clock,
-  AlertTriangle
+  ExternalLink
 } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { Header } from "@/components/layout/header"
@@ -22,20 +18,14 @@ import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import prisma from "@/lib/prisma"
 import { formatNumber, formatCurrency, timeAgo, CATEGORIES } from "@/lib/utils"
-import { formatRetentionStatus, LIKES_FOR_PERMANENT } from "@/lib/retention"
 
 export const dynamic = "force-dynamic"
 
 async function getCreatorData(userId: string) {
-  const [games, earnings, totalStats] = await Promise.all([
+  const [games, totalStats] = await Promise.all([
     prisma.game.findMany({
       where: { creatorId: userId },
       orderBy: { createdAt: "desc" },
-    }),
-    prisma.earnings.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-      take: 10,
     }),
     prisma.game.aggregate({
       where: { creatorId: userId },
@@ -56,29 +46,15 @@ async function getCreatorData(userId: string) {
     _sum: { amount: true },
   })
 
-  // Calculate retention stats
-  const permanentGames = games.filter(g => g.isPermanent).length
-  const expiringGames = games.filter(g => !g.isPermanent && g.status === "PUBLISHED").length
-  const urgentGames = games.filter(g => {
-    if (g.isPermanent || g.status !== "PUBLISHED") return false
-    if (!g.expiresAt) return false
-    const hoursLeft = (new Date(g.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60)
-    return hoursLeft < 24
-  })
-
   return {
     games,
-    earnings,
     stats: {
       totalGames: games.length,
       totalPlays: totalStats._sum.plays || 0,
       totalLikes: totalStats._sum.likes || 0,
       totalEarnings: totalEarnings._sum.amount || 0,
       pendingEarnings: pendingEarnings._sum.amount || 0,
-      permanentGames,
-      expiringGames,
     },
-    urgentGames,
   }
 }
 
@@ -89,7 +65,7 @@ export default async function CreatorDashboard() {
     redirect("/login")
   }
 
-  const { games, stats, urgentGames } = await getCreatorData(session.user.id)
+  const { games, stats } = await getCreatorData(session.user.id)
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0d0d15]">
@@ -115,32 +91,6 @@ export default async function CreatorDashboard() {
           </Link>
         </div>
 
-        {/* Urgent Games Alert */}
-        {urgentGames.length > 0 && (
-          <div className="mb-6 border-2 border-[#ff0040] bg-[#ff0040]/10 p-4">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-[#ff0040] mt-0.5 animate-pulse" />
-              <div>
-                <p className="text-[#ff0040] font-bold font-arcade">
-                  CRITICAL: {urgentGames.length} GAME{urgentGames.length > 1 ? "S" : ""} EXPIRING WITHIN 24 HOURS
-                </p>
-                <p className="text-[#4a4a6a] text-sm font-arcade mt-1">
-                  Share these games to get more likes and prevent deletion!
-                </p>
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {urgentGames.map((game) => (
-                    <Link key={game.id} href={`/play/${game.slug}`}>
-                      <span className="px-2 py-1 bg-[#ff0040]/20 border border-[#ff0040] text-[#ff0040] text-xs font-arcade hover:bg-[#ff0040]/30 transition-colors">
-                        {game.title} ({game.likes}/{LIKES_FOR_PERMANENT} LIKES)
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
           <div className="border-2 border-[#4a4a6a] p-4">
@@ -149,11 +99,6 @@ export default async function CreatorDashboard() {
               <span className="text-xs text-[#4a4a6a] font-arcade">TOTAL_GAMES</span>
             </div>
             <p className="text-2xl sm:text-3xl font-bold text-white font-arcade">{stats.totalGames}</p>
-            <div className="flex items-center gap-2 mt-2 text-xs font-arcade">
-              <span className="text-[#ffff00]">{stats.permanentGames} PERMANENT</span>
-              <span className="text-[#4a4a6a]">|</span>
-              <span className="text-[#ffa500]">{stats.expiringGames} EXPIRING</span>
-            </div>
           </div>
           
           <div className="border-2 border-[#4a4a6a] p-4">
@@ -198,28 +143,6 @@ export default async function CreatorDashboard() {
           </div>
         )}
 
-        {/* Retention Rules Info */}
-        <div className="mb-6 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Terminal className="h-4 w-4 text-[#ffff00]" />
-            <span className="text-[#ffff00] font-arcade text-sm">RETENTION_RULES</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm font-arcade">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-[#ffa500]" />
-              <span className="text-[#4a4a6a]">Games expire after <span className="text-white">3 days</span></span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Heart className="h-4 w-4 text-[#ff0040]" />
-              <span className="text-[#4a4a6a]">Reach <span className="text-white">{LIKES_FOR_PERMANENT} likes</span> for permanent hosting</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4 text-[#ffff00]" />
-              <span className="text-[#4a4a6a]">Permanent games <span className="text-[#ffff00]">never expire</span></span>
-            </div>
-          </div>
-        </div>
-
         {/* Games List */}
         <div className="border-2 border-[#4a4a6a]">
           <div className="border-b-2 border-[#4a4a6a] px-4 py-3 bg-[#1a1a2e] flex items-center justify-between">
@@ -231,16 +154,9 @@ export default async function CreatorDashboard() {
           
           <div className="bg-[#0d0d15]">
             {games.length > 0 ? (
-              <div className="divide-y divide-[#222]">
+                <div className="divide-y divide-[#222]">
                 {games.map((game) => {
                   const category = CATEGORIES.find(c => c.value === game.category)
-                  const retention = formatRetentionStatus({
-                    likes: game.likes,
-                    expiresAt: game.expiresAt,
-                    isPermanent: game.isPermanent,
-                  })
-                  const likesNeeded = LIKES_FOR_PERMANENT - game.likes
-                  const progressPercent = Math.min(100, (game.likes / LIKES_FOR_PERMANENT) * 100)
                   
                   return (
                     <div
@@ -277,25 +193,6 @@ export default async function CreatorDashboard() {
                           }`}>
                             {game.status}
                           </span>
-                          
-                          {/* Retention Badge */}
-                          {game.status === "PUBLISHED" && (
-                            retention.status === "permanent" ? (
-                              <span className="flex items-center gap-1 px-2 py-0.5 bg-[#ffff00] text-[#0d0d15] text-xs font-arcade">
-                                <Shield className="h-3 w-3" />
-                                PERMANENT
-                              </span>
-                            ) : retention.status === "expiring" && (
-                              <span className={`flex items-center gap-1 px-2 py-0.5 text-xs font-arcade ${
-                                retention.urgent 
-                                  ? "bg-[#ff0040] text-white animate-pulse" 
-                                  : "bg-[#ffa500]/20 text-[#ffa500]"
-                              }`}>
-                                <Clock className="h-3 w-3" />
-                                {retention.message}
-                              </span>
-                            )
-                          )}
                         </div>
                         
                         <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-[#4a4a6a] font-arcade">
@@ -304,31 +201,12 @@ export default async function CreatorDashboard() {
                             <Eye className="h-3 w-3" />
                             {formatNumber(game.plays)}
                           </span>
-                          <span className={`flex items-center gap-1 ${
-                            game.likes >= LIKES_FOR_PERMANENT ? "text-[#ffff00]" : ""
-                          }`}>
+                          <span className="flex items-center gap-1 text-[#ff0040]">
                             <Heart className="h-3 w-3" />
-                            {formatNumber(game.likes)}/{LIKES_FOR_PERMANENT}
+                            {formatNumber(game.likes)}
                           </span>
                           <span>{timeAgo(new Date(game.createdAt))}</span>
                         </div>
-                        
-                        {/* Progress bar for non-permanent published games */}
-                        {game.status === "PUBLISHED" && !game.isPermanent && (
-                          <div className="mt-2 flex items-center gap-2">
-                            <div className="flex-1 h-1 bg-[#222] max-w-xs">
-                              <div 
-                                className={`h-full ${
-                                  retention.urgent ? "bg-[#ff0040]" : "bg-[#ffa500]"
-                                }`}
-                                style={{ width: `${progressPercent}%` }}
-                              />
-                            </div>
-                            <span className="text-xs text-[#4a4a6a] font-arcade">
-                              {likesNeeded > 0 ? `${likesNeeded} more` : "Ready!"}
-                            </span>
-                          </div>
-                        )}
                       </div>
 
                       {/* Actions */}

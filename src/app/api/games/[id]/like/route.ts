@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
-import { checkAndUpdatePermanentStatus, LIKES_FOR_PERMANENT } from "@/lib/retention"
 
 export async function POST(
   request: NextRequest,
@@ -23,7 +22,7 @@ export async function POST(
     // Check if game exists
     const game = await prisma.game.findUnique({
       where: { id: gameId },
-      select: { id: true, likes: true, isPermanent: true, creatorId: true },
+      select: { id: true },
     })
 
     if (!game) {
@@ -77,22 +76,6 @@ export async function POST(
       
       liked = true
       newLikes = updated.likes
-
-      // Check if game should become permanent
-      if (!game.isPermanent && newLikes >= LIKES_FOR_PERMANENT) {
-        await checkAndUpdatePermanentStatus(gameId, newLikes)
-        
-        // Notify creator that their game is now permanent
-        await prisma.notification.create({
-          data: {
-            userId: game.creatorId,
-            title: "GAME_PERMANENT",
-            message: `Your game has reached ${LIKES_FOR_PERMANENT} likes and is now permanently hosted!`,
-            type: "success",
-            link: `/play/${gameId}`,
-          },
-        })
-      }
     }
 
     revalidateTag("games", "max")
@@ -100,8 +83,6 @@ export async function POST(
     return NextResponse.json({
       liked,
       likes: newLikes,
-      isPermanent: newLikes >= LIKES_FOR_PERMANENT,
-      likesNeeded: Math.max(0, LIKES_FOR_PERMANENT - newLikes),
     })
   } catch (error) {
     console.error("Like error:", error)
@@ -122,7 +103,7 @@ export async function GET(
 
     const game = await prisma.game.findUnique({
       where: { id: gameId },
-      select: { likes: true, isPermanent: true, expiresAt: true },
+      select: { likes: true },
     })
 
     if (!game) {
@@ -145,9 +126,6 @@ export async function GET(
     return NextResponse.json({
       liked,
       likes: game.likes,
-      isPermanent: game.isPermanent,
-      expiresAt: game.expiresAt,
-      likesNeeded: Math.max(0, LIKES_FOR_PERMANENT - game.likes),
     })
   } catch (error) {
     console.error("Get like status error:", error)

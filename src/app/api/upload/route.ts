@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from "uuid"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { slugify } from "@/lib/utils"
-import { calculateExpirationDate } from "@/lib/retention"
 import {
   deleteGameAssetsFromR2,
   uploadGameToR2,
@@ -98,9 +97,6 @@ export async function POST(request: NextRequest) {
       thumbnailUrl = await uploadThumbnailToR2(gameId, thumbnail)
     }
 
-    // Create game in database with expiration date (3 days)
-    const expiresAt = calculateExpirationDate()
-    
     let game
     try {
       game = await prisma.game.create({
@@ -121,8 +117,6 @@ export async function POST(request: NextRequest) {
           creatorId: session.user.id,
           status: "PUBLISHED",
           publishedAt: new Date(),
-          expiresAt, // Game expires in 3 days unless it gets 100 likes
-          isPermanent: false,
         },
       })
     } catch (dbError) {

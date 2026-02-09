@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
-import { calculateExpirationDate } from "@/lib/retention"
 
 export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -23,7 +22,6 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     data: {
       status: "PUBLISHED",
       publishedAt: game.publishedAt ?? new Date(),
-      expiresAt: game.isPermanent ? null : game.expiresAt ?? calculateExpirationDate(),
     },
   })
 

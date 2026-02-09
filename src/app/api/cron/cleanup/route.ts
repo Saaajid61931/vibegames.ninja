@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { revalidateTag } from "next/cache"
-import { expireOldGames, getExpiringGames } from "@/lib/retention"
+import prisma from "@/lib/prisma"
 
 // This endpoint should be called by a cron job (e.g., every hour)
 // In production, protect this with a secret key
@@ -14,21 +13,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 })
     }
 
-    // Expire old games
-    const expiredCount = await expireOldGames()
-    
-    // Get games expiring soon (for notifications)
-    const expiringGames = await getExpiringGames()
-
-    if (expiredCount > 0) {
-      revalidateTag("games", "max")
-    }
-
     return NextResponse.json({
       success: true,
-      expired: expiredCount,
-      expiringSoon: expiringGames.length,
-      message: `Expired ${expiredCount} games. ${expiringGames.length} games expiring within 24h.`,
+      message: "Cleanup retention is disabled.",
     })
   } catch (error) {
     console.error("Cleanup error:", error)
@@ -36,23 +23,22 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Get retention stats
+// Return lightweight publishing stats
 export async function GET() {
   try {
-    const expiringGames = await getExpiringGames()
+    const [publishedGames, totalPlays, totalLikes] = await Promise.all([
+      prisma.game.count({ where: { status: "PUBLISHED" } }),
+      prisma.game.aggregate({ _sum: { plays: true } }),
+      prisma.game.aggregate({ _sum: { likes: true } }),
+    ])
     
     return NextResponse.json({
-      expiringSoon: expiringGames.map((game) => ({
-        id: game.id,
-        title: game.title,
-        slug: game.slug,
-        likes: game.likes,
-        expiresAt: game.expiresAt,
-        creatorEmail: game.creator.email,
-      })),
+      publishedGames,
+      totalPlays: totalPlays._sum.plays ?? 0,
+      totalLikes: totalLikes._sum.likes ?? 0,
     })
   } catch (error) {
-    console.error("Get retention stats error:", error)
+    console.error("Get cleanup stats error:", error)
     return NextResponse.json({ error: "SYSTEM_ERROR" }, { status: 500 })
   }
 }

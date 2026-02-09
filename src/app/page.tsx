@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { GameCard } from "@/components/games/game-card"
 import prisma from "@/lib/prisma"
+import { getDiscoveryOrderBy } from "@/lib/discovery"
 
 const getFeaturedGames = unstable_cache(async () => {
   const games = await prisma.game.findMany({
@@ -15,14 +16,10 @@ const getFeaturedGames = unstable_cache(async () => {
         select: { id: true, name: true, username: true, image: true }
       }
     },
-    orderBy: { plays: "desc" },
+    orderBy: getDiscoveryOrderBy("trending"),
     take: 6,
   })
-  return games.map(game => ({
-    ...game,
-    expiresAt: game.expiresAt,
-    isPermanent: game.isPermanent,
-  }))
+  return games
 }, ["home-featured-games"], { revalidate: 60, tags: ["games"] })
 
 const getStats = unstable_cache(async () => {
@@ -43,7 +40,6 @@ export default async function HomePage() {
   const normalizedGames = games.map((game) => ({
     ...game,
     createdAt: new Date(game.createdAt),
-    expiresAt: game.expiresAt ? new Date(game.expiresAt) : null,
   }))
 
   const features = [
