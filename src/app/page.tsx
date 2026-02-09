@@ -94,13 +94,13 @@ export default async function HomePage() {
                 <Link href="/games">
                   <Button variant="arcade" size="xl" className="gap-3">
                     <Gamepad2 className="h-5 w-5" />
-                    INSERT COIN
+                    START GAME
                   </Button>
                 </Link>
                 <Link href="/register">
                   <Button variant="outline" size="xl" className="gap-3">
                     <Star className="h-5 w-5" />
-                    START GAME
+                    BECOME A CREATOR
                   </Button>
                 </Link>
               </div>
