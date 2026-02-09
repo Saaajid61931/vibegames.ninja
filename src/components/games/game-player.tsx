@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Maximize2, Minimize2 } from "lucide-react"
+import { Maximize2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface GamePlayerProps {
@@ -47,21 +47,23 @@ export function GamePlayer({ title, gameUrl, runtimeLabel }: GamePlayerProps) {
   }
 
   return (
-    <div ref={wrapperRef} className="relative border-2 border-[#4a4a6a] bg-[#1a1a2e]">
-      <div className="border-b-2 border-[#4a4a6a] bg-[#0d0d15] px-3 sm:px-4 py-2 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="flex gap-1.5">
-            <div className="h-3 w-3 bg-[#ff0040]" />
-            <div className="h-3 w-3 bg-[#ffa500]" />
-            <div className="h-3 w-3 bg-[#ffff00]" />
+    <div ref={wrapperRef} className={`relative ${isFullscreen ? "bg-black" : "border-2 border-[#4a4a6a] bg-[#1a1a2e]"}`}>
+      {!isFullscreen && (
+        <div className="border-b-2 border-[#4a4a6a] bg-[#0d0d15] px-3 sm:px-4 py-2 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="flex gap-1.5">
+              <div className="h-3 w-3 bg-[#ff0040]" />
+              <div className="h-3 w-3 bg-[#ffa500]" />
+              <div className="h-3 w-3 bg-[#ffff00]" />
+            </div>
+            <span className="font-arcade text-xs text-[#4a4a6a] ml-2 truncate">RUNTIME: {runtimeLabel}</span>
           </div>
-          <span className="font-arcade text-xs text-[#4a4a6a] ml-2 truncate">RUNTIME: {runtimeLabel}</span>
+          <Button type="button" variant="outline" size="sm" className="gap-1 sm:gap-2 shrink-0" onClick={toggleFullscreen}>
+            <Maximize2 className="h-4 w-4" />
+            {isMobileViewport ? "Full" : "Fullscreen"}
+          </Button>
         </div>
-        <Button type="button" variant="outline" size="sm" className="gap-1 sm:gap-2 shrink-0" onClick={toggleFullscreen}>
-          {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-          {isFullscreen ? (isMobileViewport ? "Exit" : "Exit Fullscreen") : (isMobileViewport ? "Full" : "Fullscreen")}
-        </Button>
-      </div>
+      )}
 
       {isMobileViewport && !isFullscreen && (
         <div className="px-3 py-2 text-[11px] text-[#8b93a6] border-b border-[#2e3446] bg-[#0d0d15]">
