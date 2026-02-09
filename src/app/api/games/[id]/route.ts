@@ -3,6 +3,7 @@ import { revalidateTag } from "next/cache"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { slugify } from "@/lib/utils"
+import { deleteStaleGameAssetsFromR2, uploadGameToR2, validateR2Config } from "@/lib/storage"
 
 export async function GET(
   _request: NextRequest,
@@ -57,21 +58,78 @@ export async function PATCH(
       return NextResponse.json({ error: "Not authorized to edit this game" }, { status: 403 })
     }
 
-    const body = await request.json()
+    const contentType = request.headers.get("content-type") || ""
 
-    const {
-      title,
-      description,
-      instructions,
-      category,
-      tags,
-      aiTool,
-      aiModel,
-      supportsMobile,
-    } = body
+    let title = ""
+    let description = ""
+    let instructions: string | null = null
+    let category = "OTHER"
+    let tags = ""
+    let aiTool: string | null = null
+    let aiModel: string | null = null
+    let supportsMobile = false
+    let gameFile: File | null = null
+
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await request.formData()
+      title = String(formData.get("title") || "")
+      description = String(formData.get("description") || "")
+      const instructionsRaw = formData.get("instructions")
+      instructions = instructionsRaw ? String(instructionsRaw) : null
+      category = String(formData.get("category") || "OTHER")
+      tags = String(formData.get("tags") || "")
+      const aiToolRaw = String(formData.get("aiTool") || "").trim()
+      aiTool = aiToolRaw || null
+      const aiModelRaw = String(formData.get("aiModel") || "").trim()
+      aiModel = aiModelRaw || null
+      supportsMobile = String(formData.get("supportsMobile") || "false") === "true"
+
+      const maybeGameFile = formData.get("gameFile")
+      gameFile = maybeGameFile instanceof File ? maybeGameFile : null
+    } else {
+      const body = await request.json()
+      title = body.title
+      description = body.description
+      instructions = body.instructions || null
+      category = body.category || "OTHER"
+      tags = body.tags || ""
+      aiTool = body.aiTool || null
+      aiModel = body.aiModel || null
+      supportsMobile = Boolean(body.supportsMobile)
+    }
 
     if (!title || !description) {
       return NextResponse.json({ error: "Title and description are required" }, { status: 400 })
+    }
+
+    let nextGameUrl: string | undefined
+    if (gameFile) {
+      const validExtensions = [".html", ".zip"]
+      const isValidGameFile = validExtensions.some((ext) => gameFile!.name.toLowerCase().endsWith(ext))
+      if (!isValidGameFile) {
+        return NextResponse.json({ error: "Game file must be .html or .zip" }, { status: 400 })
+      }
+
+      const maxUploadSizeMb = Number(process.env.MAX_UPLOAD_SIZE_MB || "50")
+      const maxUploadBytes = maxUploadSizeMb * 1024 * 1024
+      if (gameFile.size > maxUploadBytes) {
+        return NextResponse.json(
+          { error: `Game file exceeds ${maxUploadSizeMb}MB limit` },
+          { status: 400 }
+        )
+      }
+
+      const r2Config = validateR2Config()
+      if (!r2Config.valid) {
+        return NextResponse.json(
+          { error: `R2 storage is not configured. Missing: ${r2Config.missing.join(", ")}` },
+          { status: 500 }
+        )
+      }
+
+      const uploadResult = await uploadGameToR2(id, gameFile)
+      await deleteStaleGameAssetsFromR2(id, uploadResult.uploadedKeys)
+      nextGameUrl = uploadResult.gameUrl
     }
 
     let newSlug = game.slug
@@ -92,11 +150,12 @@ export async function PATCH(
         slug: newSlug,
         description,
         instructions: instructions || null,
-        category: category || "OTHER",
-        tags: tags || "",
+        category: category.toUpperCase() || "OTHER",
+        tags,
         aiTool: aiTool || null,
         aiModel: aiModel || null,
-        supportsMobile: Boolean(supportsMobile),
+        supportsMobile,
+        ...(nextGameUrl ? { gameUrl: nextGameUrl } : {}),
       },
     })
 

@@ -122,7 +122,10 @@ async function putObject(params: {
   )
 }
 
-export async function uploadGameToR2(gameId: string, gameFile: File): Promise<{ gameUrl: string }> {
+export async function uploadGameToR2(
+  gameId: string,
+  gameFile: File
+): Promise<{ gameUrl: string; uploadedKeys: string[] }> {
   const gamePrefix = `games/${gameId}`
   const gameBuffer = Buffer.from(await gameFile.arrayBuffer())
 
@@ -134,7 +137,7 @@ export async function uploadGameToR2(gameId: string, gameFile: File): Promise<{ 
       contentType: "text/html; charset=utf-8",
       cacheControl: "public, max-age=300",
     })
-    return { gameUrl: createAssetUrl(key) }
+    return { gameUrl: createAssetUrl(key), uploadedKeys: [key] }
   }
 
   if (!gameFile.name.toLowerCase().endsWith(".zip")) {
@@ -143,6 +146,7 @@ export async function uploadGameToR2(gameId: string, gameFile: File): Promise<{ 
 
   const zip = await JSZip.loadAsync(gameBuffer)
   const uploadPaths: string[] = []
+  const uploadedKeys: string[] = []
 
   for (const [entryName, entry] of Object.entries(zip.files)) {
     if (entry.dir) {
@@ -165,6 +169,7 @@ export async function uploadGameToR2(gameId: string, gameFile: File): Promise<{ 
     })
 
     uploadPaths.push(normalizedPath)
+    uploadedKeys.push(key)
   }
 
   const lowercasePaths = uploadPaths.map((path) => path.toLowerCase())
@@ -179,7 +184,59 @@ export async function uploadGameToR2(gameId: string, gameFile: File): Promise<{ 
     indexPath = nestedIndexPaths[0]
   }
 
-  return { gameUrl: createAssetUrl(`${gamePrefix}/${indexPath}`) }
+  return { gameUrl: createAssetUrl(`${gamePrefix}/${indexPath}`), uploadedKeys }
+}
+
+function isRootThumbnailAsset(key: string, prefix: string): boolean {
+  if (!key.startsWith(prefix)) {
+    return false
+  }
+
+  const relativePath = key.slice(prefix.length)
+  return /^thumbnail\.[^/]+$/i.test(relativePath)
+}
+
+export async function deleteStaleGameAssetsFromR2(gameId: string, keepKeys: string[]): Promise<number> {
+  const prefix = `games/${gameId}/`
+  const keepSet = new Set(keepKeys)
+  const client = getR2Client()
+  const bucket = getBucketName()
+
+  let continuationToken: string | undefined
+  let deletedCount = 0
+
+  do {
+    const listed = await client.send(
+      new ListObjectsV2Command({
+        Bucket: bucket,
+        Prefix: prefix,
+        ContinuationToken: continuationToken,
+      })
+    )
+
+    const objectsToDelete =
+      listed.Contents?.map((obj) => obj.Key)
+        .filter((key): key is string => Boolean(key))
+        .filter((key) => !keepSet.has(key) && !isRootThumbnailAsset(key, prefix))
+        .map((key) => ({ Key: key })) || []
+
+    if (objectsToDelete.length > 0) {
+      await client.send(
+        new DeleteObjectsCommand({
+          Bucket: bucket,
+          Delete: {
+            Objects: objectsToDelete,
+            Quiet: true,
+          },
+        })
+      )
+      deletedCount += objectsToDelete.length
+    }
+
+    continuationToken = listed.IsTruncated ? listed.NextContinuationToken : undefined
+  } while (continuationToken)
+
+  return deletedCount
 }
 
 export async function uploadThumbnailToR2(gameId: string, thumbnail: File): Promise<string> {

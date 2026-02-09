@@ -4,7 +4,18 @@ import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
-import { ChevronLeft, Save, Loader2, AlertCircle, CheckCircle, Gamepad2 } from "lucide-react"
+import { useDropzone } from "react-dropzone"
+import {
+  ChevronLeft,
+  Save,
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  Gamepad2,
+  Upload,
+  FileArchive,
+  X,
+} from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -41,6 +52,7 @@ export default function EditGamePage({ params }: PageProps) {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
   const [game, setGame] = useState<GameData | null>(null)
+  const [gameFile, setGameFile] = useState<File | null>(null)
 
   const [formData, setFormData] = useState({
     title: "",
@@ -108,6 +120,34 @@ export default function EditGamePage({ params }: PageProps) {
     }
   }, [gameId, session?.user?.id, fetchGame])
 
+  const onDropGame = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0]
+    if (!file) return
+
+    const fileName = file.name.toLowerCase()
+    if (fileName.endsWith(".zip") || fileName.endsWith(".html")) {
+      setGameFile(file)
+      setError("")
+      return
+    }
+
+    setError("Please upload a .zip file containing your game or a single .html file")
+  }, [])
+
+  const {
+    getRootProps: getGameRootProps,
+    getInputProps: getGameInputProps,
+    isDragActive: isGameDragActive,
+  } = useDropzone({
+    onDrop: onDropGame,
+    accept: {
+      "application/zip": [".zip"],
+      "text/html": [".html"],
+    },
+    maxFiles: 1,
+    maxSize: 50 * 1024 * 1024,
+  })
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -117,19 +157,23 @@ export default function EditGamePage({ params }: PageProps) {
       const selectedAiModel =
         formData.aiModel === "other" ? formData.customAiModel.trim() : formData.aiModel
 
+      const updateData = new FormData()
+      updateData.append("title", formData.title)
+      updateData.append("description", formData.description)
+      updateData.append("instructions", formData.instructions)
+      updateData.append("category", formData.category)
+      updateData.append("tags", formData.tags)
+      updateData.append("aiTool", formData.aiTool)
+      updateData.append("aiModel", selectedAiModel || "")
+      updateData.append("supportsMobile", String(formData.supportsMobile))
+
+      if (gameFile) {
+        updateData.append("gameFile", gameFile)
+      }
+
       const res = await fetch(`/api/games/${gameId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          instructions: formData.instructions || null,
-          category: formData.category,
-          tags: formData.tags,
-          aiTool: formData.aiTool || null,
-          aiModel: selectedAiModel || null,
-          supportsMobile: formData.supportsMobile,
-        }),
+        body: updateData,
       })
 
       const data = await res.json()
@@ -139,6 +183,7 @@ export default function EditGamePage({ params }: PageProps) {
       }
 
       setSuccess(true)
+      setGameFile(null)
       setTimeout(() => {
         router.push("/creator")
       }, 1500)
@@ -247,6 +292,59 @@ export default function EditGamePage({ params }: PageProps) {
                 </CardContent>
               </Card>
             )}
+
+            <Card className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
+              <CardHeader>
+                <CardTitle className="font-arcade text-sm">Replace Game File (Optional)</CardTitle>
+                <CardDescription className="font-arcade text-xs">
+                  Upload a new .zip or .html version. Old game assets are removed after replacement to save
+                  storage.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div
+                  {...getGameRootProps()}
+                  className={`border-2 border-dashed p-5 sm:p-6 text-center cursor-pointer transition-all ${
+                    isGameDragActive
+                      ? "border-[#ffff00] bg-[#ffff00]/10"
+                      : gameFile
+                      ? "border-[#00ff40] bg-[#00ff40]/10"
+                      : "border-[#4a4a6a] hover:border-[#ffff00]"
+                  }`}
+                >
+                  <input {...getGameInputProps()} />
+                  {gameFile ? (
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                      <FileArchive className="h-10 w-10 text-[#00ff40]" />
+                      <div className="text-center sm:text-left min-w-0">
+                        <p className="font-arcade text-sm text-white break-all">{gameFile.name}</p>
+                        <p className="text-xs text-[#4a4a6a] font-arcade">
+                          {(gameFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setGameFile(null)
+                        }}
+                        className="p-1 text-[#4a4a6a] hover:text-white"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="h-8 w-8 text-[#4a4a6a] mx-auto mb-2" />
+                      <p className="text-white font-arcade text-xs sm:text-sm mb-1">
+                        Drag and drop to replace your game build
+                      </p>
+                      <p className="text-[#4a4a6a] text-xs font-arcade">Max 50MB | .zip or .html</p>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
             <Card className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
               <CardHeader>

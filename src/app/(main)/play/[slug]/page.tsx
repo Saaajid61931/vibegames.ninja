@@ -4,6 +4,8 @@ import { Play, Heart, Share2, Flag, MessageCircle, ChevronLeft, User, Gamepad2, 
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { GamePlayer } from "@/components/games/game-player"
+import { LikeButton } from "@/components/games/like-button"
+import { CommentsSection } from "@/components/games/comments-section"
 import { FollowButton } from "@/components/creator/follow-button"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -80,7 +82,7 @@ export default async function PlayPage({ params }: PageProps) {
   }
 
   const relatedGames = await getRelatedGames(game.category, game.id)
-  const [followersCount, creatorGamesCount, isFollowing] = await Promise.all([
+  const [followersCount, creatorGamesCount, isFollowing, isLiked] = await Promise.all([
     prisma.creatorFollow.count({ where: { creatorId: game.creator.id } }),
     prisma.game.count({ where: { creatorId: game.creator.id, status: "PUBLISHED" } }),
     session?.user?.id
@@ -95,6 +97,19 @@ export default async function PlayPage({ params }: PageProps) {
             select: { id: true },
           })
           .then((follow: { id: string } | null) => Boolean(follow))
+      : Promise.resolve(false),
+    session?.user?.id
+      ? prisma.favorite
+          .findUnique({
+            where: {
+              userId_gameId: {
+                userId: session.user.id,
+                gameId: game.id,
+              },
+            },
+            select: { id: true },
+          })
+          .then((favorite: { id: string } | null) => Boolean(favorite))
       : Promise.resolve(false),
   ])
   const creatorProfileHref = game.creator.username ? `/creator/${game.creator.username}` : "/creator"
@@ -128,10 +143,12 @@ export default async function PlayPage({ params }: PageProps) {
                   {game.title}
                 </h1>
                 <div className="flex w-full sm:w-auto flex-wrap items-center gap-2">
-                  <Button variant="default" size="sm" className="gap-2 font-arcade flex-1 sm:flex-none min-w-[108px]">
-                    <Heart className="h-4 w-4" />
-                    [{formatNumber(game.likes)}]
-                  </Button>
+                  <LikeButton
+                    gameId={game.id}
+                    slug={game.slug}
+                    initialLikes={game.likes}
+                    initialLiked={isLiked}
+                  />
                   <Button variant="outline" size="sm" className="gap-2 font-arcade flex-1 sm:flex-none min-w-[108px]">
                     <Share2 className="h-4 w-4" />
                     [SHARE]
@@ -221,43 +238,12 @@ export default async function PlayPage({ params }: PageProps) {
               </div>
 
               {/* Comments */}
-              <div className="border-2 border-[#4a4a6a]">
-                <div className="border-b-2 border-[#4a4a6a] px-4 py-3 flex items-center gap-2 bg-[#1a1a2e]">
-                  <MessageCircle className="h-4 w-4 text-[#ffff00]" />
-                  <span className="font-arcade text-sm">COMMENTS [{game._count.comments}]</span>
-                </div>
-                <div className="p-3 sm:p-4 bg-[#0d0d15]">
-                  {game.comments.length > 0 ? (
-                    <div className="space-y-4">
-                      {game.comments.map((comment) => (
-                        <div key={comment.id} className="flex gap-3 pb-4 border-b border-[#222] last:border-0">
-                          <Avatar className="h-8 w-8 border border-[#4a4a6a]">
-                            <AvatarImage src={comment.user.image || undefined} />
-                            <AvatarFallback className="text-xs bg-[#1a1a2e] text-[#4a4a6a]">
-                              {getInitials(comment.user.name || comment.user.username || "U")}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-arcade text-sm text-[#ffff00]">
-                                @{comment.user.username || comment.user.name}
-                              </span>
-                              <span className="text-xs text-[#4a4a6a] font-arcade">
-                                {timeAgo(new Date(comment.createdAt))}
-                              </span>
-                            </div>
-                             <p className="text-[#e5e5e5] text-sm leading-relaxed font-arcade">{comment.content}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-[#4a4a6a] text-center py-8 font-arcade">
-                      NO_COMMENTS_FOUND. Be the first to comment.
-                    </p>
-                  )}
-                </div>
-              </div>
+              <CommentsSection
+                gameId={game.id}
+                slug={game.slug}
+                initialComments={game.comments}
+                initialCommentsCount={game._count.comments}
+              />
             </div>
 
             {/* Sidebar */}
