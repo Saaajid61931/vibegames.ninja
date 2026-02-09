@@ -36,6 +36,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="google-adsense-account" content="ca-pub-5524404299427340" />
+      </head>
       <body className={`${pressStart.variable} ${inter.variable} antialiased`}>
         <Providers>
           {children}
