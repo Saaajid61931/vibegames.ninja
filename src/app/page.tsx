@@ -78,13 +78,13 @@ export default async function HomePage() {
               {/* Main Title */}
               <h1 className="mb-8">
                 <span
-                  className="block text-5xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-3 sm:mb-4 leading-[1.05]"
+                  className="block text-[clamp(1.6rem,8.5vw,2.3rem)] sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-3 sm:mb-4 leading-[1.05]"
                   style={{ fontFamily: "var(--font-pixel), monospace" }}
                 >
                   AI GENERATED
                 </span>
                 <span
-                  className="block text-5xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#ffff00] leading-[1.05] drop-shadow-[3px_3px_0_#ff0040] sm:drop-shadow-[4px_4px_0_#ff0040]"
+                  className="block text-[clamp(1.6rem,8.5vw,2.3rem)] sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#ffff00] leading-[1.05] drop-shadow-[3px_3px_0_#ff0040] sm:drop-shadow-[4px_4px_0_#ff0040]"
                   style={{ fontFamily: "var(--font-pixel), monospace" }}
                 >
                   ARCADE
