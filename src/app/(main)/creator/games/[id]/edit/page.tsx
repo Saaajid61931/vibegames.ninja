@@ -15,6 +15,7 @@ import {
   Upload,
   FileArchive,
   X,
+  Image,
 } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -24,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CATEGORIES, AI_MODELS, AI_TOOLS } from "@/lib/utils"
+import { CATEGORIES, AI_TOOLS } from "@/lib/utils"
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -53,6 +54,8 @@ export default function EditGamePage({ params }: PageProps) {
   const [success, setSuccess] = useState(false)
   const [game, setGame] = useState<GameData | null>(null)
   const [gameFile, setGameFile] = useState<File | null>(null)
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     title: "",
@@ -62,7 +65,6 @@ export default function EditGamePage({ params }: PageProps) {
     tags: "",
     aiTool: "",
     aiModel: "",
-    customAiModel: "",
     supportsMobile: false,
   })
 
@@ -93,9 +95,6 @@ export default function EditGamePage({ params }: PageProps) {
       const data = await res.json()
       setGame(data)
 
-      const knownModels = AI_MODELS.map((m) => m.value)
-      const isKnownModel = data.aiModel && knownModels.includes(data.aiModel)
-
       setFormData({
         title: data.title || "",
         description: data.description || "",
@@ -103,8 +102,7 @@ export default function EditGamePage({ params }: PageProps) {
         category: data.category || "OTHER",
         tags: data.tags || "",
         aiTool: data.aiTool || "",
-        aiModel: isKnownModel ? data.aiModel : data.aiModel ? "other" : "",
-        customAiModel: isKnownModel ? "" : data.aiModel || "",
+        aiModel: data.aiModel || "",
         supportsMobile: data.supportsMobile || false,
       })
     } catch {
@@ -134,6 +132,21 @@ export default function EditGamePage({ params }: PageProps) {
     setError("Please upload a .zip file containing your game or a single .html file")
   }, [])
 
+  const onDropThumbnail = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0]
+    if (!file) return
+
+    const validTypes = ["image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp"]
+    if (!validTypes.includes(file.type)) {
+      setError("Please upload an image file (PNG, JPG, GIF, or WebP)")
+      return
+    }
+
+    setThumbnailFile(file)
+    setThumbnailPreview(URL.createObjectURL(file))
+    setError("")
+  }, [])
+
   const {
     getRootProps: getGameRootProps,
     getInputProps: getGameInputProps,
@@ -148,15 +161,28 @@ export default function EditGamePage({ params }: PageProps) {
     maxSize: 50 * 1024 * 1024,
   })
 
+  const {
+    getRootProps: getThumbnailRootProps,
+    getInputProps: getThumbnailInputProps,
+    isDragActive: isThumbnailDragActive,
+  } = useDropzone({
+    onDrop: onDropThumbnail,
+    accept: {
+      "image/png": [".png"],
+      "image/jpeg": [".jpg", ".jpeg"],
+      "image/gif": [".gif"],
+      "image/webp": [".webp"],
+    },
+    maxFiles: 1,
+    maxSize: 5 * 1024 * 1024,
+  })
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setSaving(true)
 
     try {
-      const selectedAiModel =
-        formData.aiModel === "other" ? formData.customAiModel.trim() : formData.aiModel
-
       const updateData = new FormData()
       updateData.append("title", formData.title)
       updateData.append("description", formData.description)
@@ -164,11 +190,15 @@ export default function EditGamePage({ params }: PageProps) {
       updateData.append("category", formData.category)
       updateData.append("tags", formData.tags)
       updateData.append("aiTool", formData.aiTool)
-      updateData.append("aiModel", selectedAiModel || "")
+      updateData.append("aiModel", formData.aiModel.trim())
       updateData.append("supportsMobile", String(formData.supportsMobile))
 
       if (gameFile) {
         updateData.append("gameFile", gameFile)
+      }
+
+      if (thumbnailFile) {
+        updateData.append("thumbnail", thumbnailFile)
       }
 
       const res = await fetch(`/api/games/${gameId}`, {
@@ -184,6 +214,8 @@ export default function EditGamePage({ params }: PageProps) {
 
       setSuccess(true)
       setGameFile(null)
+      setThumbnailFile(null)
+      setThumbnailPreview(null)
       setTimeout(() => {
         router.push("/creator")
       }, 1500)
@@ -278,20 +310,70 @@ export default function EditGamePage({ params }: PageProps) {
               </div>
             )}
 
-            {game?.thumbnail && (
-              <Card className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
-                <CardHeader>
-                  <CardTitle className="font-arcade text-sm">Current Thumbnail</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <img
-                    src={game.thumbnail}
-                    alt={game.title}
-                    className="max-h-48 rounded border border-[#4a4a6a]"
-                  />
-                </CardContent>
-              </Card>
-            )}
+            <Card className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
+              <CardHeader>
+                <CardTitle className="font-arcade text-sm">Change Thumbnail (Optional)</CardTitle>
+                <CardDescription className="font-arcade text-xs">
+                  Upload a new thumbnail image. Max 5MB | PNG, JPG, GIF, or WebP
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div
+                  {...getThumbnailRootProps()}
+                  className={`border-2 border-dashed p-5 sm:p-6 text-center cursor-pointer transition-all ${
+                    isThumbnailDragActive
+                      ? "border-[#ffff00] bg-[#ffff00]/10"
+                      : thumbnailFile
+                      ? "border-[#00ff40] bg-[#00ff40]/10"
+                      : "border-[#4a4a6a] hover:border-[#ffff00]"
+                  }`}
+                >
+                  <input {...getThumbnailInputProps()} />
+                  {thumbnailPreview || thumbnailFile ? (
+                    <div className="flex flex-col items-center gap-3">
+                      <img
+                        src={thumbnailPreview || ""}
+                        alt="New thumbnail preview"
+                        className="max-h-48 rounded border border-[#4a4a6a]"
+                      />
+                      <div className="flex items-center gap-3">
+                        <p className="font-arcade text-sm text-white">{thumbnailFile?.name}</p>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setThumbnailFile(null)
+                            setThumbnailPreview(null)
+                          }}
+                          className="p-1 text-[#4a4a6a] hover:text-white"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : game?.thumbnail ? (
+                    <div className="flex flex-col items-center gap-3">
+                      <img
+                        src={game.thumbnail}
+                        alt={game.title}
+                        className="max-h-48 rounded border border-[#4a4a6a] opacity-60"
+                      />
+                      <p className="text-[#4a4a6a] text-xs font-arcade">
+                        Current thumbnail - drag a new image to replace
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <Image className="h-8 w-8 text-[#4a4a6a] mx-auto mb-2" />
+                      <p className="text-white font-arcade text-xs sm:text-sm mb-1">
+                        Drag and drop a thumbnail image
+                      </p>
+                      <p className="text-[#4a4a6a] text-xs font-arcade">Max 5MB | PNG, JPG, GIF, or WebP</p>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
             <Card className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
               <CardHeader>
@@ -427,36 +509,12 @@ export default function EditGamePage({ params }: PageProps) {
 
                   <div className="space-y-2">
                     <Label className="font-arcade text-xs">AI Model Used</Label>
-                    <Select
+                    <Input
                       value={formData.aiModel}
-                      onValueChange={(value) =>
-                        setFormData({
-                          ...formData,
-                          aiModel: value,
-                          customAiModel: value === "other" ? formData.customAiModel : "",
-                        })
-                      }
-                    >
-                      <SelectTrigger className="font-arcade">
-                        <SelectValue placeholder="Select AI model" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {AI_MODELS.map((model) => (
-                          <SelectItem key={model.value} value={model.value} className="font-arcade">
-                            {model.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    {formData.aiModel === "other" && (
-                      <Input
-                        value={formData.customAiModel}
-                        onChange={(e) => setFormData({ ...formData, customAiModel: e.target.value })}
-                        placeholder="Enter model name"
-                        className="font-arcade"
-                      />
-                    )}
+                      onChange={(e) => setFormData({ ...formData, aiModel: e.target.value })}
+                      placeholder="e.g. gpt-5, claude-sonnet-4, gemini-2.0-flash"
+                      className="font-arcade"
+                    />
                   </div>
                 </div>
 

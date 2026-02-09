@@ -77,10 +77,10 @@ export default async function HomePage() {
             <div className="max-w-5xl mx-auto text-center">
               {/* Main Title */}
               <h1 className="mb-8">
-                <span className="block text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-3 sm:mb-4 font-pixel leading-tight">
+                <span className="block text-5xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-3 sm:mb-4 font-pixel leading-[1.05]">
                   AI GENERATED
                 </span>
-                <span className="block text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-[#ffff00] font-pixel leading-tight drop-shadow-[3px_3px_0_#ff0040] sm:drop-shadow-[4px_4px_0_#ff0040]">
+                <span className="block text-5xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#ffff00] font-pixel leading-[1.05] drop-shadow-[3px_3px_0_#ff0040] sm:drop-shadow-[4px_4px_0_#ff0040]">
                   ARCADE
                 </span>
               </h1>

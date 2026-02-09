@@ -3,7 +3,7 @@ import { revalidateTag } from "next/cache"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { slugify } from "@/lib/utils"
-import { deleteStaleGameAssetsFromR2, uploadGameToR2, validateR2Config } from "@/lib/storage"
+import { deleteStaleGameAssetsFromR2, uploadGameToR2, uploadThumbnailToR2, validateR2Config } from "@/lib/storage"
 
 export async function GET(
   _request: NextRequest,
@@ -69,6 +69,7 @@ export async function PATCH(
     let aiModel: string | null = null
     let supportsMobile = false
     let gameFile: File | null = null
+    let thumbnailFile: File | null = null
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await request.formData()
@@ -86,6 +87,9 @@ export async function PATCH(
 
       const maybeGameFile = formData.get("gameFile")
       gameFile = maybeGameFile instanceof File ? maybeGameFile : null
+
+      const maybeThumbnailFile = formData.get("thumbnail")
+      thumbnailFile = maybeThumbnailFile instanceof File ? maybeThumbnailFile : null
     } else {
       const body = await request.json()
       title = body.title
@@ -132,6 +136,33 @@ export async function PATCH(
       nextGameUrl = uploadResult.gameUrl
     }
 
+    let nextThumbnailUrl: string | undefined
+    if (thumbnailFile) {
+      const validImageTypes = ["image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp"]
+      if (!validImageTypes.includes(thumbnailFile.type)) {
+        return NextResponse.json({ error: "Thumbnail must be PNG, JPG, GIF, or WebP" }, { status: 400 })
+      }
+
+      const maxThumbnailSizeMb = 5
+      const maxThumbnailBytes = maxThumbnailSizeMb * 1024 * 1024
+      if (thumbnailFile.size > maxThumbnailBytes) {
+        return NextResponse.json(
+          { error: `Thumbnail exceeds ${maxThumbnailSizeMb}MB limit` },
+          { status: 400 }
+        )
+      }
+
+      const r2Config = validateR2Config()
+      if (!r2Config.valid) {
+        return NextResponse.json(
+          { error: `R2 storage is not configured. Missing: ${r2Config.missing.join(", ")}` },
+          { status: 500 }
+        )
+      }
+
+      nextThumbnailUrl = await uploadThumbnailToR2(id, thumbnailFile)
+    }
+
     let newSlug = game.slug
     if (title !== game.title) {
       newSlug = slugify(title)
@@ -156,6 +187,7 @@ export async function PATCH(
         aiModel: aiModel || null,
         supportsMobile,
         ...(nextGameUrl ? { gameUrl: nextGameUrl } : {}),
+        ...(nextThumbnailUrl ? { thumbnail: nextThumbnailUrl } : {}),
       },
     })
 

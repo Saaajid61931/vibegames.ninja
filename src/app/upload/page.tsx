@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CATEGORIES, AI_MODELS, AI_TOOLS } from "@/lib/utils"
+import { CATEGORIES, AI_TOOLS } from "@/lib/utils"
 
 export default function UploadPage() {
   const router = useRouter()
@@ -33,7 +33,6 @@ export default function UploadPage() {
     tags: "",
     aiTool: "",
     aiModel: "",
-    customAiModel: "",
     supportsMobile: false,
     isAIGenerated: true,
   })
@@ -107,17 +106,13 @@ export default function UploadPage() {
         uploadData.append("thumbnail", thumbnailFile)
       }
 
-      const selectedAiModel = formData.aiModel === "other"
-        ? formData.customAiModel.trim()
-        : formData.aiModel
-
       uploadData.append("title", formData.title)
       uploadData.append("description", formData.description)
       uploadData.append("instructions", formData.instructions)
       uploadData.append("category", formData.category)
       uploadData.append("tags", formData.tags)
       uploadData.append("aiTool", formData.aiTool)
-      uploadData.append("aiModel", selectedAiModel)
+      uploadData.append("aiModel", formData.aiModel.trim())
       uploadData.append("supportsMobile", String(formData.supportsMobile))
       uploadData.append("isAIGenerated", String(formData.isAIGenerated))
 
@@ -336,29 +331,11 @@ export default function UploadPage() {
 
                   <div className="space-y-2">
                     <Label>AI Model Used</Label>
-                    <Select
+                    <Input
                       value={formData.aiModel}
-                      onValueChange={(value) => setFormData({ ...formData, aiModel: value, customAiModel: value === "other" ? formData.customAiModel : "" })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select AI model" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {AI_MODELS.map((model) => (
-                          <SelectItem key={model.value} value={model.value}>
-                            {model.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    {formData.aiModel === "other" && (
-                      <Input
-                        value={formData.customAiModel}
-                        onChange={(e) => setFormData({ ...formData, customAiModel: e.target.value })}
-                        placeholder="Enter model name (e.g. qwen2.5-coder-32b)"
-                      />
-                    )}
+                      onChange={(e) => setFormData({ ...formData, aiModel: e.target.value })}
+                      placeholder="e.g. gpt-5, claude-sonnet-4, gemini-2.0-flash"
+                    />
                   </div>
                 </div>
 
