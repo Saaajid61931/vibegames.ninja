@@ -44,6 +44,9 @@ const getGames = unstable_cache(async (category?: string, sort?: string, q?: str
   const games = await prisma.game.findMany({
     where,
     include: {
+      studioProfile: {
+        select: { id: true, handle: true, displayName: true, image: true },
+      },
       creator: {
         select: { id: true, name: true, username: true, image: true },
       },

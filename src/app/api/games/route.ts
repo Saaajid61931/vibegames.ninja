@@ -29,6 +29,9 @@ const getCachedGames = unstable_cache(
       prisma.game.findMany({
         where,
         include: {
+          studioProfile: {
+            select: { id: true, handle: true, displayName: true, image: true },
+          },
           creator: {
             select: { id: true, name: true, username: true, image: true },
           },

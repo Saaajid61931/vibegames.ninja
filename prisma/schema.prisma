@@ -34,6 +34,8 @@ model User {
   comments      Comment[]
   earnings      Earnings[]
   notifications Notification[]
+
+  studioProfiles StudioProfile[]
 }
 
 model Account {
@@ -108,10 +110,33 @@ model Game {
   
   creatorId   String
   creator     User      @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  // Optional publishing identity (studio/brand profile) owned by a real user
+  studioProfileId String?
+  studioProfile   StudioProfile? @relation(fields: [studioProfileId], references: [id], onDelete: SetNull)
+
   analytics   GameAnalytics[]
   favorites   Favorite[]
   comments    Comment[]
   reports     Report[]
+}
+
+model StudioProfile {
+  id          String   @id @default(cuid())
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // Public handle for the studio/brand (used in URLs)
+  handle      String   @unique
+  displayName String
+  image       String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  games       Game[]
+
+  @@index([ownerId])
 }
 
 model GameAnalytics {

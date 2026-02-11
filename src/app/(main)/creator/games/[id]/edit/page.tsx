@@ -183,33 +183,48 @@ export default function EditGamePage({ params }: PageProps) {
     setSaving(true)
 
     try {
-      const updateData = new FormData()
-      updateData.append("title", formData.title)
-      updateData.append("description", formData.description)
-      updateData.append("instructions", formData.instructions)
-      updateData.append("category", formData.category)
-      updateData.append("tags", formData.tags)
-      updateData.append("aiTool", formData.aiTool)
-      updateData.append("aiModel", formData.aiModel.trim())
-      updateData.append("supportsMobile", String(formData.supportsMobile))
+      const buildUpdateData = () => {
+        const nextData = new FormData()
+        nextData.append("title", formData.title)
+        nextData.append("description", formData.description)
+        nextData.append("instructions", formData.instructions)
+        nextData.append("category", formData.category)
+        nextData.append("tags", formData.tags)
+        nextData.append("aiTool", formData.aiTool)
+        nextData.append("aiModel", formData.aiModel.trim())
+        nextData.append("supportsMobile", String(formData.supportsMobile))
 
-      if (gameFile) {
-        updateData.append("gameFile", gameFile)
+        if (gameFile) {
+          nextData.append("gameFile", gameFile)
+        }
+
+        if (thumbnailFile) {
+          nextData.append("thumbnail", thumbnailFile)
+        }
+
+        return nextData
       }
 
-      if (thumbnailFile) {
-        updateData.append("thumbnail", thumbnailFile)
+      const sendUpdate = async (method: "PATCH" | "POST") => {
+        const res = await fetch(`/api/games/${gameId}`, {
+          method,
+          body: buildUpdateData(),
+        })
+
+        const data = await res.json()
+        return { res, data }
       }
 
-      const res = await fetch(`/api/games/${gameId}`, {
-        method: "PATCH",
-        body: updateData,
-      })
+      let result = await sendUpdate("PATCH")
 
-      const data = await res.json()
+      // Some mobile browsers/networks can fail multipart PATCH requests.
+      // Fallback to POST, handled by the same server update logic.
+      if (!result.res.ok && result.res.status >= 500) {
+        result = await sendUpdate("POST")
+      }
 
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to update game")
+      if (!result.res.ok) {
+        throw new Error(result.data.error || "Failed to update game")
       }
 
       setSuccess(true)
@@ -220,7 +235,44 @@ export default function EditGamePage({ params }: PageProps) {
         router.push("/creator")
       }, 1500)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong")
+      if (err instanceof TypeError && (thumbnailFile || gameFile)) {
+        try {
+          const fallbackRes = await fetch(`/api/games/${gameId}`, {
+            method: "POST",
+            body: (() => {
+              const nextData = new FormData()
+              nextData.append("title", formData.title)
+              nextData.append("description", formData.description)
+              nextData.append("instructions", formData.instructions)
+              nextData.append("category", formData.category)
+              nextData.append("tags", formData.tags)
+              nextData.append("aiTool", formData.aiTool)
+              nextData.append("aiModel", formData.aiModel.trim())
+              nextData.append("supportsMobile", String(formData.supportsMobile))
+              if (gameFile) nextData.append("gameFile", gameFile)
+              if (thumbnailFile) nextData.append("thumbnail", thumbnailFile)
+              return nextData
+            })(),
+          })
+
+          const fallbackData = await fallbackRes.json()
+          if (!fallbackRes.ok) {
+            throw new Error(fallbackData.error || "Failed to update game")
+          }
+
+          setSuccess(true)
+          setGameFile(null)
+          setThumbnailFile(null)
+          setThumbnailPreview(null)
+          setTimeout(() => {
+            router.push("/creator")
+          }, 1500)
+        } catch (fallbackErr) {
+          setError(fallbackErr instanceof Error ? fallbackErr.message : "Something went wrong")
+        }
+      } else {
+        setError(err instanceof Error ? err.message : "Something went wrong")
+      }
     } finally {
       setSaving(false)
     }

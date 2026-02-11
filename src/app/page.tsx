@@ -12,6 +12,9 @@ const getFeaturedGames = unstable_cache(async () => {
   const games = await prisma.game.findMany({
     where: { status: "PUBLISHED" },
     include: {
+      studioProfile: {
+        select: { id: true, handle: true, displayName: true, image: true },
+      },
       creator: {
         select: { id: true, name: true, username: true, image: true }
       }
@@ -23,14 +26,15 @@ const getFeaturedGames = unstable_cache(async () => {
 }, ["home-featured-games"], { revalidate: 60, tags: ["games"] })
 
 const getStats = unstable_cache(async () => {
-  const [gamesCount, usersCount, totalPlays] = await Promise.all([
+  const [gamesCount, creatorUsersCount, studioProfilesCount, totalPlays] = await Promise.all([
     prisma.game.count({ where: { status: "PUBLISHED" } }),
-    prisma.user.count(),
+    prisma.user.count({ where: { role: { in: ["CREATOR", "ADMIN"] } } }),
+    prisma.studioProfile.count(),
     prisma.game.aggregate({ _sum: { plays: true } }),
   ])
   return {
     games: gamesCount,
-    creators: usersCount,
+    creators: creatorUsersCount + studioProfilesCount,
     plays: totalPlays._sum.plays || 0,
   }
 }, ["home-stats"], { revalidate: 60, tags: ["games", "users"] })

@@ -1,11 +1,13 @@
-import { Game, User, Comment, GameAnalytics } from '@prisma/client'
+import { Game, User, Comment, GameAnalytics, StudioProfile } from '@prisma/client'
 
 export type GameWithCreator = Game & {
   creator: Pick<User, 'id' | 'name' | 'username' | 'image'>
+  studioProfile?: Pick<StudioProfile, 'id' | 'handle' | 'displayName' | 'image'> | null
 }
 
 export type GameWithDetails = Game & {
   creator: Pick<User, 'id' | 'name' | 'username' | 'image'>
+  studioProfile?: Pick<StudioProfile, 'id' | 'handle' | 'displayName' | 'image'> | null
   comments: (Comment & {
     user: Pick<User, 'id' | 'name' | 'username' | 'image'>
   })[]
@@ -20,6 +22,7 @@ export type GameCardData = Pick<
   'id' | 'slug' | 'title' | 'thumbnail' | 'category' | 'plays' | 'likes' | 'createdAt' | 'supportsMobile' | 'aiModel'
 > & {
   creator: Pick<User, 'name' | 'username' | 'image'>
+  studioProfile?: Pick<StudioProfile, 'handle' | 'displayName' | 'image'> | null
 }
 
 export type CreatorStats = {

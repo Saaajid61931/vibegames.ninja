@@ -24,6 +24,13 @@ export default function UploadPage() {
   const [gameFile, setGameFile] = useState<File | null>(null)
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
+
+  const [studioProfiles, setStudioProfiles] = useState<
+    { id: string; handle: string; displayName: string; image?: string | null }[]
+  >([])
+  const [creatingStudio, setCreatingStudio] = useState(false)
+  const [studioError, setStudioError] = useState("")
+  const [newStudio, setNewStudio] = useState({ displayName: "", handle: "" })
   
   const [formData, setFormData] = useState({
     title: "",
@@ -35,6 +42,7 @@ export default function UploadPage() {
     aiModel: "",
     supportsMobile: false,
     isAIGenerated: true,
+    studioProfileId: "",
   })
 
   useEffect(() => {
@@ -42,6 +50,26 @@ export default function UploadPage() {
       router.push("/login")
     }
   }, [status, router])
+
+  useEffect(() => {
+    const loadStudioProfiles = async () => {
+      if (!session?.user?.id) return
+      if (session.user.role !== "ADMIN") return
+
+      try {
+        const res = await fetch("/api/studio-profiles")
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to load studio profiles")
+        }
+        setStudioProfiles(Array.isArray(data.profiles) ? data.profiles : [])
+      } catch {
+        // Non-blocking. Upload still works as normal.
+      }
+    }
+
+    loadStudioProfiles()
+  }, [session?.user?.id, session?.user?.role])
 
   const onDropGame = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
@@ -94,6 +122,10 @@ export default function UploadPage() {
     setUploading(true)
 
     try {
+      if (!session?.user?.id) {
+        throw new Error("Unauthorized")
+      }
+
       if (!gameFile) {
         setError("Please upload your game file")
         setUploading(false)
@@ -115,6 +147,9 @@ export default function UploadPage() {
       uploadData.append("aiModel", formData.aiModel.trim())
       uploadData.append("supportsMobile", String(formData.supportsMobile))
       uploadData.append("isAIGenerated", String(formData.isAIGenerated))
+      if (session.user.role === "ADMIN" && formData.studioProfileId) {
+        uploadData.append("studioProfileId", formData.studioProfileId)
+      }
 
       const res = await fetch("/api/upload", {
         method: "POST",
@@ -257,6 +292,108 @@ export default function UploadPage() {
                 <CardDescription>Tell players about your game</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {session.user.role === "ADMIN" && (
+                  <div className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+                    <div className="flex flex-col gap-1">
+                      <Label>Publish as</Label>
+                      <p className="text-xs text-[var(--color-text-tertiary)]">
+                        Studio profiles let you publish games under a saved brand name.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label>Studio profile (optional)</Label>
+                        <Select
+                          value={formData.studioProfileId}
+                          onValueChange={(value) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              studioProfileId: value === "__none__" ? "" : value,
+                            }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Your account" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__none__">Your account</SelectItem>
+                            {studioProfiles.map((p) => (
+                              <SelectItem key={p.id} value={p.id}>
+                                {p.displayName} (@{p.handle})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Create new studio</Label>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full"
+                            onClick={async () => {
+                              setStudioError("")
+                              setCreatingStudio(true)
+                              try {
+                                const res = await fetch("/api/studio-profiles", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({
+                                    displayName: newStudio.displayName,
+                                    handle: newStudio.handle || undefined,
+                                  }),
+                                })
+                                const data = await res.json()
+                                if (!res.ok) {
+                                  throw new Error(data.message || data.error || "Failed to create studio")
+                                }
+
+                                const created = data.profile
+                                setStudioProfiles((prev) => [created, ...prev])
+                                setFormData((prev) => ({ ...prev, studioProfileId: created.id }))
+                                setNewStudio({ displayName: "", handle: "" })
+                              } catch (err) {
+                                setStudioError(err instanceof Error ? err.message : "Failed to create studio")
+                              } finally {
+                                setCreatingStudio(false)
+                              }
+                            }}
+                            disabled={creatingStudio || !newStudio.displayName.trim()}
+                          >
+                            {creatingStudio ? "Creating..." : "Create"}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label>Studio display name</Label>
+                        <Input
+                          value={newStudio.displayName}
+                          onChange={(e) => setNewStudio({ ...newStudio, displayName: e.target.value })}
+                          placeholder="e.g. Neon Arcade Labs"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Studio handle (optional)</Label>
+                        <Input
+                          value={newStudio.handle}
+                          onChange={(e) => setNewStudio({ ...newStudio, handle: e.target.value })}
+                          placeholder="e.g. neon-arcade"
+                        />
+                      </div>
+                    </div>
+
+                    {studioError && (
+                      <div className="text-sm text-[var(--color-danger)]">{studioError}</div>
+                    )}
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label>Game Title *</Label>
                   <Input

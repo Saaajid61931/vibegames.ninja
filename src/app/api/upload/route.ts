@@ -35,15 +35,47 @@ export async function POST(request: NextRequest) {
     const aiModelRaw = formData.get("aiModel") as string | null
     const supportsMobile = formData.get("supportsMobile") === "true"
     const isAIGenerated = formData.get("isAIGenerated") === "true"
+    const studioProfileIdRaw = formData.get("studioProfileId")
 
     const aiModel = aiModelRaw?.trim() ? aiModelRaw.trim() : null
     const normalizedAiTool = aiTool?.trim() ? aiTool.trim() : null
+
+    const studioProfileId = typeof studioProfileIdRaw === "string" && studioProfileIdRaw.trim()
+      ? studioProfileIdRaw.trim()
+      : null
 
     if (!gameFile || !title || !description) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       )
+    }
+
+    if (studioProfileId && session.user.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "FORBIDDEN" },
+        { status: 403 }
+      )
+    }
+
+    let studioProfileConnectId: string | null = null
+    if (studioProfileId) {
+      const studioProfile = await prisma.studioProfile.findFirst({
+        where: {
+          id: studioProfileId,
+          ownerId: session.user.id,
+        },
+        select: { id: true },
+      })
+
+      if (!studioProfile) {
+        return NextResponse.json(
+          { error: "STUDIO_PROFILE_NOT_FOUND" },
+          { status: 400 }
+        )
+      }
+
+      studioProfileConnectId = studioProfile.id
     }
 
     const validExtensions = [".html", ".zip"]
@@ -115,6 +147,7 @@ export async function POST(request: NextRequest) {
           gameUrl,
           thumbnail: thumbnailUrl,
           creatorId: session.user.id,
+          ...(studioProfileConnectId ? { studioProfileId: studioProfileConnectId } : {}),
           status: "PUBLISHED",
           publishedAt: new Date(),
         },

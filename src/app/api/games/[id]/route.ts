@@ -15,6 +15,9 @@ export async function GET(
     const game = await prisma.game.findUnique({
       where: { id },
       include: {
+        studioProfile: {
+          select: { id: true, handle: true, displayName: true, image: true },
+        },
         creator: {
           select: { id: true, name: true, username: true, image: true },
         },
@@ -32,7 +35,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
+async function updateGame(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -205,6 +208,20 @@ export async function PATCH(
     console.error("Update game error:", error)
     return NextResponse.json({ error: "Failed to update game" }, { status: 500 })
   }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  return updateGame(request, context)
+}
+
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  return updateGame(request, context)
 }
 
 export async function DELETE(

@@ -39,6 +39,13 @@ export default async function FavoritesPage() {
           aiModel: true,
           supportsMobile: true,
           createdAt: true,
+          studioProfile: {
+            select: {
+              handle: true,
+              displayName: true,
+              image: true,
+            },
+          },
           creator: {
             select: {
               name: true,

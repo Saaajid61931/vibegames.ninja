@@ -25,6 +25,9 @@ async function getGame(slug: string) {
   const game = await prisma.game.findUnique({
     where: { slug },
     include: {
+      studioProfile: {
+        select: { id: true, handle: true, displayName: true, image: true },
+      },
       creator: {
         select: { id: true, name: true, username: true, image: true, bio: true },
       },
@@ -64,6 +67,9 @@ async function getRelatedGames(category: string, excludeId: string) {
       id: { not: excludeId },
     },
     include: {
+      studioProfile: {
+        select: { id: true, handle: true, displayName: true, image: true },
+      },
       creator: {
         select: { id: true, name: true, username: true, image: true },
       },
@@ -83,22 +89,29 @@ export default async function PlayPage({ params }: PageProps) {
   }
 
   const relatedGames = await getRelatedGames(game.category, game.id)
+  const isStudioPublished = Boolean(game.studioProfile)
   const [followersCount, creatorGamesCount, isFollowing, isLiked] = await Promise.all([
-    prisma.creatorFollow.count({ where: { creatorId: game.creator.id } }),
-    prisma.game.count({ where: { creatorId: game.creator.id, status: "PUBLISHED" } }),
-    session?.user?.id
-      ? prisma.creatorFollow
-          .findUnique({
-            where: {
-              followerId_creatorId: {
-                followerId: session.user.id,
-                creatorId: game.creator.id,
+    isStudioPublished
+      ? Promise.resolve(0)
+      : prisma.creatorFollow.count({ where: { creatorId: game.creator.id } }),
+    isStudioPublished
+      ? prisma.game.count({ where: { studioProfileId: game.studioProfile!.id, status: "PUBLISHED" } })
+      : prisma.game.count({ where: { creatorId: game.creator.id, status: "PUBLISHED" } }),
+    isStudioPublished
+      ? Promise.resolve(false)
+      : session?.user?.id
+        ? prisma.creatorFollow
+            .findUnique({
+              where: {
+                followerId_creatorId: {
+                  followerId: session.user.id,
+                  creatorId: game.creator.id,
+                },
               },
-            },
-            select: { id: true },
-          })
-          .then((follow: { id: string } | null) => Boolean(follow))
-      : Promise.resolve(false),
+              select: { id: true },
+            })
+            .then((follow: { id: string } | null) => Boolean(follow))
+        : Promise.resolve(false),
     session?.user?.id
       ? prisma.favorite
           .findUnique({
@@ -113,7 +126,9 @@ export default async function PlayPage({ params }: PageProps) {
           .then((favorite: { id: string } | null) => Boolean(favorite))
       : Promise.resolve(false),
   ])
-  const creatorProfileHref = game.creator.username ? `/creator/${game.creator.username}` : "/creator"
+  const creatorProfileHref = game.studioProfile
+    ? `/studio/${game.studioProfile.handle}`
+    : (game.creator.username ? `/creator/${game.creator.username}` : "/creator")
   const category = CATEGORIES.find(c => c.value === game.category)
 
   return (
@@ -249,47 +264,55 @@ export default async function PlayPage({ params }: PageProps) {
               {/* Creator card */}
               <div className="border-2 border-[#4a4a6a]">
                 <div className="border-b-2 border-[#4a4a6a] px-4 py-2 bg-[#1a1a2e]">
-                  <span className="font-arcade text-xs text-[#4a4a6a]">CREATED_BY</span>
+                  <span className="font-arcade text-xs text-[#4a4a6a]">PUBLISHED_BY</span>
                 </div>
                 <div className="p-4 bg-[#0d0d15]">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-12 w-12 border-2 border-[#4a4a6a]">
-                      <AvatarImage src={game.creator.image || undefined} />
+                      <AvatarImage src={game.studioProfile?.image || game.creator.image || undefined} />
                       <AvatarFallback className="bg-[#1a1a2e] text-[#4a4a6a]">
-                        {getInitials(game.creator.name || game.creator.username || "U")}
+                        {getInitials(
+                          game.studioProfile?.displayName || game.creator.name || game.creator.username || "U"
+                        )}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <h4 className="font-bold text-white font-arcade">
-                        {game.creator.name || game.creator.username}
+                        {game.studioProfile?.displayName || game.creator.name || game.creator.username}
                       </h4>
-                      {game.creator.username && (
+                      {game.studioProfile ? (
+                        <p className="text-sm text-[#ffff00] font-arcade">@{game.studioProfile.handle}</p>
+                      ) : game.creator.username ? (
                         <p className="text-sm text-[#ffff00] font-arcade">@{game.creator.username}</p>
-                      )}
+                      ) : null}
                     </div>
                   </div>
-                  {game.creator.bio && (
+                  {!game.studioProfile && game.creator.bio && (
                     <p className="text-sm text-[#4a4a6a] mt-3 font-arcade">{game.creator.bio}</p>
                   )}
                   <div className="mt-3 flex flex-wrap gap-3 text-xs font-arcade text-[#4a4a6a]">
-                    <span className="inline-flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      {formatNumber(followersCount)} FOLLOWERS
-                    </span>
+                    {!game.studioProfile && (
+                      <span className="inline-flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {formatNumber(followersCount)} FOLLOWERS
+                      </span>
+                    )}
                     <span>{formatNumber(creatorGamesCount)} GAMES</span>
                   </div>
-                  <div className="mt-4">
-                    <FollowButton
-                      creatorId={game.creator.id}
-                      creatorUsername={game.creator.username || null}
-                      initialFollowers={followersCount}
-                      initialFollowing={isFollowing}
-                    />
-                  </div>
+                  {!game.studioProfile && (
+                    <div className="mt-4">
+                      <FollowButton
+                        creatorId={game.creator.id}
+                        creatorUsername={game.creator.username || null}
+                        initialFollowers={followersCount}
+                        initialFollowing={isFollowing}
+                      />
+                    </div>
+                  )}
                   <Link href={creatorProfileHref} className="block mt-4">
                     <Button variant="outline" className="w-full gap-2 font-arcade">
                       <User className="h-4 w-4" />
-                      [VIEW_PROFILE]
+                      {game.studioProfile ? "[VIEW_STUDIO]" : "[VIEW_PROFILE]"}
                     </Button>
                   </Link>
                 </div>

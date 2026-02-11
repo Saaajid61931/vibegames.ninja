@@ -19,6 +19,12 @@ interface GameCardProps {
       username?: string | null
       image?: string | null
     }
+
+    studioProfile?: {
+      handle: string
+      displayName: string
+      image?: string | null
+    } | null
   }
 }
 
@@ -85,7 +91,7 @@ export function GameCard({ game }: GameCardProps) {
         <div className="flex items-center gap-2 mb-3 text-sm text-[var(--color-text-secondary)]">
           <User className="h-3 w-3" />
           <span className="truncate">
-            {game.creator.username || game.creator.name || "Anonymous"}
+            {game.studioProfile?.displayName || game.creator.username || game.creator.name || "Anonymous"}
           </span>
         </div>
         
