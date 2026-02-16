@@ -111,7 +111,7 @@ export async function POST(
     }
 
     const levelData = parsed.data.data as Prisma.InputJsonValue
-    const dataSize = Buffer.byteLength(JSON.stringify(levelData), "utf8")
+    const dataSize = new TextEncoder().encode(JSON.stringify(levelData)).length
     if (dataSize > MAX_LEVEL_DATA_BYTES) {
       return NextResponse.json({ error: "Level data exceeds 5MB limit" }, { status: 400 })
     }

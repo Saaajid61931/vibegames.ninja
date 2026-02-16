@@ -82,7 +82,7 @@ export async function PATCH(
       return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid level payload" }, { status: 400 })
     }
 
-    const dataSize = Buffer.byteLength(JSON.stringify(parsed.data.data), "utf8")
+    const dataSize = new TextEncoder().encode(JSON.stringify(parsed.data.data)).length
     if (dataSize > MAX_LEVEL_DATA_BYTES) {
       return NextResponse.json({ error: "Level data exceeds 5MB limit" }, { status: 400 })
     }
