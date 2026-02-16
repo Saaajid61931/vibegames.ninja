@@ -26,6 +26,7 @@ export function Header() {
 
   const navigation = [
     { name: "PLAY", href: "/games" },
+    { name: "JAMS", href: "/jams" },
     ...(session?.user ? [{ name: "FAVES", href: "/favorites" }] : []),
     { name: "UPLOAD", href: "/upload" },
     { name: "CREATOR", href: "/creator" },
@@ -36,7 +37,7 @@ export function Header() {
       {/* Marquee Banner - single line, no wrap */}
       <div className="bg-[var(--color-primary)] overflow-hidden whitespace-nowrap">
         <div className="marquee-content">
-          NEW GAMES DAILY &bull; AI ARCADE &bull; BUILD &bull; PLAY &bull; GET INSPIRED &bull; NEW GAMES DAILY &bull; AI ARCADE &bull; BUILD &bull; PLAY &bull; GET INSPIRED &bull;
+          NEW GAMES DAILY &bull; AI ARCADE &bull; GAME JAMS &bull; BUILD &bull; PLAY &bull; GET INSPIRED &bull; NEW GAMES DAILY &bull; AI ARCADE &bull; GAME JAMS &bull; BUILD &bull; PLAY &bull; GET INSPIRED &bull;
         </div>
       </div>
       

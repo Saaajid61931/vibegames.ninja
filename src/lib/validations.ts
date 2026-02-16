@@ -71,6 +71,22 @@ export const ratingSchema = z.object({
   score: z.number().int().min(1).max(5),
 })
 
+export const gameJamSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
+  description: z.string().min(10, 'Description must be at least 10 characters').max(5000, 'Description must be less than 5000 characters'),
+  theme: z.string().max(200, 'Theme must be less than 200 characters').optional(),
+  rules: z.string().max(5000, 'Rules must be less than 5000 characters').optional(),
+  bannerImage: z.string().url().optional(),
+  startDate: z.string().datetime({ message: 'Invalid start date' }),
+  endDate: z.string().datetime({ message: 'Invalid end date' }),
+  votingEndDate: z.string().datetime({ message: 'Invalid voting end date' }),
+  maxEntries: z.number().int().min(1).max(10).default(1),
+})
+
+export const gameJamEntrySchema = z.object({
+  gameId: z.string().min(1, 'Game ID is required'),
+})
+
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 export type GameUploadInput = z.infer<typeof gameUploadSchema>
@@ -78,3 +94,5 @@ export type CommentInput = z.infer<typeof commentSchema>
 export type ReportInput = z.infer<typeof reportSchema>
 export type LevelInput = z.infer<typeof levelInputSchema>
 export type RatingInput = z.infer<typeof ratingSchema>
+export type GameJamInput = z.infer<typeof gameJamSchema>
+export type GameJamEntryInput = z.infer<typeof gameJamEntrySchema>

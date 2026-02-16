@@ -40,6 +40,9 @@ model User {
 
   studioProfiles StudioProfile[]
   featuredPicks  FeaturedGame[]
+  jamEntries     GameJamEntry[]
+  jamVotes       GameJamVote[]
+  createdJams    GameJam[]
 }
 
 model Account {
@@ -127,6 +130,7 @@ model Game {
   ratings      GameRating[]
   reports      Report[]
   featuredDays FeaturedGame[]
+  jamEntries   GameJamEntry[]
 
   @@index([status, publishedAt])
   @@index([status, plays])
@@ -318,4 +322,64 @@ model FeaturedGame {
   createdAt   DateTime @default(now())
 
   @@index([gameId])
+}
+
+// Game Jams
+model GameJam {
+  id            String   @id @default(cuid())
+  title         String
+  slug          String   @unique
+  description   String
+  theme         String?
+  rules         String?
+  bannerImage   String?
+  status        String   @default("UPCOMING") // UPCOMING, ACTIVE, VOTING, COMPLETED
+  startDate     DateTime
+  endDate       DateTime
+  votingEndDate DateTime
+  maxEntries    Int      @default(1) // max entries per user
+  createdById   String
+  createdBy     User     @relation(fields: [createdById], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  entries GameJamEntry[]
+
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+model GameJamEntry {
+  id          String   @id @default(cuid())
+  jamId       String
+  jam         GameJam  @relation(fields: [jamId], references: [id], onDelete: Cascade)
+  gameId      String
+  game        Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submittedAt DateTime @default(now())
+
+  votes GameJamVote[]
+
+  @@unique([jamId, gameId])
+  @@unique([jamId, userId])
+  @@index([jamId])
+  @@index([gameId])
+  @@index([userId])
+}
+
+model GameJamVote {
+  id        String   @id @default(cuid())
+  entryId   String
+  entry     GameJamEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score     Int      // 1-5
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entryId, userId])
+  @@index([entryId])
+  @@index([userId])
 }

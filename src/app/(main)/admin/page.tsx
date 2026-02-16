@@ -10,7 +10,8 @@ import {
   Clock,
   Eye,
   AlertTriangle,
-  Crown
+  Crown,
+  Trophy
 } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { Header } from "@/components/layout/header"
@@ -20,6 +21,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { FeaturedManager } from "@/components/admin/featured-manager"
+import { JamManager } from "@/components/admin/jam-manager"
 import prisma from "@/lib/prisma"
 import { formatNumber, timeAgo } from "@/lib/utils"
 
@@ -37,6 +39,7 @@ async function getAdminData() {
     totalUsers,
     totalGames,
     totalPlays,
+    jams,
   ] = await Promise.all([
     prisma.game.findMany({
       where: { status: "PENDING" },
@@ -55,11 +58,26 @@ async function getAdminData() {
     prisma.user.count(),
     prisma.game.count(),
     prisma.game.aggregate({ _sum: { plays: true } }),
+    prisma.gameJam.findMany({
+      orderBy: { startDate: "desc" },
+      include: { _count: { select: { entries: true } } },
+    }),
   ])
 
   return {
     pendingGames,
     reports,
+    jams: jams.map((j) => ({
+      id: j.id,
+      title: j.title,
+      slug: j.slug,
+      status: j.status,
+      theme: j.theme,
+      startDate: j.startDate.toISOString(),
+      endDate: j.endDate.toISOString(),
+      votingEndDate: j.votingEndDate.toISOString(),
+      entryCount: j._count.entries,
+    })),
     stats: {
       totalUsers,
       totalGames,
@@ -77,7 +95,7 @@ export default async function AdminPage() {
     redirect("/")
   }
 
-  const { pendingGames, reports, stats } = await getAdminData()
+  const { pendingGames, reports, jams, stats } = await getAdminData()
 
   const statCards = [
     { title: "Total Users", value: formatNumber(stats.totalUsers), icon: Users },
@@ -135,6 +153,10 @@ export default async function AdminPage() {
             <TabsTrigger value="featured" className="gap-2">
               <Crown className="h-4 w-4" />
               Game of the Day
+            </TabsTrigger>
+            <TabsTrigger value="jams" className="gap-2">
+              <Trophy className="h-4 w-4" />
+              Game Jams
             </TabsTrigger>
           </TabsList>
 
@@ -260,6 +282,20 @@ export default async function AdminPage() {
               </CardHeader>
               <CardContent>
                 <FeaturedManager />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="jams">
+            <Card>
+              <CardHeader>
+                <CardTitle>Game Jams</CardTitle>
+                <CardDescription>
+                  Create and manage game jams. Statuses auto-transition based on dates (UPCOMING → ACTIVE → VOTING → COMPLETED).
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <JamManager initialJams={jams} />
               </CardContent>
             </Card>
           </TabsContent>

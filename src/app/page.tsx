@@ -7,6 +7,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { GameCard } from "@/components/games/game-card"
 import { GameOfTheDay } from "@/components/games/game-of-the-day"
+import { ActiveJamBanner } from "@/components/jams/active-jam-banner"
 import prisma from "@/lib/prisma"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site"
@@ -286,6 +287,9 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* Active Game Jam Banner */}
+        <ActiveJamBanner />
 
         {/* Game of the Day */}
         {gotd?.game && (
