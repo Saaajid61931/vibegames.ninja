@@ -11,6 +11,245 @@ const R2_REQUIRED_ENV = [
 
 let r2Client: S3Client | null = null
 
+export type LevelEditorIntegrationReport = {
+  notifyReady: boolean
+  onEnterEditMode: boolean
+  onLoadLevel: boolean
+  onRequestSave: boolean
+  saveLevel: boolean
+}
+
+type UploadGameToR2Options = {
+  injectLevelEditorSdk?: boolean
+  inspectLevelEditorIntegration?: boolean
+}
+
+const INLINE_LEVEL_EDITOR_SDK = `<script id="vibegames-sdk-inline">;(function () {
+  if (window.VG) {
+    return
+  }
+
+  var listeners = {
+    loadLevel: [],
+    enterEditMode: [],
+    requestSave: [],
+  }
+  var mode = "play"
+  var lastEnterEditPayload = {}
+
+  function emitSdkReady() {
+    try {
+      window.dispatchEvent(new CustomEvent("VG_SDK_READY", { detail: { mode: mode } }))
+    } catch {}
+  }
+
+  function emitModeChange() {
+    try {
+      window.dispatchEvent(new CustomEvent("VG_MODE_CHANGE", { detail: { mode: mode } }))
+    } catch {}
+  }
+
+  function setMode(nextMode) {
+    var resolvedMode = nextMode === "editor" ? "editor" : "play"
+    if (resolvedMode === mode) {
+      return
+    }
+
+    mode = resolvedMode
+    emitModeChange()
+  }
+
+  function emitEnterEditMode(payload) {
+    lastEnterEditPayload = payload || {}
+    listeners.enterEditMode.forEach(function (fn) {
+      try {
+        fn(lastEnterEditPayload)
+      } catch (error) {
+        console.error("VG.onEnterEditMode handler failed", error)
+      }
+    })
+  }
+
+  function post(type, payload) {
+    if (!window.parent || window.parent === window) {
+      return
+    }
+
+    window.parent.postMessage(
+      {
+        source: "vibegames-sdk",
+        type: type,
+        payload: payload || {},
+      },
+      "*"
+    )
+  }
+
+  function onMessage(event) {
+    var message = event.data
+    if (!message || message.source !== "vibegames-platform") {
+      return
+    }
+
+    if (message.type === "VG_INIT") {
+      var initPayload = message.payload || {}
+      if (initPayload.mode === "editor" || initPayload.mode === "play") {
+        var previousMode = mode
+        setMode(initPayload.mode)
+        if (mode === "editor" && previousMode !== "editor") {
+          emitEnterEditMode(initPayload)
+        }
+      }
+      return
+    }
+
+    if (message.type === "VG_LOAD_LEVEL") {
+      listeners.loadLevel.forEach(function (fn) {
+        try {
+          fn(message.payload || {})
+        } catch (error) {
+          console.error("VG.onLoadLevel handler failed", error)
+        }
+      })
+      return
+    }
+
+    if (message.type === "VG_ENTER_EDIT_MODE") {
+      setMode("editor")
+      emitEnterEditMode(message.payload || {})
+      return
+    }
+
+    if (message.type === "VG_REQUEST_SAVE") {
+      listeners.requestSave.forEach(function (fn) {
+        try {
+          fn(message.payload || {})
+        } catch (error) {
+          console.error("VG.onRequestSave handler failed", error)
+        }
+      })
+    }
+  }
+
+  window.addEventListener("message", onMessage)
+
+  var api = {
+    notifyReady: function notifyReady() {
+      post("VG_READY")
+    },
+    saveLevel: function saveLevel(payload) {
+      post("VG_SAVE_LEVEL", payload || {})
+    },
+    onLoadLevel: function onLoadLevel(handler) {
+      if (typeof handler === "function") {
+        listeners.loadLevel.push(handler)
+      }
+      return function unsubscribe() {
+        listeners.loadLevel = listeners.loadLevel.filter(function (fn) {
+          return fn !== handler
+        })
+      }
+    },
+    onEnterEditMode: function onEnterEditMode(handler) {
+      if (typeof handler === "function") {
+        listeners.enterEditMode.push(handler)
+        if (mode === "editor") {
+          try {
+            handler(lastEnterEditPayload)
+          } catch (error) {
+            console.error("VG.onEnterEditMode handler failed", error)
+          }
+        }
+      }
+      return function unsubscribe() {
+        listeners.enterEditMode = listeners.enterEditMode.filter(function (fn) {
+          return fn !== handler
+        })
+      }
+    },
+    onRequestSave: function onRequestSave(handler) {
+      if (typeof handler === "function") {
+        listeners.requestSave.push(handler)
+      }
+      return function unsubscribe() {
+        listeners.requestSave = listeners.requestSave.filter(function (fn) {
+          return fn !== handler
+        })
+      }
+    },
+  }
+
+  Object.defineProperty(api, "mode", {
+    enumerable: true,
+    configurable: false,
+    get: function getMode() {
+      return mode
+    },
+  })
+
+  window.VG = api
+  emitSdkReady()
+})()</script>`
+
+function createLevelEditorIntegrationReport(): LevelEditorIntegrationReport {
+  return {
+    notifyReady: false,
+    onEnterEditMode: false,
+    onLoadLevel: false,
+    onRequestSave: false,
+    saveLevel: false,
+  }
+}
+
+function collectLevelEditorSignals(sourceText: string, report: LevelEditorIntegrationReport) {
+  if (!sourceText) {
+    return
+  }
+
+  report.notifyReady = report.notifyReady || /\bVG\.notifyReady\s*\(/.test(sourceText)
+  report.onEnterEditMode = report.onEnterEditMode || /\bVG\.onEnterEditMode\s*\(/.test(sourceText)
+  report.onLoadLevel = report.onLoadLevel || /\bVG\.onLoadLevel\s*\(/.test(sourceText)
+  report.onRequestSave = report.onRequestSave || /\bVG\.onRequestSave\s*\(/.test(sourceText)
+  report.saveLevel = report.saveLevel || /\bVG\.saveLevel\s*\(/.test(sourceText)
+}
+
+const INLINE_LEVEL_EDITOR_SDK_REGEX =
+  /<script[^>]*id=["']vibegames-sdk-inline["'][^>]*>[\s\S]*?<\/script>\s*/gi
+
+const EXTERNAL_LEVEL_EDITOR_SDK_REGEX =
+  /<script[^>]+src=["'][^"']*vibegames-sdk(?:\.min)?\.js[^"']*["'][^>]*>/i
+
+function injectLevelEditorSdkIntoHtml(html: string): string {
+  let normalizedHtml = html || ""
+
+  normalizedHtml = normalizedHtml.replace(INLINE_LEVEL_EDITOR_SDK_REGEX, "")
+
+  if (EXTERNAL_LEVEL_EDITOR_SDK_REGEX.test(normalizedHtml)) {
+    return normalizedHtml
+  }
+
+  const openingHeadRegex = /<head[^>]*>/i
+  if (openingHeadRegex.test(normalizedHtml)) {
+    return normalizedHtml.replace(openingHeadRegex, (match) => `${match}\n${INLINE_LEVEL_EDITOR_SDK}`)
+  }
+
+  const closingHeadRegex = /<\/head>/i
+  if (closingHeadRegex.test(normalizedHtml)) {
+    return normalizedHtml.replace(closingHeadRegex, `${INLINE_LEVEL_EDITOR_SDK}\n</head>`)
+  }
+
+  const openingBodyRegex = /<body[^>]*>/i
+  if (openingBodyRegex.test(normalizedHtml)) {
+    return normalizedHtml.replace(openingBodyRegex, (match) => `${match}\n${INLINE_LEVEL_EDITOR_SDK}`)
+  }
+
+  return `${INLINE_LEVEL_EDITOR_SDK}\n${normalizedHtml}`
+}
+
+function isInspectableScript(path: string): boolean {
+  return path.endsWith(".js") || path.endsWith(".mjs") || path.endsWith(".cjs") || path.endsWith(".ts")
+}
+
 function getEnv(name: (typeof R2_REQUIRED_ENV)[number]): string {
   const value = process.env[name]?.trim()
   if (!value) {
@@ -124,20 +363,33 @@ async function putObject(params: {
 
 export async function uploadGameToR2(
   gameId: string,
-  gameFile: File
-): Promise<{ gameUrl: string; uploadedKeys: string[] }> {
+  gameFile: File,
+  options: UploadGameToR2Options = {}
+): Promise<{ gameUrl: string; uploadedKeys: string[]; levelEditorIntegration?: LevelEditorIntegrationReport }> {
   const gamePrefix = `games/${gameId}`
   const gameBuffer = Buffer.from(await gameFile.arrayBuffer())
+  const integration = options.inspectLevelEditorIntegration
+    ? createLevelEditorIntegrationReport()
+    : undefined
 
   if (gameFile.name.toLowerCase().endsWith(".html")) {
+    let html = gameBuffer.toString("utf8")
+    if (integration) {
+      collectLevelEditorSignals(html, integration)
+    }
+
+    if (options.injectLevelEditorSdk) {
+      html = injectLevelEditorSdkIntoHtml(html)
+    }
+
     const key = `${gamePrefix}/index.html`
     await putObject({
       key,
-      body: gameBuffer,
+      body: Buffer.from(html, "utf8"),
       contentType: "text/html; charset=utf-8",
       cacheControl: "public, max-age=300",
     })
-    return { gameUrl: createAssetUrl(key), uploadedKeys: [key] }
+    return { gameUrl: createAssetUrl(key), uploadedKeys: [key], levelEditorIntegration: integration }
   }
 
   if (!gameFile.name.toLowerCase().endsWith(".zip")) {
@@ -158,7 +410,27 @@ export async function uploadGameToR2(
       continue
     }
 
-    const entryBuffer = Buffer.from(await entry.async("uint8array"))
+    const normalizedPathLower = normalizedPath.toLowerCase()
+    let entryBuffer: Buffer
+
+    if (normalizedPathLower.endsWith(".html")) {
+      let html = await entry.async("string")
+      if (integration) {
+        collectLevelEditorSignals(html, integration)
+      }
+
+      if (options.injectLevelEditorSdk) {
+        html = injectLevelEditorSdkIntoHtml(html)
+      }
+
+      entryBuffer = Buffer.from(html, "utf8")
+    } else {
+      entryBuffer = Buffer.from(await entry.async("uint8array"))
+      if (integration && isInspectableScript(normalizedPathLower)) {
+        collectLevelEditorSignals(entryBuffer.toString("utf8"), integration)
+      }
+    }
+
     const key = `${gamePrefix}/${normalizedPath}`
 
     await putObject({
@@ -184,7 +456,11 @@ export async function uploadGameToR2(
     indexPath = nestedIndexPaths[0]
   }
 
-  return { gameUrl: createAssetUrl(`${gamePrefix}/${indexPath}`), uploadedKeys }
+  return {
+    gameUrl: createAssetUrl(`${gamePrefix}/${indexPath}`),
+    uploadedKeys,
+    levelEditorIntegration: integration,
+  }
 }
 
 function isRootThumbnailAsset(key: string, prefix: string): boolean {

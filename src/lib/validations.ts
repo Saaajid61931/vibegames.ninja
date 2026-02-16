@@ -1,5 +1,18 @@
 import { z } from 'zod'
 
+const MAX_LEVEL_DATA_BYTES = 5 * 1024 * 1024
+
+const levelDataSchema = z
+  .unknown()
+  .refine(
+    (value) => Array.isArray(value) || (typeof value === 'object' && value !== null),
+    'Level data must be an object or array'
+  )
+  .refine(
+    (value) => new TextEncoder().encode(JSON.stringify(value)).length <= MAX_LEVEL_DATA_BYTES,
+    'Level data exceeds 5MB limit'
+  )
+
 export const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
@@ -22,6 +35,7 @@ export const gameUploadSchema = z.object({
   aiTool: z.string().optional(),
   aiModel: z.string().optional(),
   supportsMobile: z.boolean().default(false),
+  hasLevelEditor: z.boolean().default(false),
   isPremium: z.boolean().default(false),
   price: z.number().min(0).max(99.99).optional(),
   hasAds: z.boolean().default(true),
@@ -39,8 +53,21 @@ export const reportSchema = z.object({
   description: z.string().max(500).optional(),
 })
 
+export const levelInputSchema = z.object({
+  name: z.string().min(3, 'Level name must be at least 3 characters').max(80, 'Level name must be less than 80 characters'),
+  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
+  data: levelDataSchema,
+  thumbnail: z.string().url('Thumbnail must be a valid URL').optional(),
+})
+
+export const ratingSchema = z.object({
+  score: z.number().int().min(1).max(5),
+})
+
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 export type GameUploadInput = z.infer<typeof gameUploadSchema>
 export type CommentInput = z.infer<typeof commentSchema>
 export type ReportInput = z.infer<typeof reportSchema>
+export type LevelInput = z.infer<typeof levelInputSchema>
+export type RatingInput = z.infer<typeof ratingSchema>
