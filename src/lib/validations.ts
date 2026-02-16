@@ -57,7 +57,14 @@ export const levelInputSchema = z.object({
   name: z.string().min(3, 'Level name must be at least 3 characters').max(80, 'Level name must be less than 80 characters'),
   description: z.string().max(500, 'Description must be less than 500 characters').optional(),
   data: levelDataSchema,
-  thumbnail: z.string().url('Thumbnail must be a valid URL').optional(),
+  thumbnail: z
+    .string()
+    .max(512_000, 'Thumbnail must be less than 500KB')
+    .refine(
+      (val) => val.startsWith('data:image/') || val.startsWith('https://') || val.startsWith('http://'),
+      'Thumbnail must be a data URL or HTTP(S) URL'
+    )
+    .optional(),
 })
 
 export const ratingSchema = z.object({

@@ -18,7 +18,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-              AI-powered HTML5 game arcade. Build, publish, and play.
+              A community for AI-made games. Build, play, and get inspired.
             </p>
             <div className="flex gap-2">
               <a 
@@ -52,11 +52,6 @@ export function Footer() {
               <li>
                 <Link href="/upload" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors">
                   Upload Game
-                </Link>
-              </li>
-              <li>
-                <Link href="/pricing" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors">
-                  Pricing
                 </Link>
               </li>
             </ul>

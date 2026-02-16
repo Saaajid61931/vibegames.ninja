@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Vibe Coding Simulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-accent: #1a1a25;
+            --neon-cyan: #00f5ff;
+            --neon-pink: #ff006e;
+            --neon-yellow: #ffbe0b;
+            --neon-green: #00ff88;
+            --neon-purple: #8338ec;
+            --text-primary: #ffffff;
+            --text-secondary: #888899;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), rgba(131, 56, 236, 0.1));
+            border-radius: 16px;
+            border: 2px solid var(--neon-cyan);
+        }
+        
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(16px, 4vw, 24px);
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #2a2a3a;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card.money { border-color: var(--neon-green); }
+        .stat-card.vibes { border-color: var(--neon-pink); }
+        .stat-card.tech { border-color: var(--neon-cyan); }
+        
+        .stat-value {
+            font-size: clamp(20px, 5vw, 28px);
+            font-weight: 700;
+        }
+        
+        .stat-card.money .stat-value { color: var(--neon-green); }
+        .stat-card.vibes .stat-value { color: var(--neon-pink); }
+        .stat-card.tech .stat-value { color: var(--neon-cyan); }
+        
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+        
+        .terminal {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 2px solid var(--neon-purple);
+            overflow: hidden;
+        }
+        
+        .terminal-header {
+            background: var(--bg-accent);
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #2a2a3a;
+        }
+        
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .dot-red { background: #ff5f57; }
+        .dot-yellow { background: #ffbd2e; }
+        .dot-green { background: #28ca42; }
+        
+        .terminal-title {
+            margin-left: 10px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .terminal-body {
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            min-height: 120px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .terminal-line {
+            margin-bottom: 5px;
+            opacity: 0;
+            animation: fadeIn 0.3s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        
+        .term-cmd { color: var(--neon-green); }
+        .term-output { color: var(--text-secondary); }
+        .term-error { color: var(--neon-pink); }
+        .term-success { color: var(--neon-cyan); }
+        
+        .main-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .vibe-btn {
+            width: min(200px, 60vw);
+            height: min(200px, 60vw);
+            max-width: 220px;
+            max-height: 220px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #1a1a25, #0d0d12);
+            border: 4px solid var(--neon-pink);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.1s ease;
+            box-shadow: 
+                0 0 40px rgba(255, 0, 110, 0.3),
+                inset 0 0 40px rgba(255, 0, 110, 0.1);
+        }
+        
+        .vibe-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .vibe-btn:hover {
+            box-shadow: 
+                0 0 60px rgba(255, 0, 110, 0.5),
+                inset 0 0 50px rgba(255, 0, 110, 0.2);
+        }
+        
+        .vibe-icon {
+            font-size: 50px;
+        }
+        
+        .vibe-text {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--neon-pink);
+            text-transform: uppercase;
+        }
+        
+        .click-popup {
+            position: fixed;
+            pointer-events: none;
+            font-weight: 700;
+            font-size: 20px;
+            animation: floatUp 0.8s ease-out forwards;
+            z-index: 1000;
+        }
+        
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-100px) scale(1.3); }
+        }
+        
+        .upgrades-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        @media (min-width: 600px) {
+            .upgrades-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        .upgrade-card {
+            background: var(--bg-card);
+            border: 2px solid #2a2a3a;
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .upgrade-card:hover:not(.disabled) {
+            border-color: var(--neon-yellow);
+            transform: translateY(-3px);
+        }
+        
+        .upgrade-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .upgrade-card.owned {
+            border-color: var(--neon-green);
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        .upgrade-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .upgrade-icon {
+            font-size: 24px;
+        }
+        
+        .upgrade-name {
+            font-weight: 600;
+            font-size: 14px;
+            flex: 1;
+        }
+        
+        .upgrade-cost {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--neon-yellow);
+        }
+        
+        .upgrade-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        
+        .upgrade-owned {
+            font-size: 11px;
+            color: var(--neon-green);
+        }
+        
+        .milestones {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid var(--neon-cyan);
+        }
+        
+        .milestones h3 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            color: var(--neon-cyan);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .milestone-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .milestone {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: var(--bg-accent);
+            border-radius: 8px;
+            opacity: 0.4;
+            transition: all 0.3s ease;
+        }
+        
+        .milestone.unlocked {
+            opacity: 1;
+            background: rgba(0, 245, 255, 0.1);
+        }
+        
+        .milestone-icon {
+            font-size: 24px;
+        }
+        
+        .milestone-info h4 {
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+        
+        .milestone-info p {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        
+        .progress-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid var(--neon-green);
+        }
+        
+        .progress-bar {
+            height: 30px;
+            background: var(--bg-accent);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-green), var(--neon-cyan));
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--bg-dark);
+        }
+        
+        .progress-label {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .floating {
+            position: absolute;
+            font-size: 24px;
+            opacity: 0.1;
+            animation: float 10s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-elements">
+        <span class="floating" style="top: 10%; left: 10%;">🔥</span>
+        <span class="floating" style="top: 30%; right: 15%;">💸</span>
+        <span class="floating" style="bottom: 20%; left: 20%;">🚀</span>
+        <span class="floating" style="top: 60%; right: 25%;">✨</span>
+        <span class="floating" style="bottom: 40%; left: 10%;">💻</span>
+    </div>
+    
+    <div class="game-container">
+        <header>
+            <h1>VIBE CODING SIMULATOR</h1>
+            <p class="subtitle">Ship faster with AI. Break things. Move fast.</p>
+        </header>
+        
+        <div class="stats-row">
+            <div class="stat-card money">
+                <div class="stat-value" id="money">$0</div>
+                <div class="stat-label">Funding</div>
+            </div>
+            <div class="stat-card vibes">
+                <div class="stat-value" id="vibes">0</div>
+                <div class="stat-label">Vibes</div>
+            </div>
+            <div class="stat-card tech">
+                <div class="stat-value" id="tech">0%</div>
+                <div class="stat-label">Tech Debt</div>
+            </div>
+        </div>
+        
+        <div class="terminal">
+            <div class="terminal-header">
+                <span class="terminal-dot dot-red"></span>
+                <span class="terminal-dot dot-yellow"></span>
+                <span class="terminal-dot dot-green"></span>
+                <span class="terminal-title">~/vibe-coding</span>
+            </div>
+            <div class="terminal-body" id="terminal"></div>
+        </div>
+        
+        <div class="main-action">
+            <button class="vibe-btn" id="vibeBtn">
+                <span class="vibe-icon">⚡</span>
+                <span class="vibe-text">VIBE CODE</span>
+            </button>
+        </div>
+        
+        <div class="progress-section">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%">0%</div>
+            </div>
+            <div class="progress-label">Progress to Unicorn Status: $<span id="unicornProgress">1M</span></div>
+        </div>
+        
+        <div class="milestones">
+            <h3>🏆 MILESTONES</h3>
+            <div class="milestone-list" id="milestones"></div>
+        </div>
+        
+        <div class="upgrades-grid" id="upgrades"></div>
+    </div>
+    
+    <script>
+        const gameData = {
+            money: 0,
+            vibes: 0,
+            techDebt: 0,
+            upgrades: {},
+            milestones: [],
+            terminalLines: []
+        };
+        
+        const upgrades = [
+            { id: 'copilot', name: 'Copilot', icon: '🤖', cost: 50, desc: 'AI writes 50% faster', vibeGain: 1, moneyGain: 2 },
+            { id: 'coffee', name: 'Red Bull', icon: '🥤', cost: 200, desc: 'Code 2x faster', vibeGain: 3, moneyGain: 5 },
+            { id: 'stack', name: 'No Code', icon: '🚫', cost: 500, desc: 'Skip the hard parts', vibeGain: 5, moneyGain: 10 },
+            { id: 'hype', name: 'Hype Tweet', icon: '🐦', cost: 1000, desc: 'Go viral instantly', vibeGain: 10, moneyGain: 25 },
+            { id: 'vc', name: 'VC Meeting', icon: '👔', cost: 5000, desc: 'Fake it til you make it', vibeGain: 15, moneyGain: 100 },
+            { id: 'ai', name: 'GPT-5 Access', icon: '🧠', cost: 25000, desc: 'Let AI do everything', vibeGain: 50, moneyGain: 500 }
+        ];
+        
+        const milestones = [
+            { id: 'hello', name: 'Hello World', requirement: 100, icon: '👋', reward: 'Unlocked terminal' },
+            { id: 'repo', name: 'GitHub Repo', requirement: 1000, icon: '📦', reward: '+25% vibes' },
+            { id: 'demo', name: 'Working Demo', requirement: 10000, icon: '🎬', reward: '$500 bonus' },
+            { id: 'seed', name: 'Seed Round', requirement: 100000, icon: '🌱', reward: '2x money' },
+            { id: 'series', name: 'Series A', requirement: 1000000, icon: '🚀', reward: 'UNICORN!' }
+        ];
+        
+        let moneyPerClick = 1;
+        let vibesPerClick = 1;
+        
+        const terminal = document.getElementById('terminal');
+        
+        function addTerminalLine(text, type = 'output') {
+            const line = document.createElement('div');
+            line.className = `terminal-line term-${type}`;
+            line.textContent = text;
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+            
+            if (terminal.children.length > 20) {
+                terminal.removeChild(terminal.firstChild);
+            }
+        }
+        
+        const startupPhrases = [
+            { cmd: 'npx create-vibe-app', output: 'Scaffolding your startup...' },
+            { cmd: 'git commit -m "it works on my machine"', output: 'Commit successful!' },
+            { cmd: 'npm run deploy', output: 'Deployed to the cloud!' },
+            { cmd: './generate_ai_code.sh', output: 'AI is coding...' },
+            { cmd: 'curl https://api.openai.com/v1/chat', output: 'GPT is thinking...' },
+            { cmd: 'docker build .', output: 'Containerized for scale!' },
+            { cmd: 'echo "move fast and break things"', output: '✓ Aggressive startup energy' },
+            { cmd: 'npm audit fix --force', output: 'Tech debt: increasing...' }
+        ];
+        
+        function loadGame() {
+            const saved = localStorage.getItem('vibeCoding');
+            if (saved) {
+                Object.assign(gameData, JSON.parse(saved));
+            }
+            updateDisplay();
+            addTerminalLine('Welcome to Vibe Coding Simulator!', 'success');
+            addTerminalLine('Type "vibe" to start coding...', 'cmd');
+        }
+        
+        function saveGame() {
+            localStorage.setItem('vibeCoding', JSON.stringify(gameData));
+        }
+        
+        function getUpgradeCost(upgrade) {
+            const owned = gameData.upgrades[upgrade.id] || 0;
+            return Math.floor(upgrade.cost * Math.pow(1.5, owned));
+        }
+        
+        function buyUpgrade(upgradeId) {
+            const upgrade = upgrades.find(u => u.id === upgradeId);
+            const cost = getUpgradeCost(upgrade);
+            
+            if (gameData.vibes >= cost) {
+                gameData.vibes -= cost;
+                gameData.upgrades[upgradeId] = (gameData.upgrades[upgradeId] || 0) + 1;
+                
+                addTerminalLine(`> Purchased ${upgrade.name}`, 'success');
+                addTerminalLine(upgrade.desc, 'output');
+                
+                saveGame();
+                updateDisplay();
+            }
+        }
+        
+        function handleVibeClick(e) {
+            const multiplier = 1 + (gameData.milestones.includes('repo') ? 0.25 : 0);
+            const moneyMult = gameData.milestones.includes('seed') ? 2 : 1;
+            
+            const gainedVibes = Math.floor(vibesPerClick * multiplier);
+            const gainedMoney = Math.floor(moneyPerClick * moneyMult);
+            
+            gameData.vibes += gainedVibes;
+            gameData.money += gainedMoney;
+            gameData.techDebt = Math.min(100, gameData.techDebt + 0.1);
+            
+            const phrase = startupPhrases[Math.floor(Math.random() * startupPhrases.length)];
+            addTerminalLine(`> ${phrase.cmd}`, 'cmd');
+            setTimeout(() => addTerminalLine(phrase.output, 'success'), 100);
+            
+            const popup = document.createElement('div');
+            popup.className = 'click-popup';
+            popup.innerHTML = `⚡ +${gainedVibes} | 💰 +$${gainedMoney}`;
+            popup.style.left = `${e.clientX}px`;
+            popup.style.top = `${e.clientY}px`;
+            document.body.appendChild(popup);
+            setTimeout(() => popup.remove(), 800);
+            
+            checkMilestones();
+            updateDisplay();
+        }
+        
+        function checkMilestones() {
+            milestones.forEach(m => {
+                if (!gameData.milestones.includes(m.id) && gameData.money >= m.requirement) {
+                    gameData.milestones.push(m.id);
+                    addTerminalLine(`🎉 MILESTONE: ${m.name}!`, 'success');
+                    addTerminalLine(`Reward: ${m.reward}`, 'output');
+                }
+            });
+        }
+        
+        function formatMoney(num) {
+            if (num >= 1e9) return '$' + (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return '$' + (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return '$' + (num / 1e3).toFixed(1) + 'K';
+            return '$' + Math.floor(num);
+        }
+        
+        function updateDisplay() {
+            document.getElementById('money').textContent = formatMoney(gameData.money);
+            document.getElementById('vibes').textContent = formatNumber(gameData.vibes);
+            document.getElementById('tech').textContent = gameData.techDebt.toFixed(1) + '%';
+            
+            const progress = Math.min(100, (gameData.money / 1000000) * 100);
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressFill').textContent = progress.toFixed(1) + '%';
+            document.getElementById('unicornProgress').textContent = formatMoney(1000000);
+            
+            const upgradesEl = document.getElementById('upgrades');
+            upgradesEl.innerHTML = '';
+            
+            upgrades.forEach(upgrade => {
+                const cost = getUpgradeCost(upgrade);
+                const owned = gameData.upgrades[upgrade.id] || 0;
+                const canAfford = gameData.vibes >= cost;
+                
+                const card = document.createElement('div');
+                card.className = `upgrade-card ${canAfford ? '' : 'disabled'} ${owned > 0 ? 'owned' : ''}`;
+                card.onclick = () => canAfford && buyUpgrade(upgrade.id);
+                
+                card.innerHTML = `
+                    <div class="upgrade-header">
+                        <span class="upgrade-icon">${upgrade.icon}</span>
+                        <span class="upgrade-name">${upgrade.name}</span>
+                        <span class="upgrade-cost">${formatNumber(cost)}</span>
+                    </div>
+                    <div class="upgrade-desc">${upgrade.desc}</div>
+                    ${owned > 0 ? `<div class="upgrade-owned">Owned: ${owned}</div>` : ''}
+                `;
+                upgradesEl.appendChild(card);
+            });
+            
+            const milestonesEl = document.getElementById('milestones');
+            milestonesEl.innerHTML = '<h3>🏆 MILESTONES</h3><div class="milestone-list"></div>';
+            const list = milestonesEl.querySelector('.milestone-list');
+            
+            milestones.forEach(m => {
+                const unlocked = gameData.milestones.includes(m.id);
+                const div = document.createElement('div');
+                div.className = `milestone ${unlocked ? 'unlocked' : ''}`;
+                div.innerHTML = `
+                    <span class="milestone-icon">${m.icon}</span>
+                    <div class="milestone-info">
+                        <h4>${m.name}</h4>
+                        <p>${formatMoney(m.requirement)} - ${m.reward}</p>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+        
+        function formatNumber(num) {
+            if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+            return Math.floor(num).toLocaleString();
+        }
+        
+        document.getElementById('vibeBtn').addEventListener('click', handleVibeClick);
+        
+        setInterval(() => {
+            if (gameData.upgrades.copilot) {
+                const mult = 1 + (gameData.upgrades.copilot || 0) * 0.5;
+                gameData.vibes += 0.1 * mult;
+                gameData.money += 0.2 * mult;
+                checkMilestones();
+                updateDisplay();
+            }
+        }, 1000);
+        
+        setInterval(saveGame, 30000);
+        
+        loadGame();
+    </script>
+</body>
+</html>

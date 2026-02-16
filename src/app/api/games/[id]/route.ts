@@ -1,9 +1,37 @@
 import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
+import { Prisma } from "@prisma/client"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { slugify } from "@/lib/utils"
-import { deleteStaleGameAssetsFromR2, uploadGameToR2, uploadThumbnailToR2, validateR2Config } from "@/lib/storage"
+import {
+  deleteStaleGameAssetsFromR2,
+  uploadGameToR2,
+  uploadThumbnailToR2,
+  validateR2Config,
+} from "@/lib/storage"
+import type { LevelEditorIntegrationReport } from "@/lib/storage"
+
+function buildLevelEditorWarnings(report: LevelEditorIntegrationReport | undefined): string[] {
+  if (!report) {
+    return []
+  }
+
+  const missing: string[] = []
+  if (!report.notifyReady) missing.push("VG.notifyReady")
+  if (!report.onEnterEditMode) missing.push("VG.onEnterEditMode")
+  if (!report.onLoadLevel) missing.push("VG.onLoadLevel")
+  if (!report.onRequestSave) missing.push("VG.onRequestSave")
+  if (!report.saveLevel) missing.push("VG.saveLevel")
+
+  if (missing.length === 0) {
+    return []
+  }
+
+  return [
+    `Level editor hooks missing: ${missing.join(", ")}. Open upload instructions and use the copy prompt to wire your game for community level saving.`,
+  ]
+}
 
 export async function GET(
   _request: NextRequest,
@@ -50,7 +78,7 @@ async function updateGame(
 
     const game = await prisma.game.findUnique({
       where: { id },
-      select: { id: true, creatorId: true, slug: true, title: true },
+      select: { id: true, creatorId: true, slug: true, title: true, hasLevelEditor: true },
     })
 
     if (!game) {
@@ -71,6 +99,7 @@ async function updateGame(
     let aiTool: string | null = null
     let aiModel: string | null = null
     let supportsMobile = false
+    let hasLevelEditor = false
     let gameFile: File | null = null
     let thumbnailFile: File | null = null
 
@@ -87,6 +116,7 @@ async function updateGame(
       const aiModelRaw = String(formData.get("aiModel") || "").trim()
       aiModel = aiModelRaw || null
       supportsMobile = String(formData.get("supportsMobile") || "false") === "true"
+      hasLevelEditor = String(formData.get("hasLevelEditor") || "false") === "true"
 
       const maybeGameFile = formData.get("gameFile")
       gameFile = maybeGameFile instanceof File ? maybeGameFile : null
@@ -103,6 +133,7 @@ async function updateGame(
       aiTool = body.aiTool || null
       aiModel = body.aiModel || null
       supportsMobile = Boolean(body.supportsMobile)
+      hasLevelEditor = Boolean(body.hasLevelEditor)
     }
 
     if (!title || !description) {
@@ -110,6 +141,7 @@ async function updateGame(
     }
 
     let nextGameUrl: string | undefined
+    let uploadWarnings: string[] = []
     if (gameFile) {
       const validExtensions = [".html", ".zip"]
       const isValidGameFile = validExtensions.some((ext) => gameFile!.name.toLowerCase().endsWith(ext))
@@ -134,9 +166,21 @@ async function updateGame(
         )
       }
 
-      const uploadResult = await uploadGameToR2(id, gameFile)
+      const uploadResult = await uploadGameToR2(id, gameFile, {
+        injectLevelEditorSdk: hasLevelEditor,
+        inspectLevelEditorIntegration: hasLevelEditor,
+      })
       await deleteStaleGameAssetsFromR2(id, uploadResult.uploadedKeys)
       nextGameUrl = uploadResult.gameUrl
+      uploadWarnings = hasLevelEditor
+        ? buildLevelEditorWarnings(uploadResult.levelEditorIntegration)
+        : []
+    }
+
+    if (hasLevelEditor && !gameFile && !game.hasLevelEditor) {
+      uploadWarnings.push(
+        "Level editor was enabled without uploading a new game file. Re-upload the game file once so VibeGames can auto-inject editor SDK support."
+      )
     }
 
     let nextThumbnailUrl: string | undefined
@@ -189,6 +233,7 @@ async function updateGame(
         aiTool: aiTool || null,
         aiModel: aiModel || null,
         supportsMobile,
+        hasLevelEditor,
         ...(nextGameUrl ? { gameUrl: nextGameUrl } : {}),
         ...(nextThumbnailUrl ? { thumbnail: nextThumbnailUrl } : {}),
       },
@@ -203,9 +248,38 @@ async function updateGame(
         slug: updated.slug,
         title: updated.title,
       },
+      warnings: uploadWarnings,
     })
   } catch (error) {
     console.error("Update game error:", error)
+
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      (error.code === "P2021" || error.code === "P2022")
+    ) {
+      return NextResponse.json(
+        { error: "Database schema is out of date. Run prisma db push and restart the server." },
+        { status: 500 }
+      )
+    }
+
+    if (
+      error &&
+      typeof error === "object" &&
+      "name" in error &&
+      typeof (error as { name?: string }).name === "string" &&
+      (error as { name: string }).name.includes("S3")
+    ) {
+      return NextResponse.json(
+        { error: "R2 upload failed. Verify R2 credentials and bucket permissions." },
+        { status: 500 }
+      )
+    }
+
+    if (process.env.NODE_ENV !== "production" && error instanceof Error) {
+      return NextResponse.json({ error: error.message || "Failed to update game" }, { status: 500 })
+    }
+
     return NextResponse.json({ error: "Failed to update game" }, { status: 500 })
   }
 }

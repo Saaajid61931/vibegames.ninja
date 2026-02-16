@@ -56,8 +56,12 @@ export function LevelEditorShell({
   const levelData = useMemo(() => initialLevel?.data, [initialLevel?.data])
 
   const saveLevel = async (payload: SavePayload) => {
-    const levelName = payload.name?.trim() || name.trim()
-    const levelDescription = payload.description?.trim() || description.trim() || undefined
+    // The metadata panel inputs (React state) are the source of truth for
+    // name/description. The payload may carry stale values from the initial
+    // level load or from the game's VG.saveLevel() call — those are only
+    // used as fallback when the inputs are empty.
+    const levelName = name.trim() || payload.name?.trim() || ""
+    const levelDescription = description.trim() || payload.description?.trim() || undefined
 
     if (!levelName) {
       setError("Add a level name before saving")
@@ -129,12 +133,22 @@ export function LevelEditorShell({
             runtimeLabel={`${title.toLowerCase().replace(/\s+/g, "_")}.exe`}
             mode="editor"
             levelData={levelData}
+            levelName={initialLevel?.name}
+            levelDescription={initialLevel?.description}
             onReady={setReady}
             requestSaveNonce={requestSaveNonce}
             onSaveLevel={(payload) => {
               setRequesting(false)
               setError("")
               setPendingSave(payload)
+              // If the metadata inputs are still empty, populate them from
+              // the game's payload so the user sees what will be saved.
+              if (!name.trim() && payload.name?.trim()) {
+                setName(payload.name.trim())
+              }
+              if (!description.trim() && payload.description?.trim()) {
+                setDescription(payload.description.trim())
+              }
               void saveLevel(payload)
             }}
           />

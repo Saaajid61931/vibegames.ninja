@@ -25,6 +25,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { LevelEditorSetupGuide } from "@/components/games/level-editor-setup-guide"
 import { CATEGORIES, AI_TOOLS } from "@/lib/utils"
 
 interface PageProps {
@@ -41,6 +42,7 @@ interface GameData {
   aiTool: string | null
   aiModel: string | null
   supportsMobile: boolean
+  hasLevelEditor: boolean
   thumbnail: string | null
 }
 
@@ -52,6 +54,7 @@ export default function EditGamePage({ params }: PageProps) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [updateWarnings, setUpdateWarnings] = useState<string[]>([])
   const [game, setGame] = useState<GameData | null>(null)
   const [gameFile, setGameFile] = useState<File | null>(null)
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
@@ -66,6 +69,7 @@ export default function EditGamePage({ params }: PageProps) {
     aiTool: "",
     aiModel: "",
     supportsMobile: false,
+    hasLevelEditor: false,
   })
 
   useEffect(() => {
@@ -104,6 +108,7 @@ export default function EditGamePage({ params }: PageProps) {
         aiTool: data.aiTool || "",
         aiModel: data.aiModel || "",
         supportsMobile: data.supportsMobile || false,
+        hasLevelEditor: data.hasLevelEditor || false,
       })
     } catch {
       setError("Failed to load game")
@@ -180,6 +185,7 @@ export default function EditGamePage({ params }: PageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setUpdateWarnings([])
     setSaving(true)
 
     try {
@@ -193,6 +199,7 @@ export default function EditGamePage({ params }: PageProps) {
         nextData.append("aiTool", formData.aiTool)
         nextData.append("aiModel", formData.aiModel.trim())
         nextData.append("supportsMobile", String(formData.supportsMobile))
+        nextData.append("hasLevelEditor", String(formData.hasLevelEditor))
 
         if (gameFile) {
           nextData.append("gameFile", gameFile)
@@ -227,13 +234,20 @@ export default function EditGamePage({ params }: PageProps) {
         throw new Error(result.data.error || "Failed to update game")
       }
 
+      const warnings = Array.isArray(result.data.warnings)
+        ? result.data.warnings.filter((item: unknown): item is string => typeof item === "string")
+        : []
+      setUpdateWarnings(warnings)
+
       setSuccess(true)
       setGameFile(null)
       setThumbnailFile(null)
       setThumbnailPreview(null)
-      setTimeout(() => {
-        router.push("/creator")
-      }, 1500)
+      if (warnings.length === 0) {
+        setTimeout(() => {
+          router.push("/creator")
+        }, 1500)
+      }
     } catch (err) {
       if (err instanceof TypeError && (thumbnailFile || gameFile)) {
         try {
@@ -249,6 +263,7 @@ export default function EditGamePage({ params }: PageProps) {
               nextData.append("aiTool", formData.aiTool)
               nextData.append("aiModel", formData.aiModel.trim())
               nextData.append("supportsMobile", String(formData.supportsMobile))
+              nextData.append("hasLevelEditor", String(formData.hasLevelEditor))
               if (gameFile) nextData.append("gameFile", gameFile)
               if (thumbnailFile) nextData.append("thumbnail", thumbnailFile)
               return nextData
@@ -260,13 +275,20 @@ export default function EditGamePage({ params }: PageProps) {
             throw new Error(fallbackData.error || "Failed to update game")
           }
 
+          const warnings = Array.isArray(fallbackData.warnings)
+            ? fallbackData.warnings.filter((item: unknown): item is string => typeof item === "string")
+            : []
+          setUpdateWarnings(warnings)
+
           setSuccess(true)
           setGameFile(null)
           setThumbnailFile(null)
           setThumbnailPreview(null)
-          setTimeout(() => {
-            router.push("/creator")
-          }, 1500)
+          if (warnings.length === 0) {
+            setTimeout(() => {
+              router.push("/creator")
+            }, 1500)
+          }
         } catch (fallbackErr) {
           setError(fallbackErr instanceof Error ? fallbackErr.message : "Something went wrong")
         }
@@ -321,7 +343,19 @@ export default function EditGamePage({ params }: PageProps) {
             <CardContent className="pt-6 text-center">
               <CheckCircle className="h-16 w-16 text-[#00ff40] mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-white mb-2 font-arcade">Game Updated!</h2>
-              <p className="text-[#4a4a6a] text-sm font-arcade">Redirecting to dashboard...</p>
+              {updateWarnings.length > 0 ? (
+                <div className="space-y-3 text-left">
+                  <p className="text-[#4a4a6a] text-sm font-arcade text-center">Update completed with warnings.</p>
+                  <div className="rounded border border-[#ffff00] bg-[#ffff00]/10 p-3 text-xs text-white font-arcade">
+                    {updateWarnings.map((warning) => (
+                      <p key={warning}>{warning}</p>
+                    ))}
+                  </div>
+                  <Button className="w-full font-arcade" onClick={() => router.push("/creator")}>Go to Dashboard</Button>
+                </div>
+              ) : (
+                <p className="text-[#4a4a6a] text-sm font-arcade">Redirecting to dashboard...</p>
+              )}
             </CardContent>
           </Card>
         </main>
@@ -477,6 +511,20 @@ export default function EditGamePage({ params }: PageProps) {
                     </>
                   )}
                 </div>
+
+                <div className="mt-4 border border-[#4a4a6a] bg-[#0d0d15] p-3 space-y-2">
+                  <p className="text-xs font-arcade text-white">Uploading a React game? Do this:</p>
+                  <ol className="list-decimal pl-4 space-y-1 text-xs text-[#4a4a6a] font-arcade">
+                    <li>Open your React game project.</li>
+                    <li>Run npm run build.</li>
+                    <li>Open the build output folder (usually dist or build).</li>
+                    <li>Check that index.html exists there.</li>
+                    <li>Zip that built output and upload it above.</li>
+                  </ol>
+                  <p className="text-[10px] text-[#4a4a6a] font-arcade">
+                    Upload built output only, not source files. The zip must include index.html.
+                  </p>
+                </div>
               </CardContent>
             </Card>
 
@@ -600,6 +648,29 @@ export default function EditGamePage({ params }: PageProps) {
                     </div>
                   </label>
                 </div>
+
+                <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.hasLevelEditor}
+                      onChange={(e) =>
+                        setFormData({ ...formData, hasLevelEditor: e.target.checked })
+                      }
+                      className="h-4 w-4 rounded border-[#4a4a6a] bg-[#0d0d15] text-[#ffff00] focus:ring-[#ffff00]"
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-white font-arcade">
+                        Includes level editor support
+                      </p>
+                      <p className="text-xs text-[#4a4a6a] font-arcade">
+                        Allow players to create and share levels for this game
+                      </p>
+                    </div>
+                  </label>
+                </div>
+
+                {formData.hasLevelEditor && <LevelEditorSetupGuide />}
               </CardContent>
             </Card>
 

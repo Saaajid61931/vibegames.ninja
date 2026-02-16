@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
@@ -103,16 +104,35 @@ export async function POST(request: Request) {
 
     // Ensure uniqueness for the handle. If taken, append a short suffix.
     let handle = normalized
-    for (let i = 0; i < 5; i++) {
+    let isAvailable = false
+    for (let i = 0; i < 8; i++) {
+      const candidate =
+        i === 0
+          ? normalized
+          : (() => {
+              const suffix = Math.random().toString(36).slice(2, 6)
+              const baseMaxLength = 24 - suffix.length - 1
+              const base = normalized.slice(0, Math.max(3, baseMaxLength)).replace(/-+$/g, "")
+              return `${base}-${suffix}`
+            })()
+
       const existing = await prisma.studioProfile.findUnique({
-        where: { handle },
+        where: { handle: candidate },
         select: { id: true },
       })
-      if (!existing) break
-      handle = `${normalized}-${Math.random().toString(36).slice(2, 6)}`
-      if (handle.length > 24) {
-        handle = handle.slice(0, 24)
+
+      if (!existing) {
+        handle = candidate
+        isAvailable = true
+        break
       }
+    }
+
+    if (!isAvailable) {
+      return NextResponse.json(
+        { error: "HANDLE_TAKEN", message: "Could not generate a unique handle. Try a different name." },
+        { status: 409 }
+      )
     }
 
     const created = await prisma.studioProfile.create({
@@ -134,6 +154,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ profile: created }, { status: 201 })
   } catch (error) {
     console.error("Studio profile create error:", error)
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json(
+        { error: "HANDLE_TAKEN", message: "That studio handle is already in use." },
+        { status: 409 }
+      )
+    }
+
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      (error.code === "P2021" || error.code === "P2022")
+    ) {
+      return NextResponse.json(
+        {
+          error: "DB_SCHEMA_MISMATCH",
+          message: "Database schema is out of date. Run prisma db push and restart the server.",
+        },
+        { status: 500 }
+      )
+    }
+
+    if (process.env.NODE_ENV !== "production" && error instanceof Error) {
+      return NextResponse.json(
+        { error: "SYSTEM_ERROR", message: error.message },
+        { status: 500 }
+      )
+    }
+
     return NextResponse.json({ error: "SYSTEM_ERROR" }, { status: 500 })
   }
 }

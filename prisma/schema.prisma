@@ -32,10 +32,14 @@ model User {
   followers     CreatorFollow[] @relation("CreatorFollowers")
   following     CreatorFollow[] @relation("CreatorFollowing")
   comments      Comment[]
+  levels        Level[]
+  levelRatings  LevelRating[]
+  gameRatings   GameRating[]
   earnings      Earnings[]
   notifications Notification[]
 
   studioProfiles StudioProfile[]
+  featuredPicks  FeaturedGame[]
 }
 
 model Account {
@@ -75,82 +79,93 @@ model VerificationToken {
 
 // Game Models
 model Game {
-  id          String    @id @default(cuid())
-  slug        String    @unique
-  title       String
-  description String
-  instructions String?
-  thumbnail   String?
-  gameUrl     String
-  category    String    @default("OTHER") // ACTION, PUZZLE, ARCADE, etc.
-  tags        String    // Comma-separated tags
-  status      String    @default("PENDING") // DRAFT, PENDING, PUBLISHED, REJECTED, SUSPENDED, EXPIRED
-  isAIGenerated Boolean @default(true)
-  aiTool      String?   // Which AI tool was used (Claude, GPT, etc.)
-  aiModel     String?   // Specific model used (gpt-4o, claude-3-7-sonnet, etc.)
+  id             String  @id @default(cuid())
+  slug           String  @unique
+  title          String
+  description    String
+  instructions   String?
+  thumbnail      String?
+  gameUrl        String
+  category       String  @default("OTHER") // ACTION, PUZZLE, ARCADE, etc.
+  tags           String // Comma-separated tags
+  status         String  @default("PENDING") // DRAFT, PENDING, PUBLISHED, REJECTED, SUSPENDED, EXPIRED
+  isAIGenerated  Boolean @default(true)
+  aiTool         String? // Which AI tool was used (Claude, GPT, etc.)
+  aiModel        String? // Specific model used (gpt-4o, claude-3-7-sonnet, etc.)
   supportsMobile Boolean @default(false)
-  
-  isPremium   Boolean   @default(false)
-  price       Float?
-  hasAds      Boolean   @default(true)
-  
-  plays       Int       @default(0)
-  likes       Int       @default(0)
-  shares      Int       @default(0)
-  avgRating   Float     @default(0)
-  ratingCount Int       @default(0)
-  
+  hasLevelEditor Boolean @default(false)
+
+  isPremium Boolean @default(false)
+  price     Float?
+  hasAds    Boolean @default(true)
+
+  plays       Int   @default(0)
+  likes       Int   @default(0)
+  shares      Int   @default(0)
+  avgRating   Float @default(0)
+  ratingCount Int   @default(0)
+
   // Legacy retention fields (no longer used for automatic expiration)
   expiresAt   DateTime?
   isPermanent Boolean   @default(false)
-  
+
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   publishedAt DateTime?
-  
-  creatorId   String
-  creator     User      @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  creatorId String
+  creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
   // Optional publishing identity (studio/brand profile) owned by a real user
   studioProfileId String?
   studioProfile   StudioProfile? @relation(fields: [studioProfileId], references: [id], onDelete: SetNull)
 
-  analytics   GameAnalytics[]
-  favorites   Favorite[]
-  comments    Comment[]
-  reports     Report[]
+  analytics    GameAnalytics[]
+  favorites    Favorite[]
+  comments     Comment[]
+  levels       Level[]
+  ratings      GameRating[]
+  reports      Report[]
+  featuredDays FeaturedGame[]
+
+  @@index([status, publishedAt])
+  @@index([status, plays])
+  @@index([status, likes])
+  @@index([status, category])
+  @@index([creatorId, status])
+  @@index([studioProfileId, status])
 }
 
 model StudioProfile {
-  id          String   @id @default(cuid())
-  ownerId     String
-  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   // Public handle for the studio/brand (used in URLs)
-  handle      String   @unique
+  handle      String  @unique
   displayName String
   image       String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  games       Game[]
+  games Game[]
 
   @@index([ownerId])
 }
 
 model GameAnalytics {
-  id            String   @id @default(cuid())
-  gameId        String
-  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  date          DateTime @default(now())
-  plays         Int      @default(0)
-  uniquePlayers Int      @default(0)
-  avgSessionTime Float   @default(0)
-  bounceRate    Float    @default(0)
-  adImpressions Int      @default(0)
-  adClicks      Int      @default(0)
-  revenue       Float    @default(0)
+  id             String   @id @default(cuid())
+  gameId         String
+  game           Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  date           DateTime @default(now())
+  plays          Int      @default(0)
+  uniquePlayers  Int      @default(0)
+  avgSessionTime Float    @default(0)
+  bounceRate     Float    @default(0)
+  adImpressions  Int      @default(0)
+  adClicks       Int      @default(0)
+  revenue        Float    @default(0)
 }
 
 model Favorite {
@@ -190,28 +205,80 @@ model Comment {
   updatedAt DateTime @updatedAt
 }
 
-model Earnings {
+model Level {
   id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount      Float
-  type        String   // AD_REVENUE, GAME_SALE, TIP, REFERRAL
-  status      String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  name        String
   description String?
+  data        Json
+  thumbnail   String?
+  status      String   @default("PUBLISHED") // PUBLISHED, HIDDEN, REMOVED
+  plays       Int      @default(0)
+  avgRating   Float    @default(0)
+  ratingCount Int      @default(0)
+  gameId      String
+  game        Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  creatorId   String
+  creator     User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ratings LevelRating[]
+
+  @@index([gameId, status, createdAt])
+  @@index([gameId, status, avgRating])
+  @@index([creatorId, createdAt])
+}
+
+model LevelRating {
+  id        String   @id @default(cuid())
+  score     Int
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  levelId   String
+  level     Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, levelId])
+  @@index([levelId])
+}
+
+model GameRating {
+  id        String   @id @default(cuid())
+  score     Int
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gameId    String
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, gameId])
+  @@index([gameId])
+}
+
+model Earnings {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount      Float
+  type        String // AD_REVENUE, GAME_SALE, TIP, REFERRAL
+  status      String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  description String?
+  createdAt   DateTime  @default(now())
   paidAt      DateTime?
 }
 
 model Subscription {
-  id              String    @id @default(cuid())
-  email           String
-  type            String    // CREATOR_PRO, PLAYER_PREMIUM
-  status          String    @default("active")
+  id               String    @id @default(cuid())
+  email            String
+  type             String // CREATOR_PRO, PLAYER_PREMIUM
+  status           String    @default("active")
   stripeCustomerId String?
-  stripeSubId     String?
+  stripeSubId      String?
   currentPeriodEnd DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
 model Report {
@@ -219,7 +286,7 @@ model Report {
   gameId      String
   game        Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
   reporterId  String?
-  reason      String    // COPYRIGHT, INAPPROPRIATE, MALWARE, SPAM, OTHER
+  reason      String // COPYRIGHT, INAPPROPRIATE, MALWARE, SPAM, OTHER
   description String?
   status      String    @default("PENDING") // PENDING, REVIEWING, RESOLVED, DISMISSED
   createdAt   DateTime  @default(now())
@@ -237,4 +304,18 @@ model Notification {
   read      Boolean  @default(false)
   link      String?
   createdAt DateTime @default(now())
+}
+
+// Game of the Day — admin-curated with auto-fallback
+model FeaturedGame {
+  id          String   @id @default(cuid())
+  date        DateTime @unique @db.Date // one pick per calendar day
+  gameId      String
+  game        Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  note        String?  // optional admin note
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([gameId])
 }

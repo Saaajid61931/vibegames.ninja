@@ -3,17 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 
-const LOADING_PHRASES = [
-  "INITIALIZING VIBE ENGINE...",
-  "INSERTING VIRTUAL COIN...",
-  "GENERATING PIXELS...",
-  "TUNING PHYSICS...",
-  "SPAWNING BOSSES...",
-  "PRESSING START...",
-]
-
-const PHRASE_INTERVAL_MS = 600
-const COMPLETE_DELAY_MS = 280
+const COMPLETE_DELAY_MS = 200
 const FAILSAFE_TIMEOUT_MS = 12000
 
 function isModifiedClick(event: MouseEvent) {
@@ -29,11 +19,8 @@ export function PageTransitionLoader() {
   )
 
   const [isActive, setIsActive] = useState(false)
-  const [isReady, setIsReady] = useState(false)
-  const [phraseIndex, setPhraseIndex] = useState(0)
   const [progress, setProgress] = useState(0)
 
-  const phraseIntervalRef = useRef<number | null>(null)
   const progressFrameRef = useRef<number | null>(null)
   const finishTimeoutRef = useRef<number | null>(null)
   const failsafeTimeoutRef = useRef<number | null>(null)
@@ -42,11 +29,6 @@ export function PageTransitionLoader() {
   const transitionPendingRef = useRef(false)
 
   const stopMotion = useCallback(() => {
-    if (phraseIntervalRef.current) {
-      window.clearInterval(phraseIntervalRef.current)
-      phraseIntervalRef.current = null
-    }
-
     if (progressFrameRef.current) {
       window.cancelAnimationFrame(progressFrameRef.current)
       progressFrameRef.current = null
@@ -71,7 +53,6 @@ export function PageTransitionLoader() {
     transitionPendingRef.current = false
     stopMotion()
 
-    setIsReady(true)
     setProgress(100)
 
     if (finishTimeoutRef.current) {
@@ -80,8 +61,6 @@ export function PageTransitionLoader() {
 
     finishTimeoutRef.current = window.setTimeout(() => {
       setIsActive(false)
-      setIsReady(false)
-      setPhraseIndex(0)
       setProgress(0)
       finishTimeoutRef.current = null
     }, COMPLETE_DELAY_MS)
@@ -100,13 +79,7 @@ export function PageTransitionLoader() {
     }
 
     setIsActive(true)
-    setIsReady(false)
-    setPhraseIndex(0)
     setProgress(0)
-
-    phraseIntervalRef.current = window.setInterval(() => {
-      setPhraseIndex((prev) => (prev + 1) % LOADING_PHRASES.length)
-    }, PHRASE_INTERVAL_MS)
 
     const animateProgress = () => {
       setProgress((prev) => {
@@ -227,35 +200,20 @@ export function PageTransitionLoader() {
 
   return (
     <div
-      id="vibe-loader"
-      className={isActive ? "vibe-loader vibe-loader-active" : "vibe-loader vibe-loader-hidden"}
+      className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none"
+      style={{ 
+        opacity: isActive ? 1 : 0, 
+        transition: "opacity 200ms ease-in-out" 
+      }}
       aria-hidden={!isActive}
     >
-      <div className="vibe-loader-grid" />
-
-      <div className="vibe-loader-content">
-        <div className="vibe-loader-icon" aria-hidden="true">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3-3c-.83 0-1.5-.67-1.5-1.5S17.67 9 18.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
-          </svg>
-        </div>
-
-        <h2 id="loader-text" className="vibe-loader-title">
-          {isReady ? "READY!" : LOADING_PHRASES[phraseIndex]}
-        </h2>
-
-        <div className="vibe-loader-progress-box">
-          <div className="vibe-loader-progress-track">
-            <div
-              id="progress-fill"
-              className={`vibe-loader-progress-fill${isReady ? " is-ready" : ""}`}
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-
-        <p className="vibe-loader-blink">PLEASE WAIT</p>
-      </div>
+      <div
+        className="h-[3px] bg-[var(--color-primary)] shadow-[0_0_10px_var(--color-primary)]"
+        style={{
+          width: `${progress}%`,
+          transition: progress === 100 ? "width 100ms ease-out" : "width 100ms linear"
+        }}
+      />
     </div>
   )
 }

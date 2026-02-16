@@ -22,6 +22,10 @@ The home for AI-made HTML5 games. Build with AI, publish instantly, play anywher
 - **UI Components**: Radix UI
 - **Icons**: Lucide React
 
+## Infra Setup Reference
+
+For a simple environment and services reference (DATABASE_URL vs DIRECT_URL, where to set vars, upload troubleshooting), see `INFRA_REFERENCE.md`.
+
 ## Getting Started
 
 ### Prerequisites

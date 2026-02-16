@@ -1,5 +1,14 @@
+import type { Metadata } from "next"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "Read how VibeGames.ai handles account data, analytics, and privacy requests.",
+  alternates: {
+    canonical: "/privacy",
+  },
+}
 
 export default function PrivacyPage() {
   return (

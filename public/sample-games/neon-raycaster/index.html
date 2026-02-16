@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>Neon Raycaster</title>
+    <style>
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-magenta: #ff00ff;
+            --neon-green: #00ff00;
+            --dark: #0a0a0f;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        body {
+            background: var(--dark);
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+        
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .hud-item {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--neon-cyan);
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: var(--neon-cyan);
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+        
+        #minimap {
+            position: absolute;
+            bottom: 80px;
+            right: 10px;
+            width: 120px;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--neon-magenta);
+            border-radius: 8px;
+        }
+        
+        #minimapCanvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 180px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+            padding: 15px;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .control-btn {
+            background: rgba(0, 255, 255, 0.15);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: var(--neon-cyan);
+            pointer-events: auto;
+            transition: all 0.1s;
+        }
+        
+        .control-btn:active, .control-btn.active {
+            background: rgba(0, 255, 255, 0.4);
+            transform: scale(0.95);
+        }
+        
+        .control-btn.dual {
+            grid-column: span 2;
+        }
+        
+        #startScreen, #winScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            gap: 20px;
+        }
+        
+        .screen-title {
+            font-size: clamp(24px, 6vw, 48px);
+            font-weight: bold;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 20px var(--neon-cyan), 0 0 40px var(--neon-cyan);
+            text-align: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .screen-subtitle {
+            font-size: clamp(14px, 3vw, 20px);
+            color: var(--neon-magenta);
+            text-align: center;
+            max-width: 80%;
+        }
+        
+        .start-btn {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+            border: none;
+            padding: 20px 50px;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            transition: all 0.2s;
+        }
+        
+        .start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.8);
+        }
+        
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        #crosshair::before, #crosshair::after {
+            content: '';
+            position: absolute;
+            background: var(--neon-green);
+            box-shadow: 0 0 5px var(--neon-green);
+        }
+        
+        #crosshair::before {
+            width: 2px;
+            height: 20px;
+            left: 9px;
+            top: 0;
+        }
+        
+        #crosshair::after {
+            width: 20px;
+            height: 2px;
+            top: 9px;
+            left: 0;
+        }
+        
+        .hidden { display: none !important; }
+        
+        @media (min-width: 768px) {
+            #controls { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="hud">
+            <div class="hud-item">SCORE: <span id="score">0</span></div>
+            <div class="hud-item">LEVEL: <span id="level">1</span></div>
+        </div>
+        
+        <div id="minimap">
+            <canvas id="minimapCanvas"></canvas>
+        </div>
+        
+        <div id="crosshair"></div>
+        
+        <div id="controls">
+            <div></div>
+            <button class="control-btn" id="btnUp">▲</button>
+            <div></div>
+            <button class="control-btn" id="btnLeft">◄</button>
+            <button class="control-btn dual" id="btnShoot">🔫 SHOOT</button>
+            <button class="control-btn" id="btnRight">►</button>
+            <div></div>
+            <button class="control-btn" id="btnDown">▼</button>
+            <div></div>
+        </div>
+        
+        <div id="startScreen">
+            <div class="screen-title">NEON RAYCASTER</div>
+            <div class="screen-subtitle">Navigate the neon labyrinth, find the exit, shoot the enemies!</div>
+            <button class="start-btn" onclick="startGame()">START GAME</button>
+        </div>
+        
+        <div id="winScreen" class="hidden">
+            <div class="screen-title">LEVEL COMPLETE!</div>
+            <div class="screen-subtitle">You escaped the neon maze!</div>
+            <button class="start-btn" onclick="nextLevel()">NEXT LEVEL</button>
+        </div>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const minimapCanvas = document.getElementById('minimapCanvas');
+        const minimapCtx = minimapCanvas.getContext('2d');
+        
+        const TILE_SIZE = 64;
+        const FOV = Math.PI / 3;
+        const HALF_FOV = FOV / 2;
+        const NUM_RAYS = 120;
+        const DELTA_ANGLE = FOV / NUM_RAYS;
+        const SCALE = canvas.width / NUM_RAYS;
+        const MOVE_SPEED = 3;
+        const ROT_SPEED = 0.04;
+        const ENEMY_SPEED = 1.5;
+        
+        let width, height;
+        let player = { x: 0, y: 0, angle: 0 };
+        let enemies = [];
+        let bullets = [];
+        let score = 0;
+        let level = 1;
+        let gameRunning = false;
+        let keys = {};
+        
+        const maps = [
+            [
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,1,1,0,0,0,0,0,1,1,0,0,0,1],
+                [1,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1],
+                [1,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1],
+                [1,0,0,1,1,0,0,0,0,0,1,1,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1]
+            ],
+            [
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1],
+                [1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1],
+                [1,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1],
+                [1,0,0,1,1,1,0,0,0,1,1,1,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,1,1,0,0,0,0,0,1,1,0,0,0,1],
+                [1,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1],
+                [1,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1]
+            ],
+            [
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,1,1,1,1,0,0,0,0,1,1,1,1,0,1],
+                [1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,1],
+                [1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,1,0,0,1,1,1,1,1,0,0,0,1,0,1],
+                [1,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1],
+                [1,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,1,1,1,1,0,0,0,0,1,1,1,1,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1]
+            ]
+        ];
+        
+        let currentMap = [];
+        
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            minimapCanvas.width = 120;
+            minimapCanvas.height = 120;
+        }
+        
+        function initLevel(lvl) {
+            const mapIndex = (lvl - 1) % maps.length;
+            currentMap = maps[mapIndex].map(row => [...row]);
+            
+            player.x = 2.5;
+            player.y = 2.5;
+            player.angle = 0;
+            
+            enemies = [];
+            bullets = [];
+            
+            for (let i = 0; i < 3 + lvl; i++) {
+                let ex, ey, attempts = 0;
+                do {
+                    ex = 1 + Math.random() * (currentMap[0].length - 2);
+                    ey = 1 + Math.random() * (currentMap.length - 2);
+                    attempts++;
+                } while ((currentMap[Math.floor(ey)][Math.floor(ex)] !== 0 || 
+                         Math.hypot(ex - player.x, ey - player.y) < 4) && attempts < 100);
+                
+                enemies.push({
+                    x: ex,
+                    y: ey,
+                    alive: true,
+                    health: 2
+                });
+            }
+            
+            document.getElementById('level').textContent = level;
+        }
+        
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            score = 0;
+            level = 1;
+            initLevel(level);
+            gameRunning = true;
+            gameLoop();
+        }
+        
+        function nextLevel() {
+            document.getElementById('winScreen').classList.add('hidden');
+            level++;
+            initLevel(level);
+            gameRunning = true;
+        }
+        
+        function winLevel() {
+            gameRunning = false;
+            document.getElementById('winScreen').classList.remove('hidden');
+        }
+        
+        function castRay(angle) {
+            const sin = Math.sin(angle);
+            const cos = Math.cos(angle);
+            
+            let dist = 0;
+            let hitWall = false;
+            let wallType = 1;
+            
+            const stepSize = 0.02;
+            
+            while (!hitWall && dist < 20) {
+                dist += stepSize;
+                
+                const testX = player.x + cos * dist;
+                const testY = player.y + sin * dist;
+                
+                const mapX = Math.floor(testX);
+                const mapY = Math.floor(testY);
+                
+                if (mapX < 0 || mapX >= currentMap[0].length || 
+                    mapY < 0 || mapY >= currentMap.length) {
+                    hitWall = true;
+                    dist = 20;
+                } else if (currentMap[mapY][mapX] > 0) {
+                    hitWall = true;
+                    wallType = currentMap[mapY][mapX];
+                    
+                    let blockDist = dist;
+                    const borderX = testX - mapX;
+                    const borderY = testY - mapY;
+                    
+                    if (borderX < 0.02 || borderX > 0.98) blockDist *= 0.9;
+                    if (borderY < 0.02 || borderY > 0.98) blockDist *= 0.9;
+                }
+            }
+            
+            return { dist, wallType };
+        }
+        
+        function render() {
+            ctx.fillStyle = '#0a0a0f';
+            ctx.fillRect(0, 0, width, height);
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, '#1a0a2e');
+            gradient.addColorStop(0.5, '#0a0a0f');
+            gradient.addColorStop(1, '#0a1a1a');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height / 2);
+            
+            const zBuffer = [];
+            
+            for (let i = 0; i < NUM_RAYS; i++) {
+                const rayAngle = player.angle - HALF_FOV + i * DELTA_ANGLE;
+                const { dist, wallType } = castRay(rayAngle);
+                
+                const correctedDist = dist * Math.cos(rayAngle - player.angle);
+                zBuffer[i] = correctedDist;
+                
+                const wallHeight = (height * 0.8) / correctedDist;
+                
+                const shade = Math.max(0.2, 1 - correctedDist / 15);
+                
+                let wallColor;
+                if (wallType === 2) {
+                    wallColor = `rgba(0, 255, 255, ${shade})`;
+                } else if (i % 2 === 0) {
+                    wallColor = `rgba(191, 0, 255, ${shade * 0.8})`;
+                } else {
+                    wallColor = `rgba(0, 255, 136, ${shade * 0.8})`;
+                }
+                
+                const wallTop = (height - wallHeight) / 2;
+                
+                ctx.fillStyle = wallColor;
+                ctx.fillRect(i * (width / NUM_RAYS), wallTop, width / NUM_RAYS + 1, wallHeight);
+                
+                if (wallType === 2) {
+                    ctx.strokeStyle = `rgba(0, 255, 255, ${shade})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(i * (width / NUM_RAYS), wallTop);
+                    ctx.lineTo(i * (width / NUM_RAYS), wallTop + wallHeight);
+                    ctx.stroke();
+                }
+            }
+            
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const b = bullets[i];
+                b.x += Math.cos(b.angle) * 8;
+                b.y += Math.sin(b.angle) * 8;
+                b.dist -= 0.5;
+                
+                if (b.dist <= 0 || currentMap[Math.floor(b.y)][Math.floor(b.x)] > 0) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+                
+                const screenX = width / 2 + (Math.tan(b.angle - player.angle) * width / Math.tan(FOV));
+                const spriteHeight = Math.min(height, (height * 0.3) / b.dist);
+                const spriteTop = (height - spriteHeight) / 2;
+                
+                ctx.fillStyle = '#ffff00';
+                ctx.beginPath();
+                ctx.arc(screenX, height / 2, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            const spriteList = [];
+            
+            for (const enemy of enemies) {
+                if (!enemy.alive) continue;
+                
+                const dx = enemy.x - player.x;
+                const dy = enemy.y - player.y;
+                const dist = Math.hypot(dx, dy);
+                
+                if (dist > 0.1) {
+                    let angle = Math.atan2(dy, dx) - player.angle;
+                    while (angle > Math.PI) angle -= Math.PI * 2;
+                    while (angle < -Math.PI) angle += Math.PI * 2;
+                    
+                    if (Math.abs(angle) < HALF_FOV + 0.2) {
+                        spriteList.push({ enemy, angle, dist });
+                    }
+                }
+            }
+            
+            spriteList.sort((a, b) => b.dist - a.dist);
+            
+            for (const sprite of spriteList) {
+                const { enemy, angle, dist } = sprite;
+                
+                if (dist > zBuffer[Math.floor((angle + HALF_FOV) / DELTA_ANGLE)]) continue;
+                
+                const screenX = width / 2 + (Math.tan(angle) * width / Math.tan(FOV));
+                const spriteHeight = Math.min(height * 1.5, (height * 0.8) / dist);
+                const spriteTop = (height - spriteHeight) / 2;
+                const spriteWidth = spriteHeight * 0.6;
+                
+                const shade = Math.max(0.3, 1 - dist / 12);
+                
+                ctx.fillStyle = `rgba(255, 0, 110, ${shade})`;
+                ctx.fillRect(screenX - spriteWidth / 2, spriteTop, spriteWidth, spriteHeight);
+                
+                ctx.fillStyle = `rgba(255, 100, 150, ${shade})`;
+                ctx.fillRect(screenX - spriteWidth / 3, spriteTop + spriteHeight * 0.1, spriteWidth / 1.5, spriteHeight * 0.15);
+                
+                ctx.fillStyle = '#fff';
+                const eyeY = spriteTop + spriteHeight * 0.35;
+                ctx.fillRect(screenX - spriteWidth * 0.2, eyeY, spriteWidth * 0.12, spriteHeight * 0.12);
+                ctx.fillRect(screenX + spriteWidth * 0.08, eyeY, spriteWidth * 0.12, spriteHeight * 0.12);
+            }
+            
+            renderMinimap();
+        }
+        
+        function renderMinimap() {
+            minimapCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            minimapCtx.fillRect(0, 0, 120, 120);
+            
+            const scale = 120 / currentMap.length;
+            
+            for (let y = 0; y < currentMap.length; y++) {
+                for (let x = 0; x < currentMap[0].length; x++) {
+                    if (currentMap[y][x] === 1) {
+                        minimapCtx.fillStyle = '#8338ec';
+                        minimapCtx.fillRect(x * scale, y * scale, scale, scale);
+                    } else if (currentMap[y][x] === 2) {
+                        minimapCtx.fillStyle = '#00ffff';
+                        minimapCtx.fillRect(x * scale, y * scale, scale, scale);
+                    }
+                }
+            }
+            
+            for (const enemy of enemies) {
+                if (enemy.alive) {
+                    minimapCtx.fillStyle = '#ff006e';
+                    minimapCtx.beginPath();
+                    minimapCtx.arc(enemy.x * scale, enemy.y * scale, 3, 0, Math.PI * 2);
+                    minimapCtx.fill();
+                }
+            }
+            
+            minimapCtx.fillStyle = '#00ff00';
+            minimapCtx.beginPath();
+            minimapCtx.arc(player.x * scale, player.y * scale, 4, 0, Math.PI * 2);
+            minimapCtx.fill();
+            
+            minimapCtx.strokeStyle = '#00ff00';
+            minimapCtx.lineWidth = 2;
+            minimapCtx.beginPath();
+            minimapCtx.moveTo(player.x * scale, player.y * scale);
+            minimapCtx.lineTo(
+                player.x * scale + Math.cos(player.angle) * 10,
+                player.y * scale + Math.sin(player.angle) * 10
+            );
+            minimapCtx.stroke();
+        }
+        
+        function shoot() {
+            if (!gameRunning) return;
+            
+            bullets.push({
+                x: player.x,
+                y: player.y,
+                angle: player.angle,
+                dist: 20
+            });
+            
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+                if (!enemy.alive) continue;
+                
+                const dx = enemy.x - player.x;
+                const dy = enemy.y - player.y;
+                const dist = Math.hypot(dx, dy);
+                
+                let angle = Math.atan2(dy, dx) - player.angle;
+                while (angle > Math.PI) angle -= Math.PI * 2;
+                while (angle < -Math.PI) angle += Math.PI * 2;
+                
+                if (Math.abs(angle) < 0.15 && dist < 12) {
+                    enemy.health--;
+                    if (enemy.health <= 0) {
+                        enemy.alive = false;
+                        score += 100;
+                        document.getElementById('score').textContent = score;
+                    }
+                }
+            }
+        }
+        
+        function update() {
+            if (!gameRunning) return;
+            
+            if (keys['ArrowUp'] || keys['w'] || keys['W']) {
+                const newX = player.x + Math.cos(player.angle) * MOVE_SPEED;
+                const newY = player.y + Math.sin(player.angle) * MOVE_SPEED;
+                if (currentMap[Math.floor(newY)][Math.floor(newX)] === 0) {
+                    player.x = newX;
+                    player.y = newY;
+                }
+            }
+            if (keys['ArrowDown'] || keys['s'] || keys['S']) {
+                const newX = player.x - Math.cos(player.angle) * MOVE_SPEED;
+                const newY = player.y - Math.sin(player.angle) * MOVE_SPEED;
+                if (currentMap[Math.floor(newY)][Math.floor(newX)] === 0) {
+                    player.x = newX;
+                    player.y = newY;
+                }
+            }
+            if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+                player.angle -= ROT_SPEED;
+            }
+            if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+                player.angle += ROT_SPEED;
+            }
+            
+            for (const enemy of enemies) {
+                if (!enemy.alive) continue;
+                
+                const dx = player.x - enemy.x;
+                const dy = player.y - enemy.y;
+                const dist = Math.hypot(dx, dy);
+                
+                if (dist > 0.5) {
+                    const moveX = (dx / dist) * ENEMY_SPEED * 0.3;
+                    const moveY = (dy / dist) * ENEMY_SPEED * 0.3;
+                    
+                    const newX = enemy.x + moveX;
+                    const newY = enemy.y + moveY;
+                    
+                    if (currentMap[Math.floor(newY)][Math.floor(newX)] === 0) {
+                        enemy.x = newX;
+                        enemy.y = newY;
+                    }
+                }
+            }
+            
+            const exitX = currentMap[0].length - 1.5;
+            const exitY = currentMap.length - 1.5;
+            if (Math.hypot(player.x - exitX, player.y - exitY) < 1) {
+                winLevel();
+            }
+        }
+        
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            update();
+            render();
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === ' ' || e.key === 'Enter') {
+                shoot();
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+        
+        const btnUp = document.getElementById('btnUp');
+        const btnDown = document.getElementById('btnDown');
+        const btnLeft = document.getElementById('btnLeft');
+        const btnRight = document.getElementById('btnRight');
+        const btnShoot = document.getElementById('btnShoot');
+        
+        btnUp.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowUp'] = true; });
+        btnUp.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowUp'] = false; });
+        
+        btnDown.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowDown'] = true; });
+        btnDown.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowDown'] = false; });
+        
+        btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowLeft'] = true; });
+        btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowLeft'] = false; });
+        
+        btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowRight'] = true; });
+        btnRight.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowRight'] = false; });
+        
+        btnShoot.addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); });
+        
+        let lastTap = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            const now = Date.now();
+            if (now - lastTap < 300) {
+                shoot();
+            }
+            lastTap = now;
+            
+            const touch = e.touches[0];
+            const centerX = window.innerWidth / 2;
+            
+            if (touch.clientX < centerX - 50) {
+                keys['ArrowLeft'] = true;
+                setTimeout(() => keys['ArrowLeft'] = false, 100);
+            } else if (touch.clientX > centerX + 50) {
+                keys['ArrowRight'] = true;
+                setTimeout(() => keys['ArrowRight'] = false, 100);
+            } else {
+                keys['ArrowUp'] = true;
+                setTimeout(() => keys['ArrowUp'] = false, 100);
+            }
+        });
+        
+        window.addEventListener('resize', resize);
+        resize();
+    </script>
+</body>
+</html>

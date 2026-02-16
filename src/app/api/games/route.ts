@@ -4,7 +4,15 @@ import prisma from "@/lib/prisma"
 import { DiscoverySort, getDiscoveryOrderBy } from "@/lib/discovery"
 
 const getCachedGames = unstable_cache(
-  async (page: number, limit: number, category: string | null, sort: DiscoverySort, search: string | null) => {
+  async (
+    page: number,
+    limit: number,
+    category: string | null,
+    sort: DiscoverySort,
+    search: string | null,
+    supportsMobile: boolean | null,
+    hasLevelEditor: boolean | null
+  ) => {
     const skip = (page - 1) * limit
 
     const where: Record<string, unknown> = {
@@ -15,11 +23,19 @@ const getCachedGames = unstable_cache(
       where.category = category.toUpperCase()
     }
 
+    if (supportsMobile) {
+      where.supportsMobile = true
+    }
+
+    if (hasLevelEditor) {
+      where.hasLevelEditor = true
+    }
+
     if (search) {
       where.OR = [
-        { title: { contains: search } },
-        { description: { contains: search } },
-        { tags: { contains: search } },
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { tags: { contains: search, mode: "insensitive" } },
       ]
     }
 
@@ -28,7 +44,20 @@ const getCachedGames = unstable_cache(
     const [games, total] = await Promise.all([
       prisma.game.findMany({
         where,
-        include: {
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          thumbnail: true,
+          category: true,
+          plays: true,
+          likes: true,
+          createdAt: true,
+          publishedAt: true,
+          supportsMobile: true,
+          hasLevelEditor: true,
+          aiTool: true,
+          aiModel: true,
           studioProfile: {
             select: { id: true, handle: true, displayName: true, image: true },
           },
@@ -68,8 +97,10 @@ export async function GET(request: NextRequest) {
       ? (sortParam as DiscoverySort)
       : "trending"
     const search = searchParams.get("q")
+    const supportsMobile = searchParams.get("mobile") === "true"
+    const hasLevelEditor = searchParams.get("editor") === "true"
 
-    const response = await getCachedGames(page, limit, category, sort, search)
+    const response = await getCachedGames(page, limit, category, sort, search, supportsMobile, hasLevelEditor)
 
     return NextResponse.json(response, {
       headers: {

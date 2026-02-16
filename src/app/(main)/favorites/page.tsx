@@ -10,6 +10,11 @@ import prisma from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 
+export const metadata = {
+  title: "My Favorites",
+  description: "Your saved favorite games on VibeGames.",
+}
+
 export default async function FavoritesPage() {
   const session = await auth()
 

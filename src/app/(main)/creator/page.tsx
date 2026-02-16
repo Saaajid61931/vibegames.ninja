@@ -4,27 +4,43 @@ import {
   Terminal, 
   Gamepad2, 
   TrendingUp, 
-  DollarSign, 
   Plus,
   Play,
   Heart,
   Eye,
   Edit,
-  ExternalLink
+  ExternalLink,
+  Layers,
 } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import prisma from "@/lib/prisma"
-import { formatNumber, formatCurrency, timeAgo, CATEGORIES } from "@/lib/utils"
+import { formatNumber, timeAgo, CATEGORIES } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 
+export const metadata = {
+  title: "Creator Dashboard",
+  description: "Manage your games, view stats, and upload new games to VibeGames.",
+}
+
 async function getCreatorData(userId: string) {
-  const [games, totalStats] = await Promise.all([
+  const [games, totalStats, levelCount] = await Promise.all([
     prisma.game.findMany({
       where: { creatorId: userId },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        thumbnail: true,
+        category: true,
+        plays: true,
+        likes: true,
+        status: true,
+        createdAt: true,
+      },
       orderBy: { createdAt: "desc" },
     }),
     prisma.game.aggregate({
@@ -34,17 +50,10 @@ async function getCreatorData(userId: string) {
         likes: true,
       },
     }),
+    prisma.level.count({
+      where: { creatorId: userId },
+    }),
   ])
-
-  const totalEarnings = await prisma.earnings.aggregate({
-    where: { userId, status: "COMPLETED" },
-    _sum: { amount: true },
-  })
-
-  const pendingEarnings = await prisma.earnings.aggregate({
-    where: { userId, status: "PENDING" },
-    _sum: { amount: true },
-  })
 
   return {
     games,
@@ -52,8 +61,7 @@ async function getCreatorData(userId: string) {
       totalGames: games.length,
       totalPlays: totalStats._sum.plays || 0,
       totalLikes: totalStats._sum.likes || 0,
-      totalEarnings: totalEarnings._sum.amount || 0,
-      pendingEarnings: pendingEarnings._sum.amount || 0,
+      levelCount,
     },
   }
 }
@@ -83,12 +91,20 @@ export default async function CreatorDashboard() {
               WELCOME_BACK, {(session.user.name || session.user.username || "CREATOR").toUpperCase()}
             </h1>
           </div>
-          <Link href="/upload">
-            <Button className="gap-2 font-arcade">
-              <Plus className="h-4 w-4" />
-              [UPLOAD_GAME]
-            </Button>
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/upload">
+              <Button className="gap-2 font-arcade">
+                <Plus className="h-4 w-4" />
+                [UPLOAD_GAME]
+              </Button>
+            </Link>
+            <Link href="/creator/analytics">
+              <Button variant="arcade-outline" className="gap-2 font-arcade">
+                <TrendingUp className="h-4 w-4" />
+                [ANALYTICS]
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -116,30 +132,25 @@ export default async function CreatorDashboard() {
             </div>
             <p className="text-2xl sm:text-3xl font-bold text-white font-arcade">{formatNumber(stats.totalLikes)}</p>
           </div>
-          
-          <div className="border-2 border-[#4a4a6a] p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="h-4 w-4 text-[#ffff00]" />
-              <span className="text-xs text-[#4a4a6a] font-arcade">EARNINGS</span>
-            </div>
-            <p className="text-2xl sm:text-3xl font-bold text-[#ffff00] font-arcade">{formatCurrency(stats.totalEarnings)}</p>
-          </div>
         </div>
 
-        {/* Pending Earnings Alert */}
-        {stats.pendingEarnings > 0 && (
-          <div className="mb-6 border-2 border-[#ffa500] bg-[#ffa500]/10 p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <DollarSign className="h-5 w-5 text-[#ffa500]" />
-                <p className="text-[#ffa500] font-arcade">
-                  PENDING_PAYOUT: <strong>{formatCurrency(stats.pendingEarnings)}</strong>
-                </p>
+        {/* Quick Links */}
+        {stats.levelCount > 0 && (
+          <div className="mb-6">
+            <Link href="/creator/levels">
+              <div className="border-2 border-[#4a4a6a] p-4 hover:bg-[#1a1a2e] transition-colors flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Layers className="h-5 w-5 text-[#ffff00]" />
+                  <div>
+                    <span className="font-arcade text-sm text-white">MY_LEVELS</span>
+                    <p className="font-arcade text-xs text-[#4a4a6a] mt-0.5">
+                      {stats.levelCount} community level{stats.levelCount !== 1 ? "s" : ""} created
+                    </p>
+                  </div>
+                </div>
+                <ExternalLink className="h-4 w-4 text-[#4a4a6a]" />
               </div>
-              <Button variant="outline" size="sm" className="font-arcade text-[#ffa500] border-[#ffa500] hover:bg-[#ffa500]/10 w-full sm:w-auto">
-                [REQUEST_PAYOUT]
-              </Button>
-            </div>
+            </Link>
           </div>
         )}
 
@@ -237,7 +248,7 @@ export default async function CreatorDashboard() {
               <div className="text-center py-16">
                 <Gamepad2 className="h-12 w-12 text-[#4a4a6a] mx-auto mb-4" />
                 <h3 className="text-lg font-arcade text-white mb-2">NO_GAMES_FOUND</h3>
-                <p className="text-[#4a4a6a] mb-6 font-arcade text-sm">Upload your first AI-made game and start earning!</p>
+                <p className="text-[#4a4a6a] mb-6 font-arcade text-sm">Upload your first AI-made game and share it with the community!</p>
                 <Link href="/upload">
                   <Button className="gap-2 font-arcade">
                     <Plus className="h-4 w-4" />

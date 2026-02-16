@@ -6,6 +6,14 @@ import { useSession, signOut } from "next-auth/react"
 import { Plus, User, Menu, X, Gamepad2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function Header() {
   const { data: session, status } = useSession()
@@ -28,7 +36,7 @@ export function Header() {
       {/* Marquee Banner - single line, no wrap */}
       <div className="bg-[var(--color-primary)] overflow-hidden whitespace-nowrap">
         <div className="marquee-content">
-          NEW GAMES DAILY &bull; AI ARCADE &bull; BUILD &bull; PUBLISH &bull; PLAY &bull; NEW GAMES DAILY &bull; AI ARCADE &bull; BUILD &bull; PUBLISH &bull; PLAY &bull;
+          NEW GAMES DAILY &bull; AI ARCADE &bull; BUILD &bull; PLAY &bull; GET INSPIRED &bull; NEW GAMES DAILY &bull; AI ARCADE &bull; BUILD &bull; PLAY &bull; GET INSPIRED &bull;
         </div>
       </div>
       
@@ -84,42 +92,36 @@ export function Header() {
                         <span className="hidden sm:inline">Upload</span>
                       </Button>
                     </Link>
-                    <div className="relative group">
-                      <button className="flex items-center gap-2 px-3 py-2 rounded-md border border-[var(--color-border)] hover:border-[var(--color-primary)] transition-colors bg-[var(--color-surface)]">
-                        <User className="h-4 w-4 text-[var(--color-primary)]" />
-                        <span className="text-xs font-medium text-[var(--color-text)] hidden sm:inline">
-                          {session.user.username || "Account"}
-                        </span>
-                      </button>
-                      <div className="absolute right-0 mt-2 w-48 py-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                        <div className="px-3 py-2 border-b border-[var(--color-border)]">
-                          <p className="text-xs font-medium text-[var(--color-text)]">
-                            {session.user.name || session.user.username || "Player"}
-                          </p>
-                          <p className="text-xs text-[var(--color-text-tertiary)]">
-                            {session.user.email}
-                          </p>
-                        </div>
-                        <Link
-                          href="/creator"
-                          className="block px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-2)]"
-                        >
-                          Dashboard
-                        </Link>
-                        <Link
-                          href="/favorites"
-                          className="block px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-2)]"
-                        >
-                          Favorites
-                        </Link>
-                        <button
-                          onClick={() => signOut()}
-                          className="block w-full text-left px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-danger)] hover:bg-[var(--color-surface-2)]"
-                        >
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="gap-2 border-[var(--color-border)] bg-[var(--color-surface)]">
+                          <User className="h-4 w-4 text-[var(--color-primary)]" />
+                          <span className="hidden sm:inline">
+                            {session.user.username || "Account"}
+                          </span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuLabel className="font-normal">
+                          <div className="flex flex-col space-y-1">
+                            <p className="text-sm font-medium leading-none">{session.user.name || session.user.username}</p>
+                            <p className="text-xs leading-none text-muted-foreground opacity-70">{session.user.email}</p>
+                          </div>
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/creator">Dashboard</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/favorites">Favorites</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-[var(--color-danger)] focus:text-[var(--color-danger)]" onClick={() => signOut()}>
                           Sign out
-                        </button>
-                      </div>
-                    </div>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </>
               ) : (

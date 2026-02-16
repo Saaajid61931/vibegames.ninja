@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
-import { ArrowRight, AtSign, Gamepad2, Lock, Mail, User } from "lucide-react"
+import { ArrowRight, AtSign, Gamepad2, Lock, Mail, User, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -20,6 +20,7 @@ export default function RegisterPage() {
   })
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -139,14 +140,25 @@ export default function RegisterPage() {
                   <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-tertiary)]" />
                   <Input
                     id="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     minLength={8}
                     value={formData.password}
                     onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
                     placeholder="Min 8 characters"
-                    className="pl-10"
+                    className="pl-10 pr-10"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] hover:text-[var(--color-text)]"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
                 </div>
               </div>
 
@@ -155,6 +167,34 @@ export default function RegisterPage() {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </form>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[var(--color-border)]" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-[var(--color-surface)] px-2 text-[var(--color-text-tertiary)]">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => signIn("google", { callbackUrl: "/creator" })}
+              >
+                Google
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => signIn("github", { callbackUrl: "/creator" })}
+              >
+                GitHub
+              </Button>
+            </div>
 
             <p className="mt-6 text-center text-sm text-[var(--color-text-secondary)]">
               Already have an account?{" "}

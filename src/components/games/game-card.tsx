@@ -1,6 +1,8 @@
 import Link from "next/link"
-import { Play, Heart, User, Smartphone } from "lucide-react"
+import Image from "next/image"
+import { Play, Heart, User, Smartphone, SquarePen } from "lucide-react"
 import { formatNumber, timeAgo, CATEGORIES } from "@/lib/utils"
+import { CreatorLink } from "@/components/games/creator-link"
 
 interface GameCardProps {
   game: {
@@ -13,6 +15,7 @@ interface GameCardProps {
     likes: number
     aiModel?: string | null
     supportsMobile?: boolean
+    hasLevelEditor?: boolean
     createdAt: Date
     creator: {
       name?: string | null
@@ -39,11 +42,12 @@ export function GameCard({ game }: GameCardProps) {
       {/* Thumbnail */}
       <div className="relative aspect-video overflow-hidden bg-[var(--color-base)]">
         {game.thumbnail ? (
-          <img
+          <Image
             src={game.thumbnail}
             alt={game.title}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -52,7 +56,7 @@ export function GameCard({ game }: GameCardProps) {
         )}
         
         {/* Play overlay on hover */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center z-10">
           <div className="opacity-0 group-hover:opacity-100 transition-opacity">
             <span className="px-4 py-2 bg-[var(--color-arcade-yellow)] text-[var(--color-base)] font-bold font-pixel text-xs rounded">
               PLAY NOW
@@ -62,7 +66,7 @@ export function GameCard({ game }: GameCardProps) {
       </div>
 
       {/* Content */}
-        <div className="p-3 sm:p-4">
+      <div className="p-3 sm:p-4">
         {/* Category Tag */}
         <div className="flex items-center gap-2 mb-2">
           <span className="text-[10px] text-[var(--color-primary)] font-pixel uppercase">
@@ -72,6 +76,12 @@ export function GameCard({ game }: GameCardProps) {
             <span className="inline-flex items-center gap-1 rounded border border-[var(--color-success)] px-1.5 py-0.5 text-[10px] text-[var(--color-success)]">
               <Smartphone className="h-2.5 w-2.5" />
               Mobile
+            </span>
+          )}
+          {game.hasLevelEditor && (
+            <span className="inline-flex items-center gap-1 rounded border border-[var(--color-primary)] px-1.5 py-0.5 text-[10px] text-[var(--color-primary)]">
+              <SquarePen className="h-2.5 w-2.5" />
+              Editor
             </span>
           )}
         </div>
@@ -90,9 +100,25 @@ export function GameCard({ game }: GameCardProps) {
         {/* Creator */}
         <div className="flex items-center gap-2 mb-3 text-sm text-[var(--color-text-secondary)]">
           <User className="h-3 w-3" />
-          <span className="truncate">
-            {game.studioProfile?.displayName || game.creator.username || game.creator.name || "Anonymous"}
-          </span>
+          {game.studioProfile ? (
+            <CreatorLink
+              href={`/studio/${game.studioProfile.handle}`}
+              className="truncate hover:text-[var(--color-primary)] cursor-pointer"
+            >
+              {game.studioProfile.displayName}
+            </CreatorLink>
+          ) : game.creator.username ? (
+            <CreatorLink
+              href={`/creator/${game.creator.username}`}
+              className="truncate hover:text-[var(--color-primary)] cursor-pointer"
+            >
+              {game.creator.username}
+            </CreatorLink>
+          ) : (
+            <span className="truncate">
+              {game.creator.name || "Anonymous"}
+            </span>
+          )}
         </div>
         
         {/* Stats */}

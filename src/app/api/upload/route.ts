@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { revalidateTag } from "next/cache"
 import { v4 as uuidv4 } from "uuid"
 import { auth } from "@/lib/auth"
@@ -10,6 +11,28 @@ import {
   uploadThumbnailToR2,
   validateR2Config,
 } from "@/lib/storage"
+import type { LevelEditorIntegrationReport } from "@/lib/storage"
+
+function buildLevelEditorWarnings(report: LevelEditorIntegrationReport | undefined): string[] {
+  if (!report) {
+    return []
+  }
+
+  const missing: string[] = []
+  if (!report.notifyReady) missing.push("VG.notifyReady")
+  if (!report.onEnterEditMode) missing.push("VG.onEnterEditMode")
+  if (!report.onLoadLevel) missing.push("VG.onLoadLevel")
+  if (!report.onRequestSave) missing.push("VG.onRequestSave")
+  if (!report.saveLevel) missing.push("VG.saveLevel")
+
+  if (missing.length === 0) {
+    return []
+  }
+
+  return [
+    `Level editor hooks missing: ${missing.join(", ")}. Open upload instructions and use the copy prompt to wire your game for community level saving.`,
+  ]
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,6 +57,7 @@ export async function POST(request: NextRequest) {
     const aiTool = formData.get("aiTool") as string | null
     const aiModelRaw = formData.get("aiModel") as string | null
     const supportsMobile = formData.get("supportsMobile") === "true"
+    const hasLevelEditor = formData.get("hasLevelEditor") === "true"
     const isAIGenerated = formData.get("isAIGenerated") === "true"
     const studioProfileIdRaw = formData.get("studioProfileId")
 
@@ -121,7 +145,11 @@ export async function POST(request: NextRequest) {
       slug = `${slug}-${gameId.slice(0, 8)}`
     }
 
-    const { gameUrl } = await uploadGameToR2(gameId, gameFile)
+    const uploadResult = await uploadGameToR2(gameId, gameFile, {
+      injectLevelEditorSdk: hasLevelEditor,
+      inspectLevelEditorIntegration: hasLevelEditor,
+    })
+    const gameUrl = uploadResult.gameUrl
 
     // Save thumbnail to R2
     let thumbnailUrl: string | null = null
@@ -143,6 +171,7 @@ export async function POST(request: NextRequest) {
           aiTool: normalizedAiTool,
           aiModel,
           supportsMobile,
+          hasLevelEditor,
           isAIGenerated,
           gameUrl,
           thumbnail: thumbnailUrl,
@@ -159,6 +188,10 @@ export async function POST(request: NextRequest) {
 
     revalidateTag("games", "max")
 
+    const warnings = hasLevelEditor
+      ? buildLevelEditorWarnings(uploadResult.levelEditorIntegration)
+      : []
+
     return NextResponse.json({
       message: "Game uploaded successfully",
       game: {
@@ -166,9 +199,48 @@ export async function POST(request: NextRequest) {
         slug: game.slug,
         title: game.title,
       },
+      warnings,
     })
   } catch (error) {
     console.error("Upload error:", error)
+
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      (error.code === "P2021" || error.code === "P2022")
+    ) {
+      return NextResponse.json(
+        { error: "Database schema is out of date. Run prisma db push and restart the server." },
+        { status: 500 }
+      )
+    }
+
+    if (error instanceof Error && error.message.toLowerCase().includes("hasleveleditor")) {
+      return NextResponse.json(
+        { error: "Database schema is out of date. Run prisma db push and restart the server." },
+        { status: 500 }
+      )
+    }
+
+    if (
+      error &&
+      typeof error === "object" &&
+      "name" in error &&
+      typeof (error as { name?: string }).name === "string" &&
+      (error as { name: string }).name.includes("S3")
+    ) {
+      return NextResponse.json(
+        { error: "R2 upload failed. Verify R2 credentials and bucket permissions." },
+        { status: 500 }
+      )
+    }
+
+    if (process.env.NODE_ENV !== "production" && error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message || "Failed to upload game" },
+        { status: 500 }
+      )
+    }
+
     return NextResponse.json(
       { error: "Failed to upload game" },
       { status: 500 }

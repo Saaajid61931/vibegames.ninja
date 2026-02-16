@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { LevelEditorSetupGuide } from "@/components/games/level-editor-setup-guide"
 import { CATEGORIES, AI_TOOLS } from "@/lib/utils"
 
 export default function UploadPage() {
@@ -21,6 +22,7 @@ export default function UploadPage() {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [uploadWarnings, setUploadWarnings] = useState<string[]>([])
   const [gameFile, setGameFile] = useState<File | null>(null)
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
@@ -41,6 +43,7 @@ export default function UploadPage() {
     aiTool: "",
     aiModel: "",
     supportsMobile: false,
+    hasLevelEditor: false,
     isAIGenerated: true,
     studioProfileId: "",
   })
@@ -119,6 +122,7 @@ export default function UploadPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setUploadWarnings([])
     setUploading(true)
 
     try {
@@ -146,6 +150,7 @@ export default function UploadPage() {
       uploadData.append("aiTool", formData.aiTool)
       uploadData.append("aiModel", formData.aiModel.trim())
       uploadData.append("supportsMobile", String(formData.supportsMobile))
+      uploadData.append("hasLevelEditor", String(formData.hasLevelEditor))
       uploadData.append("isAIGenerated", String(formData.isAIGenerated))
       if (session.user.role === "ADMIN" && formData.studioProfileId) {
         uploadData.append("studioProfileId", formData.studioProfileId)
@@ -162,10 +167,17 @@ export default function UploadPage() {
         throw new Error(data.error || "Upload failed")
       }
 
+      const warnings = Array.isArray(data.warnings)
+        ? data.warnings.filter((item: unknown): item is string => typeof item === "string")
+        : []
+      setUploadWarnings(warnings)
+
       setSuccess(true)
-      setTimeout(() => {
-        router.push(`/creator`)
-      }, 2000)
+      if (warnings.length === 0) {
+        setTimeout(() => {
+          router.push(`/creator`)
+        }, 2000)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
     } finally {
@@ -194,9 +206,25 @@ export default function UploadPage() {
             <CardContent className="pt-6 text-center">
               <CheckCircle className="h-16 w-16 text-[var(--color-success)] mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-[var(--color-text)] mb-2">Game Uploaded!</h2>
-              <p className="text-[var(--color-text-secondary)] text-sm">
-                Your game has been submitted for review. Redirecting to dashboard...
-              </p>
+              {uploadWarnings.length > 0 ? (
+                <div className="space-y-3 text-left">
+                  <p className="text-[var(--color-text-secondary)] text-sm text-center">
+                    Upload completed with level editor warnings.
+                  </p>
+                  <div className="rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)]/10 p-3 text-xs text-[var(--color-text)]">
+                    {uploadWarnings.map((warning) => (
+                      <p key={warning}>{warning}</p>
+                    ))}
+                  </div>
+                  <Button className="w-full" onClick={() => router.push("/creator")}>
+                    Go to Dashboard
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-[var(--color-text-secondary)] text-sm">
+                  Your game has been submitted for review. Redirecting to dashboard...
+                </p>
+              )}
             </CardContent>
           </Card>
         </main>
@@ -281,6 +309,20 @@ export default function UploadPage() {
                       </p>
                     </>
                   )}
+                </div>
+
+                <div className="mt-4 rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3 space-y-2">
+                  <p className="text-xs font-medium text-[var(--color-text)]">Uploading a React game? Do this:</p>
+                  <ol className="list-decimal pl-4 space-y-1 text-xs text-[var(--color-text-secondary)]">
+                    <li>Open your React game project locally.</li>
+                    <li>Run <code>npm run build</code> (or your build command).</li>
+                    <li>Open the output folder (usually <code>dist</code> or <code>build</code>).</li>
+                    <li>Confirm <code>index.html</code> is inside that output folder.</li>
+                    <li>Zip the built files, then upload that zip above.</li>
+                  </ol>
+                  <p className="text-[11px] text-[var(--color-text-tertiary)]">
+                    Important: upload the built output, not source files. The zip must contain index.html.
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -500,6 +542,23 @@ export default function UploadPage() {
                     </div>
                   </label>
                 </div>
+
+                <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.hasLevelEditor}
+                      onChange={(e) => setFormData({ ...formData, hasLevelEditor: e.target.checked })}
+                      className="h-4 w-4 rounded border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-[var(--color-text)]">Includes level editor support</p>
+                      <p className="text-xs text-[var(--color-text-secondary)]">Players can build, save, and rate community levels</p>
+                    </div>
+                  </label>
+                </div>
+
+                {formData.hasLevelEditor && <LevelEditorSetupGuide />}
               </CardContent>
             </Card>
 

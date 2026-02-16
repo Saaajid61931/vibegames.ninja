@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>2048 Remix</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0d0d15;
+            --bg-card: #1a1a2e;
+            --neon-yellow: #ffff00;
+            --neon-red: #ff0040;
+            --neon-blue: #0080ff;
+            --neon-green: #00ff40;
+            --neon-purple: #bf00ff;
+            --text-light: #e0e0e0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(0, 128, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(191, 0, 255, 0.1) 0%, transparent 50%);
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 0 10px;
+        }
+        
+        .title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 18px;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 10px var(--neon-yellow), 0 0 20px var(--neon-yellow);
+        }
+        
+        .score-box {
+            background: var(--bg-card);
+            border: 2px solid var(--neon-blue);
+            border-radius: 8px;
+            padding: 8px 16px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 128, 255, 0.3);
+        }
+        
+        .score-label {
+            font-size: 12px;
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+        
+        .score-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--neon-blue);
+        }
+        
+        .best-value {
+            color: var(--neon-purple);
+        }
+        
+        .grid-container {
+            background: var(--bg-card);
+            border: 3px solid var(--neon-green);
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 64, 0.2), inset 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            width: min(85vw, 320px);
+            height: min(85vw, 320px);
+        }
+        
+        .cell {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: clamp(20px, 6vw, 36px);
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            transition: transform 0.1s ease;
+            position: relative;
+        }
+        
+        .tile {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: clamp(18px, 5vw, 32px);
+            color: white;
+            animation: spawn 0.15s ease;
+        }
+        
+        @keyframes spawn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes merge {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+        
+        .tile-2 { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .tile-4 { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .tile-8 { background: linear-gradient(135deg, #ec4899, #db2777); }
+        .tile-16 { background: linear-gradient(135deg, #f43f5e, #e11d48); }
+        .tile-32 { background: linear-gradient(135deg, #f97316, #ea580c); }
+        .tile-64 { background: linear-gradient(135deg, #eab308, #ca8a04); }
+        .tile-128 { background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 0 15px rgba(34, 197, 94, 0.5); }
+        .tile-256 { background: linear-gradient(135deg, #14b8a6, #0d9488); box-shadow: 0 0 20px rgba(20, 184, 166, 0.5); }
+        .tile-512 { background: linear-gradient(135deg, #06b6d4, #0891b2); box-shadow: 0 0 25px rgba(6, 182, 212, 0.5); }
+        .tile-1024 { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 0 30px rgba(59, 130, 246, 0.5); }
+        .tile-2048 { background: linear-gradient(135deg, #a855f7, #9333ea); box-shadow: 0 0 35px rgba(168, 85, 247, 0.6); }
+        .tile-super { background: linear-gradient(135deg, #ff0040, #ff0080); box-shadow: 0 0 40px rgba(255, 0, 64, 0.7); }
+        
+        .powerup-indicator {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 10px;
+            background: var(--neon-yellow);
+            color: black;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-primary {
+            background: var(--neon-green);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px rgba(0, 255, 64, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(0, 255, 64, 0.6);
+        }
+        
+        .btn-secondary {
+            background: var(--neon-blue);
+            color: white;
+            box-shadow: 0 0 15px rgba(0, 128, 255, 0.4);
+        }
+        
+        .btn-powerup {
+            background: var(--neon-purple);
+            color: white;
+            box-shadow: 0 0 15px rgba(191, 0, 255, 0.4);
+        }
+        
+        .btn-powerup:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .powerup-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .powerup-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            padding: 10px;
+            background: var(--bg-card);
+            border: 2px solid var(--neon-purple);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 80px;
+        }
+        
+        .powerup-btn:hover:not(:disabled) {
+            background: rgba(191, 0, 255, 0.2);
+            transform: scale(1.05);
+        }
+        
+        .powerup-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .powerup-icon {
+            font-size: 24px;
+        }
+        
+        .powerup-cost {
+            font-size: 12px;
+            color: var(--neon-yellow);
+        }
+        
+        .game-over-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(13, 13, 21, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .game-over-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .game-over-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 28px;
+            color: var(--neon-red);
+            text-shadow: 0 0 20px var(--neon-red);
+            text-align: center;
+            line-height: 1.5;
+        }
+        
+        .game-over-score {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 20px var(--neon-yellow);
+        }
+        
+        .instructions {
+            color: var(--text-light);
+            opacity: 0.7;
+            font-size: 14px;
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .touch-area {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 50;
+        }
+        
+        @media (min-width: 600px) {
+            .grid {
+                width: 350px;
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <div class="title">2048 REMIX</div>
+            <div style="display: flex; gap: 10px;">
+                <div class="score-box">
+                    <div class="score-label">SCORE</div>
+                    <div class="score-value" id="score">0</div>
+                </div>
+                <div class="score-box">
+                    <div class="score-label">BEST</div>
+                    <div class="score-value best-value" id="best">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid-container">
+            <div class="grid" id="grid"></div>
+        </div>
+        
+        <div class="powerup-bar">
+            <button class="powerup-btn" id="power-double" onclick="usePowerup('double')">
+                <span class="powerup-icon">✖2</span>
+                <span class="powerup-cost">50 pts</span>
+            </button>
+            <button class="powerup-btn" id="power-remove" onclick="usePowerup('remove')">
+                <span class="powerup-icon">🗑</span>
+                <span class="powerup-cost">100 pts</span>
+            </button>
+            <button class="powerup-btn" id="power-shift" onclick="usePowerup('shift')">
+                <span class="powerup-icon">↔</span>
+                <span class="powerup-cost">75 pts</span>
+            </button>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" onclick="initGame()">NEW GAME</button>
+            <button class="btn btn-secondary" onclick="undoMove()">UNDO</button>
+        </div>
+        
+        <div class="instructions">
+            Swipe or use Arrow Keys to move tiles. Match numbers to double them! Use powerups to crush the competition.
+        </div>
+    </div>
+    
+    <div class="game-over-overlay" id="gameOver">
+        <div class="game-over-title">GAME OVER!</div>
+        <div class="game-over-score" id="finalScore">0</div>
+        <button class="btn btn-primary" onclick="initGame()">PLAY AGAIN</button>
+    </div>
+    
+    <div class="touch-area" id="touchArea"></div>
+    
+    <script>
+        let grid = [];
+        let score = 0;
+        let best = parseInt(localStorage.getItem('2048-best')) || 0;
+        let history = [];
+        let powerupCharges = { double: 0, remove: false, shift: false };
+        let pendingPowerup = null;
+        
+        const gridEl = document.getElementById('grid');
+        const scoreEl = document.getElementById('score');
+        const bestEl = document.getElementById('best');
+        const gameOverEl = document.getElementById('gameOver');
+        
+        function initGame() {
+            grid = Array(4).fill(null).map(() => Array(4).fill(0));
+            score = 0;
+            history = [];
+            powerupCharges = { double: 0, remove: false, shift: false };
+            pendingPowerup = null;
+            addRandomTile();
+            addRandomTile();
+            updateDisplay();
+            gameOverEl.classList.remove('active');
+            updatePowerupButtons();
+        }
+        
+        function addRandomTile() {
+            const empty = [];
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    if (grid[r][c] === 0) empty.push({ r, c });
+                }
+            }
+            if (empty.length > 0) {
+                const { r, c } = empty[Math.floor(Math.random() * empty.length)];
+                grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+            }
+        }
+        
+        function updateDisplay() {
+            gridEl.innerHTML = '';
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    if (grid[r][c] !== 0) {
+                        const tile = document.createElement('div');
+                        const val = grid[r][c];
+                        tile.className = 'tile' + (val <= 2048 ? ` tile-${val}` : ' tile-super');
+                        tile.textContent = val;
+                        cell.appendChild(tile);
+                    }
+                    gridEl.appendChild(cell);
+                }
+            }
+            scoreEl.textContent = score;
+            bestEl.textContent = best;
+        }
+        
+        function saveHistory() {
+            history.push({
+                grid: grid.map(row => [...row]),
+                score: score,
+                powerupCharges: { ...powerupCharges }
+            });
+            if (history.length > 10) history.shift();
+        }
+        
+        function undoMove() {
+            if (history.length > 0) {
+                const state = history.pop();
+                grid = state.grid;
+                score = state.score;
+                powerupCharges = state.powerupCharges;
+                updateDisplay();
+                updatePowerupButtons();
+            }
+        }
+        
+        function move(direction) {
+            saveHistory();
+            let moved = false;
+            const rotated = rotateGrid(direction);
+            
+            for (let r = 0; r < 4; r++) {
+                let row = rotated[r].filter(x => x !== 0);
+                for (let i = 0; i < row.length - 1; i++) {
+                    if (row[i] === row[i + 1]) {
+                        row[i] *= 2;
+                        score += row[i];
+                        row.splice(i + 1, 1);
+                        if (row[i] > best) best = row[i];
+                    }
+                }
+                while (row.length < 4) row.push(0);
+                rotated[r] = row;
+            }
+            
+            grid = rotateBack(rotated, direction);
+            
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    if (grid[r][c] !== rotated[r < 4 ? r : 0][c]) moved = true;
+                }
+            }
+            
+            if (JSON.stringify(grid) !== JSON.stringify(rotateGrid(direction))) {
+                moved = true;
+            }
+            
+            const oldGrid = JSON.stringify(grid);
+            grid = rotateBack(rotated, direction);
+            if (JSON.stringify(grid) !== oldGrid) moved = true;
+            
+            if (moved) {
+                addRandomTile();
+                updateDisplay();
+                updatePowerupButtons();
+                
+                if (isGameOver()) {
+                    document.getElementById('finalScore').textContent = score;
+                    gameOverEl.classList.add('active');
+                }
+            }
+            
+            localStorage.setItem('2048-best', best);
+        }
+        
+        function rotateGrid(direction) {
+            let newGrid = grid.map(row => [...row]);
+            const rotations = { up: 0, right: 1, down: 2, left: 3 };
+            for (let i = 0; i < rotations[direction]; i++) {
+                newGrid = newGrid[0].map((_, i) => newGrid.map(row => row[i]).reverse());
+            }
+            return newGrid;
+        }
+        
+        function rotateBack(grid, direction) {
+            let newGrid = grid.map(row => [...row]);
+            const rotations = { up: 0, right: 3, down: 2, left: 1 };
+            for (let i = 0; i < rotations[direction]; i++) {
+                newGrid = newGrid[0].map((_, i) => newGrid.map(row => row[i]).reverse());
+            }
+            return newGrid;
+        }
+        
+        function isGameOver() {
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    if (grid[r][c] === 0) return false;
+                    if (c < 3 && grid[r][c] === grid[r][c + 1]) return false;
+                    if (r < 3 && grid[r][c] === grid[r + 1][c]) return false;
+                }
+            }
+            return true;
+        }
+        
+        function updatePowerupButtons() {
+            const costs = { double: 50, remove: 100, shift: 75 };
+            document.getElementById('power-double').disabled = score < costs.double || powerupCharges.double >= 3;
+            document.getElementById('power-remove').disabled = score < costs.remove || powerupCharges.remove;
+            document.getElementById('power-shift').disabled = score < costs.shift || powerupCharges.shift;
+        }
+        
+        function usePowerup(type) {
+            const costs = { double: 50, remove: 100, shift: 75 };
+            if (score < costs[type]) return;
+            
+            if (type === 'double') {
+                for (let r = 0; r < 4; r++) {
+                    for (let c = 0; c < 4; c++) {
+                        if (grid[r][c] > 0) {
+                            grid[r][c] *= 2;
+                            score += grid[r][c];
+                        }
+                    }
+                }
+                powerupCharges.double++;
+            } else if (type === 'remove') {
+                let maxTile = 0;
+                let maxPos = { r: 0, c: 0 };
+                for (let r = 0; r < 4; r++) {
+                    for (let c = 0; c < 4; c++) {
+                        if (grid[r][c] > maxTile) {
+                            maxTile = grid[r][c];
+                            maxPos = { r, c };
+                        }
+                    }
+                }
+                grid[maxPos.r][maxPos.c] = 0;
+                powerupCharges.remove = true;
+            } else if (type === 'shift') {
+                let minTile = Infinity;
+                let minPos = { r: 0, c: 0 };
+                for (let r = 0; r < 4; r++) {
+                    for (let c = 0; c < 4; c++) {
+                        if (grid[r][c] > 0 && grid[r][c] < minTile) {
+                            minTile = grid[r][c];
+                            minPos = { r, c };
+                        }
+                    }
+                }
+                if (minTile !== Infinity) {
+                    grid[minPos.r][minPos.c] *= 2;
+                    score += grid[minPos.r][minPos.c];
+                }
+                powerupCharges.shift = true;
+            }
+            
+            score -= costs[type];
+            updateDisplay();
+            updatePowerupButtons();
+            if (score > best) best = score;
+            localStorage.setItem('2048-best', best);
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            const map = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+            if (map[e.key]) {
+                e.preventDefault();
+                move(map[e.key]);
+            }
+        });
+        
+        let touchStartX, touchStartY;
+        const touchArea = document.getElementById('touchArea');
+        
+        touchArea.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+        
+        touchArea.addEventListener('touchend', (e) => {
+            if (!touchStartX || !touchStartY) return;
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+            const minSwipe = 30;
+            
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (Math.abs(dx) > minSwipe) {
+                    move(dx > 0 ? 'right' : 'left');
+                }
+            } else {
+                if (Math.abs(dy) > minSwipe) {
+                    move(dy > 0 ? 'down' : 'up');
+                }
+            }
+            touchStartX = null;
+            touchStartY = null;
+        }, { passive: true });
+        
+        initGame();
+    </script>
+</body>
+</html>

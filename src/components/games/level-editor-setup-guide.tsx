@@ -5,83 +5,197 @@ import { Check, Copy, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 
-const LEVEL_EDITOR_SINGLE_PROMPT = `You are helping me upgrade an existing HTML5 game for VibeGames community levels.
+const LEVEL_EDITOR_SINGLE_PROMPT = `You are adding VibeGames community level editor support to an existing HTML5 browser game.
 
-Task:
-1) Add a visual level editor mode to this game.
-2) Integrate VibeGames level save/load hooks.
+=== WHAT YOU ARE BUILDING ===
 
-Requirements:
-- Keep existing gameplay and controls working.
-- Add an editor mode with tools to place/remove tiles and entities (at least spawn and goal).
-- Editor UI must be hidden during normal play.
-- Editor UI must ONLY appear when editor mode is requested by the platform via VG.onEnterEditMode().
-- Do NOT add any local editor toggle, debug key, URL parameter, or auto-enable path for editor mode.
-- Add a test/play toggle so the user can playtest the edited level.
-- Implement an export function that returns the full level state as a JSON-safe object/array (not a string).
-- Implement an import function that can load that JSON back into the game/editor.
+Players will create custom levels in a visual editor inside the game. The VibeGames platform handles saving, loading, and sharing. Your game needs:
+1. An EDITOR MODE with UI for building levels (place, remove, configure game objects).
+2. A function called exportLevelData() that returns the full level state as a plain JavaScript object (NOT a JSON string).
+3. A function called importLevel(data) that fully restores a level from that object.
+4. SDK hook calls that connect these functions to the VibeGames platform.
 
-VibeGames SDK integration:
-- The platform injects window.VG automatically, so do NOT import any SDK file.
-- Guard all calls: only run if (window.VG) exists.
-- Make integration resilient: if window.VG is not ready on first tick, listen for the VG_SDK_READY event and bind hooks then.
-- Do NOT rely on a one-time if(window.VG){...} block without fallback.
-- Assume play mode by default. Keep editor interactions disabled until editor mode is active.
-- window.VG.mode is available as "play" or "editor". Use it for read-only checks if needed.
-- On startup call: VG.notifyReady()
-- Handle entering editor mode: VG.onEnterEditMode(() => { open editor mode })
-- Handle loading a saved level: VG.onLoadLevel(({ level }) => { importLevel(level) })
-- Handle platform save request: VG.onRequestSave(() => {
-    const data = exportLevelData();
-    VG.saveLevel({
-      name: currentLevelName || "Custom Level",
-      description: currentLevelDescription || "",
-      data,
+=== RULES ===
+
+- Keep ALL existing gameplay working exactly as before.
+- Editor mode must be completely HIDDEN during normal play. No editor buttons, no debug keys, no URL params, no auto-enable.
+- Editor mode is ONLY activated when the platform calls your VG.onEnterEditMode handler. Never auto-enable it.
+- Add a TEST/PLAY button inside the editor so users can playtest their level, and a BACK TO EDITOR button to return to editing.
+- The VibeGames SDK (window.VG) is auto-injected by the platform. Do NOT add any <script> tag for it. Do NOT import or load vibegames-sdk.js yourself.
+
+=== EDITOR UI ===
+
+Create editor tools appropriate for THIS specific game. Think about what objects exist in the game and let the user place/remove/configure them. Examples by genre:
+
+- Platformer/runner: tile palette, enemy placement, spawn point, goal/finish line, obstacle types
+- Puzzle game: cell/piece configuration, board size, solution setup, move limits
+- Tower defense: path waypoints, wave editor, tower placement zones, enemy types per wave
+- Racing game: track segments, checkpoints, walls/barriers, start/finish position
+- Shooter/action: enemy spawn points, obstacle layout, power-up locations, boss triggers
+- Physics game: object placement (shapes, ramps, springs), goal target area
+
+At minimum the editor needs:
+- A way to ADD game objects or elements
+- A way to REMOVE or DELETE them
+- A visible toolbar or panel that appears ONLY in editor mode
+- A TEST LEVEL button to playtest the level in-game
+- A BACK TO EDITOR button shown after testing to return to editing
+
+=== DATA CONTRACT (CRITICAL) ===
+
+exportLevelData() must return a plain JavaScript object or array. This object must contain ALL information needed to fully recreate the level from scratch.
+
+IMPORTANT: Return the raw object. Do NOT call JSON.stringify(). The platform handles serialization.
+
+Example return values:
+
+  Platformer: { spawnX: 100, spawnY: 300, objects: [{x:200, y:340, type:"block"}, {x:400, y:340, type:"spike"}], goalX: 2800 }
+  Puzzle:     { width: 8, height: 8, cells: [[1,0,2], [0,1,0]], maxMoves: 20 }
+  Defense:    { path: [{x:0,y:5}, {x:10,y:5}], waves: [{type:"basic", count:5}] }
+
+importLevel(data) receives the exact same object that exportLevelData() returned. It must fully restore the game/editor state: every object, position, and setting. The data parameter is always a parsed object, never a string.
+
+=== SDK INTEGRATION (follow this pattern exactly) ===
+
+Place this code at the END of your main game script:
+
+  let editorMode = false;
+  let vgBound = false;
+  let currentLevelName = "";
+  let currentLevelDescription = "";
+
+  function bindVGHooks() {
+    if (vgBound || !window.VG) return;
+    vgBound = true;
+
+    // 1. Tell the platform we are ready
+    window.VG.notifyReady();
+
+    // 2. If editor mode was already activated before we bound, enter now
+    if (window.VG.mode === "editor") {
+      enterEditorMode();
+    }
+
+    // 3. Platform requests editor mode
+    window.VG.onEnterEditMode(function() {
+      enterEditorMode();
     });
-  })
 
-Important:
-- Keep level JSON compact and deterministic.
-- Preserve backwards compatibility with existing default level.
-- If no editor UI exists yet, create a simple one and wire it to the above hooks.
-- Keep editor controls disabled/hidden unless editor mode is active.
-- Never render editor-only controls in normal play mode.
-- Return the final updated code files with clear comments where hooks were added.`
+    // 4. Platform sends a saved level to load
+    //    level = { data: <your object>, name: "...", description: "..." }
+    window.VG.onLoadLevel(function(payload) {
+      var level = payload.level;
+      if (level && level.data) {
+        importLevel(level.data);
+        currentLevelName = level.name || "";
+        currentLevelDescription = level.description || "";
+      }
+    });
 
-const MANUAL_SNIPPET = `let editorMode = false;
-let vgBound = false;
+    // 5. Platform asks game to save current level state
+    window.VG.onRequestSave(function() {
+      var data = exportLevelData(); // MUST return object, NOT string
+      var thumbnail;
+      try {
+        var canvas = document.querySelector('canvas');
+        if (canvas) thumbnail = canvas.toDataURL('image/jpeg', 0.6);
+      } catch(e) {}
+      window.VG.saveLevel({
+        name: currentLevelName || "Custom Level",
+        description: currentLevelDescription || "",
+        data: data,
+        thumbnail: thumbnail,
+      });
+    });
+  }
 
-function setEditorMode(enabled) {
-  editorMode = enabled;
-  // show/hide editor toolbar and enable/disable editing interactions
-}
+  // Bind now if SDK ready, otherwise wait for event
+  if (window.VG) {
+    bindVGHooks();
+  } else {
+    window.addEventListener("VG_SDK_READY", bindVGHooks, { once: true });
+  }
+
+=== COMMON MISTAKES (avoid all of these) ===
+
+1. Using JSON.stringify() in exportLevelData — return the raw object, not a string.
+2. Adding a level editor button to the game menu — editor is ONLY triggered by the platform.
+3. Forgetting VG.notifyReady() — the platform waits for this signal before sending commands.
+4. Only checking if(window.VG){} without VG_SDK_READY fallback — the SDK may load after your code runs.
+5. Showing editor toolbar in play mode — all editor UI must be hidden until onEnterEditMode fires.
+6. Writing importLevel to only work in editor mode — it must also work in play mode (for loading community levels to play).
+7. Using level.data.data instead of level.data in onLoadLevel — level.data IS your exported object directly.
+8. Forgetting the thumbnail — always try to capture canvas.toDataURL in onRequestSave.
+
+=== FINAL CHECKLIST ===
+
+Before returning code, verify:
+[ ] Game plays normally with zero editor UI visible
+[ ] enterEditorMode() shows editor toolbar and enables editing controls
+[ ] Editor has tools to add and remove level elements appropriate for this game
+[ ] TEST LEVEL button lets user play the edited level
+[ ] BACK TO EDITOR button returns to editing after testing
+[ ] exportLevelData() returns a plain object with full level state
+[ ] importLevel(data) fully recreates a level from that object in both editor and play mode
+[ ] VG.notifyReady() is called on startup
+[ ] VG.onEnterEditMode handler activates editor mode
+[ ] VG.onLoadLevel handler uses level.data (not level directly) to import
+[ ] VG.onRequestSave handler calls exportLevelData() then VG.saveLevel with data, name, description, thumbnail
+[ ] VG_SDK_READY event fallback is implemented
+[ ] No editor buttons, keys, or toggles exist outside of platform-triggered editor mode
+
+Return the complete updated game code with clear comments marking where VibeGames integration was added.`
+
+const MANUAL_SNIPPET = `// ── VibeGames Level Editor Integration ──
+// Place this at the END of your main game script.
+// You must implement: enterEditorMode(), exportLevelData(), importLevel(data)
+
+var editorMode = false;
+var vgBound = false;
+var currentLevelName = "";
+var currentLevelDescription = "";
 
 function bindVGHooks() {
-  if (vgBound || !window.VG) {
-    return;
-  }
+  if (vgBound || !window.VG) return;
   vgBound = true;
 
-  if (window.VG.mode === "editor") {
-    setEditorMode(true);
-  }
-
+  // Tell the platform we are ready
   window.VG.notifyReady();
 
-  window.VG.onEnterEditMode(() => {
-    setEditorMode(true);
+  // If editor mode was already set before binding, activate now
+  if (window.VG.mode === "editor") {
+    enterEditorMode();
+  }
+
+  // Platform requests editor mode
+  window.VG.onEnterEditMode(function() {
+    enterEditorMode();
   });
 
-  window.VG.onLoadLevel(({ level }) => {
-    importLevel(level);
+  // Platform sends a saved level to load
+  // level = { data: <your object>, name: string, description: string }
+  window.VG.onLoadLevel(function(payload) {
+    var level = payload.level;
+    if (level && level.data) {
+      importLevel(level.data);
+      currentLevelName = level.name || "";
+      currentLevelDescription = level.description || "";
+    }
   });
 
-  window.VG.onRequestSave(() => {
-    const data = exportLevelData();
+  // Platform asks game to save current level
+  window.VG.onRequestSave(function() {
+    var data = exportLevelData(); // MUST return object, NOT string
+    var thumbnail;
+    try {
+      var canvas = document.querySelector('canvas');
+      if (canvas) thumbnail = canvas.toDataURL('image/jpeg', 0.6);
+    } catch(e) {}
     window.VG.saveLevel({
       name: currentLevelName || "Custom Level",
       description: currentLevelDescription || "",
-      data,
+      data: data,
+      thumbnail: thumbnail,
     });
   });
 }

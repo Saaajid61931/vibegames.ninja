@@ -173,15 +173,38 @@ export function CommunityLevels({ gameId, slug, selectedLevelId, currentUserId }
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <Link href={`/play/${slug}?level=${level.id}`} className="min-w-0 flex-1">
-                    <h4 className="font-arcade text-xs text-white truncate">{level.name}</h4>
+                  <div className="flex gap-3 min-w-0 flex-1">
+                    {level.thumbnail && (
+                      <Link href={`/play/${slug}?level=${level.id}`} className="flex-shrink-0">
+                        <img
+                          src={level.thumbnail}
+                          alt={level.name}
+                          className="w-16 h-10 object-cover border border-[#2e3446] rounded-sm"
+                        />
+                      </Link>
+                    )}
+                    <Link href={`/play/${slug}?level=${level.id}`} className="min-w-0 flex-1">
+                      <h4 className="font-arcade text-xs text-white truncate">{level.name}</h4>
                     {level.description ? (
                       <p className="font-arcade text-[10px] text-[#4a4a6a] mt-1 line-clamp-2">{level.description}</p>
                     ) : null}
                     <p className="font-arcade text-[10px] text-[#4a4a6a] mt-2">
-                      by {level.creator.username || level.creator.name || "anonymous"} • {timeAgo(new Date(level.createdAt))}
+                      by{" "}
+                      {level.creator.username ? (
+                        <Link
+                          href={`/creator/${level.creator.username}`}
+                          className="text-[#4a4a6a] hover:text-[#ffff00] transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {level.creator.username}
+                        </Link>
+                      ) : (
+                        level.creator.name || "anonymous"
+                      )}{" "}
+                      • {timeAgo(new Date(level.createdAt))}
                     </p>
                   </Link>
+                  </div>
 
                   <div className="text-right space-y-1">
                     <div className="inline-flex items-center gap-1 text-[#ffff00] font-arcade text-[10px]">

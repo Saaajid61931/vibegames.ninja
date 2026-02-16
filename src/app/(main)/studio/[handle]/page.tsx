@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ChevronLeft, Gamepad2, Building2 } from "lucide-react"
@@ -9,15 +10,15 @@ import { GameCard } from "@/components/games/game-card"
 import { Button } from "@/components/ui/button"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
 import { getInitials } from "@/lib/utils"
+import { SITE_URL } from "@/lib/site"
+import { cache } from "react"
 
 interface PageProps {
   params: Promise<{ handle: string }>
 }
 
-export default async function StudioPage({ params }: PageProps) {
-  const { handle } = await params
-
-  const studio = await prisma.studioProfile.findUnique({
+const getStudio = cache(async (handle: string) => {
+  return prisma.studioProfile.findUnique({
     where: { handle },
     select: {
       id: true,
@@ -27,6 +28,47 @@ export default async function StudioPage({ params }: PageProps) {
       createdAt: true,
     },
   })
+})
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { handle } = await params
+  const studio = await getStudio(handle)
+
+  if (!studio) {
+    return {
+      title: "Studio Not Found",
+      robots: { index: false, follow: false },
+    }
+  }
+
+  const profilePath = `/studio/${studio.handle}`
+  const description = `Play games published by ${studio.displayName} on VibeGames.ai.`
+
+  return {
+    title: `${studio.displayName} (@${studio.handle})`,
+    description,
+    alternates: {
+      canonical: profilePath,
+    },
+    openGraph: {
+      title: `${studio.displayName} (@${studio.handle})`,
+      description,
+      url: `${SITE_URL}${profilePath}`,
+      type: "website",
+      images: studio.image ? [studio.image] : ["/favicon.ico"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${studio.displayName} (@${studio.handle})`,
+      description,
+      images: studio.image ? [studio.image] : ["/favicon.ico"],
+    },
+  }
+}
+
+export default async function StudioPage({ params }: PageProps) {
+  const { handle } = await params
+  const studio = await getStudio(handle)
 
   if (!studio) {
     notFound()
@@ -37,7 +79,19 @@ export default async function StudioPage({ params }: PageProps) {
       status: "PUBLISHED",
       studioProfileId: studio.id,
     },
-    include: {
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      thumbnail: true,
+      category: true,
+      plays: true,
+      likes: true,
+      createdAt: true,
+      publishedAt: true,
+      supportsMobile: true,
+      aiTool: true,
+      aiModel: true,
       studioProfile: {
         select: { id: true, handle: true, displayName: true, image: true },
       },
@@ -50,8 +104,26 @@ export default async function StudioPage({ params }: PageProps) {
 
   const normalizedGames = games.map((game) => ({
     ...game,
+    description: "",
+    instructions: null,
+    gameUrl: "",
+    tags: "",
+    status: "PUBLISHED",
+    shares: 0,
+    avgRating: 0,
+    ratingCount: 0,
+    isAIGenerated: true,
+    hasAds: true,
+    isPremium: false,
+    price: null,
+    updatedAt: new Date(game.createdAt),
+    creatorId: game.creator.id || "",
+    studioProfileId: studio.id,
+    expiresAt: null,
+    isPermanent: true,
     createdAt: new Date(game.createdAt),
-  }))
+    publishedAt: game.publishedAt ? new Date(game.publishedAt) : null,
+  })) as any
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0d0d15]">
@@ -98,7 +170,7 @@ export default async function StudioPage({ params }: PageProps) {
 
           {normalizedGames.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {normalizedGames.map((game) => (
+              {normalizedGames.map((game: any) => (
                 <GameCard key={game.id} game={game} />
               ))}
             </div>

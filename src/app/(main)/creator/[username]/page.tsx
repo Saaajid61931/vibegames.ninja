@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ChevronLeft, Gamepad2, Users } from "lucide-react"
@@ -11,26 +12,68 @@ import { FollowButton } from "@/components/creator/follow-button"
 import { Button } from "@/components/ui/button"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
 import { formatNumber, getInitials } from "@/lib/utils"
+import { SITE_URL } from "@/lib/site"
+import { cache } from "react"
 
 interface PageProps {
   params: Promise<{ username: string }>
 }
 
-export default async function PublicCreatorPage({ params }: PageProps) {
-  const session = await auth()
-  const { username } = await params
-
-  const creator = await prisma.user.findUnique({
+const getCreator = cache(async (username: string) => {
+  return prisma.user.findUnique({
     where: { username },
     select: {
       id: true,
       name: true,
       username: true,
-      image: true,
       bio: true,
+      image: true,
       createdAt: true,
     },
   })
+})
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { username } = await params
+  const creator = await getCreator(username)
+
+  if (!creator || !creator.username) {
+    return {
+      title: "Creator Not Found",
+      robots: { index: false, follow: false },
+    }
+  }
+
+  const displayName = creator.name || creator.username
+  const description = creator.bio || `Play games by @${creator.username} on VibeGames.ai.`
+  const profilePath = `/creator/${creator.username}`
+
+  return {
+    title: `${displayName} (@${creator.username})`,
+    description,
+    alternates: {
+      canonical: profilePath,
+    },
+    openGraph: {
+      title: `${displayName} (@${creator.username})`,
+      description,
+      url: `${SITE_URL}${profilePath}`,
+      type: "website",
+      images: creator.image ? [creator.image] : ["/favicon.ico"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${displayName} (@${creator.username})`,
+      description,
+      images: creator.image ? [creator.image] : ["/favicon.ico"],
+    },
+  }
+}
+
+export default async function PublicCreatorPage({ params }: PageProps) {
+  const session = await auth()
+  const { username } = await params
+  const creator = await getCreator(username)
 
   if (!creator) {
     notFound()
@@ -42,12 +85,24 @@ export default async function PublicCreatorPage({ params }: PageProps) {
         creatorId: creator.id,
         status: "PUBLISHED",
       },
-      include: {
-        studioProfile: {
-          select: { id: true, handle: true, displayName: true, image: true },
-        },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        thumbnail: true,
+        category: true,
+        plays: true,
+        likes: true,
+        createdAt: true,
+        publishedAt: true,
+        supportsMobile: true,
+        aiTool: true,
+        aiModel: true,
         creator: {
           select: { id: true, name: true, username: true, image: true },
+        },
+        studioProfile: {
+          select: { id: true, handle: true, displayName: true, image: true },
         },
       },
       orderBy: getDiscoveryOrderBy("trending"),
@@ -70,8 +125,26 @@ export default async function PublicCreatorPage({ params }: PageProps) {
 
   const normalizedGames = games.map((game) => ({
     ...game,
+    description: "", // Not needed for card but expected by type
+    instructions: null, // Not needed
+    gameUrl: "", // Not needed
+    tags: "", // Not needed
+    status: "PUBLISHED", // Known
+    shares: 0, // Not needed
+    avgRating: 0, // Not needed
+    ratingCount: 0, // Not needed
+    isAIGenerated: true, // Default
+    hasAds: true, // Default
+    isPremium: false, // Default
+    price: null, // Default
+    updatedAt: new Date(game.createdAt), // Mock or fetch if needed
+    creatorId: creator.id, // Known
+    studioProfileId: game.studioProfile?.id || null,
+    expiresAt: null,
+    isPermanent: true,
     createdAt: new Date(game.createdAt),
-  }))
+    publishedAt: game.publishedAt ? new Date(game.publishedAt) : null,
+  })) as any // Casting to satisfy strict Game type if needed for GameCard
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0d0d15]">
@@ -129,7 +202,7 @@ export default async function PublicCreatorPage({ params }: PageProps) {
 
           {normalizedGames.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {normalizedGames.map((game) => (
+              {normalizedGames.map((game: any) => (
                 <GameCard key={game.id} game={game} />
               ))}
             </div>

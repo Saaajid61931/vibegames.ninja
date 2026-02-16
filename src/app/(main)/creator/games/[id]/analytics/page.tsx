@@ -8,6 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import prisma from "@/lib/prisma"
 import { formatNumber, timeAgo } from "@/lib/utils"
 
+export const metadata = {
+  title: "Game Analytics",
+  description: "Analytics and performance data for your game on VibeGames.",
+}
+
 interface PageProps {
   params: Promise<{ id: string }>
 }
@@ -53,9 +58,6 @@ export default async function GameAnalyticsPage({ params }: PageProps) {
     take: 30,
   })
 
-  const totalRevenue = analytics.reduce((sum, a) => sum + a.revenue, 0)
-  const totalAdImpressions = analytics.reduce((sum, a) => sum + a.adImpressions, 0)
-  const totalAdClicks = analytics.reduce((sum, a) => sum + a.adClicks, 0)
   const avgSessionTime = analytics.length
     ? analytics.reduce((sum, a) => sum + a.avgSessionTime, 0) / analytics.length
     : 0
@@ -124,10 +126,10 @@ export default async function GameAnalyticsPage({ params }: PageProps) {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="h-4 w-4 text-[#00ff40]" />
-                <span className="text-xs text-[#4a4a6a] font-arcade">REVENUE</span>
+                <span className="text-xs text-[#4a4a6a] font-arcade">SHARES</span>
               </div>
-              <p className="text-2xl sm:text-3xl font-bold text-[#00ff40] font-arcade">
-                ${totalRevenue.toFixed(2)}
+              <p className="text-2xl sm:text-3xl font-bold text-white font-arcade">
+                {formatNumber(game.shares)}
               </p>
             </CardContent>
           </Card>
@@ -145,33 +147,8 @@ export default async function GameAnalyticsPage({ params }: PageProps) {
           </Card>
         </div>
 
-        {/* Additional Stats */}
+        {/* Game Info */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <Card className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
-            <CardHeader>
-              <CardTitle className="font-arcade text-sm text-[#ffff00]">AD PERFORMANCE</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-[#4a4a6a] font-arcade text-sm">Ad Impressions</span>
-                <span className="text-white font-arcade">{formatNumber(totalAdImpressions)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[#4a4a6a] font-arcade text-sm">Ad Clicks</span>
-                <span className="text-white font-arcade">{formatNumber(totalAdClicks)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[#4a4a6a] font-arcade text-sm">CTR</span>
-                <span className="text-white font-arcade">
-                  {totalAdImpressions > 0
-                    ? ((totalAdClicks / totalAdImpressions) * 100).toFixed(2)
-                    : 0}
-                  %
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
           <Card className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
             <CardHeader>
               <CardTitle className="font-arcade text-sm text-[#ffff00]">GAME INFO</CardTitle>
@@ -195,10 +172,6 @@ export default async function GameAnalyticsPage({ params }: PageProps) {
                   {game.avgRating.toFixed(1)} ({game.ratingCount} reviews)
                 </span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[#4a4a6a] font-arcade text-sm">Shares</span>
-                <span className="text-white font-arcade">{formatNumber(game.shares)}</span>
-              </div>
             </CardContent>
           </Card>
         </div>
@@ -221,7 +194,6 @@ export default async function GameAnalyticsPage({ params }: PageProps) {
                       <th className="text-right py-2 px-2">Plays</th>
                       <th className="text-right py-2 px-2">Unique</th>
                       <th className="text-right py-2 px-2">Avg Time</th>
-                      <th className="text-right py-2 px-2">Revenue</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -233,9 +205,6 @@ export default async function GameAnalyticsPage({ params }: PageProps) {
                         <td className="text-right py-2 px-2">{a.plays}</td>
                         <td className="text-right py-2 px-2">{a.uniquePlayers}</td>
                         <td className="text-right py-2 px-2">{a.avgSessionTime.toFixed(1)}m</td>
-                        <td className="text-right py-2 px-2 text-[#00ff40]">
-                          ${a.revenue.toFixed(2)}
-                        </td>
                       </tr>
                     ))}
                   </tbody>

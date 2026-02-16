@@ -9,7 +9,8 @@ import {
   XCircle,
   Clock,
   Eye,
-  AlertTriangle
+  AlertTriangle,
+  Crown
 } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { Header } from "@/components/layout/header"
@@ -18,10 +19,16 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { FeaturedManager } from "@/components/admin/featured-manager"
 import prisma from "@/lib/prisma"
 import { formatNumber, timeAgo } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
+
+export const metadata = {
+  title: "Admin Panel",
+  description: "Manage games, users, and reports on VibeGames.",
+}
 
 async function getAdminData() {
   const [
@@ -124,6 +131,10 @@ export default async function AdminPage() {
             <TabsTrigger value="reports" className="gap-2">
               <Flag className="h-4 w-4" />
               Reports ({reports.length})
+            </TabsTrigger>
+            <TabsTrigger value="featured" className="gap-2">
+              <Crown className="h-4 w-4" />
+              Game of the Day
             </TabsTrigger>
           </TabsList>
 
@@ -235,6 +246,20 @@ export default async function AdminPage() {
                     <p>No pending reports.</p>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="featured">
+            <Card>
+              <CardHeader>
+                <CardTitle>Game of the Day</CardTitle>
+                <CardDescription>
+                  Schedule featured games for the homepage hero section. If no game is scheduled for a day, the platform auto-selects the best candidate.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FeaturedManager />
               </CardContent>
             </Card>
           </TabsContent>

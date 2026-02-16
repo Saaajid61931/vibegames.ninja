@@ -21,6 +21,7 @@ export type GameCardData = Pick<
   Game,
   'id' | 'slug' | 'title' | 'thumbnail' | 'category' | 'plays' | 'likes' | 'createdAt' | 'supportsMobile' | 'aiModel'
 > & {
+  hasLevelEditor?: boolean
   creator: Pick<User, 'name' | 'username' | 'image'>
   studioProfile?: Pick<StudioProfile, 'handle' | 'displayName' | 'image'> | null
 }
@@ -29,8 +30,6 @@ export type CreatorStats = {
   totalGames: number
   totalPlays: number
   totalLikes: number
-  totalEarnings: number
-  monthlyEarnings: number
   topGames: GameCardData[]
 }
 
@@ -39,7 +38,6 @@ export type AnalyticsData = {
   totalPlays: number
   totalUniquePlayers: number
   avgSessionTime: number
-  totalRevenue: number
 }
 
 export type PaginatedResponse<T> = {

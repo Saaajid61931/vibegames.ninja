@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { Play, Heart, Flag, MessageCircle, ChevronLeft, User, Gamepad2, ExternalLink, Smartphone, Cpu, Users, Clock } from "lucide-react"
@@ -7,6 +8,10 @@ import { GamePlayer } from "@/components/games/game-player"
 import { LikeButton } from "@/components/games/like-button"
 import { ShareButton } from "@/components/games/share-button"
 import { CommentsSection } from "@/components/games/comments-section"
+import { CommunityLevels } from "@/components/games/community-levels"
+import { GameRating } from "@/components/games/game-rating"
+import { LevelRating } from "@/components/games/level-rating"
+import { PlayTracker } from "@/components/games/play-tracker"
 import { FollowButton } from "@/components/creator/follow-button"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -14,14 +19,17 @@ import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
 import { formatNumber, timeAgo, getInitials, CATEGORIES } from "@/lib/utils"
+import { SITE_URL } from "@/lib/site"
+import { cache } from "react"
 
 export const dynamic = "force-dynamic"
 
 interface PageProps {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{ level?: string }>
 }
 
-async function getGame(slug: string) {
+const getGame = cache(async (slug: string) => {
   const game = await prisma.game.findUnique({
     where: { slug },
     include: {
@@ -50,13 +58,48 @@ async function getGame(slug: string) {
     return null
   }
 
-  // Increment play count
-  await prisma.game.update({
-    where: { id: game.id },
-    data: { plays: { increment: 1 } },
-  })
-
   return game
+})
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params
+  const game = await getGame(slug)
+
+  if (!game) {
+    return {
+      title: "Game Not Found",
+      robots: { index: false, follow: false },
+    }
+  }
+
+  const description = `${game.description.slice(0, 140)}${game.description.length > 140 ? "..." : ""}`
+  const gamePath = `/play/${game.slug}`
+  const ogImage = game.thumbnail || `/play/${game.slug}/opengraph-image`
+
+  return {
+    title: `${game.title} - Free AI Game`,
+    description,
+    alternates: {
+      canonical: gamePath,
+    },
+    openGraph: {
+      title: `${game.title} - Play on VibeGames.ai`,
+      description,
+      url: `${SITE_URL}${gamePath}`,
+      type: "website",
+      images: [ogImage],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${game.title} - Play on VibeGames.ai`,
+      description,
+      images: [ogImage],
+    },
+    keywords: game.tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean),
+  }
 }
 
 async function getRelatedGames(category: string, excludeId: string) {
@@ -79,18 +122,28 @@ async function getRelatedGames(category: string, excludeId: string) {
   })
 }
 
-export default async function PlayPage({ params }: PageProps) {
+export default async function PlayPage({ params, searchParams }: PageProps) {
   const session = await auth()
   const { slug } = await params
+  const { level: selectedLevelId } = await searchParams
   const game = await getGame(slug)
 
   if (!game) {
     notFound()
   }
 
-  const relatedGames = await getRelatedGames(game.category, game.id)
   const isStudioPublished = Boolean(game.studioProfile)
-  const [followersCount, creatorGamesCount, isFollowing, isLiked] = await Promise.all([
+  
+  const [
+    relatedGames,
+    followersCount,
+    creatorGamesCount,
+    isFollowing,
+    isLiked,
+    userGameRating,
+    selectedLevel,
+  ] = await Promise.all([
+    getRelatedGames(game.category, game.id),
     isStudioPublished
       ? Promise.resolve(0)
       : prisma.creatorFollow.count({ where: { creatorId: game.creator.id } }),
@@ -125,14 +178,80 @@ export default async function PlayPage({ params }: PageProps) {
           })
           .then((favorite: { id: string } | null) => Boolean(favorite))
       : Promise.resolve(false),
+    session?.user?.id
+      ? prisma.gameRating.findUnique({
+          where: {
+            userId_gameId: {
+              userId: session.user.id,
+              gameId: game.id,
+            },
+          },
+          select: { score: true },
+        })
+      : Promise.resolve(null),
+    selectedLevelId
+      ? prisma.level.findFirst({
+          where: {
+            id: selectedLevelId,
+            gameId: game.id,
+            status: "PUBLISHED",
+          },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            data: true,
+            avgRating: true,
+            ratingCount: true,
+            creator: {
+              select: { id: true, name: true, username: true },
+            },
+            ratings: session?.user?.id
+              ? {
+                  where: { userId: session.user.id },
+                  select: { score: true },
+                  take: 1,
+                }
+              : false,
+          },
+        })
+      : Promise.resolve(null),
   ])
+
   const creatorProfileHref = game.studioProfile
     ? `/studio/${game.studioProfile.handle}`
     : (game.creator.username ? `/creator/${game.creator.username}` : "/creator")
   const category = CATEGORIES.find(c => c.value === game.category)
+  const gameJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    name: game.title,
+    description: game.description,
+    url: `${SITE_URL}/play/${game.slug}`,
+    image: game.thumbnail || `${SITE_URL}/play/${game.slug}/opengraph-image`,
+    genre: category?.label || game.category,
+    playMode: game.supportsMobile ? ["SinglePlayer", "CoOp"] : "SinglePlayer",
+    gamePlatform: game.supportsMobile ? ["Web Browser", "Mobile Web Browser"] : "Web Browser",
+    publisher: {
+      "@type": game.studioProfile ? "Organization" : "Person",
+      name: game.studioProfile?.displayName || game.creator.name || game.creator.username || "VibeGames Creator",
+    },
+    author: {
+      "@type": game.studioProfile ? "Organization" : "Person",
+      name: game.studioProfile?.displayName || game.creator.name || game.creator.username || "VibeGames Creator",
+    },
+    datePublished: new Date(game.createdAt).toISOString(),
+    dateModified: new Date(game.updatedAt).toISOString(),
+    interactionStatistic: {
+      "@type": "InteractionCounter",
+      interactionType: "https://schema.org/PlayAction",
+      userInteractionCount: game.plays,
+    },
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(gameJsonLd) }} />
       <Header />
       
       <main className="flex-1">
@@ -140,17 +259,22 @@ export default async function PlayPage({ params }: PageProps) {
           {/* Back button */}
           <Link href="/games" className="inline-flex items-center gap-2 text-[#4a4a6a] hover:text-[#ffff00] mb-4 sm:mb-6 transition-colors font-arcade text-xs sm:text-sm">
             <ChevronLeft className="h-4 w-4" />
-            $ cd ../games
+            BACK TO ARCADE
           </Link>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Main content */}
             <div className="lg:col-span-2 space-y-6">
+              <PlayTracker gameId={game.id} levelId={selectedLevel?.id ?? null} />
+
               {/* Game iframe */}
               <GamePlayer
                 title={game.title}
                 gameUrl={game.gameUrl}
                 runtimeLabel={`${game.title.toLowerCase().replace(/\s+/g, "_")}.exe`}
+                levelData={selectedLevel?.data}
+                levelName={selectedLevel?.name}
+                levelDescription={selectedLevel?.description}
               />
 
               {/* Game info */}
@@ -166,10 +290,12 @@ export default async function PlayPage({ params }: PageProps) {
                     initialLiked={isLiked}
                   />
                   <ShareButton title={game.title} />
-                  <Button variant="ghost" size="sm" className="gap-2 text-[#4a4a6a] font-arcade flex-1 sm:flex-none min-w-[108px]">
-                    <Flag className="h-4 w-4" />
-                    [REPORT]
-                  </Button>
+                  <Link href={`mailto:report@vibegames.ai?subject=Report Game: ${game.title} (${game.id})`}>
+                    <Button variant="ghost" size="sm" className="gap-2 text-[#4a4a6a] font-arcade flex-1 sm:flex-none min-w-[108px]">
+                      <Flag className="h-4 w-4" />
+                      [REPORT]
+                    </Button>
+                  </Link>
                 </div>
               </div>
 
@@ -196,6 +322,11 @@ export default async function PlayPage({ params }: PageProps) {
                 <span className={`px-2 py-1 border ${game.supportsMobile ? "border-[#22c55e] text-[#22c55e]" : "border-[#4a4a6a] text-[#4a4a6a]"}`}>
                   [{game.supportsMobile ? "MOBILE_READY" : "DESKTOP_ONLY"}]
                 </span>
+                {game.hasLevelEditor && (
+                  <span className="px-2 py-1 border border-[#ffff00] text-[#ffff00]">
+                    [LEVEL_EDITOR]
+                  </span>
+                )}
                 {game.tags.split(",").filter(t => t.trim()).map((tag) => (
                   <span key={tag.trim()} className="px-2 py-1 border border-[#4a4a6a] text-[#4a4a6a]">
                     #{tag.trim().toUpperCase()}
@@ -233,6 +364,43 @@ export default async function PlayPage({ params }: PageProps) {
                 )}
               </div>
 
+              <GameRating
+                gameId={game.id}
+                initialAverage={game.avgRating}
+                initialCount={game.ratingCount}
+                initialUserScore={userGameRating?.score ?? null}
+                isAuthenticated={Boolean(session?.user?.id)}
+              />
+
+              {selectedLevel && (
+                <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4 space-y-2">
+                  <p className="font-arcade text-xs text-[#ffff00]">CURRENT LEVEL</p>
+                  <h3 className="font-arcade text-sm text-white">{selectedLevel.name}</h3>
+                  {selectedLevel.description && (
+                    <p className="font-arcade text-xs text-[#4a4a6a]">{selectedLevel.description}</p>
+                  )}
+                  <p className="font-arcade text-[10px] text-[#4a4a6a]">
+                    by {selectedLevel.creator.username || selectedLevel.creator.name || "anonymous"}
+                  </p>
+
+                  {session?.user?.id === selectedLevel.creator.id && (
+                    <Button asChild variant="arcade-outline" size="sm" className="mt-2">
+                      <Link href={`/play/${game.slug}/editor?level=${selectedLevel.id}`}>EDIT THIS LEVEL</Link>
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {selectedLevel && (
+                <LevelRating
+                  levelId={selectedLevel.id}
+                  initialAverage={selectedLevel.avgRating}
+                  initialCount={selectedLevel.ratingCount}
+                  initialUserScore={selectedLevel.ratings?.[0]?.score ?? null}
+                  isAuthenticated={Boolean(session?.user?.id)}
+                />
+              )}
+
               {/* Description */}
               <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
                 <div className="border-b-2 border-[#4a4a6a] px-4 py-2">
@@ -249,6 +417,15 @@ export default async function PlayPage({ params }: PageProps) {
                   )}
                 </div>
               </div>
+
+              {game.hasLevelEditor && (
+                <CommunityLevels
+                  gameId={game.id}
+                  slug={game.slug}
+                  selectedLevelId={selectedLevelId}
+                  currentUserId={session?.user?.id ?? null}
+                />
+              )}
 
               {/* Comments */}
               <CommentsSection

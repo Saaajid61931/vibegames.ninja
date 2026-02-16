@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Code Clicker - Idle Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0d0d15;
+            --bg-panel: #16161e;
+            --bg-card: #1e1e2e;
+            --neon-green: #00ff88;
+            --neon-cyan: #00ffff;
+            --neon-purple: #bf00ff;
+            --neon-yellow: #ffff00;
+            --neon-pink: #ff0080;
+            --text-primary: #e0e0e0;
+            --text-secondary: #888;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Fira Code', monospace;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(ellipse at top, rgba(0, 255, 136, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(191, 0, 255, 0.05) 0%, transparent 50%);
+        }
+        
+        .game-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            min-height: 100vh;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        @media (min-width: 900px) {
+            .game-container {
+                grid-template-columns: 1fr 380px;
+            }
+        }
+        
+        .main-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .stat-box {
+            background: var(--bg-panel);
+            border: 2px solid var(--neon-green);
+            border-radius: 12px;
+            padding: 15px 25px;
+            text-align: center;
+            min-width: 140px;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.15);
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+        
+        .code-btn {
+            width: min(280px, 70vw);
+            height: min(280px, 70vw);
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
+            border: 4px solid var(--neon-cyan);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.1s ease;
+            box-shadow: 
+                0 0 30px rgba(0, 255, 255, 0.3),
+                inset 0 0 30px rgba(0, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .code-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.5);
+        }
+        
+        .code-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(
+                transparent,
+                transparent,
+                transparent,
+                rgba(0, 255, 255, 0.1)
+            );
+            animation: rotate 4s linear infinite;
+        }
+        
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+        
+        .code-icon {
+            font-size: 60px;
+            position: z-index: 1;
+        }
+        
+        .click-text {
+            font-size: 14px;
+            color: var(--neon-cyan);
+            font-weight: 600;
+            position: z-index: 1;
+        }
+        
+        .click-value {
+            font-size: 20px;
+            color: var(--neon-yellow);
+            font-weight: 700;
+            position: z-index: 1;
+        }
+        
+        .click-effect {
+            position: fixed;
+            pointer-events: none;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+            animation: floatUp 1s ease-out forwards;
+            z-index: 1000;
+        }
+        
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-80px) scale(1.5); }
+        }
+        
+        .achievements {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 100%;
+        }
+        
+        .achievement {
+            background: var(--bg-card);
+            border: 2px solid var(--text-secondary);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 11px;
+            opacity: 0.4;
+            transition: all 0.3s ease;
+        }
+        
+        .achievement.unlocked {
+            opacity: 1;
+            border-color: var(--neon-yellow);
+            box-shadow: 0 0 15px rgba(255, 255, 0, 0.3);
+        }
+        
+        .side-panel {
+            background: var(--bg-panel);
+            border-left: 2px solid #2a2a3e;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 100vh;
+            overflow-y: auto;
+        }
+        
+        @media (max-width: 899px) {
+            .side-panel {
+                border-left: none;
+                border-top: 2px solid #2a2a3e;
+                max-height: none;
+            }
+        }
+        
+        .section-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            color: var(--neon-purple);
+            text-shadow: 0 0 10px var(--neon-purple);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .upgrades-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .upgrade-item {
+            background: var(--bg-card);
+            border: 2px solid #2a2a3e;
+            border-radius: 10px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .upgrade-item:hover:not(.disabled) {
+            border-color: var(--neon-green);
+            transform: translateX(5px);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+        }
+        
+        .upgrade-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .upgrade-icon {
+            font-size: 28px;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: 8px;
+        }
+        
+        .upgrade-info h4 {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .upgrade-info p {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        
+        .upgrade-cost {
+            text-align: right;
+        }
+        
+        .cost-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--neon-yellow);
+        }
+        
+        .cost-label {
+            font-size: 9px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+        
+        .owned-count {
+            font-size: 12px;
+            color: var(--neon-cyan);
+            margin-top: 4px;
+        }
+        
+        .prestige-section {
+            background: linear-gradient(135deg, rgba(191, 0, 255, 0.1), rgba(0, 255, 255, 0.1));
+            border: 2px solid var(--neon-purple);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .prestige-btn {
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
+            border: none;
+            color: white;
+            font-family: 'Fira Code', monospace;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 20px rgba(191, 0, 255, 0.4);
+        }
+        
+        .prestige-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(191, 0, 255, 0.6);
+        }
+        
+        .prestige-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .prestige-bonus {
+            font-size: 12px;
+            color: var(--neon-purple);
+            margin-top: 8px;
+        }
+        
+        .mascot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 40px;
+            animation: bounce 2s ease-in-out infinite;
+            z-index: 100;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .save-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: var(--neon-green);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .save-indicator.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="main-panel">
+            <div class="stats-bar">
+                <div class="stat-box">
+                    <div class="stat-value" id="lines">0</div>
+                    <div class="stat-label">Lines of Code</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="linesPerSec">0</div>
+                    <div class="stat-label">Lines/Second</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="totalLines">0</div>
+                    <div class="stat-label">Total Written</div>
+                </div>
+            </div>
+            
+            <button class="code-btn" id="codeBtn">
+                <span class="code-icon">⌨️</span>
+                <span class="click-text">CLICK TO CODE</span>
+                <span class="click-value">+<span id="clickValue">1</span></span>
+            </button>
+            
+            <div class="achievements" id="achievements"></div>
+        </div>
+        
+        <div class="side-panel">
+            <div class="section-title">💻 UPGRADES</div>
+            <div class="upgrades-list" id="upgrades"></div>
+            
+            <div class="prestige-section">
+                <div class="section-title" style="justify-content: center;">⭐ PRESTIGE</div>
+                <p style="font-size: 12px; color: var(--text-secondary);">Reset for permanent +10% bonus per prestige level!</p>
+                <div class="prestige-bonus">Current Bonus: +<span id="prestigeBonus">0</span>%</div>
+                <button class="prestige-btn" id="prestigeBtn" onclick="prestige()">
+                    PRESTIGE (Need 1M lines)
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mascot">🤖</div>
+    <div class="save-indicator" id="saveIndicator">💾 Saved!</div>
+    
+    <script>
+        const gameData = {
+            lines: 0,
+            totalLines: 0,
+            prestigeLevel: 0,
+            upgrades: {},
+            achievements: []
+        };
+        
+        const upgrades = [
+            { id: 'keyboard', name: 'Mechanical Keyboard', icon: '⌨️', baseCost: 15, baseProduction: 0.5, desc: '+0.5 LPS' },
+            { id: 'coffee', name: 'Coffee Machine', icon: '☕', baseCost: 100, baseProduction: 2, desc: '+2 LPS' },
+            { id: 'monitor', name: 'Dual Monitors', icon: '🖥️', baseCost: 500, baseProduction: 8, desc: '+8 LPS' },
+            { id: 'ai', name: 'AI Assistant', icon: '🤖', baseCost: 2000, baseProduction: 25, desc: '+25 LPS' },
+            { id: 'server', name: 'Server Farm', icon: '🖧', baseCost: 10000, baseProduction: 80, desc: '+80 LPS' },
+            { id: 'quantum', name: 'Quantum Computer', icon: '⚛️', baseCost: 50000, baseProduction: 250, desc: '+250 LPS' },
+            { id: 'neural', name: 'Neural Network', icon: '🧠', baseCost: 200000, baseProduction: 1000, desc: '+1000 LPS' },
+            { id: 'matrix', name: 'The Matrix', icon: '📽️', baseCost: 1000000, baseProduction: 5000, desc: '+5000 LPS' }
+        ];
+        
+        const achievementsList = [
+            { id: 'first', name: 'Hello World', req: 1, icon: '👋' },
+            { id: 'hundred', name: 'Centurion', req: 100, icon: '💯' },
+            { id: 'thousand', name: 'Kilobyte', req: 1000, icon: '📀' },
+            { id: 'tenk', name: 'Code Monkey', req: 10000, icon: '🐵' },
+            { id: 'hundredk', name: 'Senior Dev', req: 100000, icon: '👨‍💻' },
+            { id: 'million', name: '10x Engineer', req: 1000000, icon: '🚀' }
+        ];
+        
+        let clickValue = 1;
+        let linesPerSec = 0;
+        
+        function loadGame() {
+            const saved = localStorage.getItem('codeClicker');
+            if (saved) {
+                const data = JSON.parse(saved);
+                Object.assign(gameData, data);
+            }
+            updateDisplay();
+        }
+        
+        function saveGame() {
+            localStorage.setItem('codeClicker', JSON.stringify(gameData));
+            const indicator = document.getElementById('saveIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => indicator.classList.remove('show'), 1500);
+        }
+        
+        function getCost(upgrade) {
+            const owned = gameData.upgrades[upgrade.id] || 0;
+            return Math.floor(upgrade.baseCost * Math.pow(1.15, owned));
+        }
+        
+        function getProduction() {
+            let total = 0;
+            upgrades.forEach(u => {
+                const owned = gameData.upgrades[u.id] || 0;
+                total += owned * u.baseProduction;
+            });
+            const prestigeBonus = 1 + (gameData.prestigeLevel * 0.1);
+            return total * prestigeBonus;
+        }
+        
+        function buyUpgrade(upgradeId) {
+            const upgrade = upgrades.find(u => u.id === upgradeId);
+            const cost = getCost(upgrade);
+            
+            if (gameData.lines >= cost) {
+                gameData.lines -= cost;
+                gameData.upgrades[upgradeId] = (gameData.upgrades[upgradeId] || 0) + 1;
+                updateDisplay();
+                saveGame();
+            }
+        }
+        
+        function prestige() {
+            if (gameData.lines < 1000000) return;
+            
+            const newLevel = Math.floor(gameData.lines / 1000000);
+            gameData.prestigeLevel += newLevel;
+            gameData.lines = 0;
+            gameData.upgrades = {};
+            
+            saveGame();
+            updateDisplay();
+        }
+        
+        function checkAchievements() {
+            achievementsList.forEach(ach => {
+                if (!gameData.achievements.includes(ach.id) && gameData.totalLines >= ach.req) {
+                    gameData.achievements.push(ach.id);
+                    showNotification(`🏆 Unlocked: ${ach.name}!`);
+                }
+            });
+        }
+        
+        function showNotification(text) {
+            const notif = document.createElement('div');
+            notif.className = 'click-effect';
+            notif.textContent = text;
+            notif.style.left = '50%';
+            notif.style.top = '40%';
+            notif.style.transform = 'translateX(-50%)';
+            notif.style.fontSize = '16px';
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 1500);
+        }
+        
+        function updateDisplay() {
+            const prestigeMultiplier = 1 + (gameData.prestigeLevel * 0.1);
+            clickValue = Math.floor(1 * prestigeMultiplier);
+            linesPerSec = getProduction();
+            
+            document.getElementById('lines').textContent = formatNumber(gameData.lines);
+            document.getElementById('linesPerSec').textContent = formatNumber(linesPerSec);
+            document.getElementById('totalLines').textContent = formatNumber(gameData.totalLines);
+            document.getElementById('clickValue').textContent = formatNumber(clickValue);
+            document.getElementById('prestigeBonus').textContent = gameData.prestigeLevel * 10;
+            
+            const prestigeBtn = document.getElementById('prestigeBtn');
+            const needPrestige = 1000000;
+            prestigeBtn.disabled = gameData.lines < needPrestige;
+            prestigeBtn.textContent = `PRESTIGE (Need ${formatNumber(needPrestige)})`;
+            
+            const upgradesEl = document.getElementById('upgrades');
+            upgradesEl.innerHTML = '';
+            
+            upgrades.forEach(upgrade => {
+                const cost = getCost(upgrade);
+                const owned = gameData.upgrades[upgrade.id] || 0;
+                const canAfford = gameData.lines >= cost;
+                
+                const item = document.createElement('div');
+                item.className = `upgrade-item ${canAfford ? '' : 'disabled'}`;
+                item.onclick = () => canAfford && buyUpgrade(upgrade.id);
+                
+                item.innerHTML = `
+                    <div class="upgrade-icon">${upgrade.icon}</div>
+                    <div class="upgrade-info">
+                        <h4>${upgrade.name}</h4>
+                        <p>${upgrade.desc}</p>
+                        <div class="owned-count">Owned: ${owned}</div>
+                    </div>
+                    <div class="upgrade-cost">
+                        <div class="cost-value">${formatNumber(cost)}</div>
+                        <div class="cost-label">lines</div>
+                    </div>
+                `;
+                upgradesEl.appendChild(item);
+            });
+            
+            const achievementsEl = document.getElementById('achievements');
+            achievementsEl.innerHTML = '';
+            achievementsList.forEach(ach => {
+                const unlocked = gameData.achievements.includes(ach.id);
+                const div = document.createElement('div');
+                div.className = `achievement ${unlocked ? 'unlocked' : ''}`;
+                div.textContent = `${ach.icon} ${ach.name}`;
+                div.title = `Require: ${formatNumber(ach.req)} total lines`;
+                achievementsEl.appendChild(div);
+            });
+        }
+        
+        function formatNumber(num) {
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return Math.floor(num).toLocaleString();
+        }
+        
+        function handleClick(e) {
+            const prestigeMultiplier = 1 + (gameData.prestigeLevel * 0.1);
+            const gained = Math.floor(clickValue * prestigeMultiplier);
+            gameData.lines += gained;
+            gameData.totalLines += gained;
+            
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            effect.textContent = `+${formatNumber(gained)}`;
+            effect.style.left = `${e.clientX}px`;
+            effect.style.top = `${e.clientY}px`;
+            document.body.appendChild(effect);
+            setTimeout(() => effect.remove(), 1000);
+            
+            checkAchievements();
+            updateDisplay();
+        }
+        
+        document.getElementById('codeBtn').addEventListener('click', handleClick);
+        
+        setInterval(() => {
+            if (linesPerSec > 0) {
+                const gained = linesPerSec / 10;
+                gameData.lines += gained;
+                gameData.totalLines += gained;
+                checkAchievements();
+                updateDisplay();
+            }
+        }, 100);
+        
+        setInterval(saveGame, 30000);
+        
+        loadGame();
+    </script>
+</body>
+</html>
