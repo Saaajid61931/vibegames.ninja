@@ -18,6 +18,7 @@ import {
   ArrowLeft,
   Send,
   X,
+  Loader2,
 } from "lucide-react"
 
 type JamEntry = {
@@ -152,6 +153,7 @@ function EntryCard({
   userId,
   onVote,
   votingEnabled,
+  voting,
 }: {
   entry: JamEntry
   rank: number
@@ -160,6 +162,7 @@ function EntryCard({
   userId: string | null
   onVote: (entryId: string, score: number) => void
   votingEnabled: boolean
+  voting: boolean
 }) {
   const isOwnEntry = userId === entry.user.id
   const showRank = jamStatus === "COMPLETED" || jamStatus === "VOTING"
@@ -237,10 +240,14 @@ function EntryCard({
 
             {/* Voting */}
             {votingEnabled && !isOwnEntry && (
-              <StarRating
-                score={entry.userVote}
-                onRate={(score) => onVote(entry.id, score)}
-              />
+              <div className="flex items-center gap-2">
+                <StarRating
+                  score={entry.userVote}
+                  onRate={(score) => onVote(entry.id, score)}
+                  disabled={voting}
+                />
+                {voting && <Loader2 className="w-4 h-4 text-[#ffff00] animate-spin" />}
+              </div>
             )}
             {votingEnabled && isOwnEntry && (
               <span className="text-[#8080a0] text-xs italic">Your entry</span>
@@ -263,6 +270,8 @@ export function JamDetail({
 }) {
   const router = useRouter()
   const [submitting, setSubmitting] = useState(false)
+  const [withdrawingGameId, setWithdrawingGameId] = useState<string | null>(null)
+  const [votingEntryId, setVotingEntryId] = useState<string | null>(null)
   const [selectedGameId, setSelectedGameId] = useState("")
   const [showSubmitForm, setShowSubmitForm] = useState(false)
   const [error, setError] = useState("")
@@ -307,6 +316,7 @@ export function JamDetail({
   const handleWithdraw = useCallback(async (gameId: string) => {
     if (!confirm("Withdraw this entry from the jam?")) return
 
+    setWithdrawingGameId(gameId)
     try {
       const res = await fetch(`/api/jams/${jam.slug}/entries`, {
         method: "DELETE",
@@ -319,10 +329,13 @@ export function JamDetail({
       }
     } catch {
       // silent fail
+    } finally {
+      setWithdrawingGameId(null)
     }
   }, [jam.slug, router])
 
   const handleVote = useCallback(async (entryId: string, score: number) => {
+    setVotingEntryId(entryId)
     try {
       const res = await fetch(`/api/jams/${jam.slug}/entries/${entryId}/vote`, {
         method: "POST",
@@ -341,6 +354,8 @@ export function JamDetail({
       }
     } catch {
       // silent fail
+    } finally {
+      setVotingEntryId(null)
     }
   }, [jam.slug, router])
 
@@ -543,14 +558,23 @@ export function JamDetail({
                   userId={userId}
                   onVote={handleVote}
                   votingEnabled={jam.status === "VOTING" && !!userId}
+                  voting={votingEntryId === entry.id}
                 />
                 {/* Withdraw button for own entries during active phase */}
                 {jam.status === "ACTIVE" && entry.user.id === userId && (
                   <button
                     onClick={() => handleWithdraw(entry.game.id)}
-                    className="absolute top-2 right-2 text-[#8080a0] hover:text-[#ff0040] text-xs transition-colors"
+                    disabled={withdrawingGameId === entry.game.id}
+                    className="absolute top-2 right-2 text-[#8080a0] hover:text-[#ff0040] text-xs transition-colors disabled:opacity-50"
                   >
-                    Withdraw
+                    {withdrawingGameId === entry.game.id ? (
+                      <span className="flex items-center gap-1">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Withdrawing...
+                      </span>
+                    ) : (
+                      "Withdraw"
+                    )}
                   </button>
                 )}
               </div>

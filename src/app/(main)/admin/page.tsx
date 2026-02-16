@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { FeaturedManager } from "@/components/admin/featured-manager"
 import { JamManager } from "@/components/admin/jam-manager"
+import { AdminActionButton } from "@/components/admin/admin-action-button"
 import prisma from "@/lib/prisma"
 import { formatNumber, timeAgo } from "@/lib/utils"
 
@@ -197,18 +198,24 @@ export default async function AdminPage() {
                               Preview
                             </Button>
                           </Link>
-                          <form action={`/api/admin/games/${game.id}/approve`} method="POST">
-                            <Button type="submit" size="sm" variant="success" className="gap-1">
-                              <CheckCircle className="h-4 w-4" />
-                              Approve
-                            </Button>
-                          </form>
-                          <form action={`/api/admin/games/${game.id}/reject`} method="POST">
-                            <Button type="submit" size="sm" variant="destructive" className="gap-1">
-                              <XCircle className="h-4 w-4" />
-                              Reject
-                            </Button>
-                          </form>
+                          <AdminActionButton
+                            action={`/api/admin/games/${game.id}/approve`}
+                            size="sm"
+                            variant="success"
+                            className="gap-1"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                            Approve
+                          </AdminActionButton>
+                          <AdminActionButton
+                            action={`/api/admin/games/${game.id}/reject`}
+                            size="sm"
+                            variant="destructive"
+                            className="gap-1"
+                          >
+                            <XCircle className="h-4 w-4" />
+                            Reject
+                          </AdminActionButton>
                         </div>
                       </div>
                     ))}
@@ -252,12 +259,20 @@ export default async function AdminPage() {
                           <Link href={`/play/${report.game.slug}`} target="_blank">
                             <Button variant="ghost" size="sm">Review</Button>
                           </Link>
-                          <form action={`/api/admin/reports/${report.id}/take-action`} method="POST">
-                            <Button type="submit" size="sm" variant="destructive">Suspend</Button>
-                          </form>
-                          <form action={`/api/admin/reports/${report.id}/dismiss`} method="POST">
-                            <Button type="submit" size="sm" variant="outline">Dismiss</Button>
-                          </form>
+                          <AdminActionButton
+                            action={`/api/admin/reports/${report.id}/take-action`}
+                            size="sm"
+                            variant="destructive"
+                          >
+                            Suspend
+                          </AdminActionButton>
+                          <AdminActionButton
+                            action={`/api/admin/reports/${report.id}/dismiss`}
+                            size="sm"
+                            variant="outline"
+                          >
+                            Dismiss
+                          </AdminActionButton>
                         </div>
                       </div>
                     ))}

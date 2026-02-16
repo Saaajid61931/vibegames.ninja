@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
 import { StarRating } from "@/components/games/star-rating"
 
 interface LevelRatingProps {
@@ -62,9 +63,13 @@ export function LevelRating({
       <p className="font-arcade text-xs text-[#4a4a6a] mb-2">RATE THIS LEVEL</p>
       <div className="flex flex-wrap items-center gap-3">
         <StarRating value={userScore ?? 0} onChange={submit} disabled={saving} />
-        <span className="font-arcade text-xs text-white">
-          {(average || 0).toFixed(1)} / 5 ({count})
-        </span>
+        {saving ? (
+          <Loader2 className="h-4 w-4 text-[#ffff00] animate-spin" />
+        ) : (
+          <span className="font-arcade text-xs text-white">
+            {(average || 0).toFixed(1)} / 5 ({count})
+          </span>
+        )}
       </div>
     </div>
   )

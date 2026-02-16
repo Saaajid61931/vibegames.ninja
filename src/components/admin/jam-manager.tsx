@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Plus, Trophy, Trash2, Edit, Calendar, Users, Zap, Vote, Clock, X } from "lucide-react"
+import { Plus, Trophy, Trash2, Edit, Calendar, Users, Zap, Vote, Clock, X, Loader2 } from "lucide-react"
 
 type JamSummary = {
   id: string
@@ -50,6 +50,7 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
   const [jams, setJams] = useState(initialJams)
   const [showForm, setShowForm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [deletingSlug, setDeletingSlug] = useState<string | null>(null)
   const [error, setError] = useState("")
   const [form, setForm] = useState({
     title: "",
@@ -113,6 +114,7 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
   const handleDelete = useCallback(async (slug: string) => {
     if (!confirm("Delete this jam? This will also delete all entries and votes.")) return
 
+    setDeletingSlug(slug)
     try {
       const res = await fetch(`/api/jams/${slug}`, { method: "DELETE" })
       if (res.ok) {
@@ -121,6 +123,8 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
       }
     } catch {
       // silent
+    } finally {
+      setDeletingSlug(null)
     }
   }, [router])
 
@@ -240,7 +244,14 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
 
           <div className="flex gap-2">
             <Button onClick={handleCreate} disabled={submitting || !form.title || !form.description || !form.startDate || !form.endDate || !form.votingEndDate}>
-              {submitting ? "Creating..." : "Create Jam"}
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                  Creating...
+                </>
+              ) : (
+                "Create Jam"
+              )}
             </Button>
             <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
           </div>
@@ -289,8 +300,13 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
                   size="sm"
                   className="text-[#ff0040] hover:text-[#ff0040] gap-1"
                   onClick={() => handleDelete(jam.slug)}
+                  disabled={deletingSlug === jam.slug}
                 >
-                  <Trash2 className="w-3 h-3" />
+                  {deletingSlug === jam.slug ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-3 h-3" />
+                  )}
                 </Button>
               </div>
             </div>
