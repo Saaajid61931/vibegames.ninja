@@ -55,7 +55,7 @@ export default async function OGImage() {
         >
           <span style={{ color: "#ffff00" }}>VIBE</span>
           <span>GAMES</span>
-          <span style={{ color: "#4a4a6a", fontSize: "48px", marginLeft: "8px" }}>.ai</span>
+          <span style={{ color: "#4a4a6a", fontSize: "40px", marginLeft: "8px" }}>.ninja</span>
         </div>
         <div
           style={{

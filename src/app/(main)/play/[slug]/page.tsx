@@ -19,7 +19,7 @@ import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
 import { formatNumber, timeAgo, getInitials, CATEGORIES } from "@/lib/utils"
-import { SITE_URL } from "@/lib/site"
+import { SITE_NAME, SITE_URL } from "@/lib/site"
 import { cache } from "react"
 
 export const dynamic = "force-dynamic"
@@ -74,7 +74,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const description = `${game.description.slice(0, 140)}${game.description.length > 140 ? "..." : ""}`
   const gamePath = `/play/${game.slug}`
-  const ogImage = game.thumbnail || `/play/${game.slug}/opengraph-image`
+  const fallbackOgImage = `${SITE_URL}/play/${game.slug}/opengraph-image`
+  const ogImage = game.thumbnail
+    ? new URL(game.thumbnail, SITE_URL).toString()
+    : fallbackOgImage
 
   return {
     title: `${game.title} - Free AI Game`,
@@ -87,7 +90,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       url: `${SITE_URL}${gamePath}`,
       type: "website",
-      images: [ogImage],
+      siteName: SITE_NAME,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: `${game.title} on ${SITE_NAME}`,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
