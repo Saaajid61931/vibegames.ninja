@@ -53,4 +53,7 @@ prisma/dev.db
 *.tsbuildinfo
 next-env.d.ts
 
+# reference files
+Ninja Byte Mascot.html
+
 .vercel
