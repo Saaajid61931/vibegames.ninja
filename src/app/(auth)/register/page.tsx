@@ -4,7 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
-import { ArrowRight, AtSign, Gamepad2, Lock, Mail, User, Eye, EyeOff } from "lucide-react"
+import { ArrowRight, AtSign, Lock, Mail, User, Eye, EyeOff } from "lucide-react"
+import { PixelNinja } from "@/components/icons/pixel-ninja"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -62,7 +63,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-3 mb-8">
-          <Gamepad2 className="h-8 w-8 text-[var(--color-primary)]" />
+          <PixelNinja className="h-8 w-8 text-[var(--color-primary)]" />
           <span className="font-pixel text-sm text-[var(--color-text)]">
             <span className="text-[var(--color-primary)]">VIBE</span>GAMES
           </span>

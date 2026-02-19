@@ -3,7 +3,8 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
-import { Plus, User, Menu, X, Gamepad2 } from "lucide-react"
+import { Plus, User, Menu, X } from "lucide-react"
+import { PixelNinja } from "@/components/icons/pixel-ninja"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 import {
@@ -46,7 +47,7 @@ export function Header() {
           <div className="flex h-14 items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 group">
-              <Gamepad2 className="h-6 w-6 text-[var(--color-primary)] group-hover:text-[var(--color-arcade-yellow)] transition-colors" />
+              <PixelNinja className="h-6 w-6 text-[var(--color-primary)] group-hover:text-[var(--color-arcade-yellow)] transition-colors" />
               <span className="font-pixel text-xs tracking-tight">
                 <span className="text-[var(--color-primary)]">VIBE</span>
                 <span className="text-[var(--color-text)]">GAMES</span>
