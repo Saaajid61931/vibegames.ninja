@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useId, useState } from "react"
 
 interface NinjaConsoleProps {
   className?: string
@@ -8,18 +8,26 @@ interface NinjaConsoleProps {
 }
 
 export function NinjaConsole({ className = "h-6 w-6", animated = true }: NinjaConsoleProps) {
-  const [mode, setMode] = useState<"relaxed" | "attack">("relaxed")
+  const [mode, setMode] = useState<"happy" | "attack" | "surprised">("happy")
   const [isBlinking, setIsBlinking] = useState(false)
+  const iconId = useId().replace(/:/g, "")
+  const bodyGradientId = `${iconId}-body-gradient`
+  const glowFilterId = `${iconId}-glow-filter`
+  const primaryColor = "var(--color-primary)"
+  const primaryHoverColor = "var(--color-primary-hover)"
 
   useEffect(() => {
     if (!animated) return
 
-    // Mode shifting: switch between relaxed and attack every 8-15 seconds
+    // Cycle expressions automatically so all mascot animations play without interaction.
+    const modeCycle: Array<"happy" | "surprised" | "attack" | "happy"> = ["happy", "surprised", "attack", "happy"]
+    let modeIndex = 0
     const modeInterval = setInterval(() => {
-      setMode((prev) => (prev === "relaxed" ? "attack" : "relaxed"))
-    }, 8000 + Math.random() * 7000)
+      modeIndex = (modeIndex + 1) % modeCycle.length
+      setMode(modeCycle[modeIndex])
+    }, 3400)
 
-    // Blinking: blink every 3-6 seconds
+    // Blinking every 3-6 seconds.
     const blinkInterval = setInterval(() => {
       setIsBlinking(true)
       setTimeout(() => setIsBlinking(false), 150)
@@ -31,102 +39,144 @@ export function NinjaConsole({ className = "h-6 w-6", animated = true }: NinjaCo
     }
   }, [animated])
 
+  const displayMode = animated ? mode : "happy"
+  const blinking = animated && isBlinking
+  const eyeColor = displayMode === "attack" ? "#ff0055" : displayMode === "surprised" ? "#aa00ff" : "#00ff88"
+  const screenOverlay = displayMode === "attack" ? "rgba(255, 0, 85, 0.14)" : displayMode === "surprised" ? "rgba(170, 0, 255, 0.1)" : "rgba(0, 255, 136, 0.08)"
+
   return (
     <svg
       viewBox="0 0 24 24"
       className={className}
       xmlns="http://www.w3.org/2000/svg"
       style={{ display: "block" }}
+      aria-hidden="true"
+      focusable="false"
     >
       <defs>
-        <filter id="screenGlow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="0.5" result="blur" />
+        <linearGradient id={bodyGradientId} x1="0" y1="2" x2="0" y2="22" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#2a3146" />
+          <stop offset="1" stopColor="#1a1f31" />
+        </linearGradient>
+        <filter id={glowFilterId} x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="0.45" result="blur" />
           <feComposite in="SourceGraphic" in2="blur" operator="over" />
         </filter>
       </defs>
 
-      {/* Body */}
-      <rect
-        x="3"
-        y="2"
-        width="18"
-        height="20"
-        rx="2"
-        fill="#1e1e2e"
-        stroke="#2a2a3e"
-        strokeWidth="0.5"
-      />
+      <ellipse cx="12" cy="22.3" rx="4" ry="0.9" fill="#040611" opacity="0.55" />
 
-      {/* Headband */}
-      <rect x="3" y="2" width="18" height="4" rx="2" fill="#6366f1" />
-      <rect x="3" y="4" width="18" height="2" fill="#6366f1" />
+      <g>
+        {animated && (
+          <animateTransform
+            attributeName="transform"
+            type="translate"
+            values="0 0; 0 -0.7; 0 0"
+            dur="4s"
+            repeatCount="indefinite"
+          />
+        )}
 
-      {/* Headband tails flowing to the right */}
-      <path
-        d="M19 4 L23 3 L21 4 L23 5 Z"
-        fill="#6366f1"
-        style={{
-          transformOrigin: "19px 4px",
-          animation: animated ? "tailWag 2s ease-in-out infinite" : "none",
-        }}
-      />
+        {/* Main body */}
+        <rect x="4.5" y="2.2" width="15" height="18.6" rx="2.2" fill={bodyGradientId ? `url(#${bodyGradientId})` : "#1a1f31"} stroke="#252d46" strokeWidth="0.6" />
+        <rect x="8.7" y="3.05" width="6.6" height="0.55" rx="0.27" fill="#0a0f1d" opacity="0.85" />
 
-      {/* Screen/face area */}
-      <rect x="5" y="7" width="14" height="8" rx="1" fill="#0f0f1a" stroke="#1a1a2e" strokeWidth="0.5" />
+        {/* Headband */}
+        <rect x="4.5" y="3.5" width="15" height="1.65" fill={primaryColor} />
+        <rect x="4.5" y="5.05" width="15" height="0.45" fill={primaryHoverColor} />
+        <circle cx="4.5" cy="4.3" r="0.85" fill={primaryColor} />
 
-      {/* Face expression - changes with mode */}
-      {isBlinking ? (
-        // Blinking - peaceful closed eyes for both modes
-        <>
-          {/* Closed eyes - curved lines showing contentment */}
-          <path d="M8 10.5 Q9 9.5 10 10.5" stroke="#ffffff" strokeWidth="0.7" strokeLinecap="round" fill="none" />
-          <path d="M14 10.5 Q15 9.5 16 10.5" stroke="#ffffff" strokeWidth="0.7" strokeLinecap="round" fill="none" />
-          {/* Relaxed smile even when blinking */}
-          <path d="M10 12.5 Q12 13.5 14 12.5" stroke="#ffffff" strokeWidth="0.6" strokeLinecap="round" fill="none" />
-        </>
-      ) : mode === "relaxed" ? (
-        // Relaxed mode - peaceful and content
-        <>
-          {/* Soft happy eyes - curved like upside-down U */}
-          <path d="M8 10.5 Q9 9.3 10 10.5" stroke="#ffffff" strokeWidth="0.8" strokeLinecap="round" fill="none" filter="url(#screenGlow)" />
-          <path d="M14 10.5 Q15 9.3 16 10.5" stroke="#ffffff" strokeWidth="0.8" strokeLinecap="round" fill="none" filter="url(#screenGlow)" />
-          {/* Gentle content smile - wider and softer */}
-          <path d="M9.5 12.5 Q12 14 14.5 12.5" stroke="#ffffff" strokeWidth="0.6" strokeLinecap="round" fill="none" />
-          {/* Small cheek highlights for extra cuteness */}
-          <circle cx="7.5" cy="11.5" r="0.4" fill="#ffffff" opacity="0.3" />
-          <circle cx="16.5" cy="11.5" r="0.4" fill="#ffffff" opacity="0.3" />
-        </>
-      ) : (
-        // Attack mode - fierce and determined
-        <>
-          {/* Angry eyebrows - slanted down toward center */}
-          <line x1="7.5" y1="9.5" x2="10" y2="10.5" stroke="#6366f1" strokeWidth="0.9" strokeLinecap="round" />
-          <line x1="14" y1="10.5" x2="16.5" y2="9.5" stroke="#6366f1" strokeWidth="0.9" strokeLinecap="round" />
-          {/* Fierce eyes - sharp angled shapes */}
-          <path d="M8 11 L10 10 L10 12 Z" fill="#6366f1" />
-          <path d="M16 11 L14 10 L14 12 Z" fill="#6366f1" />
-          {/* Intense gritted teeth mouth - zigzag pattern */}
-          <path d="M10 13.5 L10.5 13 L11 13.5 L11.5 13 L12 13.5 L12.5 13 L13 13.5 L13.5 13 L14 13.5" stroke="#6366f1" strokeWidth="0.7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          {/* Intensity lines near eyes */}
-          <line x1="7" y1="11" x2="6" y2="10.5" stroke="#6366f1" strokeWidth="0.5" strokeLinecap="round" opacity="0.6" />
-          <line x1="17" y1="11" x2="18" y2="10.5" stroke="#6366f1" strokeWidth="0.5" strokeLinecap="round" opacity="0.6" />
-        </>
-      )}
+        {/* Headband tails */}
+        <path d="M4.2 4.45 Q2.4 3.8 0.7 5.45 Q2.2 5.15 4.45 4.92 Z" fill={primaryColor}>
+          {animated && (
+            <animateTransform
+              attributeName="transform"
+              type="rotate"
+              values="0 4.2 4.45; -14 4.2 4.45; 0 4.2 4.45"
+              dur="3s"
+              repeatCount="indefinite"
+            />
+          )}
+        </path>
+        <path d="M4.2 4.58 Q2.8 5.7 1 7.3 Q2.8 6.3 4.5 5.18 Z" fill={primaryHoverColor}>
+          {animated && (
+            <animateTransform
+              attributeName="transform"
+              type="rotate"
+              values="0 4.2 4.58; -11 4.2 4.58; 0 4.2 4.58"
+              dur="4s"
+              repeatCount="indefinite"
+            />
+          )}
+        </path>
 
-      {/* D-pad */}
-      <rect x="6" y="17" width="4" height="1.2" rx="0.3" fill="#3a3a50" />
-      <rect x="7.4" y="15.6" width="1.2" height="4" rx="0.3" fill="#3a3a50" />
+        {/* Screen */}
+        <rect x="6" y="5.85" width="12" height="5.85" rx="0.9" fill="#0d1117" stroke="#131a2b" strokeWidth="0.35" />
+        <rect x="6" y="5.85" width="12" height="5.85" rx="0.9" fill={screenOverlay} />
+        <path d="M6.25 6.1 L15.6 6.1 L8.8 11.45 L6.25 11.45 Z" fill="#ffffff" opacity="0.05" />
 
-      {/* Action buttons */}
-      <circle cx="16" cy="17" r="1" fill="#6366f1" />
-      <circle cx="18" cy="18.5" r="1" fill="#818cf8" />
+        {/* Expressions */}
+        <g filter={`url(#${glowFilterId})`} transform="translate(0 -0.85)">
+          {blinking ? (
+            <>
+              <path d="M8.1 8.6 Q8.9 7.85 9.7 8.6" stroke={eyeColor} strokeWidth="0.65" strokeLinecap="round" fill="none" />
+              <path d="M14.3 8.6 Q15.1 7.85 15.9 8.6" stroke={eyeColor} strokeWidth="0.65" strokeLinecap="round" fill="none" />
+            </>
+          ) : displayMode === "happy" ? (
+            <>
+              <path d="M7.95 8.62 Q8.85 7.25 9.85 8.62" stroke={eyeColor} strokeWidth="0.72" strokeLinecap="round" fill="none" />
+              <path d="M14.15 8.62 Q15.15 7.25 16.05 8.62" stroke={eyeColor} strokeWidth="0.72" strokeLinecap="round" fill="none" />
+              <ellipse cx="7.6" cy="9.5" rx="0.62" ry="0.38" fill={eyeColor} opacity="0.45" />
+              <ellipse cx="16.4" cy="9.5" rx="0.62" ry="0.38" fill={eyeColor} opacity="0.45" />
+            </>
+          ) : displayMode === "surprised" ? (
+            <>
+              <circle cx="8.9" cy="8.55" r="0.8" fill="none" stroke={eyeColor} strokeWidth="0.55" />
+              <circle cx="15.1" cy="8.55" r="0.8" fill="none" stroke={eyeColor} strokeWidth="0.55" />
+              <circle cx="12" cy="9.85" r="0.35" fill={eyeColor} />
+            </>
+          ) : (
+            <>
+              <path d="M8 7.7 L10.05 8.58 L8.45 9.25 Z" fill={eyeColor} />
+              <path d="M16 7.7 L13.95 8.58 L15.55 9.25 Z" fill={eyeColor} />
+              <path d="M8.2 10.1 L7.65 10.75" stroke={eyeColor} strokeWidth="0.35" strokeLinecap="round" />
+              <path d="M15.8 10.1 L16.35 10.75" stroke={eyeColor} strokeWidth="0.35" strokeLinecap="round" />
+            </>
+          )}
+        </g>
 
-      <style>{`
-        @keyframes tailWag {
-          0%, 100% { transform: rotate(0deg); }
-          50% { transform: rotate(-5deg); }
-        }
-      `}</style>
+        {/* Ninja mask */}
+        <path d="M4.5 8.7 Q12 10.05 19.5 8.7 L19.5 12.7 Q12 14.05 4.5 12.7 Z" fill="#0f1017" />
+        <path d="M6 8.95 Q12 10 18 8.95 L18 12.05 Q12 12.85 6 12.05 Z" fill="#05060a" />
+        <path d="M10 9.45 Q10.95 10.6 10.4 11.95 M14 9.45 Q13.05 10.6 13.6 11.95" stroke="#232a3e" strokeWidth="0.24" strokeLinecap="round" fill="none" />
+
+        {/* Controls */}
+        <g transform="translate(8.2 15.2)">
+          <path d="M0 -1.35 L0.38 -0.5 L1.25 0 L0.38 0.5 L0 1.35 L-0.38 0.5 L-1.25 0 L-0.38 -0.5 Z" fill="#20d8ff" />
+          <path d="M0 -0.82 L0.22 -0.28 L0.82 0 L0.22 0.28 L0 0.82 L-0.22 0.28 L-0.82 0 L-0.22 -0.28 Z" fill="#ffffff" />
+          <circle cx="0" cy="0" r="0.22" fill="#0d1117" />
+        </g>
+
+        <circle cx="15.15" cy="14.6" r="0.72" fill="#252d46" />
+        <circle cx="15.15" cy="14.6" r="0.54" fill="#ff0055" />
+        <text x="15.15" y="14.85" fontFamily="sans-serif" fontSize="0.55" fill="#ffffff" fontWeight="700" textAnchor="middle">A</text>
+
+        <circle cx="13.35" cy="16.4" r="0.72" fill="#252d46" />
+        <circle cx="13.35" cy="16.4" r="0.54" fill="#aa00ff" />
+        <text x="13.35" y="16.65" fontFamily="sans-serif" fontSize="0.55" fill="#ffffff" fontWeight="700" textAnchor="middle">B</text>
+
+        <rect x="7.1" y="18" width="1.35" height="0.36" rx="0.18" fill="#4a5568" transform="rotate(-24 7.1 18)" />
+        <rect x="8.95" y="18" width="1.35" height="0.36" rx="0.18" fill="#4a5568" transform="rotate(-24 8.95 18)" />
+
+        <g fill="#0d1117">
+          <circle cx="14.45" cy="18.2" r="0.13" />
+          <circle cx="15.05" cy="18.2" r="0.13" />
+          <circle cx="15.65" cy="18.2" r="0.13" />
+          <circle cx="14.15" cy="18.72" r="0.13" />
+          <circle cx="14.75" cy="18.72" r="0.13" />
+          <circle cx="15.35" cy="18.72" r="0.13" />
+        </g>
+      </g>
     </svg>
   )
 }
