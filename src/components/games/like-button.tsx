@@ -15,19 +15,21 @@ interface LikeButtonProps {
 }
 
 export function LikeButton({ gameId, slug, initialLikes, initialLiked }: LikeButtonProps) {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const [likes, setLikes] = useState(initialLikes)
   const [liked, setLiked] = useState(initialLiked)
   const [loading, setLoading] = useState(false)
 
   const handleLike = async () => {
-    if (loading) {
+    if (loading || status === "loading") {
       return
     }
 
+    const callbackUrl = encodeURIComponent(`/play/${slug}`)
+
     if (!session?.user?.id) {
-      router.push(`/login?callbackUrl=${encodeURIComponent(`/play/${slug}`)}`)
+      router.push(`/login?callbackUrl=${callbackUrl}`)
       return
     }
 
@@ -38,9 +40,14 @@ export function LikeButton({ gameId, slug, initialLikes, initialLiked }: LikeBut
         method: "POST",
       })
 
-      const data = await res.json()
+      if (res.status === 401) {
+        router.push(`/login?callbackUrl=${callbackUrl}`)
+        return
+      }
+
+      const data = await res.json().catch(() => ({} as { detail?: string; error?: string; liked?: boolean; likes?: number }))
       if (!res.ok) {
-        throw new Error(data.error || "Failed to update like")
+        throw new Error(data.detail || data.error || "Failed to update like")
       }
 
       setLiked(Boolean(data.liked))
@@ -59,9 +66,9 @@ export function LikeButton({ gameId, slug, initialLikes, initialLiked }: LikeBut
       size="sm"
       className="gap-2 font-arcade flex-1 sm:flex-none min-w-[108px]"
       onClick={handleLike}
-      disabled={loading}
+      disabled={loading || status === "loading"}
     >
-      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Heart className="h-4 w-4" />}
+      {loading || status === "loading" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Heart className="h-4 w-4" />}
       {liked ? "[SAVED]" : "[SAVE_FAV]"}
       <span className="text-[10px]">{formatNumber(likes)}</span>
     </Button>
