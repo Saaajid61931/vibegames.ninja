@@ -4,7 +4,7 @@ import { Footer } from "@/components/layout/footer"
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "Read how VibeGames.ai handles account data, analytics, and privacy requests.",
+  description: "Read how VibeGames.Ninja handles account data, analytics, and privacy requests.",
   alternates: {
     canonical: "/privacy",
   },

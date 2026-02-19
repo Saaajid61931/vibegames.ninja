@@ -8,7 +8,7 @@ import { Trophy } from "lucide-react"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Game Jams | VibeGames.ai",
+  title: "Game Jams | VibeGames.Ninja",
   description: "Compete in AI game jams. Build games around a theme, get votes from the community, and win bragging rights.",
 }
 

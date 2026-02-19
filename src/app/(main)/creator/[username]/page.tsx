@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const displayName = creator.name || creator.username
-  const description = creator.bio || `Play games by @${creator.username} on VibeGames.ai.`
+  const description = creator.bio || `Play games by @${creator.username} on VibeGames.Ninja.`
   const profilePath = `/creator/${creator.username}`
 
   return {

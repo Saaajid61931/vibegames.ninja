@@ -1,4 +1,4 @@
-# VibeGames.ai
+# VibeGames.Ninja
 
 The home for AI-made HTML5 games. Build with AI, publish instantly, play anywhere, and earn from your creations.
 
@@ -37,8 +37,8 @@ For a simple environment and services reference (DATABASE_URL vs DIRECT_URL, whe
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/vibegames.ai.git
-cd vibegames.ai
+git clone https://github.com/yourusername/vibegames.ninja.git
+cd vibegames.ninja
 ```
 
 2. Install dependencies:
@@ -84,7 +84,7 @@ Visit [http://localhost:3000](http://localhost:3000)
 
 After seeding, you can log in with:
 
-- **Admin**: admin@vibegames.ai / admin123
+- **Admin**: admin@vibegames.ninja / admin123
 - **Creator**: creator@example.com / creator123
 
 ## Project Structure
@@ -198,6 +198,6 @@ MIT License - see LICENSE file
 
 ## Support
 
-- Documentation: https://vibegames.ai/docs
+- Documentation: https://vibegames.ninja/docs
 - Discord: https://discord.gg/vibegames
 - Twitter: https://twitter.com/vibegamesai

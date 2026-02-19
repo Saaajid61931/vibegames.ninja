@@ -1,4 +1,4 @@
-// VibeGames.ai Database Schema
+// VibeGames.Ninja Database Schema
 generator client {
   provider = "prisma-client-js"
 }

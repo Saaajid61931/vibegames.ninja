@@ -58,7 +58,7 @@ export default async function OpengraphImage({ params }: ImageProps) {
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ color: "#ff0040", fontSize: 24, letterSpacing: 2 }}>BROWSER GAME</div>
-          <div style={{ color: "#ffff00", fontSize: 28, fontWeight: 700 }}>VibeGames.ai</div>
+          <div style={{ color: "#ffff00", fontSize: 28, fontWeight: 700 }}>VibeGames.Ninja</div>
         </div>
       </div>
     ),

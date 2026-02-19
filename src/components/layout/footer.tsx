@@ -93,7 +93,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-[var(--color-border)] flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-[var(--color-text-tertiary)]">
-            © {currentYear} VibeGames.ai. All rights reserved.
+            © {currentYear} VibeGames.Ninja. All rights reserved.
           </p>
           <div className="flex items-center gap-1.5 text-[var(--color-text-tertiary)]">
             <span className="text-xs">Made with</span>

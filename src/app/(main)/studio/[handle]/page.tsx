@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const profilePath = `/studio/${studio.handle}`
-  const description = `Play games published by ${studio.displayName} on VibeGames.ai.`
+  const description = `Play games published by ${studio.displayName} on VibeGames.Ninja.`
 
   return {
     title: `${studio.displayName} (@${studio.handle})`,

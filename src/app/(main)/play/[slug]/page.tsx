@@ -83,7 +83,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       canonical: gamePath,
     },
     openGraph: {
-      title: `${game.title} - Play on VibeGames.ai`,
+      title: `${game.title} - Play on VibeGames.Ninja`,
       description,
       url: `${SITE_URL}${gamePath}`,
       type: "website",
@@ -91,7 +91,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: "summary_large_image",
-      title: `${game.title} - Play on VibeGames.ai`,
+      title: `${game.title} - Play on VibeGames.Ninja`,
       description,
       images: [ogImage],
     },
@@ -290,7 +290,7 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
                     initialLiked={isLiked}
                   />
                   <ShareButton title={game.title} />
-                  <Link href={`mailto:report@vibegames.ai?subject=Report Game: ${game.title} (${game.id})`}>
+                  <Link href={`mailto:report@vibegames.ninja?subject=Report Game: ${game.title} (${game.id})`}>
                     <Button variant="ghost" size="sm" className="gap-2 text-[#4a4a6a] font-arcade flex-1 sm:flex-none min-w-[108px]">
                       <Flag className="h-4 w-4" />
                       [REPORT]

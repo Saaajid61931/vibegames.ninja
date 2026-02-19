@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!jam) return { title: "Jam Not Found" }
 
   return {
-    title: `${jam.title} | Game Jams | VibeGames.ai`,
+    title: `${jam.title} | Game Jams | VibeGames.Ninja`,
     description: jam.description.slice(0, 160),
   }
 }
