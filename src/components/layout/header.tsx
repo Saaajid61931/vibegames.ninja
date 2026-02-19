@@ -50,7 +50,7 @@ export function Header() {
               <span className="font-pixel text-xs tracking-tight">
                 <span className="text-[var(--color-primary)]">VIBE</span>
                 <span className="text-[var(--color-text)]">GAMES</span>
-                <span className="text-[var(--color-text-secondary)]">.AI</span>
+                <span className="text-[var(--color-text-secondary)]">.NINJA</span>
               </span>
             </Link>
 
