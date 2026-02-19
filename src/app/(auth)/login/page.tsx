@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { ArrowRight, Lock, Mail, Eye, EyeOff } from "lucide-react"
-import { PixelNinja } from "@/components/icons/pixel-ninja"
+import { NinjaConsole } from "@/components/icons/ninja-console"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -160,7 +160,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-3 mb-8">
-          <PixelNinja className="h-8 w-8 text-[var(--color-primary)]" />
+          <NinjaConsole className="h-8 w-8" />
           <span className="font-pixel text-sm text-[var(--color-text)]">
             <span className="text-[var(--color-primary)]">VIBE</span>GAMES
           </span>

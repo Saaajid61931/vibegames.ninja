@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { Gamepad2, Github, Twitter, Heart } from "lucide-react"
+import { Github, Twitter, Heart } from "lucide-react"
+import { NinjaConsole } from "@/components/icons/ninja-console"
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -11,7 +12,7 @@ export function Footer() {
           {/* Brand */}
           <div className="md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <Gamepad2 className="h-6 w-6 text-[var(--color-primary)]" />
+              <NinjaConsole className="h-6 w-6" />
               <span className="font-pixel text-xs">
                 <span className="text-[var(--color-primary)]">VIBE</span>
                 <span className="text-[var(--color-text)]">GAMES</span>
