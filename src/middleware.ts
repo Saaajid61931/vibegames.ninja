@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-const CANONICAL_HOST = "vibegames.ninja"
+// Domains that should redirect to vibegames.ninja
+const REDIRECT_HOSTS = ["vibegames.ai", "www.vibegames.ai", "www.vibegames.ninja"]
 
 export function middleware(request: NextRequest) {
   const host = request.headers.get("host")?.replace(/:\d+$/, "")
 
-  // Redirect any non-canonical domain (e.g. vibegames.ai) to vibegames.ninja
-  if (host && host !== CANONICAL_HOST && host !== "localhost") {
+  // Only redirect known alias domains to vibegames.ninja
+  if (host && REDIRECT_HOSTS.includes(host)) {
     const url = request.nextUrl.clone()
-    url.host = CANONICAL_HOST
+    url.host = "vibegames.ninja"
     url.port = ""
     url.protocol = "https:"
     return NextResponse.redirect(url, 301)
