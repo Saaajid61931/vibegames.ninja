@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { StarRating } from "@/components/games/star-rating"
+import { rateGame } from "@/actions/ratings"
 
 interface GameRatingProps {
   gameId: string
@@ -25,6 +26,7 @@ export function GameRating({
   const [count, setCount] = useState(initialCount)
   const [userScore, setUserScore] = useState(initialUserScore)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const submit = async (score: number) => {
     if (!isAuthenticated) {
@@ -37,22 +39,20 @@ export function GameRating({
     }
 
     setSaving(true)
+    setError(null)
     try {
-      const res = await fetch(`/api/games/${gameId}/rate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ score }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to save rating")
+      const result = await rateGame(gameId, score)
+      if (!result.success) {
+        setError(result.error)
+        return
       }
 
-      setUserScore(data.score)
-      setAverage(data.avgRating)
-      setCount(data.ratingCount)
-    } catch (error) {
-      console.error(error)
+      setUserScore(result.score)
+      setAverage(result.avgRating)
+      setCount(result.ratingCount)
+    } catch (err) {
+      console.error(err)
+      setError("Failed to save rating. Please try again.")
     } finally {
       setSaving(false)
     }
@@ -71,6 +71,9 @@ export function GameRating({
           </span>
         )}
       </div>
+      {error && (
+        <p className="font-arcade text-xs text-red-400 mt-2">{error}</p>
+      )}
     </div>
   )
 }
