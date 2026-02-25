@@ -16,17 +16,21 @@ type RatingResult = {
 }
 
 export async function rateGame(gameId: string, score: number): Promise<RatingResult> {
+  let step = "init"
   try {
+    step = "auth"
     const session = await auth()
     if (!session?.user?.id) {
       return { success: false, error: "You must be logged in to rate" }
     }
 
+    step = "validate"
     const parsed = ratingSchema.safeParse({ score })
     if (!parsed.success) {
       return { success: false, error: "Rating must be between 1 and 5" }
     }
 
+    step = "find-game"
     const game = await prisma.game.findUnique({
       where: { id: gameId },
       select: { id: true, status: true },
@@ -36,6 +40,7 @@ export async function rateGame(gameId: string, score: number): Promise<RatingRes
       return { success: false, error: "Game not found" }
     }
 
+    step = "upsert-rating"
     await prisma.gameRating.upsert({
       where: {
         userId_gameId: {
@@ -51,8 +56,10 @@ export async function rateGame(gameId: string, score: number): Promise<RatingRes
       },
     })
 
+    step = "refresh-aggregate"
     await refreshGameRating(gameId)
 
+    step = "fetch-updated"
     const updated = await prisma.game.findUnique({
       where: { id: gameId },
       select: { avgRating: true, ratingCount: true },
@@ -65,23 +72,28 @@ export async function rateGame(gameId: string, score: number): Promise<RatingRes
       ratingCount: updated?.ratingCount ?? 0,
     }
   } catch (error) {
-    console.error("Rate game action error:", error)
-    return { success: false, error: "Something went wrong. Please try again." }
+    const msg = error instanceof Error ? error.message : String(error)
+    console.error(`Rate game error at step [${step}]:`, error)
+    return { success: false, error: `Rating failed at step: ${step} (${msg})` }
   }
 }
 
 export async function rateLevel(levelId: string, score: number): Promise<RatingResult> {
+  let step = "init"
   try {
+    step = "auth"
     const session = await auth()
     if (!session?.user?.id) {
       return { success: false, error: "You must be logged in to rate" }
     }
 
+    step = "validate"
     const parsed = ratingSchema.safeParse({ score })
     if (!parsed.success) {
       return { success: false, error: "Rating must be between 1 and 5" }
     }
 
+    step = "find-level"
     const level = await prisma.level.findUnique({
       where: { id: levelId },
       select: { id: true, status: true },
@@ -91,6 +103,7 @@ export async function rateLevel(levelId: string, score: number): Promise<RatingR
       return { success: false, error: "Level not found" }
     }
 
+    step = "upsert-rating"
     await prisma.levelRating.upsert({
       where: {
         userId_levelId: {
@@ -106,8 +119,10 @@ export async function rateLevel(levelId: string, score: number): Promise<RatingR
       },
     })
 
+    step = "refresh-aggregate"
     await refreshLevelRating(levelId)
 
+    step = "fetch-updated"
     const updated = await prisma.level.findUnique({
       where: { id: levelId },
       select: { avgRating: true, ratingCount: true },
@@ -120,7 +135,8 @@ export async function rateLevel(levelId: string, score: number): Promise<RatingR
       ratingCount: updated?.ratingCount ?? 0,
     }
   } catch (error) {
-    console.error("Rate level action error:", error)
-    return { success: false, error: "Something went wrong. Please try again." }
+    const msg = error instanceof Error ? error.message : String(error)
+    console.error(`Rate level error at step [${step}]:`, error)
+    return { success: false, error: `Rating failed at step: ${step} (${msg})` }
   }
 }
