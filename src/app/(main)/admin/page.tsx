@@ -153,7 +153,7 @@ export default async function AdminPage() {
             </TabsTrigger>
             <TabsTrigger value="featured" className="gap-2">
               <Crown className="h-4 w-4" />
-              Game of the Day
+              Game of the Month
             </TabsTrigger>
             <TabsTrigger value="jams" className="gap-2">
               <Trophy className="h-4 w-4" />
@@ -290,9 +290,9 @@ export default async function AdminPage() {
           <TabsContent value="featured">
             <Card>
               <CardHeader>
-                <CardTitle>Game of the Day</CardTitle>
+                <CardTitle>Game of the Month</CardTitle>
                 <CardDescription>
-                  Schedule featured games for the homepage hero section. If no game is scheduled for a day, the platform auto-selects the best candidate.
+                  The game with the most stars this month is automatically featured on the homepage. You can also manually override the pick below.
                 </CardDescription>
               </CardHeader>
               <CardContent>

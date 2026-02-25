@@ -1,6 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Gamepad2, Play, Star, Eye, Crown } from "lucide-react"
+import { Gamepad2, Play, Star, Eye, Crown, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CreatorLink } from "@/components/games/creator-link"
 
@@ -33,11 +33,16 @@ interface GameOfTheDayProps {
       image?: string | null
     } | null
   }
-  note?: string | null
-  isFallback: boolean
+  monthlyStars: number
+  monthlyRatings: number
 }
 
-export function GameOfTheDay({ game, note, isFallback }: GameOfTheDayProps) {
+const MONTH_NAMES = [
+  "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
+  "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER",
+]
+
+export function GameOfTheDay({ game, monthlyStars, monthlyRatings }: GameOfTheDayProps) {
   const creatorName = game.studioProfile?.displayName
     || game.creator.username
     || game.creator.name
@@ -54,6 +59,8 @@ export function GameOfTheDay({ game, note, isFallback }: GameOfTheDayProps) {
     ? game.description.slice(0, 177) + "..."
     : game.description
 
+  const currentMonth = MONTH_NAMES[new Date().getUTCMonth()]
+
   return (
     <section className="py-10 sm:py-14 border-b-2 sm:border-b-4 border-[#4a4a6a]">
       <div className="container mx-auto px-4">
@@ -62,11 +69,11 @@ export function GameOfTheDay({ game, note, isFallback }: GameOfTheDayProps) {
           <div className="flex items-center gap-2">
             <Crown className="h-5 w-5 text-[#ffff00]" />
             <span className="text-[10px] text-[#ffff00] font-pixel">
-              {isFallback ? "TOP PICK" : "CURATED"}
+              {currentMonth}
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white font-pixel">
-            GAME OF THE DAY
+            GAME OF THE MONTH
           </h2>
         </div>
 
@@ -139,10 +146,11 @@ export function GameOfTheDay({ game, note, isFallback }: GameOfTheDayProps) {
                   {shortDesc}
                 </p>
 
-                {/* Admin note */}
-                {note && (
-                  <div className="mb-6 px-3 py-2 bg-[#0d0d15] border border-[#ffff00]/30 text-xs text-[#ffff00]/80 font-arcade">
-                    {note}
+                {/* Monthly stars note */}
+                {monthlyRatings > 0 && (
+                  <div className="mb-6 px-3 py-2 bg-[#0d0d15] border border-[#ffff00]/30 text-xs text-[#ffff00]/80 font-arcade flex items-center gap-2">
+                    <Star className="h-3.5 w-3.5 text-[#ffff00] fill-[#ffff00]" />
+                    {monthlyStars} stars from {monthlyRatings} {monthlyRatings === 1 ? "rating" : "ratings"} this month
                   </div>
                 )}
 

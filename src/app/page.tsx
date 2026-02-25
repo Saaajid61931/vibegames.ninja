@@ -62,10 +62,9 @@ const getStats = unstable_cache(async () => {
   }
 }, ["home-stats"], { revalidate: 60, tags: ["games", "users"] })
 
-const getGameOfTheDay = unstable_cache(async () => {
-  // Today in UTC (midnight)
-  const today = new Date()
-  today.setUTCHours(0, 0, 0, 0)
+const getGameOfTheMonth = unstable_cache(async () => {
+  const now = new Date()
+  const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
 
   const gameSelect = {
     id: true,
@@ -92,62 +91,51 @@ const getGameOfTheDay = unstable_cache(async () => {
     },
   }
 
-  // 1. Check for a manual pick
-  const manualPick = await prisma.featuredGame.findUnique({
-    where: { date: today },
-    include: {
-      game: { select: gameSelect },
+  // Find the game with the most total stars received this month
+  const topRated = await prisma.gameRating.groupBy({
+    by: ["gameId"],
+    where: {
+      createdAt: { gte: startOfMonth },
     },
+    _sum: { score: true },
+    _count: { score: true },
+    orderBy: { _sum: { score: "desc" } },
+    take: 10,
   })
 
-  if (manualPick && manualPick.game.status === "PUBLISHED") {
-    return {
-      game: manualPick.game,
-      note: manualPick.note,
-      isFallback: false,
+  // Find the first one that is actually published
+  for (const entry of topRated) {
+    const game = await prisma.game.findUnique({
+      where: { id: entry.gameId },
+      select: gameSelect,
+    })
+    if (game && game.status === "PUBLISHED") {
+      return {
+        game,
+        monthlyStars: entry._sum.score ?? 0,
+        monthlyRatings: entry._count.score ?? 0,
+      }
     }
   }
 
-  // 2. Auto-fallback
-  const thirtyDaysAgo = new Date(today)
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
-  const recentlyFeatured = await prisma.featuredGame.findMany({
-    where: { date: { gte: thirtyDaysAgo } },
-    select: { gameId: true },
-  })
-  const excludeIds = recentlyFeatured.map((f: { gameId: string }) => f.gameId)
-
-  let fallbackGame = await prisma.game.findFirst({
-    where: {
-      status: "PUBLISHED",
-      plays: { gt: 0 },
-      ...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
-    },
+  // Fallback: game with highest overall avgRating
+  const fallback = await prisma.game.findFirst({
+    where: { status: "PUBLISHED", ratingCount: { gt: 0 } },
     select: gameSelect,
-    orderBy: [{ avgRating: "desc" }, { plays: "desc" }, { publishedAt: "desc" }],
+    orderBy: [{ avgRating: "desc" }, { ratingCount: "desc" }],
   })
 
-  // If all recently featured, relax exclusion
-  if (!fallbackGame) {
-    fallbackGame = await prisma.game.findFirst({
-      where: { status: "PUBLISHED", plays: { gt: 0 } },
-      select: gameSelect,
-      orderBy: [{ avgRating: "desc" }, { plays: "desc" }, { publishedAt: "desc" }],
-    })
-  }
-
-  if (!fallbackGame) return null
+  if (!fallback) return null
 
   return {
-    game: fallbackGame,
-    note: null,
-    isFallback: true,
+    game: fallback,
+    monthlyStars: 0,
+    monthlyRatings: 0,
   }
-}, ["home-game-of-the-day"], { revalidate: 60, tags: ["featured", "games"] })
+}, ["home-game-of-the-month"], { revalidate: 60, tags: ["featured", "games"] })
 
 export default async function HomePage() {
-  const [games, stats, gotd] = await Promise.all([getFeaturedGames(), getStats(), getGameOfTheDay()])
+  const [games, stats, gotd] = await Promise.all([getFeaturedGames(), getStats(), getGameOfTheMonth()])
   const normalizedGames = games.map((game) => ({
     ...game,
     createdAt: new Date(game.createdAt),
@@ -291,12 +279,12 @@ export default async function HomePage() {
         {/* Active Game Jam Banner */}
         <ActiveJamBanner />
 
-        {/* Game of the Day */}
+        {/* Game of the Month */}
         {gotd?.game && (
           <GameOfTheDay
             game={gotd.game}
-            note={gotd.note}
-            isFallback={gotd.isFallback}
+            monthlyStars={gotd.monthlyStars}
+            monthlyRatings={gotd.monthlyRatings}
           />
         )}
 
