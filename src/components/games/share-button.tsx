@@ -5,10 +5,11 @@ import { Check, Loader2, Share2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface ShareButtonProps {
+  gameId: string
   title: string
 }
 
-export function ShareButton({ title }: ShareButtonProps) {
+export function ShareButton({ gameId, title }: ShareButtonProps) {
   const [sharing, setSharing] = useState(false)
   const [shared, setShared] = useState(false)
 
@@ -21,11 +22,21 @@ export function ShareButton({ title }: ShareButtonProps) {
 
     try {
       const url = window.location.href
+      let didShare = false
 
       if (navigator.share) {
         await navigator.share({ title, url })
+        didShare = true
       } else if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url)
+        didShare = true
+      }
+
+      if (didShare) {
+        void fetch(`/api/games/${gameId}/share`, {
+          method: "POST",
+          cache: "no-store",
+        }).catch(() => undefined)
       }
 
       setShared(true)

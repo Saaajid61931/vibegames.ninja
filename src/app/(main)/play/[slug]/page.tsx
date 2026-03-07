@@ -1,12 +1,13 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { Play, Heart, Flag, MessageCircle, ChevronLeft, User, Gamepad2, ExternalLink, Smartphone, Cpu, Users, Clock } from "lucide-react"
+import { Play, Heart, MessageCircle, ChevronLeft, User, Gamepad2, ExternalLink, Smartphone, Cpu, Users, Clock } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { GamePlayer } from "@/components/games/game-player"
 import { LikeButton } from "@/components/games/like-button"
 import { ShareButton } from "@/components/games/share-button"
+import { ReportGameButton } from "@/components/games/report-game-button"
 import { CommentsSection } from "@/components/games/comments-section"
 import { CommunityLevels } from "@/components/games/community-levels"
 import { GameRating } from "@/components/games/game-rating"
@@ -46,7 +47,7 @@ const getGame = cache(async (slug: string) => {
           },
         },
         orderBy: { createdAt: "desc" },
-        take: 20,
+        take: 80,
       },
       _count: {
         select: { favorites: true, comments: true },
@@ -300,13 +301,8 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
                     initialLikes={game.likes}
                     initialLiked={isLiked}
                   />
-                  <ShareButton title={game.title} />
-                  <Link href={`mailto:report@vibegames.ninja?subject=Report Game: ${game.title} (${game.id})`}>
-                    <Button variant="ghost" size="sm" className="gap-2 text-[#4a4a6a] font-arcade flex-1 sm:flex-none min-w-[108px]">
-                      <Flag className="h-4 w-4" />
-                      [REPORT]
-                    </Button>
-                  </Link>
+                  <ShareButton gameId={game.id} title={game.title} />
+                  <ReportGameButton gameId={game.id} gameTitle={game.title} />
                 </div>
               </div>
 

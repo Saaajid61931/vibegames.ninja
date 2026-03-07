@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma"
 import { SITE_URL } from "@/lib/site"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [games, creators, studios] = await Promise.all([
+  const [games, creators, studios, jams] = await Promise.all([
     prisma.game.findMany({
       where: { status: "PUBLISHED" },
       select: { slug: true, updatedAt: true },
@@ -28,6 +28,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       select: { handle: true, updatedAt: true },
       orderBy: { updatedAt: "desc" },
     }),
+    prisma.gameJam.findMany({
+      select: { slug: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+    }),
   ])
 
   const staticPages: MetadataRoute.Sitemap = [
@@ -42,6 +46,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 0.9,
+    },
+    {
+      url: `${SITE_URL}/jams`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.8,
     },
     {
       url: `${SITE_URL}/privacy`,
@@ -80,5 +90,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  return [...staticPages, ...gamePages, ...creatorPages, ...studioPages]
+  const jamPages: MetadataRoute.Sitemap = jams.map((jam) => ({
+    url: `${SITE_URL}/jams/${jam.slug}`,
+    lastModified: jam.updatedAt,
+    changeFrequency: "daily",
+    priority: 0.7,
+  }))
+
+  return [...staticPages, ...gamePages, ...creatorPages, ...studioPages, ...jamPages]
 }

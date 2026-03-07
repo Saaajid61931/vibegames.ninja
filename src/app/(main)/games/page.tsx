@@ -18,6 +18,7 @@ type GamesSearchParams = {
   category?: string
   sort?: string
   q?: string
+  mobile?: string
   editor?: string
 }
 
@@ -25,7 +26,7 @@ interface PageProps {
   searchParams: Promise<GamesSearchParams>
 }
 
-const getGames = unstable_cache(async (category?: string, sort?: string, q?: string, editor?: string) => {
+const getGames = unstable_cache(async (category?: string, sort?: string, q?: string, mobile?: string, editor?: string) => {
   const where: Record<string, unknown> = {
     status: "PUBLISHED",
   }
@@ -38,7 +39,12 @@ const getGames = unstable_cache(async (category?: string, sort?: string, q?: str
     where.OR = [
       { title: { contains: q, mode: "insensitive" } },
       { description: { contains: q, mode: "insensitive" } },
+      { tags: { contains: q, mode: "insensitive" } },
     ]
+  }
+
+  if (mobile === "true") {
+    where.supportsMobile = true
   }
 
   if (editor === "true") {
@@ -50,40 +56,47 @@ const getGames = unstable_cache(async (category?: string, sort?: string, q?: str
     : "trending"
   const orderBy = getDiscoveryOrderBy(parsedSort)
 
-  const games = await prisma.game.findMany({
-    where,
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      thumbnail: true,
-      category: true,
-      plays: true,
-      likes: true,
-      createdAt: true,
-      publishedAt: true,
-      supportsMobile: true,
-      hasLevelEditor: true,
-      aiTool: true,
-      aiModel: true,
-      studioProfile: {
-        select: { id: true, handle: true, displayName: true, image: true },
+  const [games, total] = await Promise.all([
+    prisma.game.findMany({
+      where,
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        thumbnail: true,
+        category: true,
+        plays: true,
+        likes: true,
+        createdAt: true,
+        publishedAt: true,
+        supportsMobile: true,
+        hasLevelEditor: true,
+        aiTool: true,
+        aiModel: true,
+        studioProfile: {
+          select: { id: true, handle: true, displayName: true, image: true },
+        },
+        creator: {
+          select: { id: true, name: true, username: true, image: true },
+        },
       },
-      creator: {
-        select: { id: true, name: true, username: true, image: true },
-      },
-    },
-    orderBy,
-    take: 24,
-  })
+      orderBy,
+      take: 24,
+    }),
+    prisma.game.count({ where }),
+  ])
 
-  return games
+  return {
+    data: games,
+    total,
+    hasMore: games.length < total,
+  }
 }, ["games-page-list"], { revalidate: 30, tags: ["games"] })
 
 export default async function GamesPage({ searchParams }: PageProps) {
   const params = await searchParams
-  const games = await getGames(params.category, params.sort, params.q, params.editor)
-  const normalizedGames = games.map((game: any) => ({
+  const response = await getGames(params.category, params.sort, params.q, params.mobile, params.editor)
+  const normalizedGames = response.data.map((game) => ({
     ...game,
     createdAt: new Date(game.createdAt),
   }))
@@ -93,13 +106,16 @@ export default async function GamesPage({ searchParams }: PageProps) {
       <Header />
       
       <main className="flex-1">
-        <GamesBrowser 
-           initialGames={normalizedGames} 
-           initialCategory={params.category} 
+         <GamesBrowser 
+            initialGames={normalizedGames} 
+            initialTotal={response.total}
+            initialHasMore={response.hasMore}
+            initialCategory={params.category} 
             initialSort={params.sort} 
             initialQuery={params.q} 
+            initialSupportsMobile={params.mobile === "true"}
             initialEditorOnly={params.editor === "true"}
-        />
+         />
       </main>
       
       <Footer />

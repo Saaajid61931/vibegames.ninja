@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
 import { getInitials } from "@/lib/utils"
 import { SITE_URL } from "@/lib/site"
+import type { GameCardData } from "@/types"
 import { cache } from "react"
 
 interface PageProps {
@@ -102,31 +103,23 @@ export default async function StudioPage({ params }: PageProps) {
     orderBy: getDiscoveryOrderBy("trending"),
   })
 
-  const normalizedGames = games.map((game) => ({
+  const normalizedGames: GameCardData[] = games.map((game) => ({
     ...game,
-    description: "",
-    instructions: null,
-    gameUrl: "",
-    tags: "",
-    status: "PUBLISHED",
-    shares: 0,
-    avgRating: 0,
-    ratingCount: 0,
-    isAIGenerated: true,
-    hasAds: true,
-    isPremium: false,
-    price: null,
-    updatedAt: new Date(game.createdAt),
-    creatorId: game.creator.id || "",
-    studioProfileId: studio.id,
-    expiresAt: null,
-    isPermanent: true,
     createdAt: new Date(game.createdAt),
-    publishedAt: game.publishedAt ? new Date(game.publishedAt) : null,
-  })) as any
+  }))
+
+  const studioJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: studio.displayName,
+    alternateName: `@${studio.handle}`,
+    url: `${SITE_URL}/studio/${studio.handle}`,
+    image: studio.image || undefined,
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(studioJsonLd) }} />
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
@@ -170,9 +163,9 @@ export default async function StudioPage({ params }: PageProps) {
 
           {normalizedGames.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {normalizedGames.map((game: any) => (
-                <GameCard key={game.id} game={game} />
-              ))}
+               {normalizedGames.map((game) => (
+                 <GameCard key={game.id} game={game} />
+               ))}
             </div>
           ) : (
             <div className="text-center py-14 border-2 border-dashed border-[#4a4a6a]">

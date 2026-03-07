@@ -45,7 +45,15 @@ export async function POST(
     const { id } = await params
     const level = await prisma.level.findUnique({
       where: { id },
-      select: { id: true, status: true },
+      select: {
+        id: true,
+        status: true,
+        name: true,
+        creatorId: true,
+        game: {
+          select: { slug: true },
+        },
+      },
     })
 
     if (!level || level.status !== "PUBLISHED") {
@@ -76,6 +84,18 @@ export async function POST(
     })
 
     await refreshLevelRating(id)
+
+    if (level.creatorId !== session.user.id) {
+      await prisma.notification.create({
+        data: {
+          userId: level.creatorId,
+          title: "Level rated",
+          message: `${session.user.username || session.user.name || "A player"} rated your level ${parsed.data.score}/5.`,
+          type: "LEVEL_RATING",
+          link: `/play/${level.game.slug}?level=${level.id}`,
+        },
+      })
+    }
 
     const updated = await prisma.level.findUnique({
       where: { id },

@@ -45,7 +45,7 @@ export async function POST(
     const { id } = await params
     const game = await prisma.game.findUnique({
       where: { id },
-      select: { id: true, status: true },
+      select: { id: true, status: true, title: true, slug: true, creatorId: true },
     })
 
     if (!game || game.status !== "PUBLISHED") {
@@ -76,6 +76,18 @@ export async function POST(
     })
 
     await refreshGameRating(id)
+
+    if (game.creatorId !== session.user.id) {
+      await prisma.notification.create({
+        data: {
+          userId: game.creatorId,
+          title: "New rating",
+          message: `${session.user.username || session.user.name || "A player"} rated ${game.title} ${parsed.data.score}/5.`,
+          type: "GAME_RATING",
+          link: `/play/${game.slug}`,
+        },
+      })
+    }
 
     const updated = await prisma.game.findUnique({
       where: { id },

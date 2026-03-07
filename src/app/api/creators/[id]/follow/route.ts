@@ -12,7 +12,7 @@ export async function GET(
 
     const creator = await prisma.user.findUnique({
       where: { id: creatorId },
-      select: { id: true },
+      select: { id: true, username: true },
     })
 
     if (!creator) {
@@ -66,7 +66,7 @@ export async function POST(
 
     const creator = await prisma.user.findUnique({
       where: { id: creatorId },
-      select: { id: true },
+      select: { id: true, username: true },
     })
 
     if (!creator) {
@@ -90,6 +90,16 @@ export async function POST(
         data: {
           followerId,
           creatorId,
+        },
+      })
+
+      await prisma.notification.create({
+        data: {
+          userId: creatorId,
+          title: "New follower",
+          message: `${session.user.username || session.user.name || "A player"} started following you.`,
+          type: "CREATOR_FOLLOW",
+          link: creator.username ? `/creator/${creator.username}` : "/creator",
         },
       })
     }

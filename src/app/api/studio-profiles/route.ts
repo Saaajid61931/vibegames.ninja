@@ -31,10 +31,6 @@ export async function GET() {
       return NextResponse.json({ error: "AUTHENTICATION_REQUIRED" }, { status: 401 })
     }
 
-    if (session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 })
-    }
-
     const profiles = await prisma.studioProfile.findMany({
       where: { ownerId: session.user.id },
       select: {
@@ -60,10 +56,6 @@ export async function POST(request: Request) {
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "AUTHENTICATION_REQUIRED" }, { status: 401 })
-    }
-
-    if (session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 })
     }
 
     const body = await request.json().catch(() => null)

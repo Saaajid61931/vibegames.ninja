@@ -57,7 +57,6 @@ export default function UploadPage() {
   useEffect(() => {
     const loadStudioProfiles = async () => {
       if (!session?.user?.id) return
-      if (session.user.role !== "ADMIN") return
 
       try {
         const res = await fetch("/api/studio-profiles")
@@ -152,7 +151,7 @@ export default function UploadPage() {
       uploadData.append("supportsMobile", String(formData.supportsMobile))
       uploadData.append("hasLevelEditor", String(formData.hasLevelEditor))
       uploadData.append("isAIGenerated", String(formData.isAIGenerated))
-      if (session.user.role === "ADMIN" && formData.studioProfileId) {
+      if (formData.studioProfileId) {
         uploadData.append("studioProfileId", formData.studioProfileId)
       }
 
@@ -205,8 +204,8 @@ export default function UploadPage() {
           <Card className="max-w-md w-full">
             <CardContent className="pt-6 text-center">
               <CheckCircle className="h-16 w-16 text-[var(--color-success)] mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-[var(--color-text)] mb-2">Game Uploaded!</h2>
-              {uploadWarnings.length > 0 ? (
+                  <h2 className="text-xl font-semibold text-[var(--color-text)] mb-2">Your Game is Live! Let&apos;s Go!</h2>
+                  {uploadWarnings.length > 0 ? (
                 <div className="space-y-3 text-left">
                   <p className="text-[var(--color-text-secondary)] text-sm text-center">
                     Upload completed with level editor warnings.
@@ -220,11 +219,11 @@ export default function UploadPage() {
                     Go to Dashboard
                   </Button>
                 </div>
-              ) : (
-                <p className="text-[var(--color-text-secondary)] text-sm">
-                  Your game has been submitted for review. Redirecting to dashboard...
-                </p>
-              )}
+                  ) : (
+                    <p className="text-[var(--color-text-secondary)] text-sm">
+                      Your game is published and ready to play. Redirecting to dashboard...
+                    </p>
+                  )}
             </CardContent>
           </Card>
         </main>
@@ -334,7 +333,7 @@ export default function UploadPage() {
                 <CardDescription>Tell players about your game</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {session.user.role === "ADMIN" && (
+                {session.user.id && (
                   <div className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
                     <div className="flex flex-col gap-1">
                       <Label>Publish as</Label>

@@ -54,7 +54,7 @@ export default function SkeuoHomePage() {
                             EXPLORE CREATIVITY
                         </h2>
                         <p className="text-xl text-[#00ffcc] font-mono max-w-2xl mb-10 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
-                            Build, play, and remix games created with AI. Skills shouldn't be an issue to explore creativity.
+                            Build, play, and remix games created with AI. Skills shouldn&apos;t be an issue to explore creativity.
                         </p>
 
                         <div className="flex gap-6">

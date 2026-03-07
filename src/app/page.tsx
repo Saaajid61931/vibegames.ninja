@@ -32,20 +32,52 @@ export const metadata: Metadata = {
 }
 
 const getFeaturedGames = unstable_cache(async () => {
-  const games = await prisma.game.findMany({
-    where: { status: "PUBLISHED" },
+  const curatedPicks = await prisma.featuredGame.findMany({
+    where: {
+      game: { status: "PUBLISHED" },
+    },
+    include: {
+      game: {
+        include: {
+          studioProfile: {
+            select: { id: true, handle: true, displayName: true, image: true },
+          },
+          creator: {
+            select: { id: true, name: true, username: true, image: true },
+          },
+        },
+      },
+    },
+    orderBy: { date: "desc" },
+    take: 6,
+  })
+
+  const curatedGames = curatedPicks.map((entry) => entry.game)
+
+  if (curatedGames.length >= 6) {
+    return curatedGames
+  }
+
+  const fallbackGames = await prisma.game.findMany({
+    where: {
+      status: "PUBLISHED",
+      id: {
+        notIn: curatedGames.map((game) => game.id),
+      },
+    },
     include: {
       studioProfile: {
         select: { id: true, handle: true, displayName: true, image: true },
       },
       creator: {
-        select: { id: true, name: true, username: true, image: true }
-      }
+        select: { id: true, name: true, username: true, image: true },
+      },
     },
     orderBy: getDiscoveryOrderBy("trending"),
-    take: 6,
+    take: Math.max(6 - curatedGames.length, 0),
   })
-  return games
+
+  return [...curatedGames, ...fallbackGames]
 }, ["home-featured-games"], { revalidate: 60, tags: ["games"] })
 
 const getStats = unstable_cache(async () => {
@@ -206,7 +238,7 @@ export default async function HomePage() {
               
               <p className="text-base sm:text-xl md:text-2xl text-[#4a4a6a] mb-8 sm:mb-12 max-w-2xl mx-auto font-arcade">
                 Build, play, and remix games created with AI. 
-                Skills shouldn't be an issue to explore creativity.
+                Skills shouldn&apos;t be an issue to explore creativity.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">

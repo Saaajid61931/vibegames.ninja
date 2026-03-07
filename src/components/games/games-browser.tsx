@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Search, Gamepad2, ChevronLeft, Loader2, Smartphone, SquarePen } from "lucide-react"
@@ -9,31 +9,50 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CATEGORIES } from "@/lib/utils"
 import { useDebounce } from "@/hooks/use-debounce"
+import type { GameCardData } from "@/types"
+
+type BrowserGame = Omit<GameCardData, "createdAt"> & {
+  createdAt: Date
+}
+
+type ApiBrowserGame = Omit<GameCardData, "createdAt"> & {
+  createdAt: string | Date
+}
 
 interface GamesBrowserProps {
-  initialGames: any[]
+  initialGames: BrowserGame[]
+  initialTotal: number
+  initialHasMore: boolean
   initialCategory?: string
   initialSort?: string
   initialQuery?: string
+  initialSupportsMobile?: boolean
   initialEditorOnly?: boolean
 }
 
 export function GamesBrowser({ 
   initialGames, 
+  initialTotal,
+  initialHasMore,
   initialCategory, 
   initialSort, 
   initialQuery,
+  initialSupportsMobile = false,
   initialEditorOnly = false,
 }: GamesBrowserProps) {
   const router = useRouter()
   
-  const [games, setGames] = useState(initialGames)
+  const [games, setGames] = useState<BrowserGame[]>(initialGames)
   const [loading, setLoading] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(initialTotal)
+  const [hasMore, setHasMore] = useState(initialHasMore)
   
   const [category, setCategory] = useState(initialCategory || "all")
   const [sort, setSort] = useState(initialSort || "trending")
   const [q, setQ] = useState(initialQuery || "")
-  const [supportsMobile, setSupportsMobile] = useState(false)
+  const [supportsMobile, setSupportsMobile] = useState(initialSupportsMobile)
   const [editorOnly, setEditorOnly] = useState(initialEditorOnly)
   
   const debouncedQ = useDebounce(q, 500)
@@ -41,46 +60,62 @@ export function GamesBrowser({
   // Ref to skip initial effect run
   const isFirstRun = useRef(true)
 
+  const buildParams = useCallback((targetPage: number) => {
+    const params = new URLSearchParams()
+    if (category && category !== "all") params.set("category", category)
+    if (sort && sort !== "trending") params.set("sort", sort)
+    if (debouncedQ) params.set("q", debouncedQ)
+    if (supportsMobile) params.set("mobile", "true")
+    if (editorOnly) params.set("editor", "true")
+    if (targetPage > 1) params.set("page", String(targetPage))
+    return params
+  }, [category, sort, debouncedQ, supportsMobile, editorOnly])
+
+  const fetchGames = useCallback(async (targetPage: number, append: boolean) => {
+    if (append) {
+      setLoadingMore(true)
+    } else {
+      setLoading(true)
+    }
+
+    try {
+      const params = buildParams(targetPage)
+      const queryString = params.toString()
+      const browseUrl = queryString ? `/games?${queryString}` : "/games"
+      router.replace(browseUrl, { scroll: false })
+
+      const res = await fetch(`/api/games?${queryString}`)
+      const data = await res.json()
+
+      if (data.data) {
+        const normalized: BrowserGame[] = (data.data as ApiBrowserGame[]).map((game) => ({
+          ...game,
+          createdAt: new Date(game.createdAt),
+        }))
+
+        setGames((prev) => (append ? [...prev, ...normalized] : normalized))
+        setPage(targetPage)
+        setTotal(typeof data.total === "number" ? data.total : normalized.length)
+        setHasMore(Boolean(data.hasMore))
+      }
+    } catch (error) {
+      console.error("Failed to fetch games:", error)
+    } finally {
+      if (append) {
+        setLoadingMore(false)
+      } else {
+        setLoading(false)
+      }
+    }
+  }, [buildParams, router])
+
   useEffect(() => {
     if (isFirstRun.current) {
       isFirstRun.current = false
       return
     }
-
-    const fetchGames = async () => {
-      setLoading(true)
-      try {
-        const params = new URLSearchParams()
-        if (category && category !== "all") params.set("category", category)
-        if (sort && sort !== "trending") params.set("sort", sort)
-        if (debouncedQ) params.set("q", debouncedQ)
-        if (supportsMobile) params.set("mobile", "true")
-        if (editorOnly) params.set("editor", "true")
-        
-        // Update URL shallowly
-        const url = `/games?${params.toString()}`
-        router.replace(url, { scroll: false })
-        
-        // Fetch new data
-        const res = await fetch(`/api/games?${params.toString()}`)
-        const data = await res.json()
-        
-        if (data.data) {
-          const normalized = data.data.map((game: any) => ({
-            ...game,
-            createdAt: new Date(game.createdAt),
-          }))
-          setGames(normalized)
-        }
-      } catch (error) {
-        console.error("Failed to fetch games:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchGames()
-  }, [category, sort, debouncedQ, supportsMobile, editorOnly, router])
+    void fetchGames(1, false)
+  }, [category, sort, debouncedQ, supportsMobile, editorOnly, fetchGames])
 
   const resetFilters = () => {
     setCategory("all")
@@ -112,10 +147,10 @@ export function GamesBrowser({
         
         {/* Player Score Display */}
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-          <div className="bg-[#1a1a2e] border-2 sm:border-4 border-[#0080ff] px-3 sm:px-4 py-2">
-            <span className="text-[10px] text-[#0080ff] font-pixel block">GAMES</span>
-            <span className="text-lg sm:text-xl text-white font-pixel">{games.length.toString().padStart(3, '0')}</span>
-          </div>
+            <div className="bg-[#1a1a2e] border-2 sm:border-4 border-[#0080ff] px-3 sm:px-4 py-2">
+              <span className="text-[10px] text-[#0080ff] font-pixel block">GAMES</span>
+              <span className="text-lg sm:text-xl text-white font-pixel">{total.toString().padStart(3, '0')}</span>
+            </div>
           <div className="bg-[#1a1a2e] border-2 sm:border-4 border-[#ff0040] px-3 sm:px-4 py-2">
             <span className="text-[10px] text-[#ff0040] font-pixel block">CREDITS</span>
             <span className="text-lg sm:text-xl text-white font-pixel">∞</span>
@@ -212,7 +247,7 @@ export function GamesBrowser({
       {!loading && (
         games.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {games.map((game: any) => (
+            {games.map((game) => (
               <GameCard key={game.id} game={game} />
             ))}
           </div>
@@ -224,6 +259,28 @@ export function GamesBrowser({
             <Button variant="arcade" onClick={resetFilters}>RESET FILTERS</Button>
           </div>
         )
+      )}
+
+      {!loading && games.length > 0 && hasMore && (
+        <div className="flex justify-center pt-8">
+          <Button
+            variant="arcade-outline"
+            size="arcade-default"
+            onClick={() => {
+              void fetchGames(page + 1, true)
+            }}
+            disabled={loadingMore}
+          >
+            {loadingMore ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                LOADING...
+              </>
+            ) : (
+              "LOAD MORE"
+            )}
+          </Button>
+        </div>
       )}
     </div>
   )

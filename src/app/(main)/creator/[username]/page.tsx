@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
 import { formatNumber, getInitials } from "@/lib/utils"
 import { SITE_URL } from "@/lib/site"
+import type { GameCardData } from "@/types"
 import { cache } from "react"
 
 interface PageProps {
@@ -123,31 +124,24 @@ export default async function PublicCreatorPage({ params }: PageProps) {
       : Promise.resolve(false),
   ])
 
-  const normalizedGames = games.map((game) => ({
+  const normalizedGames: GameCardData[] = games.map((game) => ({
     ...game,
-    description: "", // Not needed for card but expected by type
-    instructions: null, // Not needed
-    gameUrl: "", // Not needed
-    tags: "", // Not needed
-    status: "PUBLISHED", // Known
-    shares: 0, // Not needed
-    avgRating: 0, // Not needed
-    ratingCount: 0, // Not needed
-    isAIGenerated: true, // Default
-    hasAds: true, // Default
-    isPremium: false, // Default
-    price: null, // Default
-    updatedAt: new Date(game.createdAt), // Mock or fetch if needed
-    creatorId: creator.id, // Known
-    studioProfileId: game.studioProfile?.id || null,
-    expiresAt: null,
-    isPermanent: true,
     createdAt: new Date(game.createdAt),
-    publishedAt: game.publishedAt ? new Date(game.publishedAt) : null,
-  })) as any // Casting to satisfy strict Game type if needed for GameCard
+  }))
+
+  const creatorJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: creator.name || creator.username,
+    alternateName: creator.username ? `@${creator.username}` : undefined,
+    description: creator.bio || `Play games by @${creator.username} on VibeGames.Ninja.`,
+    url: `${SITE_URL}/creator/${creator.username}`,
+    image: creator.image || undefined,
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(creatorJsonLd) }} />
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
@@ -202,9 +196,9 @@ export default async function PublicCreatorPage({ params }: PageProps) {
 
           {normalizedGames.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {normalizedGames.map((game: any) => (
-                <GameCard key={game.id} game={game} />
-              ))}
+               {normalizedGames.map((game) => (
+                 <GameCard key={game.id} game={game} />
+               ))}
             </div>
           ) : (
             <div className="text-center py-14 border-2 border-dashed border-[#4a4a6a]">

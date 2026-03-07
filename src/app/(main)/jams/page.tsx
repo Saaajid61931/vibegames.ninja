@@ -4,12 +4,27 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { JamsList } from "@/components/jams/jams-list"
 import { Trophy } from "lucide-react"
+import { SITE_NAME, SITE_URL } from "@/lib/site"
 
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
   title: "Game Jams | VibeGames.Ninja",
   description: "Compete in AI game jams. Build games around a theme, get votes from the community, and win bragging rights.",
+  alternates: {
+    canonical: "/jams",
+  },
+  openGraph: {
+    title: `Game Jams | ${SITE_NAME}`,
+    description: "Compete in AI game jams, submit your best builds, and discover new creators.",
+    url: `${SITE_URL}/jams`,
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `Game Jams | ${SITE_NAME}`,
+    description: "Compete in AI game jams, submit your best builds, and discover new creators.",
+  },
 }
 
 type JamWithCount = {

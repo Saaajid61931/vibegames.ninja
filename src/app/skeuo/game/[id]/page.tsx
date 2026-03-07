@@ -52,7 +52,7 @@ export default function SkeuoGamePage() {
                         {/* If playing, show iframe, else show "Insert Coin" screen */}
                         {isPlaying ? (
                             <iframe
-                                src="about:blank"
+                                src="/sample-games/index.html"
                                 className="w-full h-full bg-[#0d1117] border-none"
                                 title="Neon Loop Game"
                             />

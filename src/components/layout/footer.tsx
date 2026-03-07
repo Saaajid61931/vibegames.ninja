@@ -23,17 +23,19 @@ export function Footer() {
             </p>
             <div className="flex gap-2">
               <a 
-                href="https://github.com" 
+                href="https://github.com/Saaajid61931/vibegames.ninja" 
                 target="_blank" 
                 rel="noopener noreferrer" 
+                aria-label="VibeGames on GitHub"
                 className="p-2 rounded-md border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-colors"
               >
                 <Github className="h-4 w-4" />
               </a>
               <a 
-                href="https://twitter.com" 
+                href="https://twitter.com/vibegamesai" 
                 target="_blank" 
                 rel="noopener noreferrer"
+                aria-label="VibeGames on Twitter"
                 className="p-2 rounded-md border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors"
               >
                 <Twitter className="h-4 w-4" />

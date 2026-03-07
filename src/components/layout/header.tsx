@@ -20,14 +20,54 @@ export function Header() {
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
-    setMobileMenuOpen(false)
-  }, [pathname])
+    if (!session?.user?.id) {
+      return
+    }
+
+    let active = true
+
+    const loadUnreadCount = async () => {
+      try {
+        const res = await fetch("/api/notifications/unread", { cache: "no-store" })
+        if (!res.ok) {
+          return
+        }
+
+        const data = await res.json()
+        if (active) {
+          setUnreadCount(typeof data.unreadCount === "number" ? data.unreadCount : 0)
+        }
+      } catch {
+        // Non-blocking header data.
+      }
+    }
+
+    const handleFocus = () => {
+      void loadUnreadCount()
+    }
+
+    void loadUnreadCount()
+    window.addEventListener("focus", handleFocus)
+
+    return () => {
+      active = false
+      window.removeEventListener("focus", handleFocus)
+    }
+  }, [session?.user?.id, pathname])
+
+  const displayedUnreadCount = session?.user?.id
+    ? (pathname.startsWith("/notifications") ? 0 : unreadCount)
+    : 0
+
+  const unreadLabel = displayedUnreadCount > 99 ? "99+" : String(displayedUnreadCount)
 
   const navigation = [
     { name: "PLAY", href: "/games" },
     { name: "JAMS", href: "/jams" },
+    ...(session?.user ? [{ name: "NOTIFS", href: "/notifications", badge: displayedUnreadCount }] : []),
     ...(session?.user ? [{ name: "FAVES", href: "/favorites" }] : []),
     { name: "UPLOAD", href: "/upload" },
     { name: "CREATOR", href: "/creator" },
@@ -70,6 +110,11 @@ export function Header() {
                     }`}
                   >
                     {item.name}
+                    {item.badge ? (
+                      <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-[#ff0040] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                        {unreadLabel}
+                      </span>
+                    ) : null}
                   </Link>
                 )
               })}
@@ -112,6 +157,16 @@ export function Header() {
                           </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/notifications" className="flex w-full items-center justify-between gap-2">
+                            <span>Notifications</span>
+                            {displayedUnreadCount > 0 ? (
+                              <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-[#ff0040] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                                {unreadLabel}
+                              </span>
+                            ) : null}
+                          </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href="/creator">Dashboard</Link>
                         </DropdownMenuItem>
@@ -163,13 +218,19 @@ export function Header() {
                     <Link
                       key={item.name}
                       href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
                       className={`block px-3 py-2 rounded-md text-sm font-medium ${
                         isActive
                           ? "bg-[var(--color-primary)] text-white"
                           : "text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface)]"
                       }`}
                     >
-                      {item.name}
+                      <span>{item.name}</span>
+                      {item.badge ? (
+                        <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-[#ff0040] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                          {unreadLabel}
+                        </span>
+                      ) : null}
                     </Link>
                   )
                 })}
@@ -184,16 +245,26 @@ export function Header() {
                     <p className="text-xs text-[var(--color-text-tertiary)] truncate">{session.user.email}</p>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
+                    <Link href="/notifications">
+                      <Button variant="outline" className="w-full gap-1" onClick={() => setMobileMenuOpen(false)}>
+                        Notifs
+                        {displayedUnreadCount > 0 ? (
+                          <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-[#ff0040] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                            {unreadLabel}
+                          </span>
+                        ) : null}
+                      </Button>
+                    </Link>
                     <Link href="/upload">
-                      <Button className="w-full">Upload</Button>
+                      <Button className="w-full" onClick={() => setMobileMenuOpen(false)}>Upload</Button>
                     </Link>
                     <Link href="/creator">
-                      <Button variant="outline" className="w-full">Dashboard</Button>
-                    </Link>
-                    <Link href="/favorites">
-                      <Button variant="outline" className="w-full">Favorites</Button>
+                      <Button variant="outline" className="w-full" onClick={() => setMobileMenuOpen(false)}>Dashboard</Button>
                     </Link>
                   </div>
+                  <Link href="/favorites">
+                    <Button variant="outline" className="w-full" onClick={() => setMobileMenuOpen(false)}>Favorites</Button>
+                  </Link>
                   <Button variant="ghost" className="w-full" onClick={() => signOut()}>
                     Sign out
                   </Button>

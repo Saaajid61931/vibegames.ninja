@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { JamDetail } from "@/components/jams/jam-detail"
+import { SITE_NAME, SITE_URL } from "@/lib/site"
 
 export const dynamic = "force-dynamic"
 
@@ -21,9 +22,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!jam) return { title: "Jam Not Found" }
 
+  const jamPath = `/jams/${slug}`
+  const description = jam.description.slice(0, 160)
+
   return {
     title: `${jam.title} | Game Jams | VibeGames.Ninja`,
-    description: jam.description.slice(0, 160),
+    description,
+    alternates: {
+      canonical: jamPath,
+    },
+    openGraph: {
+      title: `${jam.title} | ${SITE_NAME}`,
+      description,
+      url: `${SITE_URL}${jamPath}`,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${jam.title} | ${SITE_NAME}`,
+      description,
+    },
   }
 }
 
@@ -140,8 +158,31 @@ export default async function JamDetailPage({ params }: Props) {
     entries: entriesWithScores,
   }
 
+  const jamJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: jam.title,
+    description: jam.description,
+    eventStatus:
+      jam.status === "COMPLETED"
+        ? "https://schema.org/EventCompleted"
+        : jam.status === "UPCOMING"
+          ? "https://schema.org/EventScheduled"
+          : "https://schema.org/EventInProgress",
+    eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode",
+    startDate: jam.startDate.toISOString(),
+    endDate: jam.votingEndDate.toISOString(),
+    organizer: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: SITE_URL,
+    },
+    url: `${SITE_URL}/jams/${jam.slug}`,
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jamJsonLd) }} />
       <Header />
       <main className="flex-1">
         <JamDetail

@@ -75,13 +75,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (studioProfileId && session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        { error: "FORBIDDEN" },
-        { status: 403 }
-      )
-    }
-
     let studioProfileConnectId: string | null = null
     if (studioProfileId) {
       const studioProfile = await prisma.studioProfile.findFirst({
