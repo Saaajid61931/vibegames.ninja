@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client"
 import { revalidateTag } from "next/cache"
 import { v4 as uuidv4 } from "uuid"
 import { auth } from "@/lib/auth"
+import { normalizeMobileOrientation } from "@/lib/mobile-orientation"
 import prisma from "@/lib/prisma"
 import { slugify } from "@/lib/utils"
 import {
@@ -57,12 +58,14 @@ export async function POST(request: NextRequest) {
     const aiTool = formData.get("aiTool") as string | null
     const aiModelRaw = formData.get("aiModel") as string | null
     const supportsMobile = formData.get("supportsMobile") === "true"
+    const mobileOrientationRaw = formData.get("mobileOrientation") as string | null
     const hasLevelEditor = formData.get("hasLevelEditor") === "true"
     const isAIGenerated = formData.get("isAIGenerated") === "true"
     const studioProfileIdRaw = formData.get("studioProfileId")
 
     const aiModel = aiModelRaw?.trim() ? aiModelRaw.trim() : null
     const normalizedAiTool = aiTool?.trim() ? aiTool.trim() : null
+    const mobileOrientation = normalizeMobileOrientation(supportsMobile, mobileOrientationRaw)
 
     const studioProfileId = typeof studioProfileIdRaw === "string" && studioProfileIdRaw.trim()
       ? studioProfileIdRaw.trim()
@@ -164,6 +167,7 @@ export async function POST(request: NextRequest) {
           aiTool: normalizedAiTool,
           aiModel,
           supportsMobile,
+          mobileOrientation,
           hasLevelEditor,
           isAIGenerated,
           gameUrl,

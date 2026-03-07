@@ -26,6 +26,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { LevelEditorSetupGuide } from "@/components/games/level-editor-setup-guide"
+import { MOBILE_ORIENTATION_OPTIONS } from "@/lib/mobile-orientation"
 import { CATEGORIES, AI_TOOLS } from "@/lib/utils"
 
 interface PageProps {
@@ -42,6 +43,7 @@ interface GameData {
   aiTool: string | null
   aiModel: string | null
   supportsMobile: boolean
+  mobileOrientation: "BOTH" | "PORTRAIT" | "LANDSCAPE"
   hasLevelEditor: boolean
   thumbnail: string | null
 }
@@ -69,6 +71,7 @@ export default function EditGamePage({ params }: PageProps) {
     aiTool: "",
     aiModel: "",
     supportsMobile: false,
+    mobileOrientation: "BOTH",
     hasLevelEditor: false,
   })
 
@@ -108,6 +111,7 @@ export default function EditGamePage({ params }: PageProps) {
         aiTool: data.aiTool || "",
         aiModel: data.aiModel || "",
         supportsMobile: data.supportsMobile || false,
+        mobileOrientation: data.mobileOrientation || "BOTH",
         hasLevelEditor: data.hasLevelEditor || false,
       })
     } catch {
@@ -199,6 +203,7 @@ export default function EditGamePage({ params }: PageProps) {
         nextData.append("aiTool", formData.aiTool)
         nextData.append("aiModel", formData.aiModel.trim())
         nextData.append("supportsMobile", String(formData.supportsMobile))
+        nextData.append("mobileOrientation", formData.mobileOrientation)
         nextData.append("hasLevelEditor", String(formData.hasLevelEditor))
 
         if (gameFile) {
@@ -263,6 +268,7 @@ export default function EditGamePage({ params }: PageProps) {
               nextData.append("aiTool", formData.aiTool)
               nextData.append("aiModel", formData.aiModel.trim())
               nextData.append("supportsMobile", String(formData.supportsMobile))
+              nextData.append("mobileOrientation", formData.mobileOrientation)
               nextData.append("hasLevelEditor", String(formData.hasLevelEditor))
               if (gameFile) nextData.append("gameFile", gameFile)
               if (thumbnailFile) nextData.append("thumbnail", thumbnailFile)
@@ -634,7 +640,11 @@ export default function EditGamePage({ params }: PageProps) {
                       type="checkbox"
                       checked={formData.supportsMobile}
                       onChange={(e) =>
-                        setFormData({ ...formData, supportsMobile: e.target.checked })
+                        setFormData({
+                          ...formData,
+                          supportsMobile: e.target.checked,
+                          mobileOrientation: e.target.checked ? formData.mobileOrientation : "BOTH",
+                        })
                       }
                       className="h-4 w-4 rounded border-[#4a4a6a] bg-[#0d0d15] text-[#ffff00] focus:ring-[#ffff00]"
                     />
@@ -648,6 +658,32 @@ export default function EditGamePage({ params }: PageProps) {
                     </div>
                   </label>
                 </div>
+
+                {formData.supportsMobile && (
+                  <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3 space-y-2">
+                    <Label className="font-arcade text-xs">Mobile orientation</Label>
+                    <Select
+                      value={formData.mobileOrientation}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, mobileOrientation: value as "BOTH" | "PORTRAIT" | "LANDSCAPE" })
+                      }
+                    >
+                      <SelectTrigger className="font-arcade">
+                        <SelectValue placeholder="Choose orientation support" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MOBILE_ORIENTATION_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value} className="font-arcade">
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-[#4a4a6a] font-arcade">
+                      Choose whether the fullscreen game should run in portrait, landscape, or both on mobile.
+                    </p>
+                  </div>
+                )}
 
                 <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
                   <label className="flex items-center gap-3 cursor-pointer">

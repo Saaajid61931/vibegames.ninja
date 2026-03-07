@@ -35,6 +35,7 @@ export const gameUploadSchema = z.object({
   aiTool: z.string().optional(),
   aiModel: z.string().optional(),
   supportsMobile: z.boolean().default(false),
+  mobileOrientation: z.enum(['BOTH', 'PORTRAIT', 'LANDSCAPE']).default('BOTH'),
   hasLevelEditor: z.boolean().default(false),
   isPremium: z.boolean().default(false),
   price: z.number().min(0).max(99.99).optional(),

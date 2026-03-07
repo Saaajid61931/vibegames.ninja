@@ -21,6 +21,8 @@ async function getGame(slug: string) {
       title: true,
       description: true,
       gameUrl: true,
+      supportsMobile: true,
+      mobileOrientation: true,
       status: true,
     },
   })
@@ -63,6 +65,8 @@ export default async function EmbedPage({ params }: PageProps) {
           title={game.title}
           gameUrl={game.gameUrl}
           runtimeLabel={`${game.title.toLowerCase().replace(/\s+/g, "_")}.exe`}
+          supportsMobile={game.supportsMobile}
+          mobileOrientation={game.mobileOrientation}
         />
         <div className="flex flex-wrap items-center justify-between gap-3 border border-[#2e3446] bg-[#111626] px-3 py-2">
           <div>

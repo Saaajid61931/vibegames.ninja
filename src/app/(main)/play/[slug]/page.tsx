@@ -17,6 +17,7 @@ import { FollowButton } from "@/components/creator/follow-button"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { auth } from "@/lib/auth"
+import { getMobileOrientationLabel } from "@/lib/mobile-orientation"
 import prisma from "@/lib/prisma"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
 import { formatNumber, timeAgo, getInitials, CATEGORIES } from "@/lib/utils"
@@ -234,6 +235,17 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
     ? `/studio/${game.studioProfile.handle}`
     : (game.creator.username ? `/creator/${game.creator.username}` : "/creator")
   const category = CATEGORIES.find(c => c.value === game.category)
+  const mobileOrientationLabel = getMobileOrientationLabel(game.mobileOrientation)
+  const mobileTagLabel = !game.supportsMobile
+    ? "DESKTOP_ONLY"
+    : game.mobileOrientation === "BOTH"
+      ? "MOBILE_READY"
+      : mobileOrientationLabel.replace(/\s+/g, "_")
+  const mobileSupportText = !game.supportsMobile
+    ? "DESKTOP EXPERIENCE"
+    : game.mobileOrientation === "BOTH"
+      ? "MOBILE SUPPORTED"
+      : `MOBILE: ${mobileOrientationLabel}`
   const gameJsonLd = {
     "@context": "https://schema.org",
     "@type": "VideoGame",
@@ -284,6 +296,8 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
                 title={game.title}
                 gameUrl={game.gameUrl}
                 runtimeLabel={`${game.title.toLowerCase().replace(/\s+/g, "_")}.exe`}
+                supportsMobile={game.supportsMobile}
+                mobileOrientation={game.mobileOrientation}
                 levelData={selectedLevel?.data}
                 levelName={selectedLevel?.name}
                 levelDescription={selectedLevel?.description}
@@ -327,7 +341,7 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
                   </span>
                 )}
                 <span className={`px-2 py-1 border ${game.supportsMobile ? "border-[#22c55e] text-[#22c55e]" : "border-[#4a4a6a] text-[#4a4a6a]"}`}>
-                  [{game.supportsMobile ? "MOBILE_READY" : "DESKTOP_ONLY"}]
+                  [{mobileTagLabel}]
                 </span>
                 {game.hasLevelEditor && (
                   <span className="px-2 py-1 border border-[#ffff00] text-[#ffff00]">
@@ -361,7 +375,7 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <Smartphone className={`h-4 w-4 ${game.supportsMobile ? "text-[#22c55e]" : "text-[#4a4a6a]"}`} />
-                  <span>{game.supportsMobile ? "MOBILE SUPPORTED" : "DESKTOP EXPERIENCE"}</span>
+                  <span>{mobileSupportText}</span>
                 </div>
                 {game.aiModel && (
                   <div className="flex items-center gap-2">
@@ -513,7 +527,7 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
                     Add this game to your website:
                   </p>
                   <code className="block p-3 bg-[#1a1a2e] border border-[#4a4a6a] text-[11px] sm:text-xs text-[#ffff00] font-arcade break-all">
-                    {`<iframe src="${process.env.NEXT_PUBLIC_APP_URL || "https://vibegames.ninja"}/embed/${game.slug}" width="800" height="600"></iframe>`}
+                    {`<iframe src="${process.env.NEXT_PUBLIC_APP_URL || "https://vibegames.ninja"}/embed/${game.slug}" width="800" height="600" allow="fullscreen" allowfullscreen></iframe>`}
                   </code>
                 </div>
               </div>

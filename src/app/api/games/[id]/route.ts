@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
 import { Prisma } from "@prisma/client"
 import { auth } from "@/lib/auth"
+import { normalizeMobileOrientation } from "@/lib/mobile-orientation"
 import prisma from "@/lib/prisma"
 import { slugify } from "@/lib/utils"
 import {
@@ -99,6 +100,7 @@ async function updateGame(
     let aiTool: string | null = null
     let aiModel: string | null = null
     let supportsMobile = false
+    let mobileOrientation: "BOTH" | "PORTRAIT" | "LANDSCAPE" = "BOTH"
     let hasLevelEditor = false
     let gameFile: File | null = null
     let thumbnailFile: File | null = null
@@ -116,6 +118,10 @@ async function updateGame(
       const aiModelRaw = String(formData.get("aiModel") || "").trim()
       aiModel = aiModelRaw || null
       supportsMobile = String(formData.get("supportsMobile") || "false") === "true"
+      mobileOrientation = normalizeMobileOrientation(
+        supportsMobile,
+        String(formData.get("mobileOrientation") || "BOTH")
+      )
       hasLevelEditor = String(formData.get("hasLevelEditor") || "false") === "true"
 
       const maybeGameFile = formData.get("gameFile")
@@ -133,6 +139,7 @@ async function updateGame(
       aiTool = body.aiTool || null
       aiModel = body.aiModel || null
       supportsMobile = Boolean(body.supportsMobile)
+      mobileOrientation = normalizeMobileOrientation(supportsMobile, body.mobileOrientation)
       hasLevelEditor = Boolean(body.hasLevelEditor)
     }
 
@@ -233,6 +240,7 @@ async function updateGame(
         aiTool: aiTool || null,
         aiModel: aiModel || null,
         supportsMobile,
+        mobileOrientation,
         hasLevelEditor,
         ...(nextGameUrl ? { gameUrl: nextGameUrl } : {}),
         ...(nextThumbnailUrl ? { thumbnail: nextThumbnailUrl } : {}),

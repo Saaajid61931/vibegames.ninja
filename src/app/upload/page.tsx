@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { LevelEditorSetupGuide } from "@/components/games/level-editor-setup-guide"
+import { MOBILE_ORIENTATION_OPTIONS } from "@/lib/mobile-orientation"
 import { CATEGORIES, AI_TOOLS } from "@/lib/utils"
 
 export default function UploadPage() {
@@ -43,6 +44,7 @@ export default function UploadPage() {
     aiTool: "",
     aiModel: "",
     supportsMobile: false,
+    mobileOrientation: "BOTH",
     hasLevelEditor: false,
     isAIGenerated: true,
     studioProfileId: "",
@@ -149,6 +151,7 @@ export default function UploadPage() {
       uploadData.append("aiTool", formData.aiTool)
       uploadData.append("aiModel", formData.aiModel.trim())
       uploadData.append("supportsMobile", String(formData.supportsMobile))
+      uploadData.append("mobileOrientation", formData.mobileOrientation)
       uploadData.append("hasLevelEditor", String(formData.hasLevelEditor))
       uploadData.append("isAIGenerated", String(formData.isAIGenerated))
       if (formData.studioProfileId) {
@@ -532,7 +535,13 @@ export default function UploadPage() {
                     <input
                       type="checkbox"
                       checked={formData.supportsMobile}
-                      onChange={(e) => setFormData({ ...formData, supportsMobile: e.target.checked })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          supportsMobile: e.target.checked,
+                          mobileOrientation: e.target.checked ? formData.mobileOrientation : "BOTH",
+                        })
+                      }
                       className="h-4 w-4 rounded border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                     />
                     <div>
@@ -541,6 +550,35 @@ export default function UploadPage() {
                     </div>
                   </label>
                 </div>
+
+                {formData.supportsMobile && (
+                  <div className="space-y-2 rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
+                    <Label>Mobile orientation</Label>
+                    <Select
+                      value={formData.mobileOrientation}
+                      onValueChange={(value) =>
+                        setFormData({
+                          ...formData,
+                          mobileOrientation: value,
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose orientation support" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MOBILE_ORIENTATION_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-[var(--color-text-secondary)]">
+                      Choose whether the fullscreen game should run in portrait, landscape, or both on mobile.
+                    </p>
+                  </div>
+                )}
 
                 <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
                   <label className="flex items-center gap-3 cursor-pointer">

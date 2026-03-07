@@ -9,6 +9,12 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum MobileOrientation {
+  BOTH
+  PORTRAIT
+  LANDSCAPE
+}
+
 // User & Auth Models
 model User {
   id            String    @id @default(cuid())
@@ -96,6 +102,7 @@ model Game {
   aiTool         String? // Which AI tool was used (Claude, GPT, etc.)
   aiModel        String? // Specific model used (gpt-4o, claude-3-7-sonnet, etc.)
   supportsMobile Boolean @default(false)
+  mobileOrientation MobileOrientation @default(BOTH)
   hasLevelEditor Boolean @default(false)
 
   isPremium Boolean @default(false)
