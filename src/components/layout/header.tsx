@@ -3,8 +3,9 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
-import { Plus, User, Menu, Settings, X } from "lucide-react"
+import { Bell, Plus, User, Menu, Settings, X } from "lucide-react"
 import { NinjaConsole } from "@/components/icons/ninja-console"
+import { NotificationsMenu } from "@/components/layout/notifications-menu"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 import {
@@ -67,7 +68,6 @@ export function Header() {
   const navigation = [
     { name: "PLAY", href: "/games" },
     { name: "JAMS", href: "/jams" },
-    ...(session?.user ? [{ name: "NOTIFS", href: "/notifications", badge: displayedUnreadCount }] : []),
     ...(session?.user ? [{ name: "FAVES", href: "/favorites" }] : []),
     { name: "UPLOAD", href: "/upload" },
     { name: "CREATOR", href: "/creator" },
@@ -110,11 +110,6 @@ export function Header() {
                     }`}
                   >
                     {item.name}
-                    {item.badge ? (
-                      <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-[#ff0040] px-1.5 py-0.5 text-[10px] font-bold text-white">
-                        {unreadLabel}
-                      </span>
-                    ) : null}
                   </Link>
                 )
               })}
@@ -139,6 +134,8 @@ export function Header() {
                         <span className="hidden sm:inline">Upload</span>
                       </Button>
                     </Link>
+
+                    <NotificationsMenu pathname={pathname} />
                     
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -157,16 +154,6 @@ export function Header() {
                           </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link href="/notifications" className="flex w-full items-center justify-between gap-2">
-                            <span>Notifications</span>
-                            {displayedUnreadCount > 0 ? (
-                              <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-[#ff0040] px-1.5 py-0.5 text-[10px] font-bold text-white">
-                                {unreadLabel}
-                              </span>
-                            ) : null}
-                          </Link>
-                        </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href="/creator">Dashboard</Link>
                         </DropdownMenuItem>
@@ -229,11 +216,6 @@ export function Header() {
                       }`}
                     >
                       <span>{item.name}</span>
-                      {item.badge ? (
-                        <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-[#ff0040] px-1.5 py-0.5 text-[10px] font-bold text-white">
-                          {unreadLabel}
-                        </span>
-                      ) : null}
                     </Link>
                   )
                 })}
@@ -250,6 +232,7 @@ export function Header() {
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     <Link href="/notifications">
                       <Button variant="outline" className="w-full gap-1" onClick={() => setMobileMenuOpen(false)}>
+                        <Bell className="h-4 w-4" />
                         Notifs
                         {displayedUnreadCount > 0 ? (
                           <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-[#ff0040] px-1.5 py-0.5 text-[10px] font-bold text-white">
