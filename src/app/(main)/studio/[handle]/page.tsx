@@ -85,6 +85,7 @@ export default async function StudioPage({ params }: PageProps) {
       slug: true,
       title: true,
       thumbnail: true,
+      thumbnailSlides: true,
       category: true,
       plays: true,
       likes: true,

@@ -243,7 +243,7 @@ async function updateGame(
         mobileOrientation,
         hasLevelEditor,
         ...(nextGameUrl ? { gameUrl: nextGameUrl } : {}),
-        ...(nextThumbnailUrl ? { thumbnail: nextThumbnailUrl } : {}),
+        ...(nextThumbnailUrl ? { thumbnail: nextThumbnailUrl, thumbnailSlides: [nextThumbnailUrl] } : {}),
       },
     })
 

@@ -87,7 +87,12 @@ export async function POST(request: Request) {
       where: { username: normalized },
       select: { id: true },
     })
-    if (usernameCollision) {
+    const redirectCollision = await prisma.usernameRedirect.findUnique({
+      where: { oldUsername: normalized },
+      select: { id: true },
+    })
+
+    if (usernameCollision || redirectCollision) {
       return NextResponse.json(
         { error: "HANDLE_RESERVED", message: "That handle is reserved" },
         { status: 409 }

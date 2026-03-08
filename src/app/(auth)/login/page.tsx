@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { signIn } from "next-auth/react"
+import { getProviders, signIn } from "next-auth/react"
 import { ArrowRight, Lock, Mail, Eye, EyeOff } from "lucide-react"
 import { NinjaConsole } from "@/components/icons/ninja-console"
 import { Button } from "@/components/ui/button"
@@ -21,6 +21,32 @@ function LoginForm() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [oauthProviders, setOauthProviders] = useState<Array<{ id: string; name: string }>>([])
+
+  useEffect(() => {
+    let active = true
+
+    const loadProviders = async () => {
+      const providers = await getProviders()
+      if (!active || !providers) {
+        return
+      }
+
+      const order = ["google", "github"]
+      const resolved = order
+        .map((id) => providers[id])
+        .filter((provider): provider is NonNullable<typeof provider> => Boolean(provider))
+        .map((provider) => ({ id: provider.id, name: provider.name }))
+
+      setOauthProviders(resolved)
+    }
+
+    void loadProviders()
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -115,33 +141,33 @@ function LoginForm() {
           </Button>
         </form>
 
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-[var(--color-border)]" />
-          </div>
-          <div className="relative flex justify-center text-xs">
-            <span className="bg-[var(--color-surface)] px-2 text-[var(--color-text-tertiary)]">
-              Or continue with
-            </span>
-          </div>
-        </div>
+        {oauthProviders.length > 0 && (
+          <>
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[var(--color-border)]" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-[var(--color-surface)] px-2 text-[var(--color-text-tertiary)]">
+                  Or continue with
+                </span>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={() => signIn("google", { callbackUrl })}
-          >
-            Google
-          </Button>
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={() => signIn("github", { callbackUrl })}
-          >
-            GitHub
-          </Button>
-        </div>
+            <div className="grid grid-cols-2 gap-3">
+              {oauthProviders.map((provider) => (
+                <Button
+                  key={provider.id}
+                  type="button"
+                  variant="outline"
+                  onClick={() => signIn(provider.id, { callbackUrl })}
+                >
+                  {provider.name}
+                </Button>
+              ))}
+            </div>
+          </>
+        )}
 
         <p className="mt-6 text-center text-sm text-[var(--color-text-secondary)]">
           Don&apos;t have an account?{" "}

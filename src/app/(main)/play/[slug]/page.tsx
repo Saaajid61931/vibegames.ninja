@@ -4,7 +4,8 @@ import Link from "next/link"
 import { Play, Heart, MessageCircle, ChevronLeft, User, Gamepad2, ExternalLink, Smartphone, Cpu, Users, Clock } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { GamePlayer } from "@/components/games/game-player"
+import { GameThumbnailSlideshow } from "@/components/games/game-thumbnail-slideshow"
+import { PlayableGameSection } from "@/components/games/playable-game-section"
 import { LikeButton } from "@/components/games/like-button"
 import { ShareButton } from "@/components/games/share-button"
 import { ReportGameButton } from "@/components/games/report-game-button"
@@ -236,6 +237,7 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
     : (game.creator.username ? `/creator/${game.creator.username}` : "/creator")
   const category = CATEGORIES.find(c => c.value === game.category)
   const mobileOrientationLabel = getMobileOrientationLabel(game.mobileOrientation)
+  const canAutoCaptureThumbnails = session?.user?.id === game.creator.id
   const mobileTagLabel = !game.supportsMobile
     ? "DESKTOP_ONLY"
     : game.mobileOrientation === "BOTH"
@@ -292,7 +294,8 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
               <PlayTracker gameId={game.id} levelId={selectedLevel?.id ?? null} />
 
               {/* Game iframe */}
-              <GamePlayer
+              <PlayableGameSection
+                gameId={game.id}
                 title={game.title}
                 gameUrl={game.gameUrl}
                 runtimeLabel={`${game.title.toLowerCase().replace(/\s+/g, "_")}.exe`}
@@ -301,6 +304,7 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
                 levelData={selectedLevel?.data}
                 levelName={selectedLevel?.name}
                 levelDescription={selectedLevel?.description}
+                canAutoCaptureThumbnails={canAutoCaptureThumbnails}
               />
 
               {/* Game info */}
@@ -549,9 +553,16 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
                           href={`/play/${related.slug}`}
                           className="flex items-center gap-3 p-2 hover:bg-[#1a1a2e] transition-colors border border-transparent hover:border-[#4a4a6a]"
                         >
-                          <div className="w-12 h-8 bg-[#1a1a2e] border border-[#4a4a6a] flex items-center justify-center overflow-hidden">
+                          <div className="relative w-12 h-8 bg-[#1a1a2e] border border-[#4a4a6a] flex items-center justify-center overflow-hidden">
                             {related.thumbnail ? (
-                              <img src={related.thumbnail} alt="" className="w-full h-full object-cover grayscale hover:grayscale-0" />
+                              <GameThumbnailSlideshow
+                                title={related.title}
+                                thumbnail={related.thumbnail}
+                                thumbnailSlides={related.thumbnailSlides}
+                                sizes="48px"
+                                imageClassName="object-cover grayscale hover:grayscale-0"
+                                showIndicators={false}
+                              />
                             ) : (
                               <Play className="h-3 w-3 text-[#4a4a6a]" />
                             )}

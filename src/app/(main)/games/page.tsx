@@ -59,14 +59,15 @@ const getGames = unstable_cache(async (category?: string, sort?: string, q?: str
   const [games, total] = await Promise.all([
     prisma.game.findMany({
       where,
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        thumbnail: true,
-        category: true,
-        plays: true,
-        likes: true,
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          thumbnail: true,
+          thumbnailSlides: true,
+          category: true,
+          plays: true,
+          likes: true,
         createdAt: true,
         publishedAt: true,
         supportsMobile: true,

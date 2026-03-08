@@ -21,6 +21,7 @@ export type GameCardData = Pick<
   Game,
   'id' | 'slug' | 'title' | 'thumbnail' | 'category' | 'plays' | 'likes' | 'createdAt' | 'supportsMobile' | 'aiModel'
 > & {
+  thumbnailSlides?: string[]
   hasLevelEditor?: boolean
   creator: Pick<User, 'name' | 'username' | 'image'>
   studioProfile?: Pick<StudioProfile, 'handle' | 'displayName' | 'image'> | null

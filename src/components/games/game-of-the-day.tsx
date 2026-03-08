@@ -1,8 +1,8 @@
 import Link from "next/link"
-import Image from "next/image"
-import { Gamepad2, Play, Star, Eye, Crown, Calendar } from "lucide-react"
+import { Gamepad2, Play, Star, Eye, Crown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CreatorLink } from "@/components/games/creator-link"
+import { GameThumbnailSlideshow } from "@/components/games/game-thumbnail-slideshow"
 
 interface GameOfTheDayProps {
   game: {
@@ -11,6 +11,7 @@ interface GameOfTheDayProps {
     title: string
     description: string
     thumbnail?: string | null
+    thumbnailSlides?: string[]
     category: string
     plays: number
     likes: number
@@ -92,13 +93,13 @@ export function GameOfTheDay({ game, monthlyStars, monthlyRatings }: GameOfTheDa
               className="relative w-full lg:w-[55%] aspect-video lg:aspect-auto lg:min-h-[320px] overflow-hidden bg-[#0d0d15] flex-shrink-0"
             >
               {game.thumbnail ? (
-                <Image
-                  src={game.thumbnail}
-                  alt={game.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                <GameThumbnailSlideshow
+                  title={game.title}
+                  thumbnail={game.thumbnail}
+                  thumbnailSlides={game.thumbnailSlides}
                   sizes="(max-width: 1024px) 100vw, 55vw"
                   priority
+                  imageClassName="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center min-h-[200px]">

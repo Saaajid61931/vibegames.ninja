@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
-import { Plus, User, Menu, X } from "lucide-react"
+import { Plus, User, Menu, Settings, X } from "lucide-react"
 import { NinjaConsole } from "@/components/icons/ninja-console"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
@@ -145,7 +145,7 @@ export function Header() {
                         <Button variant="outline" className="gap-2 border-[var(--color-border)] bg-[var(--color-surface)]">
                           <User className="h-4 w-4 text-[var(--color-primary)]" />
                           <span className="hidden sm:inline">
-                            {session.user.username || "Account"}
+                            {session.user.name || session.user.username || "Account"}
                           </span>
                         </Button>
                       </DropdownMenuTrigger>
@@ -169,6 +169,9 @@ export function Header() {
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href="/creator">Dashboard</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/settings">Settings</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href="/favorites">Favorites</Link>
@@ -244,7 +247,7 @@ export function Header() {
                     </p>
                     <p className="text-xs text-[var(--color-text-tertiary)] truncate">{session.user.email}</p>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     <Link href="/notifications">
                       <Button variant="outline" className="w-full gap-1" onClick={() => setMobileMenuOpen(false)}>
                         Notifs
@@ -260,6 +263,12 @@ export function Header() {
                     </Link>
                     <Link href="/creator">
                       <Button variant="outline" className="w-full" onClick={() => setMobileMenuOpen(false)}>Dashboard</Button>
+                    </Link>
+                    <Link href="/settings">
+                      <Button variant="outline" className="w-full gap-1" onClick={() => setMobileMenuOpen(false)}>
+                        <Settings className="h-4 w-4" />
+                        Settings
+                      </Button>
                     </Link>
                   </div>
                   <Link href="/favorites">

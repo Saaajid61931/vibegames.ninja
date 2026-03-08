@@ -1,6 +1,6 @@
 import Link from "next/link"
-import Image from "next/image"
 import { Play, Heart, User, Smartphone, SquarePen } from "lucide-react"
+import { GameThumbnailSlideshow } from "@/components/games/game-thumbnail-slideshow"
 import { formatNumber, timeAgo, CATEGORIES } from "@/lib/utils"
 import { CreatorLink } from "@/components/games/creator-link"
 
@@ -10,6 +10,7 @@ interface GameCardProps {
     slug: string
     title: string
     thumbnail?: string | null
+    thumbnailSlides?: string[]
     category: string
     plays: number
     likes: number
@@ -37,17 +38,18 @@ export function GameCard({ game }: GameCardProps) {
   return (
     <Link
       href={`/play/${game.slug}`}
+      prefetch={false}
       className="group block card-arcade"
     >
       {/* Thumbnail */}
       <div className="relative aspect-video overflow-hidden bg-[var(--color-base)]">
         {game.thumbnail ? (
-          <Image
-            src={game.thumbnail}
-            alt={game.title}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          <GameThumbnailSlideshow
+            title={game.title}
+            thumbnail={game.thumbnail}
+            thumbnailSlides={game.thumbnailSlides}
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            imageClassName="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">

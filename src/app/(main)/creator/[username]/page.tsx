@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { ChevronLeft, Gamepad2, Users } from "lucide-react"
 import { auth } from "@/lib/auth"
@@ -34,9 +34,31 @@ const getCreator = cache(async (username: string) => {
   })
 })
 
+const getRedirectedUsername = cache(async (username: string) => {
+  const redirectEntry = await prisma.usernameRedirect.findUnique({
+    where: { oldUsername: username },
+    select: {
+      user: {
+        select: {
+          username: true,
+        },
+      },
+    },
+  })
+
+  return redirectEntry?.user.username || null
+})
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params
-  const creator = await getCreator(username)
+  let creator = await getCreator(username)
+
+  if (!creator?.username) {
+    const redirectedUsername = await getRedirectedUsername(username)
+    if (redirectedUsername && redirectedUsername !== username) {
+      creator = await getCreator(redirectedUsername)
+    }
+  }
 
   if (!creator || !creator.username) {
     return {
@@ -77,6 +99,11 @@ export default async function PublicCreatorPage({ params }: PageProps) {
   const creator = await getCreator(username)
 
   if (!creator) {
+    const redirectedUsername = await getRedirectedUsername(username)
+    if (redirectedUsername && redirectedUsername !== username) {
+      redirect(`/creator/${redirectedUsername}`)
+    }
+
     notFound()
   }
 
@@ -91,6 +118,7 @@ export default async function PublicCreatorPage({ params }: PageProps) {
         slug: true,
         title: true,
         thumbnail: true,
+        thumbnailSlides: true,
         category: true,
         plays: true,
         likes: true,

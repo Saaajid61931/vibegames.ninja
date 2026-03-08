@@ -2,6 +2,22 @@ import { z } from 'zod'
 
 const MAX_LEVEL_DATA_BYTES = 5 * 1024 * 1024
 
+const usernameSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(3, 'Username must be at least 3 characters')
+  .max(24, 'Username must be 24 characters or less')
+  .regex(/^[a-z0-9_]+$/, 'Username can only contain letters, numbers, and underscores')
+
+const optionalUsernameSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .max(24, 'Username must be 24 characters or less')
+  .regex(/^[a-z0-9_]*$/, 'Username can only contain letters, numbers, and underscores')
+  .refine((value) => value.length === 0 || value.length >= 3, 'Username must be at least 3 characters')
+
 const levelDataSchema = z
   .unknown()
   .refine(
@@ -17,13 +33,34 @@ export const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  username: z.string().min(3, 'Username must be at least 3 characters').regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
+  username: usernameSchema,
 })
 
 export const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(1, 'Password is required'),
 })
+
+export const profileSettingsSchema = z.object({
+  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(60, 'Name must be 60 characters or less'),
+  username: optionalUsernameSchema.optional().default(''),
+  bio: z.string().trim().max(280, 'Bio must be 280 characters or less').default(''),
+})
+
+export const passwordChangeSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Current password is required'),
+    newPassword: z.string().min(8, 'New password must be at least 8 characters').max(72, 'New password is too long'),
+    confirmPassword: z.string().min(1, 'Please confirm your new password'),
+  })
+  .refine((value) => value.newPassword === value.confirmPassword, {
+    message: 'New password confirmation does not match',
+    path: ['confirmPassword'],
+  })
+  .refine((value) => value.currentPassword !== value.newPassword, {
+    message: 'New password must be different from your current password',
+    path: ['newPassword'],
+  })
 
 export const gameUploadSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
@@ -90,6 +127,8 @@ export const gameJamEntrySchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
+export type ProfileSettingsInput = z.infer<typeof profileSettingsSchema>
+export type PasswordChangeInput = z.infer<typeof passwordChangeSchema>
 export type GameUploadInput = z.infer<typeof gameUploadSchema>
 export type CommentInput = z.infer<typeof commentSchema>
 export type ReportInput = z.infer<typeof reportSchema>

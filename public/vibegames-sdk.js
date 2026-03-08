@@ -7,9 +7,46 @@
     loadLevel: [],
     enterEditMode: [],
     requestSave: [],
+    requestScreenshot: [],
   }
+  var MAX_SCREENSHOT_WIDTH = 960
+  var SCREENSHOT_QUALITY = 0.68
   var mode = "play"
   var lastEnterEditPayload = {}
+
+  function exportCanvasImage(canvas) {
+    var width = canvas.width || 0
+    var height = canvas.height || 0
+
+    if (!width || !height) {
+      return null
+    }
+
+    var scale = Math.min(1, MAX_SCREENSHOT_WIDTH / width)
+    var targetCanvas = canvas
+
+    if (scale < 1) {
+      targetCanvas = document.createElement("canvas")
+      targetCanvas.width = Math.max(1, Math.round(width * scale))
+      targetCanvas.height = Math.max(1, Math.round(height * scale))
+
+      var targetContext = targetCanvas.getContext("2d")
+      if (!targetContext) {
+        return null
+      }
+
+      targetContext.imageSmoothingEnabled = true
+      targetContext.imageSmoothingQuality = "high"
+      targetContext.drawImage(canvas, 0, 0, width, height, 0, 0, targetCanvas.width, targetCanvas.height)
+    }
+
+    var webpDataUrl = targetCanvas.toDataURL("image/webp", SCREENSHOT_QUALITY)
+    if (webpDataUrl.indexOf("data:image/webp") === 0) {
+      return webpDataUrl
+    }
+
+    return targetCanvas.toDataURL("image/jpeg", SCREENSHOT_QUALITY)
+  }
 
   function emitSdkReady() {
     try {
@@ -41,6 +78,53 @@
       } catch (error) {
         console.error("VG.onEnterEditMode handler failed", error)
       }
+    })
+  }
+
+  async function captureScreenshot(payload) {
+    var requestPayload = payload || {}
+    var imageDataUrl = null
+
+    for (var index = 0; index < listeners.requestScreenshot.length; index += 1) {
+      var handler = listeners.requestScreenshot[index]
+
+      try {
+        var result = handler(requestPayload)
+        if (result && typeof result.then === "function") {
+          result = await result
+        }
+
+        if (typeof result === "string" && result.indexOf("data:image/") === 0) {
+          imageDataUrl = result
+          break
+        }
+      } catch (error) {
+        console.error("VG.onRequestScreenshot handler failed", error)
+      }
+    }
+
+    if (!imageDataUrl) {
+      try {
+        var canvas = document.querySelector("canvas")
+        if (canvas && typeof canvas.toDataURL === "function") {
+          imageDataUrl = exportCanvasImage(canvas)
+        }
+      } catch (error) {
+        console.error("VG default screenshot capture failed", error)
+      }
+    }
+
+    if (imageDataUrl) {
+      post("VG_SCREENSHOT_CAPTURED", {
+        captureId: requestPayload.captureId || null,
+        imageDataUrl: imageDataUrl,
+      })
+      return
+    }
+
+    post("VG_SCREENSHOT_CAPTURED", {
+      captureId: requestPayload.captureId || null,
+      error: "Unable to capture screenshot. Render to a canvas or register VG.onRequestScreenshot().",
     })
   }
 
@@ -102,6 +186,11 @@
           console.error("VG.onRequestSave handler failed", error)
         }
       })
+      return
+    }
+
+    if (message.type === "VG_REQUEST_SCREENSHOT") {
+      captureScreenshot(message.payload || {})
     }
   }
 
@@ -147,6 +236,16 @@
       }
       return function unsubscribe() {
         listeners.requestSave = listeners.requestSave.filter(function (fn) {
+          return fn !== handler
+        })
+      }
+    },
+    onRequestScreenshot: function onRequestScreenshot(handler) {
+      if (typeof handler === "function") {
+        listeners.requestScreenshot.push(handler)
+      }
+      return function unsubscribe() {
+        listeners.requestScreenshot = listeners.requestScreenshot.filter(function (fn) {
           return fn !== handler
         })
       }

@@ -172,6 +172,7 @@ export async function POST(request: NextRequest) {
           isAIGenerated,
           gameUrl,
           thumbnail: thumbnailUrl,
+          thumbnailSlides: thumbnailUrl ? [thumbnailUrl] : [],
           creatorId: session.user.id,
           ...(studioProfileConnectId ? { studioProfileId: studioProfileConnectId } : {}),
           status: "PUBLISHED",

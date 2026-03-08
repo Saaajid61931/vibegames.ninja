@@ -104,6 +104,7 @@ const getGameOfTheMonth = unstable_cache(async () => {
     title: true,
     description: true,
     thumbnail: true,
+    thumbnailSlides: true,
     category: true,
     plays: true,
     likes: true,
@@ -135,12 +136,23 @@ const getGameOfTheMonth = unstable_cache(async () => {
     take: 10,
   })
 
-  // Find the first one that is actually published
+  const publishedTopRatedGames = topRated.length
+    ? await prisma.game.findMany({
+        where: {
+          id: { in: topRated.map((entry) => entry.gameId) },
+          status: "PUBLISHED",
+        },
+        select: gameSelect,
+      })
+    : []
+
+  const publishedTopRatedGamesById = new Map(
+    publishedTopRatedGames.map((game) => [game.id, game])
+  )
+
+  // Find the first one that is actually published without extra per-row queries
   for (const entry of topRated) {
-    const game = await prisma.game.findUnique({
-      where: { id: entry.gameId },
-      select: gameSelect,
-    })
+    const game = publishedTopRatedGamesById.get(entry.gameId)
     if (game && game.status === "PUBLISHED") {
       return {
         game,

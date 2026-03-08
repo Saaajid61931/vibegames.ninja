@@ -29,13 +29,31 @@ export async function POST(request: Request) {
       )
     }
 
-    // Check if username already exists
-    const existingUsername = await prisma.user.findUnique({
-      where: { username },
-    })
+    // Check if username already exists or is reserved
+    const [existingUsername, existingStudioProfile, existingRedirect] = await Promise.all([
+      prisma.user.findUnique({
+        where: { username },
+      }),
+      prisma.studioProfile.findUnique({
+        where: { handle: username },
+        select: { id: true },
+      }),
+      prisma.usernameRedirect.findUnique({
+        where: { oldUsername: username },
+        select: { id: true },
+      }),
+    ])
+
     if (existingUsername) {
       return NextResponse.json(
         { error: "Username already taken" },
+        { status: 400 }
+      )
+    }
+
+    if (existingStudioProfile || existingRedirect) {
+      return NextResponse.json(
+        { error: "Username is reserved" },
         { status: 400 }
       )
     }

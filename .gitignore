@@ -42,6 +42,20 @@ nul
 # env files (can opt-in for committing if needed)
 .env*
 
+# secrets and local credentials
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.mobileprovision
+credentials.json
+service-account*.json
+firebase-admin*.json
+google-credentials*.json
+oauth-client*.json
+secrets/
+
 # local runtime uploads and db artifacts
 public/games/
 prisma/dev.db

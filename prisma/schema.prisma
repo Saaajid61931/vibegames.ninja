@@ -43,12 +43,24 @@ model User {
   gameRatings   GameRating[]
   earnings      Earnings[]
   notifications Notification[]
+  usernameRedirects UsernameRedirect[]
 
   studioProfiles StudioProfile[]
   featuredPicks  FeaturedGame[]
   jamEntries     GameJamEntry[]
   jamVotes       GameJamVote[]
   createdJams    GameJam[]
+}
+
+model UsernameRedirect {
+  id          String   @id @default(cuid())
+  oldUsername String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Account {
@@ -94,6 +106,7 @@ model Game {
   description    String
   instructions   String?
   thumbnail      String?
+  thumbnailSlides String[] @default([])
   gameUrl        String
   category       String  @default("OTHER") // ACTION, PUZZLE, ARCADE, etc.
   tags           String // Comma-separated tags

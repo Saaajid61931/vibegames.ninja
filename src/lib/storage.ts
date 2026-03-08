@@ -33,9 +33,46 @@ const INLINE_LEVEL_EDITOR_SDK = `<script id="vibegames-sdk-inline">;(function ()
     loadLevel: [],
     enterEditMode: [],
     requestSave: [],
+    requestScreenshot: [],
   }
+  var MAX_SCREENSHOT_WIDTH = 960
+  var SCREENSHOT_QUALITY = 0.68
   var mode = "play"
   var lastEnterEditPayload = {}
+
+  function exportCanvasImage(canvas) {
+    var width = canvas.width || 0
+    var height = canvas.height || 0
+
+    if (!width || !height) {
+      return null
+    }
+
+    var scale = Math.min(1, MAX_SCREENSHOT_WIDTH / width)
+    var targetCanvas = canvas
+
+    if (scale < 1) {
+      targetCanvas = document.createElement("canvas")
+      targetCanvas.width = Math.max(1, Math.round(width * scale))
+      targetCanvas.height = Math.max(1, Math.round(height * scale))
+
+      var targetContext = targetCanvas.getContext("2d")
+      if (!targetContext) {
+        return null
+      }
+
+      targetContext.imageSmoothingEnabled = true
+      targetContext.imageSmoothingQuality = "high"
+      targetContext.drawImage(canvas, 0, 0, width, height, 0, 0, targetCanvas.width, targetCanvas.height)
+    }
+
+    var webpDataUrl = targetCanvas.toDataURL("image/webp", SCREENSHOT_QUALITY)
+    if (webpDataUrl.indexOf("data:image/webp") === 0) {
+      return webpDataUrl
+    }
+
+    return targetCanvas.toDataURL("image/jpeg", SCREENSHOT_QUALITY)
+  }
 
   function emitSdkReady() {
     try {
@@ -67,6 +104,53 @@ const INLINE_LEVEL_EDITOR_SDK = `<script id="vibegames-sdk-inline">;(function ()
       } catch (error) {
         console.error("VG.onEnterEditMode handler failed", error)
       }
+    })
+  }
+
+  async function captureScreenshot(payload) {
+    var requestPayload = payload || {}
+    var imageDataUrl = null
+
+    for (var index = 0; index < listeners.requestScreenshot.length; index += 1) {
+      var handler = listeners.requestScreenshot[index]
+
+      try {
+        var result = handler(requestPayload)
+        if (result && typeof result.then === "function") {
+          result = await result
+        }
+
+        if (typeof result === "string" && result.indexOf("data:image/") === 0) {
+          imageDataUrl = result
+          break
+        }
+      } catch (error) {
+        console.error("VG.onRequestScreenshot handler failed", error)
+      }
+    }
+
+    if (!imageDataUrl) {
+      try {
+        var canvas = document.querySelector("canvas")
+        if (canvas && typeof canvas.toDataURL === "function") {
+          imageDataUrl = exportCanvasImage(canvas)
+        }
+      } catch (error) {
+        console.error("VG default screenshot capture failed", error)
+      }
+    }
+
+    if (imageDataUrl) {
+      post("VG_SCREENSHOT_CAPTURED", {
+        captureId: requestPayload.captureId || null,
+        imageDataUrl: imageDataUrl,
+      })
+      return
+    }
+
+    post("VG_SCREENSHOT_CAPTURED", {
+      captureId: requestPayload.captureId || null,
+      error: "Unable to capture screenshot. Render to a canvas or register VG.onRequestScreenshot().",
     })
   }
 
@@ -128,6 +212,11 @@ const INLINE_LEVEL_EDITOR_SDK = `<script id="vibegames-sdk-inline">;(function ()
           console.error("VG.onRequestSave handler failed", error)
         }
       })
+      return
+    }
+
+    if (message.type === "VG_REQUEST_SCREENSHOT") {
+      captureScreenshot(message.payload || {})
     }
   }
 
@@ -173,6 +262,16 @@ const INLINE_LEVEL_EDITOR_SDK = `<script id="vibegames-sdk-inline">;(function ()
       }
       return function unsubscribe() {
         listeners.requestSave = listeners.requestSave.filter(function (fn) {
+          return fn !== handler
+        })
+      }
+    },
+    onRequestScreenshot: function onRequestScreenshot(handler) {
+      if (typeof handler === "function") {
+        listeners.requestScreenshot.push(handler)
+      }
+      return function unsubscribe() {
+        listeners.requestScreenshot = listeners.requestScreenshot.filter(function (fn) {
           return fn !== handler
         })
       }
@@ -344,6 +443,38 @@ function normalizeZipPath(entryName: string): string | null {
   return normalized
 }
 
+function getImageExtensionFromContentType(contentType: string): string {
+  switch (contentType.toLowerCase()) {
+    case "image/png":
+      return "png"
+    case "image/webp":
+      return "webp"
+    case "image/gif":
+      return "gif"
+    case "image/jpg":
+    case "image/jpeg":
+    default:
+      return "jpg"
+  }
+}
+
+function parseImageDataUrl(dataUrl: string): { buffer: Buffer; contentType: string; extension: string } {
+  const match = /^data:(image\/(?:png|jpeg|jpg|webp|gif));base64,([a-z0-9+/=]+)$/i.exec(dataUrl.trim())
+
+  if (!match) {
+    throw new Error("Invalid screenshot payload")
+  }
+
+  const contentType = match[1].toLowerCase()
+  const extension = getImageExtensionFromContentType(contentType)
+
+  return {
+    buffer: Buffer.from(match[2], "base64"),
+    contentType,
+    extension,
+  }
+}
+
 async function putObject(params: {
   key: string
   body: Buffer
@@ -469,7 +600,100 @@ function isRootThumbnailAsset(key: string, prefix: string): boolean {
   }
 
   const relativePath = key.slice(prefix.length)
-  return /^thumbnail\.[^/]+$/i.test(relativePath)
+  return /^thumbnail(?:-\d+)?\.[^/]+$/i.test(relativePath)
+}
+
+function isRootUserAvatarAsset(key: string, prefix: string): boolean {
+  if (!key.startsWith(prefix)) {
+    return false
+  }
+
+  const relativePath = key.slice(prefix.length)
+  return /^avatar\.[^/]+$/i.test(relativePath)
+}
+
+export async function deleteGameThumbnailAssetsFromR2(gameId: string): Promise<number> {
+  const prefix = `games/${gameId}/`
+  const client = getR2Client()
+  const bucket = getBucketName()
+
+  let continuationToken: string | undefined
+  let deletedCount = 0
+
+  do {
+    const listed = await client.send(
+      new ListObjectsV2Command({
+        Bucket: bucket,
+        Prefix: prefix,
+        ContinuationToken: continuationToken,
+      })
+    )
+
+    const objectsToDelete =
+      listed.Contents?.map((obj) => obj.Key)
+        .filter((key): key is string => Boolean(key))
+        .filter((key) => isRootThumbnailAsset(key, prefix))
+        .map((key) => ({ Key: key })) || []
+
+    if (objectsToDelete.length > 0) {
+      await client.send(
+        new DeleteObjectsCommand({
+          Bucket: bucket,
+          Delete: {
+            Objects: objectsToDelete,
+            Quiet: true,
+          },
+        })
+      )
+      deletedCount += objectsToDelete.length
+    }
+
+    continuationToken = listed.IsTruncated ? listed.NextContinuationToken : undefined
+  } while (continuationToken)
+
+  return deletedCount
+}
+
+export async function deleteUserAvatarAssetsFromR2(userId: string): Promise<number> {
+  const prefix = `users/${userId}/`
+  const client = getR2Client()
+  const bucket = getBucketName()
+
+  let continuationToken: string | undefined
+  let deletedCount = 0
+
+  do {
+    const listed = await client.send(
+      new ListObjectsV2Command({
+        Bucket: bucket,
+        Prefix: prefix,
+        ContinuationToken: continuationToken,
+      })
+    )
+
+    const objectsToDelete =
+      listed.Contents?.map((obj) => obj.Key)
+        .filter((key): key is string => Boolean(key))
+        .filter((key) => isRootUserAvatarAsset(key, prefix))
+        .map((key) => ({ Key: key })) || []
+
+    if (objectsToDelete.length > 0) {
+      await client.send(
+        new DeleteObjectsCommand({
+          Bucket: bucket,
+          Delete: {
+            Objects: objectsToDelete,
+            Quiet: true,
+          },
+        })
+      )
+      deletedCount += objectsToDelete.length
+    }
+
+    continuationToken = listed.IsTruncated ? listed.NextContinuationToken : undefined
+  } while (continuationToken)
+
+  return deletedCount
 }
 
 export async function deleteStaleGameAssetsFromR2(gameId: string, keepKeys: string[]): Promise<number> {
@@ -520,10 +744,61 @@ export async function uploadThumbnailToR2(gameId: string, thumbnail: File): Prom
   const key = `games/${gameId}/thumbnail.${extension}`
   const buffer = Buffer.from(await thumbnail.arrayBuffer())
 
+  await deleteGameThumbnailAssetsFromR2(gameId)
+
   await putObject({
     key,
     body: buffer,
     contentType: getContentType(`thumbnail.${extension}`),
+    cacheControl: "public, max-age=31536000, immutable",
+  })
+
+  return createAssetUrl(key)
+}
+
+export async function uploadThumbnailSlidesToR2(gameId: string, screenshots: string[]): Promise<string[]> {
+  if (screenshots.length === 0) {
+    return []
+  }
+
+  await deleteGameThumbnailAssetsFromR2(gameId)
+
+  const uploadedUrls: string[] = []
+
+  for (const [index, screenshot] of screenshots.entries()) {
+    const parsed = parseImageDataUrl(screenshot)
+    const fileName = index === 0 ? `thumbnail.${parsed.extension}` : `thumbnail-${index + 1}.${parsed.extension}`
+    const key = `games/${gameId}/${fileName}`
+
+    await putObject({
+      key,
+      body: parsed.buffer,
+      contentType: parsed.contentType,
+      cacheControl: "public, max-age=31536000, immutable",
+    })
+
+    uploadedUrls.push(createAssetUrl(key))
+  }
+
+  return uploadedUrls
+}
+
+export async function uploadUserAvatarToR2(userId: string, avatar: File): Promise<string> {
+  const contentType = avatar.type.toLowerCase()
+  if (!["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"].includes(contentType)) {
+    throw new Error("Unsupported avatar format. Use PNG, JPG, WEBP, or GIF.")
+  }
+
+  const extension = getImageExtensionFromContentType(contentType)
+  const key = `users/${userId}/avatar.${extension}`
+  const buffer = Buffer.from(await avatar.arrayBuffer())
+
+  await deleteUserAvatarAssetsFromR2(userId)
+
+  await putObject({
+    key,
+    body: buffer,
+    contentType,
     cacheControl: "public, max-age=31536000, immutable",
   })
 

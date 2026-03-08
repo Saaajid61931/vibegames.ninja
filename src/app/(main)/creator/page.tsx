@@ -11,10 +11,12 @@ import {
   Edit,
   ExternalLink,
   Layers,
+  Settings,
 } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { GameThumbnailSlideshow } from "@/components/games/game-thumbnail-slideshow"
 import { Button } from "@/components/ui/button"
 import prisma from "@/lib/prisma"
 import { formatNumber, timeAgo, CATEGORIES } from "@/lib/utils"
@@ -35,6 +37,7 @@ async function getCreatorData(userId: string) {
         slug: true,
         title: true,
         thumbnail: true,
+        thumbnailSlides: true,
         category: true,
         plays: true,
         likes: true,
@@ -102,6 +105,12 @@ export default async function CreatorDashboard() {
               <Button variant="arcade-outline" className="gap-2 font-arcade">
                 <TrendingUp className="h-4 w-4" />
                 [ANALYTICS]
+              </Button>
+            </Link>
+            <Link href="/settings">
+              <Button variant="arcade-outline" className="gap-2 font-arcade">
+                <Settings className="h-4 w-4" />
+                [SETTINGS]
               </Button>
             </Link>
           </div>
@@ -175,12 +184,15 @@ export default async function CreatorDashboard() {
                       className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 hover:bg-[#1a1a2e] transition-colors"
                     >
                       {/* Thumbnail */}
-                      <div className="w-full sm:w-20 h-32 sm:h-12 bg-[#1a1a2e] border border-[#4a4a6a] overflow-hidden flex-shrink-0">
+                      <div className="relative w-full sm:w-20 h-32 sm:h-12 bg-[#1a1a2e] border border-[#4a4a6a] overflow-hidden flex-shrink-0">
                         {game.thumbnail ? (
-                          <img 
-                            src={game.thumbnail} 
-                            alt={game.title}
-                            className="w-full h-full object-cover grayscale"
+                          <GameThumbnailSlideshow
+                            title={game.title}
+                            thumbnail={game.thumbnail}
+                            thumbnailSlides={game.thumbnailSlides}
+                            sizes="80px"
+                            imageClassName="object-cover grayscale"
+                            showIndicators={false}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
