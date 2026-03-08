@@ -70,6 +70,7 @@ export function GameThumbnailSlideshow({
         src={currentSrc}
         alt={title}
         fill
+        unoptimized
         className={`${imageClassName} transition-opacity duration-500 opacity-100`}
         sizes={sizes}
         priority={priority && visibleIndex === 0}
