@@ -6,6 +6,15 @@ import { uploadThumbnailSlidesToR2, validateR2Config } from "@/lib/storage"
 
 const MAX_SCREENSHOT_COUNT = 5
 const MAX_IMAGE_DATA_URL_LENGTH = 2_000_000
+const ALLOWED_VARIANT_WIDTHS = new Set([320, 640])
+
+type ThumbnailSlideInput = {
+  original: string
+  variants?: Array<{
+    width: number
+    image: string
+  }>
+}
 
 export async function POST(
   request: NextRequest,
@@ -34,7 +43,14 @@ export async function POST(
 
     const body = await request.json()
     const images = Array.isArray(body?.images)
-      ? body.images.filter((item: unknown): item is string => typeof item === "string")
+      ? body.images.filter((item: unknown): item is ThumbnailSlideInput => {
+          if (!item || typeof item !== "object") {
+            return false
+          }
+
+          const candidate = item as ThumbnailSlideInput
+          return typeof candidate.original === "string"
+        })
       : []
 
     if (images.length === 0 || images.length > MAX_SCREENSHOT_COUNT) {
@@ -44,9 +60,19 @@ export async function POST(
       )
     }
 
-    const hasInvalidImage = images.some(
-      (image: string) => !image.startsWith("data:image/") || image.length > MAX_IMAGE_DATA_URL_LENGTH
-    )
+    const hasInvalidImage = images.some((image: ThumbnailSlideInput) => {
+      if (!image.original.startsWith("data:image/") || image.original.length > MAX_IMAGE_DATA_URL_LENGTH) {
+        return true
+      }
+
+      return (image.variants || []).some(
+        (variant: { width: number; image: string }) =>
+          !ALLOWED_VARIANT_WIDTHS.has(variant.width) ||
+          typeof variant.image !== "string" ||
+          !variant.image.startsWith("data:image/") ||
+          variant.image.length > MAX_IMAGE_DATA_URL_LENGTH
+      )
+    })
     if (hasInvalidImage) {
       return NextResponse.json({ error: "One or more screenshots are invalid or too large" }, { status: 400 })
     }

@@ -600,7 +600,22 @@ function isRootThumbnailAsset(key: string, prefix: string): boolean {
   }
 
   const relativePath = key.slice(prefix.length)
-  return /^thumbnail(?:-\d+)?\.[^/]+$/i.test(relativePath)
+  return /^thumbnail(?:-\d+)?(?:-w\d+)?\.[^/]+$/i.test(relativePath)
+}
+
+type ThumbnailSlideUpload = {
+  original: string
+  variants?: Array<{
+    width: number
+    image: string
+  }>
+}
+
+const RESPONSIVE_THUMBNAIL_WIDTHS = new Set([320, 640])
+const RESPONSIVE_THUMBNAIL_QUERY = "rv=1"
+
+function createResponsiveThumbnailUrl(key: string): string {
+  return `${createAssetUrl(key)}?${RESPONSIVE_THUMBNAIL_QUERY}`
 }
 
 function isRootUserAvatarAsset(key: string, prefix: string): boolean {
@@ -756,7 +771,7 @@ export async function uploadThumbnailToR2(gameId: string, thumbnail: File): Prom
   return createAssetUrl(key)
 }
 
-export async function uploadThumbnailSlidesToR2(gameId: string, screenshots: string[]): Promise<string[]> {
+export async function uploadThumbnailSlidesToR2(gameId: string, screenshots: ThumbnailSlideUpload[]): Promise<string[]> {
   if (screenshots.length === 0) {
     return []
   }
@@ -766,8 +781,9 @@ export async function uploadThumbnailSlidesToR2(gameId: string, screenshots: str
   const uploadedUrls: string[] = []
 
   for (const [index, screenshot] of screenshots.entries()) {
-    const parsed = parseImageDataUrl(screenshot)
-    const fileName = index === 0 ? `thumbnail.${parsed.extension}` : `thumbnail-${index + 1}.${parsed.extension}`
+    const parsed = parseImageDataUrl(screenshot.original)
+    const fileStem = index === 0 ? "thumbnail" : `thumbnail-${index + 1}`
+    const fileName = `${fileStem}.${parsed.extension}`
     const key = `games/${gameId}/${fileName}`
 
     await putObject({
@@ -777,7 +793,23 @@ export async function uploadThumbnailSlidesToR2(gameId: string, screenshots: str
       cacheControl: "public, max-age=31536000, immutable",
     })
 
-    uploadedUrls.push(createAssetUrl(key))
+    for (const variant of screenshot.variants || []) {
+      if (!RESPONSIVE_THUMBNAIL_WIDTHS.has(variant.width)) {
+        continue
+      }
+
+      const parsedVariant = parseImageDataUrl(variant.image)
+      const variantKey = `games/${gameId}/${fileStem}-w${variant.width}.${parsedVariant.extension}`
+
+      await putObject({
+        key: variantKey,
+        body: parsedVariant.buffer,
+        contentType: parsedVariant.contentType,
+        cacheControl: "public, max-age=31536000, immutable",
+      })
+    }
+
+    uploadedUrls.push(createResponsiveThumbnailUrl(key))
   }
 
   return uploadedUrls
