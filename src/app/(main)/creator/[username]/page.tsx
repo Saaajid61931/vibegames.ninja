@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
-import { ChevronLeft, Gamepad2, Users } from "lucide-react"
+import { ChevronLeft, Gamepad2, Users, Sparkles, Trophy, Smartphone } from "lucide-react"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { Header } from "@/components/layout/header"
@@ -12,7 +12,7 @@ import { FollowButton } from "@/components/creator/follow-button"
 import { Button } from "@/components/ui/button"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
 import { formatNumber, getInitials } from "@/lib/utils"
-import { SITE_URL } from "@/lib/site"
+import { SITE_NAME, SITE_URL } from "@/lib/site"
 import type { GameCardData } from "@/types"
 import { cache } from "react"
 
@@ -70,6 +70,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const displayName = creator.name || creator.username
   const description = creator.bio || `Play games by @${creator.username} on VibeGames.Ninja.`
   const profilePath = `/creator/${creator.username}`
+  const ogImage = creator.image ? new URL(creator.image, SITE_URL).toString() : `${SITE_URL}/opengraph-image`
 
   return {
     title: `${displayName} (@${creator.username})`,
@@ -82,13 +83,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       url: `${SITE_URL}${profilePath}`,
       type: "website",
-      images: creator.image ? [creator.image] : ["/favicon.ico"],
+      siteName: SITE_NAME,
+      images: [ogImage],
     },
     twitter: {
       card: "summary_large_image",
       title: `${displayName} (@${creator.username})`,
       description,
-      images: creator.image ? [creator.image] : ["/favicon.ico"],
+      images: [ogImage],
     },
   }
 }
@@ -156,6 +158,8 @@ export default async function PublicCreatorPage({ params }: PageProps) {
     ...game,
     createdAt: new Date(game.createdAt),
   }))
+  const mobileReadyGames = normalizedGames.filter((game) => game.supportsMobile).length
+  const topGame = [...normalizedGames].sort((a, b) => (b.plays + b.likes * 3) - (a.plays + a.likes * 3))[0]
 
   const creatorJsonLd = {
     "@context": "https://schema.org",
@@ -207,6 +211,30 @@ export default async function PublicCreatorPage({ params }: PageProps) {
           {creator.bio && (
             <p className="mt-4 text-sm text-[#4a4a6a] font-arcade">{creator.bio}</p>
           )}
+
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+              <div className="flex items-center gap-2">
+                <Trophy className="h-4 w-4 text-[#ffff00]" />
+                <span className="font-arcade text-[11px] text-[#ffff00]">TOP GAME</span>
+              </div>
+              <p className="mt-2 font-arcade text-sm text-white">{topGame?.title || "Coming soon"}</p>
+            </div>
+            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+              <div className="flex items-center gap-2">
+                <Smartphone className="h-4 w-4 text-[#22c55e]" />
+                <span className="font-arcade text-[11px] text-[#22c55e]">MOBILE READY</span>
+              </div>
+              <p className="mt-2 font-arcade text-sm text-white">{formatNumber(mobileReadyGames)} games</p>
+            </div>
+            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-[#00d1ff]" />
+                <span className="font-arcade text-[11px] text-[#00d1ff]">FOLLOW FOR DROPS</span>
+              </div>
+              <p className="mt-2 font-arcade text-sm text-white">Get new releases in your notifications.</p>
+            </div>
+          </div>
         </section>
 
         <section>

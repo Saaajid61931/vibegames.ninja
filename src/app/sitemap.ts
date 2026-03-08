@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
 import prisma from "@/lib/prisma"
 import { SITE_URL } from "@/lib/site"
+import { CATEGORIES } from "@/lib/utils"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [games, creators, studios, jams] = await Promise.all([
@@ -54,6 +55,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${SITE_URL}/games?mobile=true`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/games?editor=true`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.7,
+    },
+    {
       url: `${SITE_URL}/privacy`,
       lastModified: new Date(),
       changeFrequency: "monthly",
@@ -97,5 +110,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }))
 
-  return [...staticPages, ...gamePages, ...creatorPages, ...studioPages, ...jamPages]
+  const categoryPages: MetadataRoute.Sitemap = CATEGORIES.map((category) => ({
+    url: `${SITE_URL}/games?category=${category.value.toLowerCase()}`,
+    lastModified: new Date(),
+    changeFrequency: "daily",
+    priority: 0.7,
+  }))
+
+  return [...staticPages, ...categoryPages, ...gamePages, ...creatorPages, ...studioPages, ...jamPages]
 }

@@ -98,6 +98,9 @@ const INLINE_LEVEL_EDITOR_SDK = `<script id="vibegames-sdk-inline">;(function ()
 
   function emitEnterEditMode(payload) {
     lastEnterEditPayload = payload || {}
+    post("VG_EDIT_MODE_ENTERED", {
+      handlerCount: listeners.enterEditMode.length,
+    })
     listeners.enterEditMode.forEach(function (fn) {
       try {
         fn(lastEnterEditPayload)
@@ -188,6 +191,10 @@ const INLINE_LEVEL_EDITOR_SDK = `<script id="vibegames-sdk-inline">;(function ()
     }
 
     if (message.type === "VG_LOAD_LEVEL") {
+      post("VG_LEVEL_LOAD_RECEIVED", {
+        handlerCount: listeners.loadLevel.length,
+        hasLevel: Boolean((message.payload || {}).level),
+      })
       listeners.loadLevel.forEach(function (fn) {
         try {
           fn(message.payload || {})
@@ -205,6 +212,9 @@ const INLINE_LEVEL_EDITOR_SDK = `<script id="vibegames-sdk-inline">;(function ()
     }
 
     if (message.type === "VG_REQUEST_SAVE") {
+      post("VG_REQUEST_SAVE_RECEIVED", {
+        handlerCount: listeners.requestSave.length,
+      })
       listeners.requestSave.forEach(function (fn) {
         try {
           fn(message.payload || {})
@@ -232,6 +242,10 @@ const INLINE_LEVEL_EDITOR_SDK = `<script id="vibegames-sdk-inline">;(function ()
     onLoadLevel: function onLoadLevel(handler) {
       if (typeof handler === "function") {
         listeners.loadLevel.push(handler)
+        post("VG_EDITOR_HOOK_BOUND", {
+          hook: "onLoadLevel",
+          count: listeners.loadLevel.length,
+        })
       }
       return function unsubscribe() {
         listeners.loadLevel = listeners.loadLevel.filter(function (fn) {
@@ -242,6 +256,10 @@ const INLINE_LEVEL_EDITOR_SDK = `<script id="vibegames-sdk-inline">;(function ()
     onEnterEditMode: function onEnterEditMode(handler) {
       if (typeof handler === "function") {
         listeners.enterEditMode.push(handler)
+        post("VG_EDITOR_HOOK_BOUND", {
+          hook: "onEnterEditMode",
+          count: listeners.enterEditMode.length,
+        })
         if (mode === "editor") {
           try {
             handler(lastEnterEditPayload)
@@ -259,6 +277,10 @@ const INLINE_LEVEL_EDITOR_SDK = `<script id="vibegames-sdk-inline">;(function ()
     onRequestSave: function onRequestSave(handler) {
       if (typeof handler === "function") {
         listeners.requestSave.push(handler)
+        post("VG_EDITOR_HOOK_BOUND", {
+          hook: "onRequestSave",
+          count: listeners.requestSave.length,
+        })
       }
       return function unsubscribe() {
         listeners.requestSave = listeners.requestSave.filter(function (fn) {

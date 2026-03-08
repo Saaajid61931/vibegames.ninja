@@ -22,6 +22,7 @@ interface GamePlayerProps {
   levelDescription?: string | null
   onSaveLevel?: (payload: { name?: string; description?: string; data?: unknown; thumbnail?: string }) => void
   onReady?: (ready: boolean) => void
+  onEditorDiagnostic?: (event: { type: string; payload?: Record<string, unknown> }) => void
   requestSaveNonce?: number
   onAutoThumbnailCaptureProgress?: (payload: { captured: number; total: number }) => void
   onAutoThumbnailCaptureComplete?: (images: string[]) => void
@@ -61,6 +62,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
   levelDescription,
   onSaveLevel,
   onReady,
+  onEditorDiagnostic,
   requestSaveNonce,
   onAutoThumbnailCaptureProgress,
   onAutoThumbnailCaptureComplete,
@@ -135,6 +137,21 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
         onSaveLevel?.(message.payload || {})
       }
 
+      if (
+        message.type === "VG_EDITOR_HOOK_BOUND" ||
+        message.type === "VG_EDIT_MODE_ENTERED" ||
+        message.type === "VG_LEVEL_LOAD_RECEIVED" ||
+        message.type === "VG_REQUEST_SAVE_RECEIVED"
+      ) {
+        onEditorDiagnostic?.({
+          type: message.type,
+          payload:
+            typeof message.payload === "object" && message.payload
+              ? (message.payload as Record<string, unknown>)
+              : {},
+        })
+      }
+
       if (message.type === "VG_SCREENSHOT_CAPTURED") {
         const payload = message.payload || {}
         const captureId = typeof payload.captureId === "string" ? payload.captureId : ""
@@ -167,7 +184,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
 
     window.addEventListener("message", handleMessage)
     return () => window.removeEventListener("message", handleMessage)
-  }, [onReady, onSaveLevel])
+  }, [onEditorDiagnostic, onReady, onSaveLevel])
 
   useEffect(() => {
     const pendingScreenshotRequests = pendingScreenshotRequestsRef.current

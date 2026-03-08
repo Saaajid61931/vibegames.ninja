@@ -31,12 +31,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
   }
 
-  return {
-    title: `Level Editor - ${game.title}`,
-    description: `Create and edit community levels for ${game.title}.`,
-    alternates: {
-      canonical: `/play/${slug}/editor`,
-    },
+    return {
+      title: `Community Level Editor - ${game.title}`,
+      description: `Create, test, and save community levels for ${game.title}.`,
+      alternates: {
+        canonical: `/play/${slug}/editor`,
+      },
     robots: { index: false, follow: false },
   }
 }

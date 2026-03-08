@@ -351,7 +351,7 @@ export default function EditGamePage({ params }: PageProps) {
               <h2 className="text-xl font-semibold text-white mb-2 font-arcade">Game Updated!</h2>
               {updateWarnings.length > 0 ? (
                 <div className="space-y-3 text-left">
-                  <p className="text-[#4a4a6a] text-sm font-arcade text-center">Update completed with warnings.</p>
+                  <p className="text-[#4a4a6a] text-sm font-arcade text-center">Game updated, but the community level editor still needs a few hook fixes.</p>
                   <div className="rounded border border-[#ffff00] bg-[#ffff00]/10 p-3 text-xs text-white font-arcade">
                     {updateWarnings.map((warning) => (
                       <p key={warning}>{warning}</p>
@@ -697,16 +697,23 @@ export default function EditGamePage({ params }: PageProps) {
                     />
                     <div>
                       <p className="text-sm font-medium text-white font-arcade">
-                        Includes level editor support
+                        Community level editor
                       </p>
                       <p className="text-xs text-[#4a4a6a] font-arcade">
-                        Allow players to create and share levels for this game
+                        Turn this game into a remixable playground where players can create, save, rate, and share custom levels
                       </p>
                     </div>
                   </label>
                 </div>
 
-                {formData.hasLevelEditor && <LevelEditorSetupGuide />}
+                {formData.hasLevelEditor && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-[#4a4a6a] font-arcade">
+                      Best for platformers, puzzle games, racing tracks, tower defense, and any game where custom stages meaningfully change play.
+                    </p>
+                    <LevelEditorSetupGuide />
+                  </div>
+                )}
               </CardContent>
             </Card>
 

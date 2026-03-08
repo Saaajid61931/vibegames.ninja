@@ -77,6 +77,9 @@ export default async function CreatorDashboard() {
   }
 
   const { games, stats } = await getCreatorData(session.user.id)
+  const publishedGames = games.filter((game) => game.status === "PUBLISHED")
+  const draftGames = games.filter((game) => game.status !== "PUBLISHED")
+  const topGame = [...publishedGames].sort((a, b) => (b.plays + b.likes * 3) - (a.plays + a.likes * 3))[0]
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0d0d15]">
@@ -144,6 +147,36 @@ export default async function CreatorDashboard() {
         </div>
 
         {/* Quick Links */}
+        <div className="mb-8 grid gap-4 lg:grid-cols-3">
+          <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
+            <p className="font-arcade text-[11px] text-[#ffff00]">NEXT BEST STEP</p>
+            <h2 className="mt-2 font-arcade text-sm text-white">
+              {publishedGames.length === 0 ? "Publish your first game" : "Give players another reason to return"}
+            </h2>
+            <p className="mt-2 font-arcade text-xs text-[#8b93a6]">
+              {publishedGames.length === 0
+                ? "Upload one polished game, add a strong thumbnail, and share the play page the moment it is live."
+                : "Post updates, add thumbnail slides, and keep your top game easy to share from outside the platform."}
+            </p>
+          </div>
+          <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
+            <p className="font-arcade text-[11px] text-[#00d1ff]">PUBLISH HEALTH</p>
+            <h2 className="mt-2 font-arcade text-sm text-white">{publishedGames.length} live / {draftGames.length} in review</h2>
+            <p className="mt-2 font-arcade text-xs text-[#8b93a6]">
+              Keep at least one fresh game, one mobile-friendly game, and one shareable flagship on your public profile.
+            </p>
+          </div>
+          <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
+            <p className="font-arcade text-[11px] text-[#ff0040]">FLAGSHIP GAME</p>
+            <h2 className="mt-2 font-arcade text-sm text-white">{topGame?.title || "No published flagship yet"}</h2>
+            <p className="mt-2 font-arcade text-xs text-[#8b93a6]">
+              {topGame
+                ? `${formatNumber(topGame.plays)} plays and ${formatNumber(topGame.likes)} likes. Keep sharing this page and refresh its thumbnails often.`
+                : "Your first published hit will become the best asset for traffic and profile growth."}
+            </p>
+          </div>
+        </div>
+
         {stats.levelCount > 0 && (
           <div className="mb-6">
             <Link href="/creator/levels">

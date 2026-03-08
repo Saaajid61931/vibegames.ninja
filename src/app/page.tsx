@@ -7,9 +7,11 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { GameCard } from "@/components/games/game-card"
 import { GameOfTheDay } from "@/components/games/game-of-the-day"
+import { RecentlyPlayed } from "@/components/games/recently-played"
 import { ActiveJamBanner } from "@/components/jams/active-jam-banner"
 import prisma from "@/lib/prisma"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
+import { CATEGORIES } from "@/lib/utils"
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site"
 
 export const metadata: Metadata = {
@@ -79,6 +81,44 @@ const getFeaturedGames = unstable_cache(async () => {
 
   return [...curatedGames, ...fallbackGames]
 }, ["home-featured-games"], { revalidate: 60, tags: ["games"] })
+
+const getMobileGames = unstable_cache(async () => {
+  return prisma.game.findMany({
+    where: {
+      status: "PUBLISHED",
+      supportsMobile: true,
+    },
+    include: {
+      studioProfile: {
+        select: { id: true, handle: true, displayName: true, image: true },
+      },
+      creator: {
+        select: { id: true, name: true, username: true, image: true },
+      },
+    },
+    orderBy: getDiscoveryOrderBy("popular"),
+    take: 4,
+  })
+}, ["home-mobile-games"], { revalidate: 60, tags: ["games"] })
+
+const getEditorGames = unstable_cache(async () => {
+  return prisma.game.findMany({
+    where: {
+      status: "PUBLISHED",
+      hasLevelEditor: true,
+    },
+    include: {
+      studioProfile: {
+        select: { id: true, handle: true, displayName: true, image: true },
+      },
+      creator: {
+        select: { id: true, name: true, username: true, image: true },
+      },
+    },
+    orderBy: getDiscoveryOrderBy("trending"),
+    take: 4,
+  })
+}, ["home-editor-games"], { revalidate: 60, tags: ["games"] })
 
 const getStats = unstable_cache(async () => {
   const [gamesCount, creatorUsersCount, studioProfilesCount, totalPlays] = await Promise.all([
@@ -179,10 +219,28 @@ const getGameOfTheMonth = unstable_cache(async () => {
 }, ["home-game-of-the-month"], { revalidate: 60, tags: ["featured", "games"] })
 
 export default async function HomePage() {
-  const [games, stats, gotd] = await Promise.all([getFeaturedGames(), getStats(), getGameOfTheMonth()])
+  const [games, stats, gotd, mobileGames, editorGames] = await Promise.all([
+    getFeaturedGames(),
+    getStats(),
+    getGameOfTheMonth(),
+    getMobileGames(),
+    getEditorGames(),
+  ])
   const normalizedGames = games.map((game) => ({
     ...game,
     createdAt: new Date(game.createdAt),
+  }))
+  const normalizedMobileGames = mobileGames.map((game) => ({
+    ...game,
+    createdAt: new Date(game.createdAt),
+  }))
+  const normalizedEditorGames = editorGames.map((game) => ({
+    ...game,
+    createdAt: new Date(game.createdAt),
+  }))
+  const categoryLinks = CATEGORIES.slice(0, 6).map((category) => ({
+    ...category,
+    href: `/games?category=${category.value.toLowerCase()}`,
   }))
 
   const features = [
@@ -323,6 +381,8 @@ export default async function HomePage() {
         {/* Active Game Jam Banner */}
         <ActiveJamBanner />
 
+        <RecentlyPlayed games={[...normalizedGames, ...normalizedMobileGames, ...normalizedEditorGames]} />
+
         {/* Game of the Month */}
         {gotd?.game && (
           <GameOfTheDay
@@ -453,6 +513,93 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+
+        <section className="border-b-2 sm:border-b-4 border-[#4a4a6a] bg-[#11111d] py-14 sm:py-20">
+          <div className="container mx-auto px-4">
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <div className="mb-2 flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-[#00d1ff]" />
+                  <span className="font-pixel text-[10px] text-[#00d1ff]">DISCOVERY SHORTCUTS</span>
+                </div>
+                <h2 className="font-pixel text-xl text-white sm:text-2xl md:text-3xl">FIND YOUR NEXT RABBIT HOLE</h2>
+                <p className="mt-2 max-w-3xl font-arcade text-sm text-[#8b93a6] sm:text-base">
+                  Explore mobile-ready games, level-editor sandboxes, and genre collections built to be easy to share and easy to revisit.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <Link href="/games?mobile=true" className="group border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 transition-all hover:border-[#22c55e] hover:-translate-y-1">
+                <p className="font-pixel text-[10px] text-[#22c55e]">PLAY ANYWHERE</p>
+                <h3 className="mt-2 font-pixel text-sm text-white">MOBILE-FRIENDLY GAMES</h3>
+                <p className="mt-3 font-arcade text-sm text-[#8b93a6]">Short sessions, touch controls, and games that feel good on the go.</p>
+              </Link>
+              <Link href="/games?editor=true" className="group border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 transition-all hover:border-[#ffff00] hover:-translate-y-1">
+                <p className="font-pixel text-[10px] text-[#ffff00]">MAKE IT YOURS</p>
+                <h3 className="mt-2 font-pixel text-sm text-white">LEVEL EDITOR PICKS</h3>
+                <p className="mt-3 font-arcade text-sm text-[#8b93a6]">Play, remix, and publish community levels to keep games alive longer.</p>
+              </Link>
+              <Link href="/jams" className="group border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 transition-all hover:border-[#ff0040] hover:-translate-y-1">
+                <p className="font-pixel text-[10px] text-[#ff0040]">WEEKLY ENERGY</p>
+                <h3 className="mt-2 font-pixel text-sm text-white">JOIN A GAME JAM</h3>
+                <p className="mt-3 font-arcade text-sm text-[#8b93a6]">Compete, get discovered, and ride the momentum of deadline-driven launches.</p>
+              </Link>
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              {categoryLinks.map((category) => (
+                <Link key={category.value} href={category.href}>
+                  <Button variant="outline" size="sm" className="rounded-full border-[#4a4a6a] text-[#c9d1ff] hover:border-[#ffff00] hover:text-[#ffff00]">
+                    {category.label}
+                  </Button>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {normalizedMobileGames.length > 0 && (
+          <section className="py-14 sm:py-20 border-b-2 sm:border-b-4 border-[#4a4a6a]">
+            <div className="container mx-auto px-4">
+              <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <span className="font-pixel text-[10px] text-[#22c55e]">MOBILE COLLECTION</span>
+                  <h2 className="mt-2 font-pixel text-xl text-white sm:text-2xl md:text-3xl">QUICK PLAYS FOR PHONE SCREENS</h2>
+                </div>
+                <Link href="/games?mobile=true">
+                  <Button variant="secondary" size="sm">SEE MOBILE GAMES</Button>
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+                {normalizedMobileGames.map((game) => (
+                  <GameCard key={game.id} game={game} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {normalizedEditorGames.length > 0 && (
+          <section className="py-14 sm:py-20 border-b-2 sm:border-b-4 border-[#4a4a6a] bg-[#11111d]">
+            <div className="container mx-auto px-4">
+              <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <span className="font-pixel text-[10px] text-[#ffff00]">REMIX-FRIENDLY</span>
+                  <h2 className="mt-2 font-pixel text-xl text-white sm:text-2xl md:text-3xl">GAMES WITH LEVEL EDITORS</h2>
+                </div>
+                <Link href="/games?editor=true">
+                  <Button variant="secondary" size="sm">BROWSE EDITOR GAMES</Button>
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+                {normalizedEditorGames.map((game) => (
+                  <GameCard key={game.id} game={game} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
       </main>
       
       <Footer />

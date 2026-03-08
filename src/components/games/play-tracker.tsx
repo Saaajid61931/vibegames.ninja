@@ -23,6 +23,19 @@ export function PlayTracker({ gameId, levelId }: PlayTrackerProps) {
       : `/api/games/${gameId}/play`
     const sessionEndpoint = `/api/games/${gameId}/session`
 
+    try {
+      const raw = window.localStorage.getItem("vg-recently-played")
+      const parsed = raw ? JSON.parse(raw) : []
+      const entries = Array.isArray(parsed) ? parsed : []
+      const nextEntries = [
+        { gameId, playedAt: new Date().toISOString() },
+        ...entries.filter((entry) => entry && typeof entry.gameId === "string" && entry.gameId !== gameId),
+      ].slice(0, 12)
+      window.localStorage.setItem("vg-recently-played", JSON.stringify(nextEntries))
+    } catch {
+      // Ignore storage issues.
+    }
+
     startedAtRef.current = Date.now()
     shouldReportSessionRef.current = false
     hasReportedSessionRef.current = false

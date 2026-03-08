@@ -211,7 +211,7 @@ export default function UploadPage() {
                   {uploadWarnings.length > 0 ? (
                 <div className="space-y-3 text-left">
                   <p className="text-[var(--color-text-secondary)] text-sm text-center">
-                    Upload completed with level editor warnings.
+                    Your game is live, but the community level editor still needs a few hook fixes.
                   </p>
                   <div className="rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)]/10 p-3 text-xs text-[var(--color-text)]">
                     {uploadWarnings.map((warning) => (
@@ -589,13 +589,20 @@ export default function UploadPage() {
                       className="h-4 w-4 rounded border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                     />
                     <div>
-                      <p className="text-sm font-medium text-[var(--color-text)]">Includes level editor support</p>
-                      <p className="text-xs text-[var(--color-text-secondary)]">Players can build, save, and rate community levels</p>
+                      <p className="text-sm font-medium text-[var(--color-text)]">Community level editor</p>
+                      <p className="text-xs text-[var(--color-text-secondary)]">Turn this game into a remixable playground where players can build, save, rate, and share custom levels</p>
                     </div>
                   </label>
                 </div>
 
-                {formData.hasLevelEditor && <LevelEditorSetupGuide />}
+                {formData.hasLevelEditor && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-[var(--color-text-secondary)]">
+                      Best for platformers, puzzle games, racing tracks, tower defense, and any game where custom stages meaningfully change play.
+                    </p>
+                    <LevelEditorSetupGuide />
+                  </div>
+                )}
               </CardContent>
             </Card>
 

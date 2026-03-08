@@ -30,7 +30,8 @@ function buildLevelEditorWarnings(report: LevelEditorIntegrationReport | undefin
   }
 
   return [
-    `Level editor hooks missing: ${missing.join(", ")}. Open upload instructions and use the copy prompt to wire your game for community level saving.`,
+    `Community level editor hooks missing: ${missing.join(", ")}.`,
+    "Open the setup guide, paste the quick prompt into your coding AI, and apply the smallest possible patch before inviting players to build levels.",
   ]
 }
 

@@ -5,14 +5,8 @@ import { Footer } from "@/components/layout/footer"
 import prisma from "@/lib/prisma"
 import { DiscoverySort, getDiscoveryOrderBy } from "@/lib/discovery"
 import { GamesBrowser } from "@/components/games/games-browser"
-
-export const metadata: Metadata = {
-  title: "Browse AI Games",
-  description: "Explore trending, popular, and new AI-generated HTML5 games across action, puzzle, racing, and more categories.",
-  alternates: {
-    canonical: "/games",
-  },
-}
+import { CATEGORIES } from "@/lib/utils"
+import { SITE_NAME, SITE_URL } from "@/lib/site"
 
 type GamesSearchParams = {
   category?: string
@@ -20,10 +14,51 @@ type GamesSearchParams = {
   q?: string
   mobile?: string
   editor?: string
+  page?: string
 }
 
 interface PageProps {
   searchParams: Promise<GamesSearchParams>
+}
+
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const params = await searchParams
+  const resolvedCategory = CATEGORIES.find((category) => category.value.toLowerCase() === params.category)
+  const titleParts = [resolvedCategory?.label, params.mobile === "true" ? "Mobile" : null, params.editor === "true" ? "Level Editor" : null, "AI Games"].filter(Boolean)
+  const title = titleParts.join(" ")
+  const description = params.q
+    ? `Search results for ${params.q} on ${SITE_NAME}. Explore browser games, mobile-friendly picks, and creator-made experiments.`
+    : resolvedCategory
+      ? `Browse ${resolvedCategory.label.toLowerCase()} AI games on ${SITE_NAME}, including trending launches, mobile-ready picks, and remixable experiments.`
+      : "Explore trending, popular, mobile-friendly, and level-editor AI-generated HTML5 games across every category."
+
+  const canonicalParams = new URLSearchParams()
+  if (params.category) canonicalParams.set("category", params.category)
+  if (params.sort && params.sort !== "trending") canonicalParams.set("sort", params.sort)
+  if (params.q) canonicalParams.set("q", params.q)
+  if (params.mobile === "true") canonicalParams.set("mobile", "true")
+  if (params.editor === "true") canonicalParams.set("editor", "true")
+  const canonical = canonicalParams.size > 0 ? `/games?${canonicalParams.toString()}` : "/games"
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${SITE_URL}${canonical}`,
+      type: "website",
+      siteName: SITE_NAME,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  }
 }
 
 const getGames = unstable_cache(async (category?: string, sort?: string, q?: string, mobile?: string, editor?: string) => {
@@ -102,8 +137,17 @@ export default async function GamesPage({ searchParams }: PageProps) {
     createdAt: new Date(game.createdAt),
   }))
 
+  const browseJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Browse AI Games",
+    url: `${SITE_URL}/games`,
+    description: "Browse AI-made browser games by category, popularity, mobile support, and level-editor support.",
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(browseJsonLd) }} />
       <Header />
       
       <main className="flex-1">

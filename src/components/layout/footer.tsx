@@ -53,6 +53,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/games?mobile=true" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors">
+                  Mobile Games
+                </Link>
+              </li>
+              <li>
                 <Link href="/upload" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors">
                   Upload Game
                 </Link>
@@ -71,6 +76,16 @@ export function Footer() {
               <li>
                 <Link href="/games?sort=popular" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors">
                   Popular Games
+                </Link>
+              </li>
+              <li>
+                <Link href="/games?editor=true" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors">
+                  Level Editor Games
+                </Link>
+              </li>
+              <li>
+                <Link href="/jams" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors">
+                  Active Jams
                 </Link>
               </li>
             </ul>
