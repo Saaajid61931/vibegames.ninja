@@ -451,9 +451,11 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
   }, [])
 
   const captureScreenshotsWithDisplayMedia = useCallback(async (runId: number) => {
-    const displayStreamPromise = Promise.resolve().then(() => startDisplayCapture())
+    let stream: MediaStream
 
-    const stream = await displayStreamPromise.catch((error: unknown) => {
+    try {
+      stream = await startDisplayCapture()
+    } catch (error: unknown) {
       const name = typeof error === "object" && error && "name" in error ? String(error.name) : ""
 
       if (name === "NotAllowedError" || name === "PermissionDeniedError") {
@@ -465,7 +467,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
       }
 
       throw error instanceof Error ? error : new Error("Unable to start screen capture.")
-    })
+    }
 
     captureStreamRef.current = stream
 
