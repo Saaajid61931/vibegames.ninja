@@ -452,7 +452,6 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
 
   const captureScreenshotsWithDisplayMedia = useCallback(async (runId: number) => {
     const displayStreamPromise = Promise.resolve().then(() => startDisplayCapture())
-    const fullscreenPromise = Promise.resolve().then(() => launchFullscreen()).catch(() => undefined)
 
     const stream = await displayStreamPromise.catch((error: unknown) => {
       const name = typeof error === "object" && error && "name" in error ? String(error.name) : ""
@@ -475,7 +474,6 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
       throw new Error("No video track was provided by the browser capture prompt.")
     }
 
-    await fullscreenPromise
     await waitForGameToLoad()
     await wait(800)
 
@@ -502,7 +500,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
 
     video.srcObject = null
     return screenshots
-  }, [captureScreenshotFromVideo, launchFullscreen, onAutoThumbnailCaptureProgress, prepareCaptureVideo, startDisplayCapture, wait, waitForGameToLoad])
+  }, [captureScreenshotFromVideo, onAutoThumbnailCaptureProgress, prepareCaptureVideo, startDisplayCapture, wait, waitForGameToLoad])
 
   const runAutoThumbnailCapture = useCallback(async () => {
     const runId = autoThumbnailRunIdRef.current + 1
@@ -518,7 +516,6 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
       } catch (displayMediaError) {
         if (!navigator.mediaDevices?.getDisplayMedia) {
           await waitForGameToLoad()
-          await launchFullscreen()
 
           for (let index = 0; index < AUTO_THUMBNAIL_CAPTURE_TOTAL; index += 1) {
             await wait(AUTO_THUMBNAIL_CAPTURE_INTERVAL_MS)
@@ -554,7 +551,6 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
     }
   }, [
     captureScreenshotsWithDisplayMedia,
-    launchFullscreen,
     onAutoThumbnailCaptureComplete,
     onAutoThumbnailCaptureError,
     onAutoThumbnailCaptureProgress,
@@ -583,7 +579,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
             <span className="font-arcade text-xs text-[#4a4a6a] ml-2 truncate">RUNTIME: {runtimeLabel}</span>
           </div>
           <span className="font-arcade text-[10px] text-[#8b93a6] shrink-0">
-            {mode === "play" ? "FULLSCREEN ONLY" : "EDITOR MODE"}
+            {isAutoCapturing ? "AUTO CAPTURE" : mode === "play" ? "FULLSCREEN ONLY" : "EDITOR MODE"}
           </span>
         </div>
       )}
