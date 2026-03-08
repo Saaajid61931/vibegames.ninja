@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { AlertCircle, Camera, CheckCircle2, Loader2 } from "lucide-react"
 import { GamePlayer, type GamePlayerHandle } from "@/components/games/game-player"
@@ -94,11 +94,32 @@ export function PlayableGameSection({
   const playerRef = useRef<GamePlayerHandle>(null)
   const [captureState, setCaptureState] = useState<CaptureState>("idle")
   const [capturedCount, setCapturedCount] = useState(0)
+  const [isMobileLikeDevice, setIsMobileLikeDevice] = useState(false)
   const [captureMessage, setCaptureMessage] = useState(
     "Click auto thumbnails, allow the browser prompt, choose this tab, then play naturally while we capture 5 shots over 25 seconds."
   )
 
+  useEffect(() => {
+    const media = window.matchMedia("(pointer: coarse)")
+    const update = () => {
+      setIsMobileLikeDevice(media.matches || navigator.maxTouchPoints > 0)
+    }
+
+    update()
+    media.addEventListener("change", update)
+
+    return () => {
+      media.removeEventListener("change", update)
+    }
+  }, [])
+
   const startAutoCapture = async () => {
+    if (isMobileLikeDevice) {
+      setCaptureState("error")
+      setCaptureMessage("Auto thumbnails are not supported on mobile. Please open this page on desktop to capture thumbnail slides.")
+      return
+    }
+
     setCapturedCount(0)
     setCaptureState("capturing")
     setCaptureMessage("Your browser will ask for screen-share permission. Click Allow and pick this tab, then keep playing.")
