@@ -54,7 +54,7 @@ export default async function NotificationsPage() {
         {notifications.length === 0 ? (
           <div className="rounded-lg border border-[#2e3446] bg-[#111626] p-8 text-center">
             <p className="font-arcade text-white">No notifications yet.</p>
-            <p className="mt-2 text-sm font-arcade text-[#4a4a6a]">Follows, comments, and ratings will show up here.</p>
+            <p className="mt-2 text-sm font-arcade text-[#4a4a6a]">Follows, comments, ratings, and structured feedback will show up here.</p>
           </div>
         ) : (
           <div className="space-y-3">

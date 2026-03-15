@@ -89,6 +89,7 @@ export async function PATCH(request: Request) {
           name: parsed.data.name,
           username: nextUsername,
           bio: parsed.data.bio || null,
+          currentlyBuilding: parsed.data.currentProject || null,
         },
         select: {
           id: true,
@@ -97,6 +98,7 @@ export async function PATCH(request: Request) {
           username: true,
           image: true,
           bio: true,
+          currentlyBuilding: true,
         },
       })
 

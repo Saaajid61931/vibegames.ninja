@@ -14,6 +14,7 @@ import { getInitials } from "@/lib/utils"
 interface AccountSettingsFormProps {
   initialName: string
   initialBio: string
+  initialCurrentProject: string
   initialImage: string
   email: string
   username: string | null
@@ -22,6 +23,7 @@ interface AccountSettingsFormProps {
 export function AccountSettingsForm({
   initialName,
   initialBio,
+  initialCurrentProject,
   initialImage,
   email,
   username,
@@ -31,9 +33,11 @@ export function AccountSettingsForm({
   const [savedName, setSavedName] = useState(initialName)
   const [savedUsername, setSavedUsername] = useState(username || "")
   const [savedBio, setSavedBio] = useState(initialBio)
+  const [savedCurrentProject, setSavedCurrentProject] = useState(initialCurrentProject)
   const [name, setName] = useState(initialName)
   const [usernameValue, setUsernameValue] = useState(username || "")
   const [bio, setBio] = useState(initialBio)
+  const [currentProject, setCurrentProject] = useState(initialCurrentProject)
   const [avatarUrl, setAvatarUrl] = useState(initialImage)
   const [avatarStatus, setAvatarStatus] = useState<"idle" | "uploading" | "success" | "error">("idle")
   const [avatarMessage, setAvatarMessage] = useState("")
@@ -43,7 +47,8 @@ export function AccountSettingsForm({
   const hasChanges =
     name.trim() !== savedName.trim() ||
     usernameValue.trim() !== savedUsername.trim() ||
-    bio.trim() !== savedBio.trim()
+    bio.trim() !== savedBio.trim() ||
+    currentProject.trim() !== savedCurrentProject.trim()
 
   const uploadAvatar = async (file: File) => {
     setAvatarStatus("uploading")
@@ -97,6 +102,7 @@ export function AccountSettingsForm({
           name,
           username: usernameValue,
           bio,
+          currentProject,
         }),
       })
 
@@ -115,9 +121,11 @@ export function AccountSettingsForm({
       setSavedName(data.user?.name || name.trim())
       setSavedUsername(data.user?.username || usernameValue.trim())
       setSavedBio(data.user?.bio || bio.trim())
+      setSavedCurrentProject(data.user?.currentlyBuilding || currentProject.trim())
       setName(data.user?.name || name.trim())
       setUsernameValue(data.user?.username || usernameValue.trim())
       setBio(data.user?.bio || bio.trim())
+      setCurrentProject(data.user?.currentlyBuilding || currentProject.trim())
       setStatus("success")
       setMessage("Profile updated.")
       router.refresh()
@@ -249,6 +257,27 @@ export function AccountSettingsForm({
             <span>Shown on your creator profile when you publish games.</span>
             <span>{bio.length}/280</span>
           </div>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="account-current-project">Currently building</Label>
+        <Input
+          id="account-current-project"
+          value={currentProject}
+          onChange={(event) => {
+            setCurrentProject(event.target.value)
+            if (status !== "idle") {
+              setStatus("idle")
+              setMessage("")
+            }
+          }}
+          placeholder="What are you shipping next?"
+          maxLength={120}
+        />
+        <div className="flex items-center justify-between text-xs text-[var(--color-text-tertiary)]">
+          <span>Shown near the top of your creator profile to make it feel active.</span>
+          <span>{currentProject.length}/120</span>
         </div>
       </div>
 

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { gameJamSchema } from "@/lib/validations"
+import { uploadJamBannerToR2, validateR2Config } from "@/lib/storage"
+
+const MAX_BANNER_BYTES = 5 * 1024 * 1024
 
 function slugify(text: string): string {
   return text
@@ -32,6 +35,19 @@ async function autoTransitionJamStatuses() {
     where: { status: "VOTING", votingEndDate: { lte: now } },
     data: { status: "COMPLETED" },
   })
+}
+
+function getJamStatus(start: Date, end: Date, votingEnd: Date) {
+  const now = new Date()
+  if (now >= start && now < end) return "ACTIVE"
+  if (now >= end && now < votingEnd) return "VOTING"
+  if (now >= votingEnd) return "COMPLETED"
+  return "UPCOMING"
+}
+
+function parseMaxEntries(value: FormDataEntryValue | null) {
+  const parsed = Number.parseInt(String(value || "1"), 10)
+  return Number.isFinite(parsed) ? parsed : 1
 }
 
 export async function GET() {
@@ -67,8 +83,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Admin only" }, { status: 403 })
     }
 
-    const body = await request.json()
-    const parsed = gameJamSchema.safeParse(body)
+    const contentType = request.headers.get("content-type") || ""
+    let parsedInput: unknown
+    let bannerFile: File | null = null
+
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await request.formData()
+      const maybeBanner = formData.get("bannerFile")
+      bannerFile = maybeBanner instanceof File && maybeBanner.size > 0 ? maybeBanner : null
+      parsedInput = {
+        title: String(formData.get("title") || ""),
+        description: String(formData.get("description") || ""),
+        theme: String(formData.get("theme") || "") || undefined,
+        rules: String(formData.get("rules") || "") || undefined,
+        bannerImage: String(formData.get("bannerImage") || "") || undefined,
+        startDate: String(formData.get("startDate") || ""),
+        endDate: String(formData.get("endDate") || ""),
+        votingEndDate: String(formData.get("votingEndDate") || ""),
+        maxEntries: parseMaxEntries(formData.get("maxEntries")),
+      }
+    } else {
+      parsedInput = await request.json()
+    }
+
+    const parsed = gameJamSchema.safeParse(parsedInput)
     if (!parsed.success) {
       return NextResponse.json(
         { error: parsed.error.issues[0]?.message || "Invalid jam data" },
@@ -76,7 +114,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { title, description, theme, rules, bannerImage, startDate, endDate, votingEndDate, maxEntries } = parsed.data
+    const { title, description, theme, rules, startDate, endDate, votingEndDate, maxEntries } = parsed.data
 
     const start = new Date(startDate)
     const end = new Date(endDate)
@@ -96,19 +134,30 @@ export async function POST(request: NextRequest) {
     }
 
     const now = new Date()
-    let status = "UPCOMING"
-    if (now >= start && now < end) status = "ACTIVE"
-    else if (now >= end && now < votingEnd) status = "VOTING"
-    else if (now >= votingEnd) status = "COMPLETED"
+    const status = getJamStatus(start, end, votingEnd)
 
-    const jam = await prisma.gameJam.create({
+    if (bannerFile) {
+      const r2Config = validateR2Config()
+      if (!r2Config.valid) {
+        return NextResponse.json(
+          { error: `R2 storage is not configured. Missing: ${r2Config.missing.join(", ")}` },
+          { status: 500 }
+        )
+      }
+
+      if (bannerFile.size > MAX_BANNER_BYTES) {
+        return NextResponse.json({ error: "Banner image exceeds 5MB limit" }, { status: 400 })
+      }
+    }
+
+    let jam = await prisma.gameJam.create({
       data: {
         title,
         slug,
         description,
         theme: theme || null,
         rules: rules || null,
-        bannerImage: bannerImage || null,
+        bannerImage: parsed.data.bannerImage || null,
         status,
         startDate: start,
         endDate: end,
@@ -117,6 +166,14 @@ export async function POST(request: NextRequest) {
         createdById: session.user.id,
       },
     })
+
+    if (bannerFile) {
+      const bannerImage = await uploadJamBannerToR2(jam.id, bannerFile)
+      jam = await prisma.gameJam.update({
+        where: { id: jam.id },
+        data: { bannerImage },
+      })
+    }
 
     return NextResponse.json({ jam }, { status: 201 })
   } catch (error) {

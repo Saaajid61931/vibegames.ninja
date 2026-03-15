@@ -11,6 +11,7 @@ import { ShareButton } from "@/components/games/share-button"
 import { ReportGameButton } from "@/components/games/report-game-button"
 import { CommentsSection } from "@/components/games/comments-section"
 import { CommunityLevels } from "@/components/games/community-levels"
+import { StructuredFeedbackPanel } from "@/components/games/structured-feedback-panel"
 import { GameRating } from "@/components/games/game-rating"
 import { LevelRating } from "@/components/games/level-rating"
 import { PlayTracker } from "@/components/games/play-tracker"
@@ -18,6 +19,7 @@ import { FollowButton } from "@/components/creator/follow-button"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { auth } from "@/lib/auth"
+import { summarizeFeedback } from "@/lib/creator-magnet"
 import { getMobileOrientationLabel } from "@/lib/mobile-orientation"
 import prisma from "@/lib/prisma"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
@@ -51,6 +53,18 @@ const getGame = cache(async (slug: string) => {
         orderBy: { createdAt: "desc" },
         take: 80,
       },
+      feedback: {
+        select: {
+          fun: true,
+          confusing: true,
+          tooHard: true,
+          buggy: true,
+          comment: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 100,
+      },
       _count: {
         select: { favorites: true, comments: true },
       },
@@ -77,7 +91,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const description = `${game.description.slice(0, 140)}${game.description.length > 140 ? "..." : ""}`
   const gamePath = `/play/${game.slug}`
-  const fallbackOgImage = `${SITE_URL}/play/${game.slug}/opengraph-image`
+  const fallbackOgImage = `${SITE_URL}/icon.svg`
   const ogImage = game.thumbnail
     ? new URL(game.thumbnail, SITE_URL).toString()
     : fallbackOgImage
@@ -156,6 +170,7 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
     isLiked,
     userGameRating,
     selectedLevel,
+    userStructuredFeedback,
   ] = await Promise.all([
     getRelatedGames(game.category, game.id),
     isStudioPublished
@@ -230,6 +245,23 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
           },
         })
       : Promise.resolve(null),
+    session?.user?.id
+      ? prisma.gameFeedback.findUnique({
+          where: {
+            userId_gameId: {
+              userId: session.user.id,
+              gameId: game.id,
+            },
+          },
+          select: {
+            fun: true,
+            confusing: true,
+            tooHard: true,
+            buggy: true,
+            comment: true,
+          },
+        })
+      : Promise.resolve(null),
   ])
 
   const creatorProfileHref = game.studioProfile
@@ -253,13 +285,21 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
     .map((tag) => tag.trim())
     .filter(Boolean)
   const shareUrl = `${SITE_URL}/play/${game.slug}`
+  const feedbackSummary = summarizeFeedback(game.feedback)
+  const recentFeedbackComments = game.feedback
+    .filter((item) => item.comment)
+    .slice(0, 3)
+    .map((item) => ({
+      comment: item.comment,
+      createdAt: item.createdAt,
+    }))
   const gameJsonLd = {
     "@context": "https://schema.org",
     "@type": "VideoGame",
     name: game.title,
     description: game.description,
     url: `${SITE_URL}/play/${game.slug}`,
-    image: game.thumbnail || `${SITE_URL}/play/${game.slug}/opengraph-image`,
+    image: game.thumbnail || `${SITE_URL}/icon.svg`,
     genre: category?.label || game.category,
     playMode: game.supportsMobile ? ["SinglePlayer", "CoOp"] : "SinglePlayer",
     gamePlatform: game.supportsMobile ? ["Web Browser", "Mobile Web Browser"] : "Web Browser",
@@ -341,6 +381,9 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
                 levelData={selectedLevel?.data}
                 levelName={selectedLevel?.name}
                 levelDescription={selectedLevel?.description}
+                selectedLevelId={selectedLevel?.id ?? null}
+                hasGhostSharing={game.hasGhostSharing}
+                isAuthenticated={Boolean(session?.user?.id)}
                 canAutoCaptureThumbnails={canAutoCaptureThumbnails}
               />
 
@@ -394,14 +437,28 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
                 )}
                 <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
                   <div className="mb-2 flex items-center gap-2">
-                    <ArrowRight className="h-4 w-4 text-[#ff0040]" />
-                    <span className="font-arcade text-[11px] text-[#ff0040]">SHARE THE RUN</span>
+                    <ArrowRight className={`h-4 w-4 ${game.hasGhostSharing ? "text-[#00d1ff]" : "text-[#ff0040]"}`} />
+                    <span className={`font-arcade text-[11px] ${game.hasGhostSharing ? "text-[#00d1ff]" : "text-[#ff0040]"}`}>
+                      {game.hasGhostSharing ? "GHOST RACES" : "SHARE THE RUN"}
+                    </span>
                   </div>
                   <p className="font-arcade text-xs text-[#8b93a6]">
-                    Copy the link or post straight to social to help this game reach more players.
+                    {game.hasGhostSharing
+                      ? "Chase leaderboard ghosts, load a replay, and try to steal the fastest time."
+                      : "Copy the link or post straight to social to help this game reach more players."}
                   </p>
                 </div>
               </div>
+
+              {game.seekingFeedback && (
+                <div className="border-2 border-[#ff7a00] bg-[#ff7a00]/10 p-4">
+                  <p className="font-arcade text-[11px] text-[#ff7a00]">CREATOR REQUEST</p>
+                  <h3 className="mt-2 font-arcade text-sm text-white">This creator is actively looking for feedback</h3>
+                  <p className="mt-2 font-arcade text-xs text-[#ffd2a6]">
+                    Play for a minute, then leave a quick signal below so they know what to keep, fix, or remix next.
+                  </p>
+                </div>
+              )}
 
               {/* Tags */}
               <div className="flex flex-wrap gap-2 font-arcade text-xs">
@@ -429,6 +486,11 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
                 {game.hasLevelEditor && (
                   <span className="px-2 py-1 border border-[#ffff00] text-[#ffff00]">
                     [LEVEL_EDITOR]
+                  </span>
+                )}
+                {game.hasGhostSharing && (
+                  <span className="px-2 py-1 border border-[#00d1ff] text-[#00d1ff]">
+                    [GHOST_RACES]
                   </span>
                 )}
                 {tagList.map((tag) => (
@@ -473,6 +535,15 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
                 initialAverage={game.avgRating}
                 initialCount={game.ratingCount}
                 initialUserScore={userGameRating?.score ?? null}
+                isAuthenticated={Boolean(session?.user?.id)}
+              />
+
+              <StructuredFeedbackPanel
+                gameId={game.id}
+                slug={game.slug}
+                initialSummary={feedbackSummary}
+                initialUserFeedback={userStructuredFeedback}
+                recentComments={recentFeedbackComments}
                 isAuthenticated={Boolean(session?.user?.id)}
               />
 
@@ -538,6 +609,12 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
                 </div>
                 <div className="p-4">
                   <p className="text-[#e5e5e5] whitespace-pre-wrap font-arcade text-sm">{game.description}</p>
+                  {game.latestUpdateNote && (
+                    <div className="mt-4 border border-[#2e3446] bg-[#0d0d15] p-3">
+                      <p className="font-arcade text-[11px] text-[#00d1ff]">RECENT UPDATE</p>
+                      <p className="mt-2 font-arcade text-xs text-white">{game.latestUpdateNote}</p>
+                    </div>
+                  )}
                   
                   {game.instructions && (
                     <div className="mt-6 pt-6 border-t border-[#222]">

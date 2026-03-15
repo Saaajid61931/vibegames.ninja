@@ -19,9 +19,16 @@ export type LevelEditorIntegrationReport = {
   saveLevel: boolean
 }
 
+export type GhostIntegrationReport = {
+  notifyGhostReady: boolean
+  onLoadGhost: boolean
+  saveGhostRun: boolean
+}
+
 type UploadGameToR2Options = {
-  injectLevelEditorSdk?: boolean
+  injectPlatformSdk?: boolean
   inspectLevelEditorIntegration?: boolean
+  inspectGhostIntegration?: boolean
 }
 
 const INLINE_LEVEL_EDITOR_SDK = `<script id="vibegames-sdk-inline">;(function () {
@@ -31,6 +38,7 @@ const INLINE_LEVEL_EDITOR_SDK = `<script id="vibegames-sdk-inline">;(function ()
 
   var listeners = {
     loadLevel: [],
+    loadGhost: [],
     enterEditMode: [],
     requestSave: [],
     requestScreenshot: [],
@@ -225,6 +233,21 @@ const INLINE_LEVEL_EDITOR_SDK = `<script id="vibegames-sdk-inline">;(function ()
       return
     }
 
+    if (message.type === "VG_LOAD_GHOST") {
+      post("VG_GHOST_LOAD_RECEIVED", {
+        handlerCount: listeners.loadGhost.length,
+        hasReplayData: Boolean((message.payload || {}).ghost && (message.payload || {}).ghost.replayData),
+      })
+      listeners.loadGhost.forEach(function (fn) {
+        try {
+          fn(message.payload || {})
+        } catch (error) {
+          console.error("VG.onLoadGhost handler failed", error)
+        }
+      })
+      return
+    }
+
     if (message.type === "VG_REQUEST_SCREENSHOT") {
       captureScreenshot(message.payload || {})
     }
@@ -236,8 +259,14 @@ const INLINE_LEVEL_EDITOR_SDK = `<script id="vibegames-sdk-inline">;(function ()
     notifyReady: function notifyReady() {
       post("VG_READY")
     },
+    notifyGhostReady: function notifyGhostReady() {
+      post("VG_GHOST_READY")
+    },
     saveLevel: function saveLevel(payload) {
       post("VG_SAVE_LEVEL", payload || {})
+    },
+    saveGhostRun: function saveGhostRun(payload) {
+      post("VG_SAVE_GHOST_RUN", payload || {})
     },
     onLoadLevel: function onLoadLevel(handler) {
       if (typeof handler === "function") {
@@ -249,6 +278,20 @@ const INLINE_LEVEL_EDITOR_SDK = `<script id="vibegames-sdk-inline">;(function ()
       }
       return function unsubscribe() {
         listeners.loadLevel = listeners.loadLevel.filter(function (fn) {
+          return fn !== handler
+        })
+      }
+    },
+    onLoadGhost: function onLoadGhost(handler) {
+      if (typeof handler === "function") {
+        listeners.loadGhost.push(handler)
+        post("VG_GHOST_HOOK_BOUND", {
+          hook: "onLoadGhost",
+          count: listeners.loadGhost.length,
+        })
+      }
+      return function unsubscribe() {
+        listeners.loadGhost = listeners.loadGhost.filter(function (fn) {
           return fn !== handler
         })
       }
@@ -332,6 +375,24 @@ function collectLevelEditorSignals(sourceText: string, report: LevelEditorIntegr
   report.onLoadLevel = report.onLoadLevel || /\bVG\.onLoadLevel\s*\(/.test(sourceText)
   report.onRequestSave = report.onRequestSave || /\bVG\.onRequestSave\s*\(/.test(sourceText)
   report.saveLevel = report.saveLevel || /\bVG\.saveLevel\s*\(/.test(sourceText)
+}
+
+function createGhostIntegrationReport(): GhostIntegrationReport {
+  return {
+    notifyGhostReady: false,
+    onLoadGhost: false,
+    saveGhostRun: false,
+  }
+}
+
+function collectGhostSignals(sourceText: string, report: GhostIntegrationReport) {
+  if (!sourceText) {
+    return
+  }
+
+  report.notifyGhostReady = report.notifyGhostReady || /\bVG\.notifyGhostReady\s*\(/.test(sourceText)
+  report.onLoadGhost = report.onLoadGhost || /\bVG\.onLoadGhost\s*\(/.test(sourceText)
+  report.saveGhostRun = report.saveGhostRun || /\bVG\.saveGhostRun\s*\(/.test(sourceText)
 }
 
 const INLINE_LEVEL_EDITOR_SDK_REGEX =
@@ -518,20 +579,31 @@ export async function uploadGameToR2(
   gameId: string,
   gameFile: File,
   options: UploadGameToR2Options = {}
-): Promise<{ gameUrl: string; uploadedKeys: string[]; levelEditorIntegration?: LevelEditorIntegrationReport }> {
+): Promise<{
+  gameUrl: string
+  uploadedKeys: string[]
+  levelEditorIntegration?: LevelEditorIntegrationReport
+  ghostIntegration?: GhostIntegrationReport
+}> {
   const gamePrefix = `games/${gameId}`
   const gameBuffer = Buffer.from(await gameFile.arrayBuffer())
-  const integration = options.inspectLevelEditorIntegration
+  const levelEditorIntegration = options.inspectLevelEditorIntegration
     ? createLevelEditorIntegrationReport()
+    : undefined
+  const ghostIntegration = options.inspectGhostIntegration
+    ? createGhostIntegrationReport()
     : undefined
 
   if (gameFile.name.toLowerCase().endsWith(".html")) {
     let html = gameBuffer.toString("utf8")
-    if (integration) {
-      collectLevelEditorSignals(html, integration)
+    if (levelEditorIntegration) {
+      collectLevelEditorSignals(html, levelEditorIntegration)
+    }
+    if (ghostIntegration) {
+      collectGhostSignals(html, ghostIntegration)
     }
 
-    if (options.injectLevelEditorSdk) {
+    if (options.injectPlatformSdk) {
       html = injectLevelEditorSdkIntoHtml(html)
     }
 
@@ -542,7 +614,12 @@ export async function uploadGameToR2(
       contentType: "text/html; charset=utf-8",
       cacheControl: "public, max-age=300",
     })
-    return { gameUrl: createAssetUrl(key), uploadedKeys: [key], levelEditorIntegration: integration }
+    return {
+      gameUrl: createAssetUrl(key),
+      uploadedKeys: [key],
+      levelEditorIntegration,
+      ghostIntegration,
+    }
   }
 
   if (!gameFile.name.toLowerCase().endsWith(".zip")) {
@@ -568,19 +645,28 @@ export async function uploadGameToR2(
 
     if (normalizedPathLower.endsWith(".html")) {
       let html = await entry.async("string")
-      if (integration) {
-        collectLevelEditorSignals(html, integration)
+      if (levelEditorIntegration) {
+        collectLevelEditorSignals(html, levelEditorIntegration)
+      }
+      if (ghostIntegration) {
+        collectGhostSignals(html, ghostIntegration)
       }
 
-      if (options.injectLevelEditorSdk) {
+      if (options.injectPlatformSdk) {
         html = injectLevelEditorSdkIntoHtml(html)
       }
 
       entryBuffer = Buffer.from(html, "utf8")
     } else {
       entryBuffer = Buffer.from(await entry.async("uint8array"))
-      if (integration && isInspectableScript(normalizedPathLower)) {
-        collectLevelEditorSignals(entryBuffer.toString("utf8"), integration)
+      if (isInspectableScript(normalizedPathLower)) {
+        const sourceText = entryBuffer.toString("utf8")
+        if (levelEditorIntegration) {
+          collectLevelEditorSignals(sourceText, levelEditorIntegration)
+        }
+        if (ghostIntegration) {
+          collectGhostSignals(sourceText, ghostIntegration)
+        }
       }
     }
 
@@ -612,7 +698,8 @@ export async function uploadGameToR2(
   return {
     gameUrl: createAssetUrl(`${gamePrefix}/${indexPath}`),
     uploadedKeys,
-    levelEditorIntegration: integration,
+    levelEditorIntegration,
+    ghostIntegration,
   }
 }
 
@@ -647,6 +734,15 @@ function isRootUserAvatarAsset(key: string, prefix: string): boolean {
 
   const relativePath = key.slice(prefix.length)
   return /^avatar\.[^/]+$/i.test(relativePath)
+}
+
+function isRootJamBannerAsset(key: string, prefix: string): boolean {
+  if (!key.startsWith(prefix)) {
+    return false
+  }
+
+  const relativePath = key.slice(prefix.length)
+  return /^banner\.[^/]+$/i.test(relativePath)
 }
 
 export async function deleteGameThumbnailAssetsFromR2(gameId: string): Promise<number> {
@@ -712,6 +808,48 @@ export async function deleteUserAvatarAssetsFromR2(userId: string): Promise<numb
       listed.Contents?.map((obj) => obj.Key)
         .filter((key): key is string => Boolean(key))
         .filter((key) => isRootUserAvatarAsset(key, prefix))
+        .map((key) => ({ Key: key })) || []
+
+    if (objectsToDelete.length > 0) {
+      await client.send(
+        new DeleteObjectsCommand({
+          Bucket: bucket,
+          Delete: {
+            Objects: objectsToDelete,
+            Quiet: true,
+          },
+        })
+      )
+      deletedCount += objectsToDelete.length
+    }
+
+    continuationToken = listed.IsTruncated ? listed.NextContinuationToken : undefined
+  } while (continuationToken)
+
+  return deletedCount
+}
+
+export async function deleteJamBannerAssetsFromR2(jamId: string): Promise<number> {
+  const prefix = `jams/${jamId}/`
+  const client = getR2Client()
+  const bucket = getBucketName()
+
+  let continuationToken: string | undefined
+  let deletedCount = 0
+
+  do {
+    const listed = await client.send(
+      new ListObjectsV2Command({
+        Bucket: bucket,
+        Prefix: prefix,
+        ContinuationToken: continuationToken,
+      })
+    )
+
+    const objectsToDelete =
+      listed.Contents?.map((obj) => obj.Key)
+        .filter((key): key is string => Boolean(key))
+        .filter((key) => isRootJamBannerAsset(key, prefix))
         .map((key) => ({ Key: key })) || []
 
     if (objectsToDelete.length > 0) {
@@ -848,6 +986,28 @@ export async function uploadUserAvatarToR2(userId: string, avatar: File): Promis
   const buffer = Buffer.from(await avatar.arrayBuffer())
 
   await deleteUserAvatarAssetsFromR2(userId)
+
+  await putObject({
+    key,
+    body: buffer,
+    contentType,
+    cacheControl: "public, max-age=31536000, immutable",
+  })
+
+  return createAssetUrl(key)
+}
+
+export async function uploadJamBannerToR2(jamId: string, banner: File): Promise<string> {
+  const contentType = banner.type.toLowerCase()
+  if (!["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"].includes(contentType)) {
+    throw new Error("Unsupported banner format. Use PNG, JPG, WEBP, or GIF.")
+  }
+
+  const extension = getImageExtensionFromContentType(contentType)
+  const key = `jams/${jamId}/banner.${extension}`
+  const buffer = Buffer.from(await banner.arrayBuffer())
+
+  await deleteJamBannerAssetsFromR2(jamId)
 
   await putObject({
     key,

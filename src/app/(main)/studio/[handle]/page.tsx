@@ -26,6 +26,8 @@ const getStudio = cache(async (handle: string) => {
       handle: true,
       displayName: true,
       image: true,
+      bio: true,
+      currentlyBuilding: true,
       createdAt: true,
     },
   })
@@ -44,7 +46,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const profilePath = `/studio/${studio.handle}`
   const description = `Play games published by ${studio.displayName} on VibeGames.Ninja.`
-  const ogImage = studio.image ? new URL(studio.image, SITE_URL).toString() : `${SITE_URL}/opengraph-image`
+  const ogImage = studio.image ? new URL(studio.image, SITE_URL).toString() : `${SITE_URL}/icon.svg`
 
   return {
     title: `${studio.displayName} (@${studio.handle})`,
@@ -77,34 +79,53 @@ export default async function StudioPage({ params }: PageProps) {
     notFound()
   }
 
-  const games = await prisma.game.findMany({
-    where: {
-      status: "PUBLISHED",
-      studioProfileId: studio.id,
-    },
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      thumbnail: true,
-      thumbnailSlides: true,
-      category: true,
-      plays: true,
-      likes: true,
-      createdAt: true,
-      publishedAt: true,
-      supportsMobile: true,
-      aiTool: true,
-      aiModel: true,
-      studioProfile: {
-        select: { id: true, handle: true, displayName: true, image: true },
+  const [games, featuredPicks, jamEntries] = await Promise.all([
+    prisma.game.findMany({
+      where: {
+        status: "PUBLISHED",
+        studioProfileId: studio.id,
       },
-      creator: {
-        select: { id: true, name: true, username: true, image: true },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        thumbnail: true,
+        thumbnailSlides: true,
+        category: true,
+        plays: true,
+        likes: true,
+        createdAt: true,
+        updatedAt: true,
+        publishedAt: true,
+        supportsMobile: true,
+        aiTool: true,
+        aiModel: true,
+        seekingFeedback: true,
+        latestUpdateNote: true,
+        studioProfile: {
+          select: { id: true, handle: true, displayName: true, image: true },
+        },
+        creator: {
+          select: { id: true, name: true, username: true, image: true },
+        },
       },
-    },
-    orderBy: getDiscoveryOrderBy("trending"),
-  })
+      orderBy: getDiscoveryOrderBy("trending"),
+    }),
+    prisma.featuredGame.count({
+      where: {
+        game: {
+          studioProfileId: studio.id,
+        },
+      },
+    }),
+    prisma.gameJamEntry.count({
+      where: {
+        game: {
+          studioProfileId: studio.id,
+        },
+      },
+    }),
+  ])
 
   const normalizedGames: GameCardData[] = games.map((game) => ({
     ...game,
@@ -112,6 +133,8 @@ export default async function StudioPage({ params }: PageProps) {
   }))
   const mobileReadyGames = normalizedGames.filter((game) => game.supportsMobile).length
   const topGame = [...normalizedGames].sort((a, b) => (b.plays + b.likes * 3) - (a.plays + a.likes * 3))[0]
+  const toolsUsed = [...new Set(games.map((game) => game.aiTool).filter(Boolean))].slice(0, 3)
+  const lastUpdatedGame = [...games].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0]
 
   const studioJsonLd = {
     "@context": "https://schema.org",
@@ -149,6 +172,9 @@ export default async function StudioPage({ params }: PageProps) {
                 </div>
                 <h1 className="font-pixel text-sm text-white">{studio.displayName}</h1>
                 <p className="font-arcade text-sm text-[#ffff00]">@{studio.handle}</p>
+                {studio.currentlyBuilding && (
+                  <p className="mt-2 font-arcade text-xs text-[#c9d1ff]">Currently building: {studio.currentlyBuilding}</p>
+                )}
               </div>
             </div>
 
@@ -183,6 +209,37 @@ export default async function StudioPage({ params }: PageProps) {
               <p className="mt-2 font-arcade text-sm text-white">Use this page as the hub for your best launches.</p>
             </div>
           </div>
+
+          <div className="mt-3 grid gap-3 md:grid-cols-4">
+            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+              <p className="font-arcade text-[11px] text-[#8b93a6]">TOTAL LAUNCHES</p>
+              <p className="mt-2 font-arcade text-sm text-white">{normalizedGames.length}</p>
+            </div>
+            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+              <p className="font-arcade text-[11px] text-[#8b93a6]">FEATURED PICKS</p>
+              <p className="mt-2 font-arcade text-sm text-white">{featuredPicks}</p>
+            </div>
+            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+              <p className="font-arcade text-[11px] text-[#8b93a6]">JAM ENTRIES</p>
+              <p className="mt-2 font-arcade text-sm text-white">{jamEntries}</p>
+            </div>
+            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+              <p className="font-arcade text-[11px] text-[#8b93a6]">LAST UPDATED</p>
+              <p className="mt-2 font-arcade text-sm text-white">{lastUpdatedGame?.title || "No updates yet"}</p>
+            </div>
+          </div>
+
+          {(studio.bio || toolsUsed.length > 0 || lastUpdatedGame?.latestUpdateNote) && (
+            <div className="mt-3 border border-[#4a4a6a] bg-[#0d0d15] p-3">
+              {studio.bio && <p className="font-arcade text-sm text-white">{studio.bio}</p>}
+              {toolsUsed.length > 0 && (
+                <p className="mt-2 font-arcade text-xs text-[#00d1ff]">Common tools: {toolsUsed.join(" • ")}</p>
+              )}
+              {lastUpdatedGame?.latestUpdateNote && (
+                <p className="mt-2 font-arcade text-xs text-[#8b93a6]">Latest note: {lastUpdatedGame.latestUpdateNote}</p>
+              )}
+            </div>
+          )}
         </section>
 
         <section>

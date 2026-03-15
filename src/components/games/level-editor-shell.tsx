@@ -292,7 +292,7 @@ export function LevelEditorShell({
             <p className="font-arcade text-[11px] text-[#ffff00]">LEVEL EDITOR WORKFLOW</p>
             <h1 className="mt-1 font-arcade text-sm text-white">Build inside the game, then save through the platform</h1>
             <p className="mt-2 font-arcade text-xs text-[#8b93a6]">
-              1) wait for the SDK to go ready, 2) make sure the editor UI appears inside the game, 3) press save here to request a level payload from the game runtime.
+              1) wait for the SDK to go ready, 2) make sure the editor UI appears inside the game, 3) use the test and save loop until the runtime returns a clean structured payload.
             </p>
           </div>
           <div className="rounded border border-[#4a4a6a] bg-[#0d0d15] px-3 py-2 font-arcade text-[11px] text-[#8b93a6]">

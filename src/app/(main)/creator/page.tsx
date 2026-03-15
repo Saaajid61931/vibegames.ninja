@@ -12,12 +12,15 @@ import {
   ExternalLink,
   Layers,
   Settings,
+  MessageSquarePlus,
+  Trophy,
 } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { GameThumbnailSlideshow } from "@/components/games/game-thumbnail-slideshow"
 import { Button } from "@/components/ui/button"
+import { summarizeFeedback } from "@/lib/creator-magnet"
 import prisma from "@/lib/prisma"
 import { formatNumber, timeAgo, CATEGORIES } from "@/lib/utils"
 
@@ -29,7 +32,7 @@ export const metadata = {
 }
 
 async function getCreatorData(userId: string) {
-  const [games, totalStats, levelCount] = await Promise.all([
+  const [games, totalStats, levelCount, recentFeedback] = await Promise.all([
     prisma.game.findMany({
       where: { creatorId: userId },
       select: {
@@ -43,6 +46,14 @@ async function getCreatorData(userId: string) {
         likes: true,
         status: true,
         createdAt: true,
+        updatedAt: true,
+        seekingFeedback: true,
+        latestUpdateNote: true,
+        _count: {
+          select: {
+            feedback: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -56,7 +67,34 @@ async function getCreatorData(userId: string) {
     prisma.level.count({
       where: { creatorId: userId },
     }),
+    prisma.gameFeedback.findMany({
+      where: {
+        game: {
+          creatorId: userId,
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 12,
+      select: {
+        gameId: true,
+        fun: true,
+        confusing: true,
+        tooHard: true,
+        buggy: true,
+        comment: true,
+        createdAt: true,
+        game: {
+          select: {
+            id: true,
+            slug: true,
+            title: true,
+          },
+        },
+      },
+    }),
   ])
+
+  const feedbackSummary = summarizeFeedback(recentFeedback)
 
   return {
     games,
@@ -66,6 +104,8 @@ async function getCreatorData(userId: string) {
       totalLikes: totalStats._sum.likes || 0,
       levelCount,
     },
+    recentFeedback,
+    feedbackSummary,
   }
 }
 
@@ -76,11 +116,11 @@ export default async function CreatorDashboard() {
     redirect("/login")
   }
 
-  const { games, stats } = await getCreatorData(session.user.id)
+  const { games, stats, recentFeedback, feedbackSummary } = await getCreatorData(session.user.id)
   const publishedGames = games.filter((game) => game.status === "PUBLISHED")
   const draftGames = games.filter((game) => game.status !== "PUBLISHED")
   const topGame = [...publishedGames].sort((a, b) => (b.plays + b.likes * 3) - (a.plays + a.likes * 3))[0]
-
+  const seekingFeedbackGame = publishedGames.find((game) => game.seekingFeedback)
   return (
     <div className="min-h-screen flex flex-col bg-[#0d0d15]">
       <Header />
@@ -146,6 +186,34 @@ export default async function CreatorDashboard() {
           </div>
         </div>
 
+        <div className="mb-8 grid gap-4 lg:grid-cols-3">
+          <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
+            <p className="font-arcade text-[11px] text-[#00d1ff]">FEEDBACK INBOX</p>
+            <h2 className="mt-2 font-arcade text-sm text-white">
+              {feedbackSummary.counts.total > 0 ? `${feedbackSummary.counts.total} recent structured responses` : "No structured feedback yet"}
+            </h2>
+            <p className="mt-2 font-arcade text-xs text-[#8b93a6]">
+              {feedbackSummary.topSignals.length > 0
+                ? `Top repeat signals: ${feedbackSummary.topSignals.slice(0, 2).map((item) => `${item.label} (${item.count})`).join(" • ")}.`
+                : "Turn on seeking feedback for one game and ask players to leave quick signals after a run."}
+            </p>
+          </div>
+          <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
+            <p className="font-arcade text-[11px] text-[#ff7a00]">SEEKING FEEDBACK</p>
+            <h2 className="mt-2 font-arcade text-sm text-white">{seekingFeedbackGame?.title || "No active feedback target"}</h2>
+            <p className="mt-2 font-arcade text-xs text-[#8b93a6]">
+              {seekingFeedbackGame
+                ? "This game is prioritized for feedback discovery. Keep it fresh and update the note when you ship a change."
+                : "Mark one published game as seeking feedback to enter the creator-friendly discovery lane."}
+            </p>
+          </div>
+          <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
+            <p className="font-arcade text-[11px] text-[#22c55e]">GAME JAMS</p>
+            <h2 className="mt-2 font-arcade text-sm text-white">Use jams as your main launch event</h2>
+            <p className="mt-2 font-arcade text-xs text-[#8b93a6]">Themes, deadlines, and community momentum all live in one place now. Ship to a jam when you want the biggest visibility spike.</p>
+          </div>
+        </div>
+
         {/* Quick Links */}
         <div className="mb-8 grid gap-4 lg:grid-cols-3">
           <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
@@ -176,6 +244,48 @@ export default async function CreatorDashboard() {
             </p>
           </div>
         </div>
+
+        {recentFeedback.length > 0 && (
+          <div className="mb-8 border-2 border-[#4a4a6a]">
+            <div className="border-b-2 border-[#4a4a6a] bg-[#1a1a2e] px-4 py-3 flex items-center gap-2">
+              <MessageSquarePlus className="h-4 w-4 text-[#00d1ff]" />
+              <span className="font-arcade text-sm">RECENT FEEDBACK</span>
+            </div>
+            <div className="divide-y divide-[#222] bg-[#0d0d15]">
+              {recentFeedback.slice(0, 5).map((entry) => {
+                const signals = [
+                  entry.fun ? "FUN" : null,
+                  entry.confusing ? "CONFUSING" : null,
+                  entry.tooHard ? "TOO HARD" : null,
+                  entry.buggy ? "BUGGY" : null,
+                ].filter(Boolean)
+
+                return (
+                  <div key={`${entry.gameId}-${entry.createdAt.toISOString()}`} className="p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <Link href={`/play/${entry.game.slug}`} className="font-arcade text-sm text-white hover:text-[#ffff00]">
+                          {entry.game.title}
+                        </Link>
+                        <p className="mt-1 font-arcade text-[10px] text-[#4a4a6a]">{timeAgo(new Date(entry.createdAt))}</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {signals.map((signal) => (
+                          <span key={signal} className="border border-[#2e3446] bg-[#111626] px-2 py-1 font-arcade text-[10px] text-[#8b93a6]">
+                            {signal}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    {entry.comment && (
+                      <p className="mt-3 font-arcade text-xs text-[#c9d1ff]">{entry.comment}</p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {stats.levelCount > 0 && (
           <div className="mb-6">
@@ -249,6 +359,11 @@ export default async function CreatorDashboard() {
                           }`}>
                             {game.status}
                           </span>
+                          {game.seekingFeedback && (
+                            <span className="px-2 py-0.5 text-xs font-arcade bg-[#ff7a00]/20 text-[#ff7a00]">
+                              SEEKING_FEEDBACK
+                            </span>
+                          )}
                         </div>
                         
                         <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-[#4a4a6a] font-arcade">
@@ -261,8 +376,17 @@ export default async function CreatorDashboard() {
                             <Heart className="h-3 w-3" />
                             {formatNumber(game.likes)}
                           </span>
+                          <span className="flex items-center gap-1 text-[#00d1ff]">
+                            <MessageSquarePlus className="h-3 w-3" />
+                            {game._count.feedback} feedback
+                          </span>
                           <span>{timeAgo(new Date(game.createdAt))}</span>
                         </div>
+                        {game.latestUpdateNote && (
+                          <p className="mt-2 line-clamp-2 font-arcade text-[10px] text-[#8b93a6]">
+                            Update note: {game.latestUpdateNote}
+                          </p>
+                        )}
                       </div>
 
                       {/* Actions */}

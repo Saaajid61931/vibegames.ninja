@@ -107,6 +107,7 @@ const getGames = unstable_cache(async (category?: string, sort?: string, q?: str
         publishedAt: true,
         supportsMobile: true,
         hasLevelEditor: true,
+        seekingFeedback: true,
         aiTool: true,
         aiModel: true,
         studioProfile: {

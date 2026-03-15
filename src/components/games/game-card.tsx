@@ -17,6 +17,7 @@ interface GameCardProps {
     aiModel?: string | null
     supportsMobile?: boolean
     hasLevelEditor?: boolean
+    seekingFeedback?: boolean
     createdAt: Date
     creator: {
       name?: string | null
@@ -74,6 +75,11 @@ export function GameCard({ game }: GameCardProps) {
           <span className="text-[10px] text-[var(--color-primary)] font-pixel uppercase">
             {category?.label || "Game"}
           </span>
+          {game.seekingFeedback && (
+            <span className="inline-flex items-center gap-1 rounded border border-[#ff7a00] px-1.5 py-0.5 text-[10px] text-[#ff7a00]">
+              Needs feedback
+            </span>
+          )}
           {game.supportsMobile && (
             <span className="inline-flex items-center gap-1 rounded border border-[var(--color-success)] px-1.5 py-0.5 text-[10px] text-[var(--color-success)]">
               <Smartphone className="h-2.5 w-2.5" />

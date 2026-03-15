@@ -21,8 +21,24 @@ interface GamePlayerProps {
   levelName?: string
   levelDescription?: string | null
   onSaveLevel?: (payload: { name?: string; description?: string; data?: unknown; thumbnail?: string }) => void
+  ghostToLoad?: {
+    runId: string
+    levelId?: string | null
+    durationMs: number
+    replayData: unknown
+    replayVersion?: string | null
+    checksum?: string | null
+    playerName?: string | null
+  } | null
+  onSaveGhostRun?: (payload: {
+    durationMs?: number
+    replayData?: unknown
+    replayVersion?: string | null
+    checksum?: string | null
+  }) => void
   onReady?: (ready: boolean) => void
   onEditorDiagnostic?: (event: { type: string; payload?: Record<string, unknown> }) => void
+  onGhostDiagnostic?: (event: { type: string; payload?: Record<string, unknown> }) => void
   requestSaveNonce?: number
   onAutoThumbnailCaptureProgress?: (payload: { captured: number; total: number }) => void
   onAutoThumbnailCaptureComplete?: (images: string[]) => void
@@ -61,8 +77,11 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
   levelName,
   levelDescription,
   onSaveLevel,
+  ghostToLoad,
+  onSaveGhostRun,
   onReady,
   onEditorDiagnostic,
+  onGhostDiagnostic,
   requestSaveNonce,
   onAutoThumbnailCaptureProgress,
   onAutoThumbnailCaptureComplete,
@@ -137,6 +156,10 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
         onSaveLevel?.(message.payload || {})
       }
 
+      if (message.type === "VG_SAVE_GHOST_RUN") {
+        onSaveGhostRun?.(message.payload || {})
+      }
+
       if (
         message.type === "VG_EDITOR_HOOK_BOUND" ||
         message.type === "VG_EDIT_MODE_ENTERED" ||
@@ -144,6 +167,20 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
         message.type === "VG_REQUEST_SAVE_RECEIVED"
       ) {
         onEditorDiagnostic?.({
+          type: message.type,
+          payload:
+            typeof message.payload === "object" && message.payload
+              ? (message.payload as Record<string, unknown>)
+              : {},
+        })
+      }
+
+      if (
+        message.type === "VG_GHOST_READY" ||
+        message.type === "VG_GHOST_HOOK_BOUND" ||
+        message.type === "VG_GHOST_LOAD_RECEIVED"
+      ) {
+        onGhostDiagnostic?.({
           type: message.type,
           payload:
             typeof message.payload === "object" && message.payload
@@ -184,7 +221,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
 
     window.addEventListener("message", handleMessage)
     return () => window.removeEventListener("message", handleMessage)
-  }, [onEditorDiagnostic, onReady, onSaveLevel])
+  }, [onEditorDiagnostic, onGhostDiagnostic, onReady, onSaveGhostRun, onSaveLevel])
 
   useEffect(() => {
     const pendingScreenshotRequests = pendingScreenshotRequestsRef.current
@@ -252,6 +289,32 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
       )
     }
   }, [mode, levelData, levelName, levelDescription, gameReady, isLoading])
+
+  useEffect(() => {
+    const targetWindow = iframeRef.current?.contentWindow
+    if (!targetWindow || isLoading || !gameReady || !ghostToLoad) {
+      return
+    }
+
+    targetWindow.postMessage(
+      {
+        source: "vibegames-platform",
+        type: "VG_LOAD_GHOST",
+        payload: {
+          ghost: {
+            id: ghostToLoad.runId,
+            levelId: ghostToLoad.levelId || null,
+            durationMs: ghostToLoad.durationMs,
+            replayData: ghostToLoad.replayData,
+            replayVersion: ghostToLoad.replayVersion || null,
+            checksum: ghostToLoad.checksum || null,
+            playerName: ghostToLoad.playerName || "",
+          },
+        },
+      },
+      "*"
+    )
+  }, [gameReady, ghostToLoad, isLoading])
 
   useEffect(() => {
     const targetWindow = iframeRef.current?.contentWindow

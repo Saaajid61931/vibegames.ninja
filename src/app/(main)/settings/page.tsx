@@ -31,6 +31,7 @@ export default async function SettingsPage() {
       username: true,
       image: true,
       bio: true,
+      currentlyBuilding: true,
       password: true,
     },
   })
@@ -57,7 +58,7 @@ export default async function SettingsPage() {
               <div>
                 <h1 className="text-2xl font-semibold text-[var(--color-text)]">Account Settings</h1>
                 <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-                  Update your display name and creator bio.
+                  Update your display name, creator bio, and what you are building next.
                 </p>
               </div>
             </div>
@@ -83,6 +84,7 @@ export default async function SettingsPage() {
             <AccountSettingsForm
               initialName={user.name || ""}
               initialBio={user.bio || ""}
+              initialCurrentProject={user.currentlyBuilding || ""}
               initialImage={user.image || ""}
               email={user.email}
               username={user.username || null}
@@ -98,6 +100,7 @@ export default async function SettingsPage() {
                 <li>- Display name shown across the site</li>
                 <li>- Username and public creator link</li>
                 <li>- Creator bio shown on public profile pages</li>
+                <li>- Currently-building text for your portfolio header</li>
                 <li>- Previous username URLs auto-redirect to your latest profile</li>
               </ul>
             </div>

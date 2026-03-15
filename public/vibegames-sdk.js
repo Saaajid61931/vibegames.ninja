@@ -5,6 +5,7 @@
 
   var listeners = {
     loadLevel: [],
+    loadGhost: [],
     enterEditMode: [],
     requestSave: [],
     requestScreenshot: [],
@@ -172,6 +173,21 @@
       return
     }
 
+    if (message.type === "VG_LOAD_GHOST") {
+      post("VG_GHOST_LOAD_RECEIVED", {
+        handlerCount: listeners.loadGhost.length,
+        hasReplayData: Boolean((message.payload || {}).ghost && (message.payload || {}).ghost.replayData),
+      })
+      listeners.loadGhost.forEach(function (fn) {
+        try {
+          fn(message.payload || {})
+        } catch (error) {
+          console.error("VG.onLoadGhost handler failed", error)
+        }
+      })
+      return
+    }
+
     if (message.type === "VG_ENTER_EDIT_MODE") {
       setMode("editor")
       emitEnterEditMode(message.payload || {})
@@ -200,8 +216,14 @@
     notifyReady: function notifyReady() {
       post("VG_READY")
     },
+    notifyGhostReady: function notifyGhostReady() {
+      post("VG_GHOST_READY")
+    },
     saveLevel: function saveLevel(payload) {
       post("VG_SAVE_LEVEL", payload || {})
+    },
+    saveGhostRun: function saveGhostRun(payload) {
+      post("VG_SAVE_GHOST_RUN", payload || {})
     },
     onLoadLevel: function onLoadLevel(handler) {
       if (typeof handler === "function") {
@@ -209,6 +231,20 @@
       }
       return function unsubscribe() {
         listeners.loadLevel = listeners.loadLevel.filter(function (fn) {
+          return fn !== handler
+        })
+      }
+    },
+    onLoadGhost: function onLoadGhost(handler) {
+      if (typeof handler === "function") {
+        listeners.loadGhost.push(handler)
+        post("VG_GHOST_HOOK_BOUND", {
+          hook: "onLoadGhost",
+          count: listeners.loadGhost.length,
+        })
+      }
+      return function unsubscribe() {
+        listeners.loadGhost = listeners.loadGhost.filter(function (fn) {
           return fn !== handler
         })
       }

@@ -57,6 +57,7 @@ const getCachedGames = unstable_cache(
           publishedAt: true,
           supportsMobile: true,
           hasLevelEditor: true,
+          seekingFeedback: true,
           aiTool: true,
           aiModel: true,
           studioProfile: {

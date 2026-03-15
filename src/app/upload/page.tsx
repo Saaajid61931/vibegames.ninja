@@ -7,12 +7,14 @@ import { useDropzone } from "react-dropzone"
 import { Upload, FileArchive, X, CheckCircle, AlertCircle, Loader2 } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { LaunchChecklist } from "@/components/creator/launch-checklist"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { GhostSharingSetupGuide } from "@/components/games/ghost-sharing-setup-guide"
 import { LevelEditorSetupGuide } from "@/components/games/level-editor-setup-guide"
 import { MOBILE_ORIENTATION_OPTIONS } from "@/lib/mobile-orientation"
 import { CATEGORIES, AI_TOOLS } from "@/lib/utils"
@@ -23,6 +25,7 @@ export default function UploadPage() {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [createdGame, setCreatedGame] = useState<{ slug: string; title: string } | null>(null)
   const [uploadWarnings, setUploadWarnings] = useState<string[]>([])
   const [gameFile, setGameFile] = useState<File | null>(null)
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
@@ -46,6 +49,9 @@ export default function UploadPage() {
     supportsMobile: false,
     mobileOrientation: "BOTH",
     hasLevelEditor: false,
+    hasGhostSharing: false,
+    seekingFeedback: false,
+    latestUpdateNote: "",
     isAIGenerated: true,
     studioProfileId: "",
   })
@@ -153,6 +159,9 @@ export default function UploadPage() {
       uploadData.append("supportsMobile", String(formData.supportsMobile))
       uploadData.append("mobileOrientation", formData.mobileOrientation)
       uploadData.append("hasLevelEditor", String(formData.hasLevelEditor))
+      uploadData.append("hasGhostSharing", String(formData.hasGhostSharing))
+      uploadData.append("seekingFeedback", String(formData.seekingFeedback))
+      uploadData.append("latestUpdateNote", formData.latestUpdateNote)
       uploadData.append("isAIGenerated", String(formData.isAIGenerated))
       if (formData.studioProfileId) {
         uploadData.append("studioProfileId", formData.studioProfileId)
@@ -173,6 +182,7 @@ export default function UploadPage() {
         ? data.warnings.filter((item: unknown): item is string => typeof item === "string")
         : []
       setUploadWarnings(warnings)
+      setCreatedGame(data.game || null)
 
       setSuccess(true)
       if (warnings.length === 0) {
@@ -200,33 +210,59 @@ export default function UploadPage() {
   }
 
   if (success) {
+    const embedCode = createdGame
+      ? `<iframe src="${typeof window !== "undefined" ? window.location.origin : ""}/embed/${createdGame.slug}" width="800" height="600" allow="fullscreen" allowfullscreen></iframe>`
+      : ""
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 flex items-center justify-center px-4">
-          <Card className="max-w-md w-full">
-            <CardContent className="pt-6 text-center">
+          <Card className="max-w-2xl w-full">
+            <CardContent className="pt-6">
               <CheckCircle className="h-16 w-16 text-[var(--color-success)] mx-auto mb-4" />
-                  <h2 className="text-xl font-semibold text-[var(--color-text)] mb-2">Your Game is Live! Let&apos;s Go!</h2>
-                  {uploadWarnings.length > 0 ? (
-                <div className="space-y-3 text-left">
-                  <p className="text-[var(--color-text-secondary)] text-sm text-center">
-                    Your game is live, but the community level editor still needs a few hook fixes.
-                  </p>
-                  <div className="rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)]/10 p-3 text-xs text-[var(--color-text)]">
-                    {uploadWarnings.map((warning) => (
-                      <p key={warning}>{warning}</p>
-                    ))}
-                  </div>
-                  <Button className="w-full" onClick={() => router.push("/creator")}>
-                    Go to Dashboard
-                  </Button>
+              <h2 className="text-xl font-semibold text-[var(--color-text)] mb-2 text-center">Your Game is Live! Let&apos;s Go!</h2>
+              <p className="text-[var(--color-text-secondary)] text-sm text-center">
+                This upload now has a play page, creator portfolio placement, and creator-focused next steps.
+              </p>
+
+              {uploadWarnings.length > 0 && (
+                <div className="mt-4 rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)]/10 p-3 text-xs text-[var(--color-text)]">
+                  {uploadWarnings.map((warning) => (
+                    <p key={warning}>{warning}</p>
+                  ))}
                 </div>
-                  ) : (
-                    <p className="text-[var(--color-text-secondary)] text-sm">
-                      Your game is published and ready to play. Redirecting to dashboard...
-                    </p>
-                  )}
+              )}
+
+              {createdGame && (
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-base)] p-4">
+                    <p className="text-xs font-semibold text-[var(--color-primary)]">Next 3 moves</p>
+                    <ul className="mt-3 space-y-2 text-sm text-[var(--color-text-secondary)]">
+                      <li>1. Share the play page outside the platform.</li>
+                      <li>2. Ask for structured feedback while the game is fresh.</li>
+                      <li>3. {formData.hasGhostSharing ? "Seed the leaderboard with your first ghost run." : "Add thumbnail slides or an update note after your first fixes."}</li>
+                    </ul>
+                  </div>
+                  <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-base)] p-4">
+                    <p className="text-xs font-semibold text-[var(--color-primary)]">Reusable asset</p>
+                    <p className="mt-2 text-xs text-[var(--color-text-tertiary)]">Embed snippet</p>
+                    <code className="mt-2 block break-all rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-[11px] text-[var(--color-text)]">
+                      {embedCode}
+                    </code>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                {createdGame && (
+                  <Button className="w-full" onClick={() => router.push(`/play/${createdGame.slug}`)}>
+                    Open Play Page
+                  </Button>
+                )}
+                <Button variant="outline" className="w-full" onClick={() => router.push("/creator")}>
+                  Go to Dashboard
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </main>
@@ -261,6 +297,15 @@ export default function UploadPage() {
             )}
 
             {/* Game File Upload */}
+            <LaunchChecklist
+              title={formData.title}
+              description={formData.description}
+              instructions={formData.instructions}
+              thumbnail={thumbnailPreview}
+              supportsMobile={formData.supportsMobile}
+              latestUpdateNote={formData.latestUpdateNote}
+            />
+
             <Card>
               <CardHeader>
                 <CardTitle>Game Files</CardTitle>
@@ -336,108 +381,6 @@ export default function UploadPage() {
                 <CardDescription>Tell players about your game</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {session.user.id && (
-                  <div className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-                    <div className="flex flex-col gap-1">
-                      <Label>Publish as</Label>
-                      <p className="text-xs text-[var(--color-text-tertiary)]">
-                        Studio profiles let you publish games under a saved brand name.
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <Label>Studio profile (optional)</Label>
-                        <Select
-                          value={formData.studioProfileId}
-                          onValueChange={(value) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              studioProfileId: value === "__none__" ? "" : value,
-                            }))
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Your account" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__none__">Your account</SelectItem>
-                            {studioProfiles.map((p) => (
-                              <SelectItem key={p.id} value={p.id}>
-                                {p.displayName} (@{p.handle})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Create new studio</Label>
-                        <div className="flex gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="w-full"
-                            onClick={async () => {
-                              setStudioError("")
-                              setCreatingStudio(true)
-                              try {
-                                const res = await fetch("/api/studio-profiles", {
-                                  method: "POST",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({
-                                    displayName: newStudio.displayName,
-                                    handle: newStudio.handle || undefined,
-                                  }),
-                                })
-                                const data = await res.json()
-                                if (!res.ok) {
-                                  throw new Error(data.message || data.error || "Failed to create studio")
-                                }
-
-                                const created = data.profile
-                                setStudioProfiles((prev) => [created, ...prev])
-                                setFormData((prev) => ({ ...prev, studioProfileId: created.id }))
-                                setNewStudio({ displayName: "", handle: "" })
-                              } catch (err) {
-                                setStudioError(err instanceof Error ? err.message : "Failed to create studio")
-                              } finally {
-                                setCreatingStudio(false)
-                              }
-                            }}
-                            disabled={creatingStudio || !newStudio.displayName.trim()}
-                          >
-                            {creatingStudio ? "Creating..." : "Create"}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <Label>Studio display name</Label>
-                        <Input
-                          value={newStudio.displayName}
-                          onChange={(e) => setNewStudio({ ...newStudio, displayName: e.target.value })}
-                          placeholder="e.g. Neon Arcade Labs"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Studio handle (optional)</Label>
-                        <Input
-                          value={newStudio.handle}
-                          onChange={(e) => setNewStudio({ ...newStudio, handle: e.target.value })}
-                          placeholder="e.g. neon-arcade"
-                        />
-                      </div>
-                    </div>
-
-                    {studioError && (
-                      <div className="text-sm text-[var(--color-danger)]">{studioError}</div>
-                    )}
-                  </div>
-                )}
-
                 <div className="space-y-2">
                   <Label>Game Title *</Label>
                   <Input
@@ -580,29 +523,199 @@ export default function UploadPage() {
                   </div>
                 )}
 
-                <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.hasLevelEditor}
-                      onChange={(e) => setFormData({ ...formData, hasLevelEditor: e.target.checked })}
-                      className="h-4 w-4 rounded border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
-                    />
-                    <div>
-                      <p className="text-sm font-medium text-[var(--color-text)]">Community level editor</p>
-                      <p className="text-xs text-[var(--color-text-secondary)]">Turn this game into a remixable playground where players can build, save, rate, and share custom levels</p>
+                <details className="rounded-lg border border-[var(--color-border)] bg-[var(--color-base)]">
+                  <summary className="cursor-pointer list-none px-4 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-[var(--color-text)]">Advanced Settings</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">
+                          Optional discovery, creator, and community features.
+                        </p>
+                      </div>
+                      <span className="text-xs text-[var(--color-text-tertiary)]">Optional</span>
                     </div>
-                  </label>
-                </div>
+                  </summary>
 
-                {formData.hasLevelEditor && (
-                  <div className="space-y-2">
-                    <p className="text-xs text-[var(--color-text-secondary)]">
-                      Best for platformers, puzzle games, racing tracks, tower defense, and any game where custom stages meaningfully change play.
-                    </p>
-                    <LevelEditorSetupGuide />
+                  <div className="space-y-4 border-t border-[var(--color-border)] px-4 py-4">
+                    {session.user.id && (
+                      <div className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+                        <div className="flex flex-col gap-1">
+                          <Label>Publish as</Label>
+                          <p className="text-xs text-[var(--color-text-tertiary)]">
+                            Studio profiles let you publish games under a saved brand name.
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label>Studio profile (optional)</Label>
+                            <Select
+                              value={formData.studioProfileId}
+                              onValueChange={(value) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  studioProfileId: value === "__none__" ? "" : value,
+                                }))
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Your account" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="__none__">Your account</SelectItem>
+                                {studioProfiles.map((p) => (
+                                  <SelectItem key={p.id} value={p.id}>
+                                    {p.displayName} (@{p.handle})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Create new studio</Label>
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full"
+                                onClick={async () => {
+                                  setStudioError("")
+                                  setCreatingStudio(true)
+                                  try {
+                                    const res = await fetch("/api/studio-profiles", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({
+                                        displayName: newStudio.displayName,
+                                        handle: newStudio.handle || undefined,
+                                      }),
+                                    })
+                                    const data = await res.json()
+                                    if (!res.ok) {
+                                      throw new Error(data.message || data.error || "Failed to create studio")
+                                    }
+
+                                    const created = data.profile
+                                    setStudioProfiles((prev) => [created, ...prev])
+                                    setFormData((prev) => ({ ...prev, studioProfileId: created.id }))
+                                    setNewStudio({ displayName: "", handle: "" })
+                                  } catch (err) {
+                                    setStudioError(err instanceof Error ? err.message : "Failed to create studio")
+                                  } finally {
+                                    setCreatingStudio(false)
+                                  }
+                                }}
+                                disabled={creatingStudio || !newStudio.displayName.trim()}
+                              >
+                                {creatingStudio ? "Creating..." : "Create"}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label>Studio display name</Label>
+                            <Input
+                              value={newStudio.displayName}
+                              onChange={(e) => setNewStudio({ ...newStudio, displayName: e.target.value })}
+                              placeholder="e.g. Neon Arcade Labs"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Studio handle (optional)</Label>
+                            <Input
+                              value={newStudio.handle}
+                              onChange={(e) => setNewStudio({ ...newStudio, handle: e.target.value })}
+                              placeholder="e.g. neon-arcade"
+                            />
+                          </div>
+                        </div>
+
+                        {studioError && (
+                          <div className="text-sm text-[var(--color-danger)]">{studioError}</div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <Label>Launch / update note</Label>
+                      <Textarea
+                        value={formData.latestUpdateNote}
+                        onChange={(e) => setFormData({ ...formData, latestUpdateNote: e.target.value })}
+                        placeholder="What changed, what should players notice, or what kind of feedback do you want?"
+                        maxLength={280}
+                      />
+                      <p className="text-xs text-[var(--color-text-tertiary)]">
+                        Shown on the play page and creator portfolio so your profile feels active.
+                      </p>
+                    </div>
+
+                    <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.seekingFeedback}
+                          onChange={(e) => setFormData({ ...formData, seekingFeedback: e.target.checked })}
+                          className="h-4 w-4 rounded border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-[var(--color-text)]">Put this in the feedback lane</p>
+                          <p className="text-xs text-[var(--color-text-secondary)]">Only one of your games can be marked this way at a time, which helps smaller launches get eyes quickly.</p>
+                        </div>
+                      </label>
+                    </div>
+
+                    <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.hasLevelEditor}
+                          onChange={(e) => setFormData({ ...formData, hasLevelEditor: e.target.checked })}
+                          className="h-4 w-4 rounded border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-[var(--color-text)]">Community level editor</p>
+                          <p className="text-xs text-[var(--color-text-secondary)]">Turn this game into a remixable playground where players can build, save, rate, and share custom levels.</p>
+                        </div>
+                      </label>
+                    </div>
+
+                    {formData.hasLevelEditor && (
+                      <div className="space-y-2">
+                        <p className="text-xs text-[var(--color-text-secondary)]">
+                          Level editor is for games where players should build and share custom stages.
+                        </p>
+                        <LevelEditorSetupGuide />
+                      </div>
+                    )}
+
+                    <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.hasGhostSharing}
+                          onChange={(e) => setFormData({ ...formData, hasGhostSharing: e.target.checked })}
+                          className="h-4 w-4 rounded border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-[var(--color-text)]">Ghost races + time leaderboard</p>
+                          <p className="text-xs text-[var(--color-text-secondary)]">Best for games that can deterministically replay a run from structured data. Players can race ghosts and climb a time board.</p>
+                        </div>
+                      </label>
+                    </div>
+
+                    {formData.hasGhostSharing && (
+                      <div className="space-y-2">
+                        <p className="text-xs text-[var(--color-text-secondary)]">
+                          Ghost races are separate from level editor and work for any game with deterministic replay data.
+                        </p>
+                        <GhostSharingSetupGuide />
+                      </div>
+                    )}
                   </div>
-                )}
+                </details>
               </CardContent>
             </Card>
 

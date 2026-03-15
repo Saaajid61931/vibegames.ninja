@@ -25,6 +25,7 @@ model User {
   password      String?
   image         String?
   bio           String?
+  currentlyBuilding String?
   role          String    @default("USER") // USER, CREATOR, ADMIN
   isPro         Boolean   @default(false)
   proExpiresAt  DateTime?
@@ -38,6 +39,8 @@ model User {
   followers     CreatorFollow[] @relation("CreatorFollowers")
   following     CreatorFollow[] @relation("CreatorFollowing")
   comments      Comment[]
+  gameFeedback  GameFeedback[]
+  ghostRuns     GhostRun[]
   levels        Level[]
   levelRatings  LevelRating[]
   gameRatings   GameRating[]
@@ -117,10 +120,13 @@ model Game {
   supportsMobile Boolean @default(false)
   mobileOrientation MobileOrientation @default(BOTH)
   hasLevelEditor Boolean @default(false)
+  hasGhostSharing Boolean @default(false)
 
   isPremium Boolean @default(false)
   price     Float?
   hasAds    Boolean @default(true)
+  seekingFeedback Boolean @default(false)
+  latestUpdateNote String?
 
   plays       Int   @default(0)
   likes       Int   @default(0)
@@ -146,6 +152,8 @@ model Game {
   analytics    GameAnalytics[]
   favorites    Favorite[]
   comments     Comment[]
+  feedback     GameFeedback[]
+  ghostRuns    GhostRun[]
   levels       Level[]
   ratings      GameRating[]
   reports      Report[]
@@ -169,6 +177,8 @@ model StudioProfile {
   handle      String  @unique
   displayName String
   image       String?
+  bio         String?
+  currentlyBuilding String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -247,6 +257,7 @@ model Level {
   updatedAt   DateTime @updatedAt
 
   ratings LevelRating[]
+  ghostRuns GhostRun[]
 
   @@index([gameId, status, createdAt])
   @@index([gameId, status, avgRating])
@@ -279,6 +290,44 @@ model GameRating {
 
   @@unique([userId, gameId])
   @@index([gameId])
+}
+
+model GameFeedback {
+  id         String   @id @default(cuid())
+  gameId      String
+  game        Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fun         Boolean  @default(false)
+  confusing   Boolean  @default(false)
+  tooHard     Boolean  @default(false)
+  buggy       Boolean  @default(false)
+  comment     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, gameId])
+  @@index([gameId, createdAt])
+}
+
+model GhostRun {
+  id            String   @id @default(cuid())
+  gameId        String
+  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  levelId       String?
+  level         Level?   @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  durationMs    Int
+  replayData    Json
+  replayVersion String?
+  checksum      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([gameId, createdAt])
+  @@index([gameId, levelId, durationMs])
+  @@index([userId, gameId, levelId, durationMs])
 }
 
 model Earnings {

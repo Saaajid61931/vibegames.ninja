@@ -11,7 +11,7 @@ import {
   uploadThumbnailToR2,
   validateR2Config,
 } from "@/lib/storage"
-import type { LevelEditorIntegrationReport } from "@/lib/storage"
+import type { GhostIntegrationReport, LevelEditorIntegrationReport } from "@/lib/storage"
 
 function buildLevelEditorWarnings(report: LevelEditorIntegrationReport | undefined): string[] {
   if (!report) {
@@ -32,6 +32,26 @@ function buildLevelEditorWarnings(report: LevelEditorIntegrationReport | undefin
   return [
     `Community level editor hooks missing: ${missing.join(", ")}.`,
     "Open the setup guide, paste the quick prompt into your coding AI, and apply the smallest possible patch before inviting players to build levels.",
+  ]
+}
+
+function buildGhostWarnings(report: GhostIntegrationReport | undefined): string[] {
+  if (!report) {
+    return []
+  }
+
+  const missing: string[] = []
+  if (!report.notifyGhostReady) missing.push("VG.notifyGhostReady")
+  if (!report.onLoadGhost) missing.push("VG.onLoadGhost")
+  if (!report.saveGhostRun) missing.push("VG.saveGhostRun")
+
+  if (missing.length === 0) {
+    return []
+  }
+
+  return [
+    `Ghost sharing hooks missing: ${missing.join(", ")}.`,
+    "Use the Ghost Sharing setup guide and re-upload the build once those replay hooks are wired.",
   ]
 }
 
@@ -80,7 +100,7 @@ async function updateGame(
 
     const game = await prisma.game.findUnique({
       where: { id },
-      select: { id: true, creatorId: true, slug: true, title: true, hasLevelEditor: true },
+      select: { id: true, creatorId: true, slug: true, title: true, hasLevelEditor: true, hasGhostSharing: true },
     })
 
     if (!game) {
@@ -103,6 +123,9 @@ async function updateGame(
     let supportsMobile = false
     let mobileOrientation: "BOTH" | "PORTRAIT" | "LANDSCAPE" = "BOTH"
     let hasLevelEditor = false
+    let hasGhostSharing = false
+    let seekingFeedback = false
+    let latestUpdateNote: string | null = null
     let gameFile: File | null = null
     let thumbnailFile: File | null = null
 
@@ -124,6 +147,9 @@ async function updateGame(
         String(formData.get("mobileOrientation") || "BOTH")
       )
       hasLevelEditor = String(formData.get("hasLevelEditor") || "false") === "true"
+      hasGhostSharing = String(formData.get("hasGhostSharing") || "false") === "true"
+      seekingFeedback = String(formData.get("seekingFeedback") || "false") === "true"
+      latestUpdateNote = String(formData.get("latestUpdateNote") || "").trim() || null
 
       const maybeGameFile = formData.get("gameFile")
       gameFile = maybeGameFile instanceof File ? maybeGameFile : null
@@ -142,6 +168,11 @@ async function updateGame(
       supportsMobile = Boolean(body.supportsMobile)
       mobileOrientation = normalizeMobileOrientation(supportsMobile, body.mobileOrientation)
       hasLevelEditor = Boolean(body.hasLevelEditor)
+      hasGhostSharing = Boolean(body.hasGhostSharing)
+      seekingFeedback = Boolean(body.seekingFeedback)
+      latestUpdateNote = typeof body.latestUpdateNote === "string" && body.latestUpdateNote.trim()
+        ? body.latestUpdateNote.trim()
+        : null
     }
 
     if (!title || !description) {
@@ -175,19 +206,27 @@ async function updateGame(
       }
 
       const uploadResult = await uploadGameToR2(id, gameFile, {
-        injectLevelEditorSdk: hasLevelEditor,
+        injectPlatformSdk: hasLevelEditor || hasGhostSharing,
         inspectLevelEditorIntegration: hasLevelEditor,
+        inspectGhostIntegration: hasGhostSharing,
       })
       await deleteStaleGameAssetsFromR2(id, uploadResult.uploadedKeys)
       nextGameUrl = uploadResult.gameUrl
-      uploadWarnings = hasLevelEditor
-        ? buildLevelEditorWarnings(uploadResult.levelEditorIntegration)
-        : []
+      uploadWarnings = [
+        ...(hasLevelEditor ? buildLevelEditorWarnings(uploadResult.levelEditorIntegration) : []),
+        ...(hasGhostSharing ? buildGhostWarnings(uploadResult.ghostIntegration) : []),
+      ]
     }
 
     if (hasLevelEditor && !gameFile && !game.hasLevelEditor) {
       uploadWarnings.push(
         "Level editor was enabled without uploading a new game file. Re-upload the game file once so VibeGames can auto-inject editor SDK support."
+      )
+    }
+
+    if (hasGhostSharing && !gameFile && !game.hasGhostSharing) {
+      uploadWarnings.push(
+        "Ghost sharing was enabled without uploading a new game file. Re-upload the game file once so VibeGames can auto-inject the latest platform SDK."
       )
     }
 
@@ -243,10 +282,25 @@ async function updateGame(
         supportsMobile,
         mobileOrientation,
         hasLevelEditor,
+        hasGhostSharing,
+        seekingFeedback,
+        latestUpdateNote,
         ...(nextGameUrl ? { gameUrl: nextGameUrl } : {}),
         ...(nextThumbnailUrl ? { thumbnail: nextThumbnailUrl, thumbnailSlides: [nextThumbnailUrl] } : {}),
       },
     })
+
+    if (seekingFeedback) {
+      await prisma.game.updateMany({
+        where: {
+          creatorId: session.user.id,
+          id: { not: id },
+        },
+        data: {
+          seekingFeedback: false,
+        },
+      })
+    }
 
     revalidateTag("games", "max")
 

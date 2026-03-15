@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 const MAX_LEVEL_DATA_BYTES = 5 * 1024 * 1024
+export const MAX_GHOST_REPLAY_BYTES = 512 * 1024
 
 const usernameSchema = z
   .string()
@@ -24,6 +25,20 @@ const levelDataSchema = z
     (value) => Array.isArray(value) || (typeof value === 'object' && value !== null),
     'Level data must be an object or array'
   )
+
+const ghostReplayDataSchema = z
+  .unknown()
+  .refine((value) => {
+    if (typeof value === 'string') {
+      return true
+    }
+
+    return Array.isArray(value) || (typeof value === 'object' && value !== null)
+  }, 'Replay data must be a string, object, or array')
+  .refine(
+    (value) => new TextEncoder().encode(JSON.stringify(value)).length <= MAX_GHOST_REPLAY_BYTES,
+    'Replay data exceeds 512KB limit'
+  )
   .refine(
     (value) => new TextEncoder().encode(JSON.stringify(value)).length <= MAX_LEVEL_DATA_BYTES,
     'Level data exceeds 5MB limit'
@@ -45,6 +60,7 @@ export const profileSettingsSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters').max(60, 'Name must be 60 characters or less'),
   username: optionalUsernameSchema.optional().default(''),
   bio: z.string().trim().max(280, 'Bio must be 280 characters or less').default(''),
+  currentProject: z.string().trim().max(120, 'Current project must be 120 characters or less').default(''),
 })
 
 export const passwordChangeSchema = z
@@ -74,6 +90,9 @@ export const gameUploadSchema = z.object({
   supportsMobile: z.boolean().default(false),
   mobileOrientation: z.enum(['BOTH', 'PORTRAIT', 'LANDSCAPE']).default('BOTH'),
   hasLevelEditor: z.boolean().default(false),
+  hasGhostSharing: z.boolean().default(false),
+  seekingFeedback: z.boolean().default(false),
+  latestUpdateNote: z.string().max(280, 'Update note must be less than 280 characters').optional(),
   isPremium: z.boolean().default(false),
   price: z.number().min(0).max(99.99).optional(),
   hasAds: z.boolean().default(true),
@@ -109,6 +128,26 @@ export const ratingSchema = z.object({
   score: z.number().int().min(1).max(5),
 })
 
+export const structuredFeedbackSchema = z
+  .object({
+    fun: z.boolean().default(false),
+    confusing: z.boolean().default(false),
+    tooHard: z.boolean().default(false),
+    buggy: z.boolean().default(false),
+    comment: z.string().trim().max(280, 'Feedback note must be 280 characters or less').optional().default(''),
+  })
+  .refine((value) => value.fun || value.confusing || value.tooHard || value.buggy || value.comment.length > 0, {
+    message: 'Pick at least one signal or leave a short note.',
+  })
+
+export const ghostRunSchema = z.object({
+  levelId: z.string().cuid().optional(),
+  durationMs: z.number().int().min(1).max(60 * 60 * 1000),
+  replayData: ghostReplayDataSchema,
+  replayVersion: z.string().trim().max(80).optional(),
+  checksum: z.string().trim().max(120).optional(),
+})
+
 export const gameJamSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters').max(5000, 'Description must be less than 5000 characters'),
@@ -134,5 +173,7 @@ export type CommentInput = z.infer<typeof commentSchema>
 export type ReportInput = z.infer<typeof reportSchema>
 export type LevelInput = z.infer<typeof levelInputSchema>
 export type RatingInput = z.infer<typeof ratingSchema>
+export type StructuredFeedbackInput = z.infer<typeof structuredFeedbackSchema>
+export type GhostRunInput = z.infer<typeof ghostRunSchema>
 export type GameJamInput = z.infer<typeof gameJamSchema>
 export type GameJamEntryInput = z.infer<typeof gameJamEntrySchema>

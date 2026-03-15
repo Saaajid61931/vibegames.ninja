@@ -116,7 +116,7 @@ export function NotificationsMenu({ pathname }: NotificationsMenuProps) {
         {notifications.length === 0 ? (
           <div className="px-4 py-6 text-center">
             <p className="text-sm font-medium text-[var(--color-text)]">No notifications yet</p>
-            <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">Follows, comments, and ratings will show up here.</p>
+            <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">Follows, comments, ratings, and structured feedback will show up here.</p>
           </div>
         ) : (
           <div className="max-h-[360px] overflow-y-auto">

@@ -28,6 +28,7 @@ const getCreator = cache(async (username: string) => {
       name: true,
       username: true,
       bio: true,
+      currentlyBuilding: true,
       image: true,
       createdAt: true,
     },
@@ -70,7 +71,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const displayName = creator.name || creator.username
   const description = creator.bio || `Play games by @${creator.username} on VibeGames.Ninja.`
   const profilePath = `/creator/${creator.username}`
-  const ogImage = creator.image ? new URL(creator.image, SITE_URL).toString() : `${SITE_URL}/opengraph-image`
+  const ogImage = creator.image ? new URL(creator.image, SITE_URL).toString() : `${SITE_URL}/icon.svg`
 
   return {
     title: `${displayName} (@${creator.username})`,
@@ -109,7 +110,7 @@ export default async function PublicCreatorPage({ params }: PageProps) {
     notFound()
   }
 
-  const [games, followers, isFollowing] = await Promise.all([
+  const [games, followers, isFollowing, featuredPicks, jamEntries] = await Promise.all([
     prisma.game.findMany({
       where: {
         creatorId: creator.id,
@@ -129,6 +130,9 @@ export default async function PublicCreatorPage({ params }: PageProps) {
         supportsMobile: true,
         aiTool: true,
         aiModel: true,
+        seekingFeedback: true,
+        updatedAt: true,
+        latestUpdateNote: true,
         creator: {
           select: { id: true, name: true, username: true, image: true },
         },
@@ -152,6 +156,20 @@ export default async function PublicCreatorPage({ params }: PageProps) {
           })
           .then((follow: { id: string } | null) => Boolean(follow))
       : Promise.resolve(false),
+    prisma.featuredGame.count({
+      where: {
+        game: {
+          creatorId: creator.id,
+        },
+      },
+    }),
+    prisma.gameJamEntry.count({
+      where: {
+        game: {
+          creatorId: creator.id,
+        },
+      },
+    }),
   ])
 
   const normalizedGames: GameCardData[] = games.map((game) => ({
@@ -160,6 +178,10 @@ export default async function PublicCreatorPage({ params }: PageProps) {
   }))
   const mobileReadyGames = normalizedGames.filter((game) => game.supportsMobile).length
   const topGame = [...normalizedGames].sort((a, b) => (b.plays + b.likes * 3) - (a.plays + a.likes * 3))[0]
+  const lastUpdatedGame = [...normalizedGames].sort(
+    (a, b) => new Date((b as typeof b & { updatedAt?: Date }).updatedAt || b.createdAt).getTime() - new Date((a as typeof a & { updatedAt?: Date }).updatedAt || a.createdAt).getTime()
+  )[0] as (GameCardData & { updatedAt?: Date; latestUpdateNote?: string | null }) | undefined
+  const toolsUsed = [...new Set(games.map((game) => game.aiTool).filter(Boolean))].slice(0, 3)
 
   const creatorJsonLd = {
     "@context": "https://schema.org",
@@ -198,6 +220,9 @@ export default async function PublicCreatorPage({ params }: PageProps) {
                   <Users className="h-3 w-3" />
                   {formatNumber(followers)} followers
                 </p>
+                {creator.currentlyBuilding && (
+                  <p className="mt-2 font-arcade text-xs text-[#c9d1ff]">Currently building: {creator.currentlyBuilding}</p>
+                )}
               </div>
             </div>
             <FollowButton
@@ -235,6 +260,35 @@ export default async function PublicCreatorPage({ params }: PageProps) {
               <p className="mt-2 font-arcade text-sm text-white">Get new releases in your notifications.</p>
             </div>
           </div>
+
+          <div className="mt-3 grid gap-3 md:grid-cols-4">
+            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+              <p className="font-arcade text-[11px] text-[#8b93a6]">TOTAL LAUNCHES</p>
+              <p className="mt-2 font-arcade text-sm text-white">{normalizedGames.length}</p>
+            </div>
+            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+              <p className="font-arcade text-[11px] text-[#8b93a6]">FEATURED PICKS</p>
+              <p className="mt-2 font-arcade text-sm text-white">{featuredPicks}</p>
+            </div>
+            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+              <p className="font-arcade text-[11px] text-[#8b93a6]">JAM ENTRIES</p>
+              <p className="mt-2 font-arcade text-sm text-white">{jamEntries}</p>
+            </div>
+            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+              <p className="font-arcade text-[11px] text-[#8b93a6]">LAST UPDATED</p>
+              <p className="mt-2 font-arcade text-sm text-white">{lastUpdatedGame ? lastUpdatedGame.title : "No updates yet"}</p>
+            </div>
+          </div>
+
+          {toolsUsed.length > 0 && (
+            <div className="mt-3 border border-[#4a4a6a] bg-[#0d0d15] p-3">
+              <p className="font-arcade text-[11px] text-[#00d1ff]">COMMON TOOLS</p>
+              <p className="mt-2 font-arcade text-sm text-white">{toolsUsed.join(" • ")}</p>
+              {lastUpdatedGame?.latestUpdateNote && (
+                <p className="mt-2 font-arcade text-xs text-[#8b93a6]">Latest note: {lastUpdatedGame.latestUpdateNote}</p>
+              )}
+            </div>
+          )}
         </section>
 
         <section>

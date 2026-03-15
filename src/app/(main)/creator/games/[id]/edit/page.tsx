@@ -19,12 +19,14 @@ import {
 } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { LaunchChecklist } from "@/components/creator/launch-checklist"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { GhostSharingSetupGuide } from "@/components/games/ghost-sharing-setup-guide"
 import { LevelEditorSetupGuide } from "@/components/games/level-editor-setup-guide"
 import { MOBILE_ORIENTATION_OPTIONS } from "@/lib/mobile-orientation"
 import { CATEGORIES, AI_TOOLS } from "@/lib/utils"
@@ -45,6 +47,9 @@ interface GameData {
   supportsMobile: boolean
   mobileOrientation: "BOTH" | "PORTRAIT" | "LANDSCAPE"
   hasLevelEditor: boolean
+  hasGhostSharing: boolean
+  seekingFeedback: boolean
+  latestUpdateNote: string | null
   thumbnail: string | null
 }
 
@@ -73,6 +78,9 @@ export default function EditGamePage({ params }: PageProps) {
     supportsMobile: false,
     mobileOrientation: "BOTH",
     hasLevelEditor: false,
+    hasGhostSharing: false,
+    seekingFeedback: false,
+    latestUpdateNote: "",
   })
 
   useEffect(() => {
@@ -113,6 +121,9 @@ export default function EditGamePage({ params }: PageProps) {
         supportsMobile: data.supportsMobile || false,
         mobileOrientation: data.mobileOrientation || "BOTH",
         hasLevelEditor: data.hasLevelEditor || false,
+        hasGhostSharing: data.hasGhostSharing || false,
+        seekingFeedback: data.seekingFeedback || false,
+        latestUpdateNote: data.latestUpdateNote || "",
       })
     } catch {
       setError("Failed to load game")
@@ -205,6 +216,9 @@ export default function EditGamePage({ params }: PageProps) {
         nextData.append("supportsMobile", String(formData.supportsMobile))
         nextData.append("mobileOrientation", formData.mobileOrientation)
         nextData.append("hasLevelEditor", String(formData.hasLevelEditor))
+        nextData.append("hasGhostSharing", String(formData.hasGhostSharing))
+        nextData.append("seekingFeedback", String(formData.seekingFeedback))
+        nextData.append("latestUpdateNote", formData.latestUpdateNote)
 
         if (gameFile) {
           nextData.append("gameFile", gameFile)
@@ -270,6 +284,9 @@ export default function EditGamePage({ params }: PageProps) {
               nextData.append("supportsMobile", String(formData.supportsMobile))
               nextData.append("mobileOrientation", formData.mobileOrientation)
               nextData.append("hasLevelEditor", String(formData.hasLevelEditor))
+              nextData.append("hasGhostSharing", String(formData.hasGhostSharing))
+              nextData.append("seekingFeedback", String(formData.seekingFeedback))
+              nextData.append("latestUpdateNote", formData.latestUpdateNote)
               if (gameFile) nextData.append("gameFile", gameFile)
               if (thumbnailFile) nextData.append("thumbnail", thumbnailFile)
               return nextData
@@ -351,7 +368,7 @@ export default function EditGamePage({ params }: PageProps) {
               <h2 className="text-xl font-semibold text-white mb-2 font-arcade">Game Updated!</h2>
               {updateWarnings.length > 0 ? (
                 <div className="space-y-3 text-left">
-                  <p className="text-[#4a4a6a] text-sm font-arcade text-center">Game updated, but the community level editor still needs a few hook fixes.</p>
+                  <p className="text-[#4a4a6a] text-sm font-arcade text-center">Game updated, but the platform hooks still need a few fixes before everything is live.</p>
                   <div className="rounded border border-[#ffff00] bg-[#ffff00]/10 p-3 text-xs text-white font-arcade">
                     {updateWarnings.map((warning) => (
                       <p key={warning}>{warning}</p>
@@ -401,6 +418,15 @@ export default function EditGamePage({ params }: PageProps) {
                 {error}
               </div>
             )}
+
+            <LaunchChecklist
+              title={formData.title}
+              description={formData.description}
+              instructions={formData.instructions}
+              thumbnail={thumbnailPreview || game?.thumbnail}
+              supportsMobile={formData.supportsMobile}
+              latestUpdateNote={formData.latestUpdateNote}
+            />
 
             <Card className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
               <CardHeader>
@@ -685,35 +711,109 @@ export default function EditGamePage({ params }: PageProps) {
                   </div>
                 )}
 
-                <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.hasLevelEditor}
-                      onChange={(e) =>
-                        setFormData({ ...formData, hasLevelEditor: e.target.checked })
-                      }
-                      className="h-4 w-4 rounded border-[#4a4a6a] bg-[#0d0d15] text-[#ffff00] focus:ring-[#ffff00]"
-                    />
-                    <div>
-                      <p className="text-sm font-medium text-white font-arcade">
-                        Community level editor
-                      </p>
-                      <p className="text-xs text-[#4a4a6a] font-arcade">
-                        Turn this game into a remixable playground where players can create, save, rate, and share custom levels
-                      </p>
+                <details className="border border-[#4a4a6a] bg-[#0d0d15]">
+                  <summary className="cursor-pointer list-none px-4 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-white font-arcade">Advanced Settings</p>
+                        <p className="text-xs text-[#4a4a6a] font-arcade">
+                          Optional discovery, creator, and community features.
+                        </p>
+                      </div>
+                      <span className="text-xs text-[#4a4a6a] font-arcade">OPTIONAL</span>
                     </div>
-                  </label>
-                </div>
+                  </summary>
 
-                {formData.hasLevelEditor && (
-                  <div className="space-y-2">
-                    <p className="text-xs text-[#4a4a6a] font-arcade">
-                      Best for platformers, puzzle games, racing tracks, tower defense, and any game where custom stages meaningfully change play.
-                    </p>
-                    <LevelEditorSetupGuide />
+                  <div className="space-y-4 border-t border-[#4a4a6a] p-4">
+                    <div className="space-y-2">
+                      <Label className="font-arcade text-xs">Launch / update note</Label>
+                      <Textarea
+                        value={formData.latestUpdateNote}
+                        onChange={(e) => setFormData({ ...formData, latestUpdateNote: e.target.value })}
+                        placeholder="What changed, what should players notice, or what kind of feedback do you want?"
+                        className="font-arcade"
+                        maxLength={280}
+                      />
+                    </div>
+
+                    <div className="border border-[#4a4a6a] bg-[#11111d] p-3">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.seekingFeedback}
+                          onChange={(e) =>
+                            setFormData({ ...formData, seekingFeedback: e.target.checked })
+                          }
+                          className="h-4 w-4 rounded border-[#4a4a6a] bg-[#0d0d15] text-[#ffff00] focus:ring-[#ffff00]"
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-white font-arcade">Put this in the feedback lane</p>
+                          <p className="text-xs text-[#4a4a6a] font-arcade">Only one of your games can be seeking feedback at a time.</p>
+                        </div>
+                      </label>
+                    </div>
+
+                    <div className="border border-[#4a4a6a] bg-[#11111d] p-3">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.hasLevelEditor}
+                          onChange={(e) =>
+                            setFormData({ ...formData, hasLevelEditor: e.target.checked })
+                          }
+                          className="h-4 w-4 rounded border-[#4a4a6a] bg-[#0d0d15] text-[#ffff00] focus:ring-[#ffff00]"
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-white font-arcade">
+                            Community level editor
+                          </p>
+                          <p className="text-xs text-[#4a4a6a] font-arcade">
+                            Turn this game into a remixable playground where players can create, save, rate, and share custom levels.
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+
+                    {formData.hasLevelEditor && (
+                      <div className="space-y-2">
+                        <p className="text-xs text-[#4a4a6a] font-arcade">
+                          Level editor is for games where players should build and share custom stages.
+                        </p>
+                        <LevelEditorSetupGuide />
+                      </div>
+                    )}
+
+                    <div className="border border-[#4a4a6a] bg-[#11111d] p-3">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.hasGhostSharing}
+                          onChange={(e) =>
+                            setFormData({ ...formData, hasGhostSharing: e.target.checked })
+                          }
+                          className="h-4 w-4 rounded border-[#4a4a6a] bg-[#0d0d15] text-[#ffff00] focus:ring-[#ffff00]"
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-white font-arcade">
+                            Ghost races + time leaderboard
+                          </p>
+                          <p className="text-xs text-[#4a4a6a] font-arcade">
+                            Enable replay ghosts for games that can deterministically load a run from structured data.
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+
+                    {formData.hasGhostSharing && (
+                      <div className="space-y-2">
+                        <p className="text-xs text-[#4a4a6a] font-arcade">
+                          Ghost races are separate from level editor and work for games with deterministic replay data.
+                        </p>
+                        <GhostSharingSetupGuide />
+                      </div>
+                    )}
                   </div>
-                )}
+                </details>
               </CardContent>
             </Card>
 

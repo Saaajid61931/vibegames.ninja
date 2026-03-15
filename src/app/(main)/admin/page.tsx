@@ -72,11 +72,15 @@ async function getAdminData() {
       id: j.id,
       title: j.title,
       slug: j.slug,
+      description: j.description,
       status: j.status,
       theme: j.theme,
+      rules: j.rules,
+      bannerImage: j.bannerImage,
       startDate: j.startDate.toISOString(),
       endDate: j.endDate.toISOString(),
       votingEndDate: j.votingEndDate.toISOString(),
+      maxEntries: j.maxEntries,
       entryCount: j._count.entries,
     })),
     stats: {
@@ -306,7 +310,7 @@ export default async function AdminPage() {
               <CardHeader>
                 <CardTitle>Game Jams</CardTitle>
                 <CardDescription>
-                  Create and manage game jams. Statuses auto-transition based on dates (UPCOMING → ACTIVE → VOTING → COMPLETED).
+                  Create and manage game jams. Theme, banner, rules, submission window, voting window, and entry limits are all controlled here. Status still auto-transitions from the jam dates.
                 </CardDescription>
               </CardHeader>
               <CardContent>

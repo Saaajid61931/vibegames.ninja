@@ -33,6 +33,31 @@ export const metadata: Metadata = {
   },
 }
 
+const homeGameCardSelect = {
+  id: true,
+  slug: true,
+  title: true,
+  thumbnail: true,
+  thumbnailSlides: true,
+  category: true,
+  plays: true,
+  likes: true,
+  createdAt: true,
+  publishedAt: true,
+  supportsMobile: true,
+  hasLevelEditor: true,
+  aiTool: true,
+  aiModel: true,
+  seekingFeedback: true,
+  latestUpdateNote: true,
+  studioProfile: {
+    select: { id: true, handle: true, displayName: true, image: true },
+  },
+  creator: {
+    select: { id: true, name: true, username: true, image: true },
+  },
+} as const
+
 const getFeaturedGames = unstable_cache(async () => {
   const curatedPicks = await prisma.featuredGame.findMany({
     where: {
@@ -40,14 +65,7 @@ const getFeaturedGames = unstable_cache(async () => {
     },
     include: {
       game: {
-        include: {
-          studioProfile: {
-            select: { id: true, handle: true, displayName: true, image: true },
-          },
-          creator: {
-            select: { id: true, name: true, username: true, image: true },
-          },
-        },
+        select: homeGameCardSelect,
       },
     },
     orderBy: { date: "desc" },
@@ -67,14 +85,7 @@ const getFeaturedGames = unstable_cache(async () => {
         notIn: curatedGames.map((game) => game.id),
       },
     },
-    include: {
-      studioProfile: {
-        select: { id: true, handle: true, displayName: true, image: true },
-      },
-      creator: {
-        select: { id: true, name: true, username: true, image: true },
-      },
-    },
+    select: homeGameCardSelect,
     orderBy: getDiscoveryOrderBy("trending"),
     take: Math.max(6 - curatedGames.length, 0),
   })
@@ -88,14 +99,7 @@ const getMobileGames = unstable_cache(async () => {
       status: "PUBLISHED",
       supportsMobile: true,
     },
-    include: {
-      studioProfile: {
-        select: { id: true, handle: true, displayName: true, image: true },
-      },
-      creator: {
-        select: { id: true, name: true, username: true, image: true },
-      },
-    },
+    select: homeGameCardSelect,
     orderBy: getDiscoveryOrderBy("popular"),
     take: 4,
   })
@@ -107,18 +111,67 @@ const getEditorGames = unstable_cache(async () => {
       status: "PUBLISHED",
       hasLevelEditor: true,
     },
-    include: {
-      studioProfile: {
-        select: { id: true, handle: true, displayName: true, image: true },
-      },
-      creator: {
-        select: { id: true, name: true, username: true, image: true },
-      },
-    },
+    select: homeGameCardSelect,
     orderBy: getDiscoveryOrderBy("trending"),
     take: 4,
   })
 }, ["home-editor-games"], { revalidate: 60, tags: ["games"] })
+
+const getJustLaunchedGames = unstable_cache(async () => {
+  const since = new Date(Date.now() - 72 * 60 * 60 * 1000)
+  return prisma.game.findMany({
+    where: {
+      status: "PUBLISHED",
+      publishedAt: {
+        gte: since,
+      },
+    },
+    select: homeGameCardSelect,
+    orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+    take: 4,
+  })
+}, ["home-just-launched-games"], { revalidate: 60, tags: ["games"] })
+
+const getNeedsFeedbackGames = unstable_cache(async () => {
+  return prisma.game.findMany({
+    where: {
+      status: "PUBLISHED",
+      seekingFeedback: true,
+    },
+    select: homeGameCardSelect,
+    orderBy: [{ plays: "asc" }, { publishedAt: "desc" }],
+    take: 4,
+  })
+}, ["home-needs-feedback-games"], { revalidate: 60, tags: ["games"] })
+
+const getUpdatedThisWeekGames = unstable_cache(async () => {
+  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  return prisma.game.findMany({
+    where: {
+      status: "PUBLISHED",
+      updatedAt: {
+        gte: since,
+      },
+    },
+    select: homeGameCardSelect,
+    orderBy: [{ updatedAt: "desc" }, { publishedAt: "desc" }],
+    take: 4,
+  })
+}, ["home-updated-this-week-games"], { revalidate: 60, tags: ["games"] })
+
+const getBuiltWithToolsGames = unstable_cache(async () => {
+  return prisma.game.findMany({
+    where: {
+      status: "PUBLISHED",
+      aiTool: {
+        in: ["chatgpt", "claude", "cursor"],
+      },
+    },
+    select: homeGameCardSelect,
+    orderBy: getDiscoveryOrderBy("new"),
+    take: 4,
+  })
+}, ["home-built-with-tools-games"], { revalidate: 60, tags: ["games"] })
 
 const getStats = unstable_cache(async () => {
   const [gamesCount, creatorUsersCount, studioProfilesCount, totalPlays] = await Promise.all([
@@ -219,12 +272,16 @@ const getGameOfTheMonth = unstable_cache(async () => {
 }, ["home-game-of-the-month"], { revalidate: 60, tags: ["featured", "games"] })
 
 export default async function HomePage() {
-  const [games, stats, gotd, mobileGames, editorGames] = await Promise.all([
+  const [games, stats, gotd, mobileGames, editorGames, justLaunchedGames, needsFeedbackGames, updatedThisWeekGames, builtWithToolsGames] = await Promise.all([
     getFeaturedGames(),
     getStats(),
     getGameOfTheMonth(),
     getMobileGames(),
     getEditorGames(),
+    getJustLaunchedGames(),
+    getNeedsFeedbackGames(),
+    getUpdatedThisWeekGames(),
+    getBuiltWithToolsGames(),
   ])
   const normalizedGames = games.map((game) => ({
     ...game,
@@ -238,11 +295,26 @@ export default async function HomePage() {
     ...game,
     createdAt: new Date(game.createdAt),
   }))
+  const normalizedJustLaunchedGames = justLaunchedGames.map((game) => ({
+    ...game,
+    createdAt: new Date(game.createdAt),
+  }))
+  const normalizedNeedsFeedbackGames = needsFeedbackGames.map((game) => ({
+    ...game,
+    createdAt: new Date(game.createdAt),
+  }))
+  const normalizedUpdatedThisWeekGames = updatedThisWeekGames.map((game) => ({
+    ...game,
+    createdAt: new Date(game.createdAt),
+  }))
+  const normalizedBuiltWithToolsGames = builtWithToolsGames.map((game) => ({
+    ...game,
+    createdAt: new Date(game.createdAt),
+  }))
   const categoryLinks = CATEGORIES.slice(0, 6).map((category) => ({
     ...category,
     href: `/games?category=${category.value.toLowerCase()}`,
   }))
-
   const features = [
     { icon: Zap, title: "EXPLORE IDEAS", desc: "Discover games made by creative people worldwide", color: "#ffff00" },
     { icon: Upload, title: "NO SKILLS NEEDED", desc: "Build with AI. No coding required", color: "#0080ff" },
@@ -381,6 +453,40 @@ export default async function HomePage() {
         {/* Active Game Jam Banner */}
         <ActiveJamBanner />
 
+        <section className="border-b-2 sm:border-b-4 border-[#4a4a6a] bg-[#11111d] py-10 sm:py-14">
+          <div className="container mx-auto px-4">
+            <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
+              <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 sm:p-6">
+                <p className="font-pixel text-[10px] text-[#22c55e]">COMMUNITY MOMENTUM</p>
+                <h2 className="mt-2 font-pixel text-lg text-white sm:text-2xl">GAME JAMS DRIVE THE ENERGY</h2>
+                <p className="mt-3 max-w-2xl font-arcade text-sm text-[#c9d1ff]">
+                  One strong jam system is better than scattered mini-events. Themes, deadlines, banners, submissions, and voting now live in one place.
+                </p>
+                <p className="mt-2 font-arcade text-sm text-[#8b93a6]">
+                  Join an active jam to build around a theme, get discovered faster, and give creators a clearer reason to upload now.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <Link href="/jams">
+                    <Button variant="arcade">VIEW GAME JAMS</Button>
+                  </Link>
+                  <Link href="/upload">
+                    <Button variant="outline">UPLOAD A JAM BUILD</Button>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 sm:p-6">
+                <p className="font-pixel text-[10px] text-[#00d1ff]">WHY CREATORS USE THIS</p>
+                <div className="mt-3 space-y-3 font-arcade text-sm text-[#c9d1ff]">
+                  <p>Every new launch gets a real discovery lane.</p>
+                  <p>You can mark one game as seeking feedback when you want eyes, not just likes.</p>
+                  <p>Your public profile now works more like a living portfolio than a file dump.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <RecentlyPlayed games={[...normalizedGames, ...normalizedMobileGames, ...normalizedEditorGames]} />
 
         {/* Game of the Month */}
@@ -514,6 +620,94 @@ export default async function HomePage() {
           </div>
         </section>
 
+        {normalizedJustLaunchedGames.length > 0 && (
+          <section className="py-14 sm:py-20 border-b-2 sm:border-b-4 border-[#4a4a6a] bg-[#11111d]">
+            <div className="container mx-auto px-4">
+              <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <span className="font-pixel text-[10px] text-[#22c55e]">AUTOMATIC DISCOVERY</span>
+                  <h2 className="mt-2 font-pixel text-xl text-white sm:text-2xl md:text-3xl">JUST LAUNCHED</h2>
+                  <p className="mt-2 font-arcade text-sm text-[#8b93a6]">Fresh uploads get a visibility window instead of competing only with old winners.</p>
+                </div>
+                <Link href="/games?sort=new">
+                  <Button variant="secondary" size="sm">SEE NEW GAMES</Button>
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+                {normalizedJustLaunchedGames.map((game) => (
+                  <GameCard key={game.id} game={game} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {normalizedNeedsFeedbackGames.length > 0 && (
+          <section className="py-14 sm:py-20 border-b-2 sm:border-b-4 border-[#4a4a6a]">
+            <div className="container mx-auto px-4">
+              <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <span className="font-pixel text-[10px] text-[#ff7a00]">CREATOR SUPPORT</span>
+                  <h2 className="mt-2 font-pixel text-xl text-white sm:text-2xl md:text-3xl">NEEDS FEEDBACK</h2>
+                  <p className="mt-2 font-arcade text-sm text-[#8b93a6]">Creators can spotlight one game when they want useful player input, not just passive traffic.</p>
+                </div>
+                <Link href="/upload">
+                  <Button variant="secondary" size="sm">UPLOAD YOUR BUILD</Button>
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+                {normalizedNeedsFeedbackGames.map((game) => (
+                  <GameCard key={game.id} game={game} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {normalizedUpdatedThisWeekGames.length > 0 && (
+          <section className="py-14 sm:py-20 border-b-2 sm:border-b-4 border-[#4a4a6a] bg-[#11111d]">
+            <div className="container mx-auto px-4">
+              <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <span className="font-pixel text-[10px] text-[#00d1ff]">ACTIVE CREATORS</span>
+                  <h2 className="mt-2 font-pixel text-xl text-white sm:text-2xl md:text-3xl">UPDATED THIS WEEK</h2>
+                  <p className="mt-2 font-arcade text-sm text-[#8b93a6]">Keep players returning with visible update momentum, not just one-and-done launches.</p>
+                </div>
+                <Link href="/creator">
+                  <Button variant="secondary" size="sm">OPEN DASHBOARD</Button>
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+                {normalizedUpdatedThisWeekGames.map((game) => (
+                  <GameCard key={game.id} game={game} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {normalizedBuiltWithToolsGames.length > 0 && (
+          <section className="py-14 sm:py-20 border-b-2 sm:border-b-4 border-[#4a4a6a]">
+            <div className="container mx-auto px-4">
+              <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <span className="font-pixel text-[10px] text-[#ffff00]">AI HOBBYIST ENERGY</span>
+                  <h2 className="mt-2 font-pixel text-xl text-white sm:text-2xl md:text-3xl">BUILT WITH GPT, CLAUDE, OR CURSOR</h2>
+                  <p className="mt-2 font-arcade text-sm text-[#8b93a6]">Show creators they are among peers shipping fast, remixing ideas, and getting public feedback.</p>
+                </div>
+                <Link href="/games">
+                  <Button variant="secondary" size="sm">BROWSE MORE</Button>
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+                {normalizedBuiltWithToolsGames.map((game) => (
+                  <GameCard key={game.id} game={game} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         <section className="border-b-2 sm:border-b-4 border-[#4a4a6a] bg-[#11111d] py-14 sm:py-20">
           <div className="container mx-auto px-4">
             <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
@@ -541,7 +735,7 @@ export default async function HomePage() {
                 <p className="mt-3 font-arcade text-sm text-[#8b93a6]">Play, remix, and publish community levels to keep games alive longer.</p>
               </Link>
               <Link href="/jams" className="group border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 transition-all hover:border-[#ff0040] hover:-translate-y-1">
-                <p className="font-pixel text-[10px] text-[#ff0040]">WEEKLY ENERGY</p>
+                <p className="font-pixel text-[10px] text-[#ff0040]">COMMUNITY EVENTS</p>
                 <h3 className="mt-2 font-pixel text-sm text-white">JOIN A GAME JAM</h3>
                 <p className="mt-3 font-arcade text-sm text-[#8b93a6]">Compete, get discovered, and ride the momentum of deadline-driven launches.</p>
               </Link>

@@ -12,7 +12,7 @@ import {
   uploadThumbnailToR2,
   validateR2Config,
 } from "@/lib/storage"
-import type { LevelEditorIntegrationReport } from "@/lib/storage"
+import type { GhostIntegrationReport, LevelEditorIntegrationReport } from "@/lib/storage"
 
 function buildLevelEditorWarnings(report: LevelEditorIntegrationReport | undefined): string[] {
   if (!report) {
@@ -33,6 +33,26 @@ function buildLevelEditorWarnings(report: LevelEditorIntegrationReport | undefin
   return [
     `Community level editor hooks missing: ${missing.join(", ")}.`,
     "Open the setup guide, paste the quick prompt into your coding AI, and apply the smallest possible patch before inviting players to build levels.",
+  ]
+}
+
+function buildGhostWarnings(report: GhostIntegrationReport | undefined): string[] {
+  if (!report) {
+    return []
+  }
+
+  const missing: string[] = []
+  if (!report.notifyGhostReady) missing.push("VG.notifyGhostReady")
+  if (!report.onLoadGhost) missing.push("VG.onLoadGhost")
+  if (!report.saveGhostRun) missing.push("VG.saveGhostRun")
+
+  if (missing.length === 0) {
+    return []
+  }
+
+  return [
+    `Ghost sharing hooks missing: ${missing.join(", ")}.`,
+    "Use the Ghost Sharing setup guide and add the missing replay hooks before turning on ghost races for players.",
   ]
 }
 
@@ -61,12 +81,16 @@ export async function POST(request: NextRequest) {
     const supportsMobile = formData.get("supportsMobile") === "true"
     const mobileOrientationRaw = formData.get("mobileOrientation") as string | null
     const hasLevelEditor = formData.get("hasLevelEditor") === "true"
+    const hasGhostSharing = formData.get("hasGhostSharing") === "true"
+    const seekingFeedback = formData.get("seekingFeedback") === "true"
     const isAIGenerated = formData.get("isAIGenerated") === "true"
+    const latestUpdateNoteRaw = formData.get("latestUpdateNote") as string | null
     const studioProfileIdRaw = formData.get("studioProfileId")
 
     const aiModel = aiModelRaw?.trim() ? aiModelRaw.trim() : null
     const normalizedAiTool = aiTool?.trim() ? aiTool.trim() : null
     const mobileOrientation = normalizeMobileOrientation(supportsMobile, mobileOrientationRaw)
+    const latestUpdateNote = latestUpdateNoteRaw?.trim() ? latestUpdateNoteRaw.trim() : null
 
     const studioProfileId = typeof studioProfileIdRaw === "string" && studioProfileIdRaw.trim()
       ? studioProfileIdRaw.trim()
@@ -143,8 +167,9 @@ export async function POST(request: NextRequest) {
     }
 
     const uploadResult = await uploadGameToR2(gameId, gameFile, {
-      injectLevelEditorSdk: hasLevelEditor,
+      injectPlatformSdk: hasLevelEditor || hasGhostSharing,
       inspectLevelEditorIntegration: hasLevelEditor,
+      inspectGhostIntegration: hasGhostSharing,
     })
     const gameUrl = uploadResult.gameUrl
 
@@ -170,6 +195,9 @@ export async function POST(request: NextRequest) {
           supportsMobile,
           mobileOrientation,
           hasLevelEditor,
+          hasGhostSharing,
+          seekingFeedback,
+          latestUpdateNote,
           isAIGenerated,
           gameUrl,
           thumbnail: thumbnailUrl,
@@ -180,6 +208,18 @@ export async function POST(request: NextRequest) {
           publishedAt: new Date(),
         },
       })
+
+      if (seekingFeedback) {
+        await prisma.game.updateMany({
+          where: {
+            creatorId: session.user.id,
+            id: { not: gameId },
+          },
+          data: {
+            seekingFeedback: false,
+          },
+        })
+      }
     } catch (dbError) {
       await deleteGameAssetsFromR2(gameId)
       throw dbError
@@ -187,9 +227,10 @@ export async function POST(request: NextRequest) {
 
     revalidateTag("games", "max")
 
-    const warnings = hasLevelEditor
-      ? buildLevelEditorWarnings(uploadResult.levelEditorIntegration)
-      : []
+    const warnings = [
+      ...(hasLevelEditor ? buildLevelEditorWarnings(uploadResult.levelEditorIntegration) : []),
+      ...(hasGhostSharing ? buildGhostWarnings(uploadResult.ghostIntegration) : []),
+    ]
 
     return NextResponse.json({
       message: "Game uploaded successfully",
