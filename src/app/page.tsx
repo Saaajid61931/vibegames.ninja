@@ -14,6 +14,8 @@ import { getDiscoveryOrderBy } from "@/lib/discovery"
 import { CATEGORIES } from "@/lib/utils"
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "AI Arcade - Build, Play & Get Inspired",
   description: "A community for AI-made games. Build with AI, play amazing creations, and get inspired by other creators.",
