@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useCallback, useEffect, useMemo, useRef } from "react"
+import Link from "next/link"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { useDropzone } from "react-dropzone"
-import { Upload, FileArchive, X, CheckCircle, AlertCircle, Loader2 } from "lucide-react"
+import { Upload, FileArchive, X, CheckCircle, AlertCircle, Loader2, Trophy } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { LaunchChecklist } from "@/components/creator/launch-checklist"
@@ -19,17 +20,38 @@ import { LevelEditorSetupGuide } from "@/components/games/level-editor-setup-gui
 import { MOBILE_ORIENTATION_OPTIONS } from "@/lib/mobile-orientation"
 import { CATEGORIES, AI_TOOLS } from "@/lib/utils"
 
+type ActiveJamOption = {
+  id: string
+  slug: string
+  title: string
+  theme: string | null
+  endDate: string
+  maxEntries: number
+}
+
 export default function UploadPage() {
   const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { data: session, status } = useSession()
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
-  const [createdGame, setCreatedGame] = useState<{ slug: string; title: string } | null>(null)
+  const [createdGame, setCreatedGame] = useState<{
+    slug: string
+    title: string
+    submittedJam?: { slug: string; title: string } | null
+  } | null>(null)
   const [uploadWarnings, setUploadWarnings] = useState<string[]>([])
   const [gameFile, setGameFile] = useState<File | null>(null)
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
+  const [activeJams, setActiveJams] = useState<ActiveJamOption[]>([])
+  const [selectedJamSlug, setSelectedJamSlug] = useState("")
+  const [loadingJams, setLoadingJams] = useState(true)
+  const [jamLoadError, setJamLoadError] = useState("")
+  const [jamSelectionNotice, setJamSelectionNotice] = useState("")
+  const jamQueryAppliedRef = useRef(false)
 
   const [studioProfiles, setStudioProfiles] = useState<
     { id: string; handle: string; displayName: string; image?: string | null }[]
@@ -56,11 +78,22 @@ export default function UploadPage() {
     studioProfileId: "",
   })
 
+  const jamQuerySlug = searchParams.get("jam")?.trim() ?? ""
+  const currentPathWithQuery = useMemo(() => {
+    const query = searchParams.toString()
+    return query ? `${pathname}?${query}` : pathname
+  }, [pathname, searchParams])
+  const selectedJam = activeJams.find((jam) => jam.slug === selectedJamSlug) ?? null
+
+  useEffect(() => {
+    jamQueryAppliedRef.current = false
+  }, [jamQuerySlug])
+
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/login")
+      router.push(`/login?callbackUrl=${encodeURIComponent(currentPathWithQuery)}`)
     }
-  }, [status, router])
+  }, [status, router, currentPathWithQuery])
 
   useEffect(() => {
     const loadStudioProfiles = async () => {
@@ -80,6 +113,66 @@ export default function UploadPage() {
 
     loadStudioProfiles()
   }, [session?.user?.id, session?.user?.role])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadActiveJams = async () => {
+      setLoadingJams(true)
+      setJamLoadError("")
+
+      try {
+        const res = await fetch("/api/jams", { cache: "no-store" })
+        const data = await res.json()
+
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to load jams")
+        }
+
+        const jams: ActiveJamOption[] = Array.isArray(data.active)
+          ? data.active.map((jam: ActiveJamOption) => ({
+              id: jam.id,
+              slug: jam.slug,
+              title: jam.title,
+              theme: jam.theme,
+              endDate: jam.endDate,
+              maxEntries: jam.maxEntries,
+            }))
+          : []
+
+        if (cancelled) {
+          return
+        }
+
+        setActiveJams(jams)
+
+        if (jamQuerySlug && !jamQueryAppliedRef.current) {
+          jamQueryAppliedRef.current = true
+          const preselectedJam = jams.find((jam) => jam.slug === jamQuerySlug)
+          if (preselectedJam) {
+            setSelectedJamSlug(preselectedJam.slug)
+            setJamSelectionNotice("")
+          } else {
+            setJamSelectionNotice("That jam is not actively accepting direct submissions right now. You can still publish normally or choose another active jam.")
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setJamLoadError("Couldn't load active game jams right now. You can still publish normally.")
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingJams(false)
+        }
+      }
+    }
+
+    loadActiveJams()
+
+    return () => {
+      cancelled = true
+    }
+  }, [jamQuerySlug])
 
   const onDropGame = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
@@ -163,6 +256,9 @@ export default function UploadPage() {
       uploadData.append("seekingFeedback", String(formData.seekingFeedback))
       uploadData.append("latestUpdateNote", formData.latestUpdateNote)
       uploadData.append("isAIGenerated", String(formData.isAIGenerated))
+      if (selectedJamSlug) {
+        uploadData.append("jamSlug", selectedJamSlug)
+      }
       if (formData.studioProfileId) {
         uploadData.append("studioProfileId", formData.studioProfileId)
       }
@@ -182,12 +278,20 @@ export default function UploadPage() {
         ? data.warnings.filter((item: unknown): item is string => typeof item === "string")
         : []
       setUploadWarnings(warnings)
-      setCreatedGame(data.game || null)
+      setCreatedGame(
+        data.game
+          ? {
+              ...data.game,
+              submittedJam: data.jamSubmission || null,
+            }
+          : null
+      )
 
       setSuccess(true)
       if (warnings.length === 0) {
+        const nextPath = data.jamSubmission ? `/jams/${data.jamSubmission.slug}` : "/creator"
         setTimeout(() => {
-          router.push(`/creator`)
+          router.push(nextPath)
         }, 2000)
       }
     } catch (err) {
@@ -225,6 +329,12 @@ export default function UploadPage() {
                 This upload now has a play page, creator portfolio placement, and creator-focused next steps.
               </p>
 
+              {createdGame?.submittedJam && (
+                <div className="mt-4 rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)]/10 p-3 text-sm text-[var(--color-text)]">
+                  Submitted to <span className="font-semibold">{createdGame.submittedJam.title}</span>.
+                </div>
+              )}
+
               {uploadWarnings.length > 0 && (
                 <div className="mt-4 rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)]/10 p-3 text-xs text-[var(--color-text)]">
                   {uploadWarnings.map((warning) => (
@@ -239,7 +349,7 @@ export default function UploadPage() {
                     <p className="text-xs font-semibold text-[var(--color-primary)]">Next 3 moves</p>
                     <ul className="mt-3 space-y-2 text-sm text-[var(--color-text-secondary)]">
                       <li>1. Share the play page outside the platform.</li>
-                      <li>2. Ask for structured feedback while the game is fresh.</li>
+                      <li>2. {createdGame?.submittedJam ? "Pull players into the jam page so they see your entry." : "Ask for structured feedback while the game is fresh."}</li>
                       <li>3. {formData.hasGhostSharing ? "Seed the leaderboard with your first ghost run." : "Add thumbnail slides or an update note after your first fixes."}</li>
                     </ul>
                   </div>
@@ -257,6 +367,11 @@ export default function UploadPage() {
                 {createdGame && (
                   <Button className="w-full" onClick={() => router.push(`/play/${createdGame.slug}`)}>
                     Open Play Page
+                  </Button>
+                )}
+                {createdGame?.submittedJam && (
+                  <Button variant="outline" className="w-full" onClick={() => router.push(`/jams/${createdGame.submittedJam!.slug}`)}>
+                    Open Jam Page
                   </Button>
                 )}
                 <Button variant="outline" className="w-full" onClick={() => router.push("/creator")}>
@@ -286,6 +401,26 @@ export default function UploadPage() {
             <p className="text-[var(--color-text-secondary)] mt-2">
               Share your AI-made HTML5 game with the world
             </p>
+            {selectedJam && (
+              <div className="mt-4 rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)]/10 p-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-[var(--color-text)]">Publishing into {selectedJam.title}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">
+                      {selectedJam.theme ? `Theme: ${selectedJam.theme}. ` : ""}This game will be submitted automatically after publish.
+                    </p>
+                  </div>
+                  <Link href={`/jams/${selectedJam.slug}`} className="text-sm text-[var(--color-primary)] hover:underline">
+                    View jam details
+                  </Link>
+                </div>
+              </div>
+            )}
+            {jamSelectionNotice && (
+              <div className="mt-4 rounded-md border border-[var(--color-warning)] bg-[var(--color-warning)]/10 p-3 text-sm text-[var(--color-text)]">
+                {jamSelectionNotice}
+              </div>
+            )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -461,7 +596,55 @@ export default function UploadPage() {
                       placeholder="e.g. gpt-5, claude-sonnet-4, gemini-2.0-flash"
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <Label>Game Jam</Label>
+                    <Select
+                      value={selectedJamSlug || "__none__"}
+                      onValueChange={(value) => {
+                        setSelectedJamSlug(value === "__none__" ? "" : value)
+                        setJamSelectionNotice("")
+                      }}
+                      disabled={loadingJams}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={loadingJams ? "Loading active jams..." : "No jam selected"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">No jam selected</SelectItem>
+                        {activeJams.map((jam) => (
+                          <SelectItem key={jam.slug} value={jam.slug}>
+                            {jam.theme ? `${jam.title} - ${jam.theme}` : jam.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-[var(--color-text-secondary)]">
+                      Choose an active jam to auto-submit this game as soon as it is published.
+                    </p>
+                    {jamLoadError && (
+                      <p className="text-xs text-[var(--color-danger)]">{jamLoadError}</p>
+                    )}
+                  </div>
                 </div>
+
+                {selectedJam && (
+                  <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
+                    <div className="flex items-start gap-3">
+                      <Trophy className="mt-0.5 h-4 w-4 text-[var(--color-primary)]" />
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-[var(--color-text)]">{selectedJam.title}</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">
+                          {selectedJam.theme ? `Theme: ${selectedJam.theme}. ` : ""}
+                          Submissions close on {new Date(selectedJam.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}.
+                        </p>
+                        <p className="text-xs text-[var(--color-text-tertiary)]">
+                          Max {selectedJam.maxEntries} {selectedJam.maxEntries === 1 ? "entry" : "entries"} per creator.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label>Tags (comma-separated)</Label>

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { JamShareButton } from "@/components/jams/jam-share-button"
 import {
   Trophy,
   Clock,
@@ -17,6 +18,7 @@ import {
   Gamepad2,
   ArrowLeft,
   Send,
+  Upload,
   X,
   Loader2,
 } from "lucide-react"
@@ -276,6 +278,8 @@ export function JamDetail({
   const [showSubmitForm, setShowSubmitForm] = useState(false)
   const [error, setError] = useState("")
   const [entries, setEntries] = useState(jam.entries)
+  const uploadHref = `/upload?jam=${encodeURIComponent(jam.slug)}`
+  const uploadLoginHref = `/login?callbackUrl=${encodeURIComponent(uploadHref)}`
 
   // Games not already submitted
   const submittedGameIds = new Set(entries.map((e) => e.game.id))
@@ -284,6 +288,7 @@ export function JamDetail({
   // Check if user already submitted max entries
   const userEntryCount = entries.filter((e) => e.user.id === userId).length
   const canSubmit = jam.status === "ACTIVE" && userId && userEntryCount < jam.maxEntries && availableGames.length > 0
+  const canStartJamUpload = !userId || userEntryCount < jam.maxEntries
 
   const handleSubmit = useCallback(async () => {
     if (!selectedGameId) return
@@ -381,7 +386,7 @@ export function JamDetail({
 
       {/* Banner */}
       {jam.bannerImage && (
-        <div className="h-48 md:h-64 rounded-lg overflow-hidden mb-6">
+        <div className="mb-6 aspect-[3/1] w-full overflow-hidden rounded-lg">
           <img
             src={jam.bannerImage}
             alt={jam.title}
@@ -409,6 +414,13 @@ export function JamDetail({
         )}
 
         <p className="text-[#b0b0d0] whitespace-pre-wrap mb-4">{jam.description}</p>
+
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="text-xs text-[#8080a0]">
+            Share this jam to bring in more builders, players, and voters.
+          </div>
+          <JamShareButton title={jam.title} />
+        </div>
 
         {/* Dates and countdown */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -470,6 +482,29 @@ export function JamDetail({
         </Card>
       )}
 
+      {jam.status === "ACTIVE" && (
+        <Card className="bg-[#1a1a2e] border-[#ff0040]/30 p-5 mb-8">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="font-pixel text-sm text-white mb-1">BUILD SOMETHING NEW FOR THIS JAM</h2>
+              <p className="text-[#8080a0] text-sm">
+                {canStartJamUpload
+                  ? "Start from a fresh upload and this jam will already be selected for you."
+                  : `You have already used all ${jam.maxEntries} ${jam.maxEntries === 1 ? "entry slot" : "entry slots"} for this jam.`}
+              </p>
+            </div>
+            {canStartJamUpload && (
+              <Link href={userId ? uploadHref : uploadLoginHref}>
+                <Button className="bg-[#ff0040] text-white hover:bg-[#e0003a] font-pixel text-xs">
+                  <Upload className="w-4 h-4 mr-1" />
+                  UPLOAD FOR JAM
+                </Button>
+              </Link>
+            )}
+          </div>
+        </Card>
+      )}
+
       {/* Submit entry */}
       {canSubmit && (
         <Card className="bg-[#1a1a2e] border-[#00ff40]/30 p-5 mb-8">
@@ -477,7 +512,7 @@ export function JamDetail({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-pixel text-sm text-[#00ff40] mb-1">SUBMIT YOUR GAME</h3>
-                <p className="text-[#8080a0] text-sm">Submit a published game to this jam.</p>
+                <p className="text-[#8080a0] text-sm">Submit a published game to this jam, or upload a new one with the jam already selected.</p>
               </div>
               <Button
                 onClick={() => setShowSubmitForm(true)}
@@ -527,7 +562,7 @@ export function JamDetail({
       {jam.status === "ACTIVE" && !userId && (
         <Card className="bg-[#1a1a2e] border-[#2a2a4a] p-5 mb-8 text-center">
           <p className="text-[#b0b0d0] mb-3">
-            <Link href="/login" className="text-[#ff0040] hover:underline">Sign in</Link> to submit your game to this jam.
+            <Link href={uploadLoginHref} className="text-[#ff0040] hover:underline">Sign in</Link> to upload or submit your game to this jam.
           </p>
         </Card>
       )}

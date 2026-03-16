@@ -17,13 +17,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const jam = await prisma.gameJam.findUnique({
     where: { slug },
-    select: { title: true, description: true, theme: true },
+    select: { title: true, description: true, theme: true, bannerImage: true },
   })
 
   if (!jam) return { title: "Jam Not Found" }
 
   const jamPath = `/jams/${slug}`
   const description = jam.description.slice(0, 160)
+  const ogImage = jam.bannerImage ? new URL(jam.bannerImage, SITE_URL).toString() : `${SITE_URL}/icon.svg`
 
   return {
     title: `${jam.title} | Game Jams | VibeGames.Ninja`,
@@ -36,11 +37,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: `${SITE_URL}${jamPath}`,
       type: "website",
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 400,
+          alt: jam.title,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: `${jam.title} | ${SITE_NAME}`,
       description,
+      images: [ogImage],
     },
   }
 }
@@ -177,6 +187,7 @@ export default async function JamDetailPage({ params }: Props) {
       name: SITE_NAME,
       url: SITE_URL,
     },
+    image: jam.bannerImage ? new URL(jam.bannerImage, SITE_URL).toString() : `${SITE_URL}/icon.svg`,
     url: `${SITE_URL}/jams/${jam.slug}`,
   }
 

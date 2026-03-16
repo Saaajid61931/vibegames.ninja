@@ -112,6 +112,27 @@ function buildFormFromJam(jam: JamSummary): JamFormState {
   }
 }
 
+const BANNER_ASPECT_RATIO = 3
+const BANNER_ASPECT_TOLERANCE = 0.05
+
+async function isThreeToOneBanner(source: string) {
+  if (typeof window === "undefined") {
+    return true
+  }
+
+  return new Promise<boolean>((resolve) => {
+    const image = new window.Image()
+
+    image.onload = () => {
+      const aspectRatio = image.naturalWidth / image.naturalHeight
+      resolve(Math.abs(aspectRatio - BANNER_ASPECT_RATIO) <= BANNER_ASPECT_TOLERANCE)
+    }
+
+    image.onerror = () => resolve(false)
+    image.src = source
+  })
+}
+
 export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
   const router = useRouter()
   const [jams, setJams] = useState(initialJams)
@@ -120,6 +141,7 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
   const [submitting, setSubmitting] = useState(false)
   const [deletingSlug, setDeletingSlug] = useState<string | null>(null)
   const [error, setError] = useState("")
+  const [bannerAspectError, setBannerAspectError] = useState("")
   const [form, setForm] = useState<JamFormState>(createEmptyForm())
   const [bannerFile, setBannerFile] = useState<File | null>(null)
   const [removeBanner, setRemoveBanner] = useState(false)
@@ -134,6 +156,7 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
     setRemoveBanner(false)
     setEditingSlug(null)
     setError("")
+    setBannerAspectError("")
     setShowForm(false)
   }
 
@@ -143,6 +166,7 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
     setRemoveBanner(false)
     setEditingSlug(null)
     setError("")
+    setBannerAspectError("")
     setShowForm(true)
   }
 
@@ -152,7 +176,14 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
     setRemoveBanner(false)
     setEditingSlug(jam.slug)
     setError("")
+    setBannerAspectError("")
     setShowForm(true)
+  }
+
+  async function validateBannerSource(source: string, message: string) {
+    const isValid = await isThreeToOneBanner(source)
+    setBannerAspectError(isValid ? "" : message)
+    return isValid
   }
 
   async function handleSubmit() {
@@ -333,7 +364,9 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
             </div>
             <div className="rounded border border-[#2a2a4a] bg-[#12121c] px-3 py-2 text-xs text-[#8080a0]">
               Jam status is calculated from the dates:
-              <div className="mt-2 text-white">Upcoming → Active → Voting → Completed</div>
+              <div className="mt-2 text-white">
+                Upcoming {"->"} Active {"->"} Voting {"->"} Completed
+              </div>
             </div>
           </div>
 
@@ -350,10 +383,17 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
                   setBannerFile(file)
                   if (file) {
                     setRemoveBanner(false)
+                    const objectUrl = URL.createObjectURL(file)
+                    void validateBannerSource(
+                      objectUrl,
+                      "Banner image must use a 3:1 ratio, like 1500x500."
+                    ).finally(() => URL.revokeObjectURL(objectUrl))
+                  } else {
+                    setBannerAspectError("")
                   }
                 }}
               />
-              <p className="text-xs text-[#8080a0]">Use an uploaded banner for the jam page hero. Max size: 5MB.</p>
+              <p className="text-xs text-[#8080a0]">Use a 3:1 banner for desktop and mobile, like 1500x500. Max size: 5MB.</p>
               {bannerFile && (
                 <p className="text-xs text-[#00d4ff]">New file selected: {bannerFile.name}</p>
               )}
@@ -368,13 +408,28 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
                   setForm((prev) => ({ ...prev, bannerImage: event.target.value }))
                   if (event.target.value.trim()) {
                     setRemoveBanner(false)
+                  } else {
+                    setBannerAspectError("")
                   }
+                }}
+                onBlur={() => {
+                  const bannerUrl = form.bannerImage.trim()
+                  if (!bannerUrl || bannerFile) {
+                    return
+                  }
+
+                  void validateBannerSource(
+                    bannerUrl,
+                    "Banner image URL must point to a 3:1 image, like 1500x500."
+                  )
                 }}
                 placeholder="https://..."
               />
-              <p className="text-xs text-[#8080a0]">Optional fallback if you prefer to host the jam banner elsewhere.</p>
+              <p className="text-xs text-[#8080a0]">Optional fallback if you prefer to host the jam banner elsewhere. Keep it 3:1.</p>
             </div>
           </div>
+
+          {bannerAspectError && <p className="text-[#ff0040] text-sm">{bannerAspectError}</p>}
 
           {(currentBanner || bannerFile || removeBanner) && (
             <div className="rounded border border-[#2a2a4a] bg-[#12121c] p-3 space-y-3">
@@ -391,6 +446,7 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
                     onClick={() => {
                       setRemoveBanner(true)
                       setBannerFile(null)
+                      setBannerAspectError("")
                       setForm((prev) => ({ ...prev, bannerImage: "" }))
                     }}
                   >
@@ -402,7 +458,10 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setRemoveBanner(false)}
+                    onClick={() => {
+                      setRemoveBanner(false)
+                      setBannerAspectError("")
+                    }}
                   >
                     Undo Remove
                   </Button>
@@ -417,7 +476,7 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
                 <img
                   src={currentBanner}
                   alt=""
-                  className="w-full max-h-48 rounded object-cover border border-[#2a2a4a]"
+                  className="aspect-[3/1] w-full rounded object-cover border border-[#2a2a4a]"
                 />
               ) : bannerFile ? (
                 <div className="rounded border border-dashed border-[#2a2a4a] px-4 py-6 text-sm text-[#8080a0]">
@@ -439,7 +498,8 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
                 !form.theme ||
                 !form.startDate ||
                 !form.endDate ||
-                !form.votingEndDate
+                !form.votingEndDate ||
+                Boolean(bannerAspectError)
               }
             >
               {submitting ? (
@@ -477,10 +537,10 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
                   <img
                     src={jam.bannerImage}
                     alt=""
-                    className="w-full lg:w-48 h-28 rounded object-cover border border-[#2a2a4a] flex-shrink-0"
+                    className="aspect-[3/1] w-full rounded object-cover border border-[#2a2a4a] flex-shrink-0 lg:w-48"
                   />
                 ) : (
-                  <div className="w-full lg:w-48 h-28 rounded border border-dashed border-[#2a2a4a] flex items-center justify-center text-[#4a4a6a] flex-shrink-0">
+                  <div className="aspect-[3/1] w-full rounded border border-dashed border-[#2a2a4a] flex items-center justify-center text-[#4a4a6a] flex-shrink-0 lg:w-48">
                     <ImageIcon className="w-5 h-5" />
                   </div>
                 )}

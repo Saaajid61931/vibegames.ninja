@@ -68,7 +68,7 @@ function JamCard({ jam }: { jam: JamSummary }) {
     <Link href={`/jams/${jam.slug}`}>
       <Card className="bg-[#1a1a2e] border-[#2a2a4a] hover:border-[#ff0040] transition-all duration-200 overflow-hidden group cursor-pointer">
         {jam.bannerImage && (
-          <div className="h-32 overflow-hidden">
+          <div className="aspect-[3/1] overflow-hidden">
             <img
               src={jam.bannerImage}
               alt={jam.title}

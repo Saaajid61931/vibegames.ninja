@@ -432,8 +432,8 @@ model GameJamEntry {
   votes GameJamVote[]
 
   @@unique([jamId, gameId])
-  @@unique([jamId, userId])
   @@index([jamId])
+  @@index([jamId, userId])
   @@index([gameId])
   @@index([userId])
 }
