@@ -1,5 +1,12 @@
 import { Game, User, Comment, GameAnalytics, StudioProfile } from '@prisma/client'
 
+export type GamePrimaryJam = {
+  slug: string
+  title: string
+  theme?: string | null
+  status: string
+} | null
+
 export type GameWithCreator = Game & {
   creator: Pick<User, 'id' | 'name' | 'username' | 'image'>
   studioProfile?: Pick<StudioProfile, 'id' | 'handle' | 'displayName' | 'image'> | null
@@ -24,6 +31,7 @@ export type GameCardData = Pick<
   thumbnailSlides?: string[]
   hasLevelEditor?: boolean
   seekingFeedback?: boolean
+  primaryJam?: GamePrimaryJam
   creator: Pick<User, 'name' | 'username' | 'image'>
   studioProfile?: Pick<StudioProfile, 'handle' | 'displayName' | 'image'> | null
 }

@@ -11,6 +11,7 @@ import { RecentlyPlayed } from "@/components/games/recently-played"
 import { ActiveJamBanner } from "@/components/jams/active-jam-banner"
 import prisma from "@/lib/prisma"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
+import { pickPrimaryJam, toPrimaryJamBadge } from "@/lib/jams"
 import { CATEGORIES } from "@/lib/utils"
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site"
 
@@ -52,6 +53,23 @@ const homeGameCardSelect = {
   aiModel: true,
   seekingFeedback: true,
   latestUpdateNote: true,
+  jamEntries: {
+    orderBy: { submittedAt: "desc" },
+    take: 4,
+    select: {
+      jam: {
+        select: {
+          slug: true,
+          title: true,
+          theme: true,
+          status: true,
+          startDate: true,
+          endDate: true,
+          votingEndDate: true,
+        },
+      },
+    },
+  },
   studioProfile: {
     select: { id: true, handle: true, displayName: true, image: true },
   },
@@ -285,34 +303,20 @@ export default async function HomePage() {
     getUpdatedThisWeekGames(),
     getBuiltWithToolsGames(),
   ])
-  const normalizedGames = games.map((game) => ({
-    ...game,
-    createdAt: new Date(game.createdAt),
-  }))
-  const normalizedMobileGames = mobileGames.map((game) => ({
-    ...game,
-    createdAt: new Date(game.createdAt),
-  }))
-  const normalizedEditorGames = editorGames.map((game) => ({
-    ...game,
-    createdAt: new Date(game.createdAt),
-  }))
-  const normalizedJustLaunchedGames = justLaunchedGames.map((game) => ({
-    ...game,
-    createdAt: new Date(game.createdAt),
-  }))
-  const normalizedNeedsFeedbackGames = needsFeedbackGames.map((game) => ({
-    ...game,
-    createdAt: new Date(game.createdAt),
-  }))
-  const normalizedUpdatedThisWeekGames = updatedThisWeekGames.map((game) => ({
-    ...game,
-    createdAt: new Date(game.createdAt),
-  }))
-  const normalizedBuiltWithToolsGames = builtWithToolsGames.map((game) => ({
-    ...game,
-    createdAt: new Date(game.createdAt),
-  }))
+  const decorateGameCards = <T extends { createdAt: Date; jamEntries: Array<{ jam: { slug: string; title: string; theme: string | null; status: string; startDate: Date; endDate: Date; votingEndDate: Date } }> }>(items: T[]) =>
+    items.map((game) => ({
+      ...game,
+      createdAt: new Date(game.createdAt),
+      primaryJam: toPrimaryJamBadge(pickPrimaryJam(game.jamEntries)),
+    }))
+
+  const normalizedGames = decorateGameCards(games)
+  const normalizedMobileGames = decorateGameCards(mobileGames)
+  const normalizedEditorGames = decorateGameCards(editorGames)
+  const normalizedJustLaunchedGames = decorateGameCards(justLaunchedGames)
+  const normalizedNeedsFeedbackGames = decorateGameCards(needsFeedbackGames)
+  const normalizedUpdatedThisWeekGames = decorateGameCards(updatedThisWeekGames)
+  const normalizedBuiltWithToolsGames = decorateGameCards(builtWithToolsGames)
   const categoryLinks = CATEGORIES.slice(0, 6).map((category) => ({
     ...category,
     href: `/games?category=${category.value.toLowerCase()}`,

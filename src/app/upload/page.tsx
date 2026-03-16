@@ -27,7 +27,14 @@ type ActiveJamOption = {
   theme: string | null
   endDate: string
   maxEntries: number
+  userEntryCount: number
+  remainingEntries: number
+  isEligibleToSubmit: boolean
 }
+
+type UploadStage = "idle" | "uploading" | "publishing" | "submittingJam" | "done"
+
+const UPLOAD_DRAFT_STORAGE_KEY = "vg-upload-draft:v1"
 
 export default function UploadPage() {
   const router = useRouter()
@@ -51,7 +58,11 @@ export default function UploadPage() {
   const [loadingJams, setLoadingJams] = useState(true)
   const [jamLoadError, setJamLoadError] = useState("")
   const [jamSelectionNotice, setJamSelectionNotice] = useState("")
+  const [draftNotice, setDraftNotice] = useState("")
+  const [uploadStage, setUploadStage] = useState<UploadStage>("idle")
   const jamQueryAppliedRef = useRef(false)
+  const uploadStageTimeoutsRef = useRef<number[]>([])
+  const draftHydratedRef = useRef(false)
 
   const [studioProfiles, setStudioProfiles] = useState<
     { id: string; handle: string; displayName: string; image?: string | null }[]
@@ -85,9 +96,90 @@ export default function UploadPage() {
   }, [pathname, searchParams])
   const selectedJam = activeJams.find((jam) => jam.slug === selectedJamSlug) ?? null
 
+  const clearUploadStageTimers = useCallback(() => {
+    for (const timer of uploadStageTimeoutsRef.current) {
+      window.clearTimeout(timer)
+    }
+    uploadStageTimeoutsRef.current = []
+  }, [])
+
+  const clearSavedDraft = useCallback(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    window.localStorage.removeItem(UPLOAD_DRAFT_STORAGE_KEY)
+    setDraftNotice("")
+  }, [])
+
   useEffect(() => {
     jamQueryAppliedRef.current = false
   }, [jamQuerySlug])
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    try {
+      const rawDraft = window.localStorage.getItem(UPLOAD_DRAFT_STORAGE_KEY)
+      if (!rawDraft) {
+        draftHydratedRef.current = true
+        return
+      }
+
+      const parsed = JSON.parse(rawDraft) as {
+        formData?: typeof formData
+        selectedJamSlug?: string
+        newStudio?: typeof newStudio
+      }
+
+      if (parsed.formData) {
+        setFormData((current) => ({
+          ...current,
+          ...parsed.formData,
+        }))
+      }
+
+      if (parsed.selectedJamSlug) {
+        setSelectedJamSlug(parsed.selectedJamSlug)
+      }
+
+      if (parsed.newStudio) {
+        setNewStudio((current) => ({
+          ...current,
+          ...parsed.newStudio,
+        }))
+      }
+
+      setDraftNotice("Restored your last upload draft.")
+    } catch {
+      // Non-blocking local draft restore.
+    } finally {
+      draftHydratedRef.current = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !draftHydratedRef.current || success) {
+      return
+    }
+
+    window.localStorage.setItem(
+      UPLOAD_DRAFT_STORAGE_KEY,
+      JSON.stringify({
+        formData,
+        selectedJamSlug,
+        newStudio,
+      })
+    )
+  }, [formData, selectedJamSlug, newStudio, success])
+
+  useEffect(() => {
+    return () => {
+      clearUploadStageTimers()
+    }
+  }, [clearUploadStageTimers])
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -137,6 +229,9 @@ export default function UploadPage() {
               theme: jam.theme,
               endDate: jam.endDate,
               maxEntries: jam.maxEntries,
+              userEntryCount: jam.userEntryCount,
+              remainingEntries: jam.remainingEntries,
+              isEligibleToSubmit: jam.isEligibleToSubmit,
             }))
           : []
 
@@ -224,6 +319,7 @@ export default function UploadPage() {
     setError("")
     setUploadWarnings([])
     setUploading(true)
+    setUploadStage("uploading")
 
     try {
       if (!session?.user?.id) {
@@ -234,6 +330,19 @@ export default function UploadPage() {
         setError("Please upload your game file")
         setUploading(false)
         return
+      }
+
+      if (selectedJam && !selectedJam.isEligibleToSubmit) {
+        setError("This jam cannot accept another entry from you right now. Deselect it to publish normally or choose another active jam.")
+        setUploading(false)
+        setUploadStage("idle")
+        return
+      }
+
+      clearUploadStageTimers()
+      uploadStageTimeoutsRef.current.push(window.setTimeout(() => setUploadStage("publishing"), 400))
+      if (selectedJamSlug) {
+        uploadStageTimeoutsRef.current.push(window.setTimeout(() => setUploadStage("submittingJam"), 1200))
       }
 
       const uploadData = new FormData()
@@ -286,6 +395,8 @@ export default function UploadPage() {
             }
           : null
       )
+      clearSavedDraft()
+      setUploadStage("done")
 
       setSuccess(true)
       if (warnings.length === 0) {
@@ -296,7 +407,9 @@ export default function UploadPage() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
+      setUploadStage("idle")
     } finally {
+      clearUploadStageTimers()
       setUploading(false)
     }
   }
@@ -401,6 +514,14 @@ export default function UploadPage() {
             <p className="text-[var(--color-text-secondary)] mt-2">
               Share your AI-made HTML5 game with the world
             </p>
+            {draftNotice && (
+              <div className="mt-4 flex flex-col gap-3 rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)]/10 p-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-[var(--color-text)]">{draftNotice}</p>
+                <Button type="button" variant="outline" size="sm" onClick={clearSavedDraft}>
+                  Clear saved draft
+                </Button>
+              </div>
+            )}
             {selectedJam && (
               <div className="mt-4 rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)]/10 p-4">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -428,6 +549,40 @@ export default function UploadPage() {
               <div className="p-4 rounded-md bg-[var(--color-danger)]/10 border border-[var(--color-danger)] text-[var(--color-danger)] flex items-center gap-3 text-sm">
                 <AlertCircle className="h-5 w-5 flex-shrink-0" />
                 {error}
+              </div>
+            )}
+
+            {uploading && (
+              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-base)] p-4">
+                <p className="text-sm font-semibold text-[var(--color-text)]">Publishing pipeline</p>
+                <div className="mt-3 grid gap-2 sm:grid-cols-4">
+                  {[
+                    { id: "uploading", label: "Uploading files" },
+                    { id: "publishing", label: "Publishing game" },
+                    ...(selectedJamSlug ? [{ id: "submittingJam", label: "Submitting to jam" }] : []),
+                    { id: "done", label: "Done" },
+                  ].map((step, index, allSteps) => {
+                    const stepIndex = allSteps.findIndex((item) => item.id === step.id)
+                    const activeIndex = allSteps.findIndex((item) => item.id === uploadStage)
+                    const isDone = activeIndex > stepIndex || uploadStage === "done"
+                    const isActive = uploadStage === step.id
+
+                    return (
+                      <div
+                        key={step.id}
+                        className={`rounded border px-3 py-2 text-xs ${
+                          isActive
+                            ? "border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
+                            : isDone
+                              ? "border-[var(--color-success)] bg-[var(--color-success)]/10 text-[var(--color-success)]"
+                              : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-tertiary)]"
+                        }`}
+                      >
+                        {step.label}
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             )}
 
@@ -639,7 +794,10 @@ export default function UploadPage() {
                           Submissions close on {new Date(selectedJam.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}.
                         </p>
                         <p className="text-xs text-[var(--color-text-tertiary)]">
-                          Max {selectedJam.maxEntries} {selectedJam.maxEntries === 1 ? "entry" : "entries"} per creator.
+                          You have used {selectedJam.userEntryCount} of {selectedJam.maxEntries} {selectedJam.maxEntries === 1 ? "slot" : "slots"}. {selectedJam.remainingEntries} left.
+                        </p>
+                        <p className={`text-xs ${selectedJam.isEligibleToSubmit ? "text-[var(--color-success)]" : "text-[var(--color-warning)]"}`}>
+                          {selectedJam.isEligibleToSubmit ? "Eligible for auto-submission right now." : "This jam will not accept another entry from you right now."}
                         </p>
                       </div>
                     </div>

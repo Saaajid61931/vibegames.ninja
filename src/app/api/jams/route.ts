@@ -52,6 +52,7 @@ function parseMaxEntries(value: FormDataEntryValue | null) {
 
 export async function GET() {
   try {
+    const session = await auth()
     await autoTransitionJamStatuses()
 
     const jams = await prisma.gameJam.findMany({
@@ -62,11 +63,45 @@ export async function GET() {
       },
     })
 
+    const userEntryCounts = new Map<string, number>()
+
+    if (session?.user?.id && jams.length > 0) {
+      const counts = await prisma.gameJamEntry.groupBy({
+        by: ["jamId"],
+        where: {
+          userId: session.user.id,
+          jamId: {
+            in: jams.map((jam) => jam.id),
+          },
+        },
+        _count: {
+          _all: true,
+        },
+      })
+
+      for (const item of counts) {
+        userEntryCounts.set(item.jamId, item._count._all)
+      }
+    }
+
+    const enrichedJams = jams.map((jam) => {
+      const userEntryCount = userEntryCounts.get(jam.id) || 0
+      const currentStatus = getJamStatus(jam.startDate, jam.endDate, jam.votingEndDate)
+      const remainingEntries = Math.max(jam.maxEntries - userEntryCount, 0)
+
+      return {
+        ...jam,
+        userEntryCount,
+        remainingEntries,
+        isEligibleToSubmit: currentStatus === "ACTIVE" && remainingEntries > 0,
+      }
+    })
+
     const grouped = {
-      active: jams.filter((j) => j.status === "ACTIVE"),
-      upcoming: jams.filter((j) => j.status === "UPCOMING"),
-      voting: jams.filter((j) => j.status === "VOTING"),
-      completed: jams.filter((j) => j.status === "COMPLETED"),
+      active: enrichedJams.filter((j) => j.status === "ACTIVE"),
+      upcoming: enrichedJams.filter((j) => j.status === "UPCOMING"),
+      voting: enrichedJams.filter((j) => j.status === "VOTING"),
+      completed: enrichedJams.filter((j) => j.status === "COMPLETED"),
     }
 
     return NextResponse.json(grouped)

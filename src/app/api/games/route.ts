@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { unstable_cache } from "next/cache"
 import prisma from "@/lib/prisma"
 import { DiscoverySort, getDiscoveryOrderBy } from "@/lib/discovery"
+import { pickPrimaryJam, toPrimaryJamBadge } from "@/lib/jams"
 
 const getCachedGames = unstable_cache(
   async (
@@ -60,6 +61,23 @@ const getCachedGames = unstable_cache(
           seekingFeedback: true,
           aiTool: true,
           aiModel: true,
+          jamEntries: {
+            orderBy: { submittedAt: "desc" },
+            take: 4,
+            select: {
+              jam: {
+                select: {
+                  slug: true,
+                  title: true,
+                  theme: true,
+                  status: true,
+                  startDate: true,
+                  endDate: true,
+                  votingEndDate: true,
+                },
+              },
+            },
+          },
           studioProfile: {
             select: { id: true, handle: true, displayName: true, image: true },
           },
@@ -75,7 +93,10 @@ const getCachedGames = unstable_cache(
     ])
 
     return {
-      data: games,
+      data: games.map((game) => ({
+        ...game,
+        primaryJam: toPrimaryJamBadge(pickPrimaryJam(game.jamEntries)),
+      })),
       total,
       page,
       limit,

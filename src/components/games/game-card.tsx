@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Play, Heart, User, Smartphone, SquarePen } from "lucide-react"
+import { Play, Heart, User, Smartphone, SquarePen, Trophy } from "lucide-react"
 import { GameThumbnailSlideshow } from "@/components/games/game-thumbnail-slideshow"
 import { formatNumber, timeAgo, CATEGORIES } from "@/lib/utils"
 import { CreatorLink } from "@/components/games/creator-link"
@@ -18,6 +18,12 @@ interface GameCardProps {
     supportsMobile?: boolean
     hasLevelEditor?: boolean
     seekingFeedback?: boolean
+    primaryJam?: {
+      slug: string
+      title: string
+      theme?: string | null
+      status: string
+    } | null
     createdAt: Date
     creator: {
       name?: string | null
@@ -35,6 +41,14 @@ interface GameCardProps {
 
 export function GameCard({ game }: GameCardProps) {
   const category = CATEGORIES.find(c => c.value === game.category)
+  const jamTone =
+    game.primaryJam?.status === "ACTIVE"
+      ? "border-[#00ff40] text-[#00ff40]"
+      : game.primaryJam?.status === "VOTING"
+        ? "border-[#ffff00] text-[#ffff00]"
+        : game.primaryJam?.status === "UPCOMING"
+          ? "border-[#00d4ff] text-[#00d4ff]"
+          : "border-[#b0b0d0] text-[#b0b0d0]"
 
   return (
     <Link
@@ -71,7 +85,7 @@ export function GameCard({ game }: GameCardProps) {
       {/* Content */}
       <div className="p-3 sm:p-4">
         {/* Category Tag */}
-        <div className="flex items-center gap-2 mb-2">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
           <span className="text-[10px] text-[var(--color-primary)] font-pixel uppercase">
             {category?.label || "Game"}
           </span>
@@ -90,6 +104,15 @@ export function GameCard({ game }: GameCardProps) {
             <span className="inline-flex items-center gap-1 rounded border border-[var(--color-primary)] px-1.5 py-0.5 text-[10px] text-[var(--color-primary)]">
               <SquarePen className="h-2.5 w-2.5" />
               Editor
+            </span>
+          )}
+          {game.primaryJam && (
+            <span
+              className={`inline-flex max-w-full items-center gap-1 rounded px-1.5 py-0.5 text-[10px] ${jamTone}`}
+              title={game.primaryJam.title}
+            >
+              <Trophy className="h-2.5 w-2.5 flex-shrink-0" />
+              <span className="truncate">{game.primaryJam.title}</span>
             </span>
           )}
         </div>

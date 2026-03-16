@@ -11,6 +11,7 @@ import { GameCard } from "@/components/games/game-card"
 import { FollowButton } from "@/components/creator/follow-button"
 import { Button } from "@/components/ui/button"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
+import { getLiveJamStatus, pickPrimaryJam, toPrimaryJamBadge } from "@/lib/jams"
 import { formatNumber, getInitials } from "@/lib/utils"
 import { SITE_NAME, SITE_URL } from "@/lib/site"
 import type { GameCardData } from "@/types"
@@ -18,6 +19,19 @@ import { cache } from "react"
 
 interface PageProps {
   params: Promise<{ username: string }>
+}
+
+function getJamBadgeClasses(status: string) {
+  switch (status) {
+    case "ACTIVE":
+      return "border-[#00ff40]/30 bg-[#00ff40]/10 text-[#00ff40]"
+    case "VOTING":
+      return "border-[#ffff00]/30 bg-[#ffff00]/10 text-[#ffff00]"
+    case "UPCOMING":
+      return "border-[#00d4ff]/30 bg-[#00d4ff]/10 text-[#00d4ff]"
+    default:
+      return "border-[#b0b0d0]/30 bg-[#b0b0d0]/10 text-[#b0b0d0]"
+  }
 }
 
 const getCreator = cache(async (username: string) => {
@@ -110,7 +124,7 @@ export default async function PublicCreatorPage({ params }: PageProps) {
     notFound()
   }
 
-  const [games, followers, isFollowing, featuredPicks, jamEntries] = await Promise.all([
+  const [games, followers, isFollowing, featuredPicks, jamEntries, recentJams] = await Promise.all([
     prisma.game.findMany({
       where: {
         creatorId: creator.id,
@@ -133,6 +147,23 @@ export default async function PublicCreatorPage({ params }: PageProps) {
         seekingFeedback: true,
         updatedAt: true,
         latestUpdateNote: true,
+        jamEntries: {
+          orderBy: { submittedAt: "desc" },
+          take: 4,
+          select: {
+            jam: {
+              select: {
+                slug: true,
+                title: true,
+                theme: true,
+                status: true,
+                startDate: true,
+                endDate: true,
+                votingEndDate: true,
+              },
+            },
+          },
+        },
         creator: {
           select: { id: true, name: true, username: true, image: true },
         },
@@ -170,11 +201,34 @@ export default async function PublicCreatorPage({ params }: PageProps) {
         },
       },
     }),
+    prisma.gameJam.findMany({
+      where: {
+        entries: {
+          some: {
+            game: {
+              creatorId: creator.id,
+            },
+          },
+        },
+      },
+      orderBy: { startDate: "desc" },
+      take: 4,
+      select: {
+        slug: true,
+        title: true,
+        theme: true,
+        status: true,
+        startDate: true,
+        endDate: true,
+        votingEndDate: true,
+      },
+    }),
   ])
 
   const normalizedGames: GameCardData[] = games.map((game) => ({
     ...game,
     createdAt: new Date(game.createdAt),
+    primaryJam: toPrimaryJamBadge(pickPrimaryJam(game.jamEntries)),
   }))
   const mobileReadyGames = normalizedGames.filter((game) => game.supportsMobile).length
   const topGame = [...normalizedGames].sort((a, b) => (b.plays + b.likes * 3) - (a.plays + a.likes * 3))[0]
@@ -279,6 +333,26 @@ export default async function PublicCreatorPage({ params }: PageProps) {
               <p className="mt-2 font-arcade text-sm text-white">{lastUpdatedGame ? lastUpdatedGame.title : "No updates yet"}</p>
             </div>
           </div>
+
+          {recentJams.length > 0 && (
+            <div className="mt-3 border border-[#4a4a6a] bg-[#0d0d15] p-3">
+              <p className="font-arcade text-[11px] text-[#ff7a00]">RECENT JAMS</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {recentJams.map((jam) => {
+                  const liveStatus = getLiveJamStatus(jam)
+                  return (
+                    <Link
+                      key={jam.slug}
+                      href={`/jams/${jam.slug}`}
+                      className={`inline-flex items-center rounded border px-2 py-1 font-arcade text-[10px] transition-colors hover:text-white ${getJamBadgeClasses(liveStatus)}`}
+                    >
+                      {jam.title}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
           {toolsUsed.length > 0 && (
             <div className="mt-3 border border-[#4a4a6a] bg-[#0d0d15] p-3">

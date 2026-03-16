@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { auth } from "@/lib/auth"
 import { summarizeFeedback } from "@/lib/creator-magnet"
+import { getJamAction, getLiveJamStatus, pickPrimaryJam } from "@/lib/jams"
 import { getMobileOrientationLabel } from "@/lib/mobile-orientation"
 import prisma from "@/lib/prisma"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
@@ -32,6 +33,50 @@ export const dynamic = "force-dynamic"
 interface PageProps {
   params: Promise<{ slug: string }>
   searchParams: Promise<{ level?: string }>
+}
+
+function getJamPanelStyles(status: string) {
+  switch (status) {
+    case "ACTIVE":
+      return {
+        border: "border-[#00ff40]/30",
+        badge: "border-[#00ff40]/30 bg-[#00ff40]/10 text-[#00ff40]",
+      }
+    case "VOTING":
+      return {
+        border: "border-[#ffff00]/30",
+        badge: "border-[#ffff00]/30 bg-[#ffff00]/10 text-[#ffff00]",
+      }
+    case "UPCOMING":
+      return {
+        border: "border-[#00d4ff]/30",
+        badge: "border-[#00d4ff]/30 bg-[#00d4ff]/10 text-[#00d4ff]",
+      }
+    default:
+      return {
+        border: "border-[#b0b0d0]/30",
+        badge: "border-[#b0b0d0]/30 bg-[#b0b0d0]/10 text-[#b0b0d0]",
+      }
+  }
+}
+
+function getJamPanelMessage(jam: { startDate: Date | string; endDate: Date | string; votingEndDate: Date | string }) {
+  const liveStatus = getLiveJamStatus(jam)
+  const formatter = { month: "short", day: "numeric" } as const
+  const startDate = new Date(jam.startDate)
+  const endDate = new Date(jam.endDate)
+  const votingEndDate = new Date(jam.votingEndDate)
+
+  switch (liveStatus) {
+    case "ACTIVE":
+      return `Submissions close ${endDate.toLocaleDateString("en-US", formatter)}`
+    case "VOTING":
+      return `Voting ends ${votingEndDate.toLocaleDateString("en-US", formatter)}`
+    case "UPCOMING":
+      return `Jam starts ${startDate.toLocaleDateString("en-US", formatter)}`
+    default:
+      return "This jam has finished and the results are live."
+  }
 }
 
 const getGame = cache(async (slug: string) => {
@@ -64,6 +109,23 @@ const getGame = cache(async (slug: string) => {
         },
         orderBy: { createdAt: "desc" },
         take: 100,
+      },
+      jamEntries: {
+        orderBy: { submittedAt: "desc" },
+        take: 4,
+        select: {
+          jam: {
+            select: {
+              slug: true,
+              title: true,
+              theme: true,
+              status: true,
+              startDate: true,
+              endDate: true,
+              votingEndDate: true,
+            },
+          },
+        },
       },
       _count: {
         select: { favorites: true, comments: true },
@@ -286,6 +348,11 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
     .filter(Boolean)
   const shareUrl = `${SITE_URL}/play/${game.slug}`
   const feedbackSummary = summarizeFeedback(game.feedback)
+  const primaryJam = pickPrimaryJam(game.jamEntries)
+  const primaryJamStatus = primaryJam ? getLiveJamStatus(primaryJam) : null
+  const primaryJamAction = primaryJam
+    ? getJamAction(primaryJam, { surface: "play", isAuthenticated: Boolean(session?.user?.id) })
+    : null
   const recentFeedbackComments = game.feedback
     .filter((item) => item.comment)
     .slice(0, 3)
@@ -405,6 +472,28 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
               </div>
 
               <div className="grid gap-4 md:grid-cols-3">
+                {primaryJam && (
+                  <div className={`border-2 bg-[#1a1a2e] p-4 md:col-span-3 ${getJamPanelStyles(primaryJamStatus || "COMPLETED").border}`}>
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <span className={`inline-flex items-center rounded border px-2 py-1 font-arcade text-[10px] ${getJamPanelStyles(primaryJamStatus || "COMPLETED").badge}`}>
+                          {primaryJamStatus}
+                        </span>
+                        <h2 className="mt-3 font-arcade text-sm text-white">{primaryJam.title}</h2>
+                        <p className="mt-1 font-arcade text-xs text-[#8b93a6]">
+                          {primaryJam.theme ? `Theme: ${primaryJam.theme}. ` : ""}
+                          {getJamPanelMessage(primaryJam)}
+                        </p>
+                      </div>
+                      <Button asChild variant="arcade">
+                        <Link href={primaryJamAction?.href || `/jams/${primaryJam.slug}`}>
+                          {primaryJamAction?.label || "Visit Jam"}
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
                   <div className="mb-2 flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-[#ffff00]" />

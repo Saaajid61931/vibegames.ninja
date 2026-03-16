@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { GameCard } from "@/components/games/game-card"
 import { Button } from "@/components/ui/button"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
+import { getLiveJamStatus, pickPrimaryJam, toPrimaryJamBadge } from "@/lib/jams"
 import { getInitials } from "@/lib/utils"
 import { SITE_NAME, SITE_URL } from "@/lib/site"
 import type { GameCardData } from "@/types"
@@ -16,6 +17,19 @@ import { cache } from "react"
 
 interface PageProps {
   params: Promise<{ handle: string }>
+}
+
+function getJamBadgeClasses(status: string) {
+  switch (status) {
+    case "ACTIVE":
+      return "border-[#00ff40]/30 bg-[#00ff40]/10 text-[#00ff40]"
+    case "VOTING":
+      return "border-[#ffff00]/30 bg-[#ffff00]/10 text-[#ffff00]"
+    case "UPCOMING":
+      return "border-[#00d4ff]/30 bg-[#00d4ff]/10 text-[#00d4ff]"
+    default:
+      return "border-[#b0b0d0]/30 bg-[#b0b0d0]/10 text-[#b0b0d0]"
+  }
 }
 
 const getStudio = cache(async (handle: string) => {
@@ -79,7 +93,7 @@ export default async function StudioPage({ params }: PageProps) {
     notFound()
   }
 
-  const [games, featuredPicks, jamEntries] = await Promise.all([
+  const [games, featuredPicks, jamEntries, recentJams] = await Promise.all([
     prisma.game.findMany({
       where: {
         status: "PUBLISHED",
@@ -102,6 +116,23 @@ export default async function StudioPage({ params }: PageProps) {
         aiModel: true,
         seekingFeedback: true,
         latestUpdateNote: true,
+        jamEntries: {
+          orderBy: { submittedAt: "desc" },
+          take: 4,
+          select: {
+            jam: {
+              select: {
+                slug: true,
+                title: true,
+                theme: true,
+                status: true,
+                startDate: true,
+                endDate: true,
+                votingEndDate: true,
+              },
+            },
+          },
+        },
         studioProfile: {
           select: { id: true, handle: true, displayName: true, image: true },
         },
@@ -125,11 +156,34 @@ export default async function StudioPage({ params }: PageProps) {
         },
       },
     }),
+    prisma.gameJam.findMany({
+      where: {
+        entries: {
+          some: {
+            game: {
+              studioProfileId: studio.id,
+            },
+          },
+        },
+      },
+      orderBy: { startDate: "desc" },
+      take: 4,
+      select: {
+        slug: true,
+        title: true,
+        theme: true,
+        status: true,
+        startDate: true,
+        endDate: true,
+        votingEndDate: true,
+      },
+    }),
   ])
 
   const normalizedGames: GameCardData[] = games.map((game) => ({
     ...game,
     createdAt: new Date(game.createdAt),
+    primaryJam: toPrimaryJamBadge(pickPrimaryJam(game.jamEntries)),
   }))
   const mobileReadyGames = normalizedGames.filter((game) => game.supportsMobile).length
   const topGame = [...normalizedGames].sort((a, b) => (b.plays + b.likes * 3) - (a.plays + a.likes * 3))[0]
@@ -228,6 +282,26 @@ export default async function StudioPage({ params }: PageProps) {
               <p className="mt-2 font-arcade text-sm text-white">{lastUpdatedGame?.title || "No updates yet"}</p>
             </div>
           </div>
+
+          {recentJams.length > 0 && (
+            <div className="mt-3 border border-[#4a4a6a] bg-[#0d0d15] p-3">
+              <p className="font-arcade text-[11px] text-[#ff7a00]">RECENT JAMS</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {recentJams.map((jam) => {
+                  const liveStatus = getLiveJamStatus(jam)
+                  return (
+                    <Link
+                      key={jam.slug}
+                      href={`/jams/${jam.slug}`}
+                      className={`inline-flex items-center rounded border px-2 py-1 font-arcade text-[10px] transition-colors hover:text-white ${getJamBadgeClasses(liveStatus)}`}
+                    >
+                      {jam.title}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
           {(studio.bio || toolsUsed.length > 0 || lastUpdatedGame?.latestUpdateNote) && (
             <div className="mt-3 border border-[#4a4a6a] bg-[#0d0d15] p-3">

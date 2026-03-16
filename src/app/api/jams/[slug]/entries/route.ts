@@ -93,6 +93,16 @@ export async function POST(
       },
     })
 
+    await prisma.notification.create({
+      data: {
+        userId: session.user.id,
+        title: "Jam submission confirmed",
+        message: `${entry.game.title} is now entered in ${jam.title}.`,
+        type: "JAM_ENTRY_SUBMITTED",
+        link: `/jams/${jam.slug}`,
+      },
+    })
+
     return NextResponse.json({ entry }, { status: 201 })
   } catch (error) {
     console.error("Submit jam entry error:", error)

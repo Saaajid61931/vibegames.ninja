@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/footer"
 import { GameCard } from "@/components/games/game-card"
 import { Button } from "@/components/ui/button"
 import { auth } from "@/lib/auth"
+import { pickPrimaryJam, toPrimaryJamBadge } from "@/lib/jams"
 import prisma from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -45,6 +46,23 @@ export default async function FavoritesPage() {
           aiModel: true,
           supportsMobile: true,
           createdAt: true,
+          jamEntries: {
+            orderBy: { submittedAt: "desc" },
+            take: 4,
+            select: {
+              jam: {
+                select: {
+                  slug: true,
+                  title: true,
+                  theme: true,
+                  status: true,
+                  startDate: true,
+                  endDate: true,
+                  votingEndDate: true,
+                },
+              },
+            },
+          },
           studioProfile: {
             select: {
               handle: true,
@@ -97,7 +115,13 @@ export default async function FavoritesPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {favorites.map((entry) => (
-              <GameCard key={entry.id} game={entry.game} />
+              <GameCard
+                key={entry.id}
+                game={{
+                  ...entry.game,
+                  primaryJam: toPrimaryJamBadge(pickPrimaryJam(entry.game.jamEntries)),
+                }}
+              />
             ))}
           </div>
         )}

@@ -21,6 +21,7 @@ import { Footer } from "@/components/layout/footer"
 import { GameThumbnailSlideshow } from "@/components/games/game-thumbnail-slideshow"
 import { Button } from "@/components/ui/button"
 import { summarizeFeedback } from "@/lib/creator-magnet"
+import { getJamAction, getLiveJamStatus } from "@/lib/jams"
 import prisma from "@/lib/prisma"
 import { formatNumber, timeAgo, CATEGORIES } from "@/lib/utils"
 
@@ -31,8 +32,28 @@ export const metadata = {
   description: "Manage your games, view stats, and upload new games to VibeGames.",
 }
 
+function getJamDeadlineCopy(jam: {
+  startDate: Date
+  endDate: Date
+  votingEndDate: Date
+}) {
+  const liveStatus = getLiveJamStatus(jam)
+  const formatter = { month: "short", day: "numeric" } as const
+
+  switch (liveStatus) {
+    case "ACTIVE":
+      return `Submissions close ${jam.endDate.toLocaleDateString("en-US", formatter)}`
+    case "VOTING":
+      return `Voting ends ${jam.votingEndDate.toLocaleDateString("en-US", formatter)}`
+    case "UPCOMING":
+      return `Starts ${jam.startDate.toLocaleDateString("en-US", formatter)}`
+    default:
+      return "Results are live"
+  }
+}
+
 async function getCreatorData(userId: string) {
-  const [games, totalStats, levelCount, recentFeedback] = await Promise.all([
+  const [games, totalStats, levelCount, recentFeedback, jamEntries, activeJam] = await Promise.all([
     prisma.game.findMany({
       where: { creatorId: userId },
       select: {
@@ -92,6 +113,46 @@ async function getCreatorData(userId: string) {
         },
       },
     }),
+    prisma.gameJamEntry.findMany({
+      where: {
+        userId,
+      },
+      orderBy: { submittedAt: "desc" },
+      take: 6,
+      select: {
+        id: true,
+        submittedAt: true,
+        game: {
+          select: {
+            id: true,
+            slug: true,
+            title: true,
+          },
+        },
+        jam: {
+          select: {
+            slug: true,
+            title: true,
+            theme: true,
+            status: true,
+            startDate: true,
+            endDate: true,
+            votingEndDate: true,
+          },
+        },
+      },
+    }),
+    prisma.gameJam.findFirst({
+      where: {
+        startDate: { lte: new Date() },
+        endDate: { gt: new Date() },
+      },
+      orderBy: { endDate: "asc" },
+      select: {
+        slug: true,
+        title: true,
+      },
+    }),
   ])
 
   const feedbackSummary = summarizeFeedback(recentFeedback)
@@ -104,6 +165,8 @@ async function getCreatorData(userId: string) {
       totalLikes: totalStats._sum.likes || 0,
       levelCount,
     },
+    jamEntries,
+    activeJam,
     recentFeedback,
     feedbackSummary,
   }
@@ -116,11 +179,12 @@ export default async function CreatorDashboard() {
     redirect("/login")
   }
 
-  const { games, stats, recentFeedback, feedbackSummary } = await getCreatorData(session.user.id)
+  const { games, stats, recentFeedback, feedbackSummary, jamEntries, activeJam } = await getCreatorData(session.user.id)
   const publishedGames = games.filter((game) => game.status === "PUBLISHED")
   const draftGames = games.filter((game) => game.status !== "PUBLISHED")
   const topGame = [...publishedGames].sort((a, b) => (b.plays + b.likes * 3) - (a.plays + a.likes * 3))[0]
   const seekingFeedbackGame = publishedGames.find((game) => game.seekingFeedback)
+  const hasVotingEntry = jamEntries.some((entry) => getLiveJamStatus(entry.jam) === "VOTING")
   return (
     <div className="min-h-screen flex flex-col bg-[#0d0d15]">
       <Header />
@@ -208,9 +272,79 @@ export default async function CreatorDashboard() {
             </p>
           </div>
           <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
-            <p className="font-arcade text-[11px] text-[#22c55e]">GAME JAMS</p>
-            <h2 className="mt-2 font-arcade text-sm text-white">Use jams as your main launch event</h2>
-            <p className="mt-2 font-arcade text-xs text-[#8b93a6]">Themes, deadlines, and community momentum all live in one place now. Ship to a jam when you want the biggest visibility spike.</p>
+            <p className="font-arcade text-[11px] text-[#22c55e]">JAM MOMENTUM</p>
+            <h2 className="mt-2 font-arcade text-sm text-white">
+              {jamEntries.length > 0 ? `${jamEntries.length} jam entr${jamEntries.length === 1 ? "y" : "ies"}` : "No jam entries yet"}
+            </h2>
+            <p className="mt-2 font-arcade text-xs text-[#8b93a6]">
+              {hasVotingEntry
+                ? "At least one of your submitted games is in voting right now."
+                : activeJam
+                  ? `There is a live jam right now: ${activeJam.title}.`
+                  : "Ship to a jam when you want the biggest visibility spike."}
+            </p>
+          </div>
+        </div>
+
+        <div className="mb-8 border-2 border-[#4a4a6a]">
+          <div className="border-b-2 border-[#4a4a6a] bg-[#1a1a2e] px-4 py-3 flex items-center gap-2">
+            <Trophy className="h-4 w-4 text-[#22c55e]" />
+            <span className="font-arcade text-sm">YOUR JAM ENTRIES</span>
+          </div>
+          <div className="bg-[#0d0d15]">
+            {jamEntries.length > 0 ? (
+              <div className="divide-y divide-[#222]">
+                {jamEntries.map((entry) => {
+                  const liveStatus = getLiveJamStatus(entry.jam)
+                  const action = getJamAction(entry.jam, { surface: "play", isAuthenticated: true })
+
+                  return (
+                    <div key={entry.id} className="p-4">
+                      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                          <Link href={`/play/${entry.game.slug}`} className="font-arcade text-sm text-white hover:text-[#ffff00]">
+                            {entry.game.title}
+                          </Link>
+                          <p className="mt-1 font-arcade text-xs text-[#22c55e]">{entry.jam.title}</p>
+                          <p className="mt-1 font-arcade text-[10px] text-[#8b93a6]">
+                            {liveStatus} · {getJamDeadlineCopy(entry.jam)}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Button asChild variant="arcade-outline" size="sm">
+                            <Link href={`/play/${entry.game.slug}`}>Play Page</Link>
+                          </Button>
+                          <Button asChild variant="arcade" size="sm">
+                            <Link href={action.href}>{action.label}</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="p-4">
+                <p className="font-arcade text-sm text-white">
+                  {activeJam ? "No jam entries yet. There is a live jam waiting for your next upload." : "No jam entries yet."}
+                </p>
+                <p className="mt-2 font-arcade text-xs text-[#8b93a6]">
+                  {activeJam
+                    ? "Ship a game into the active jam to get deadline-driven discovery and a clear event page to share."
+                    : "When the next jam opens, it will become the strongest launch surface for a fresh build."}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button asChild variant="arcade">
+                    <Link href={activeJam ? `/upload?jam=${encodeURIComponent(activeJam.slug)}` : "/jams"}>
+                      {activeJam ? "Upload for Live Jam" : "View Jams"}
+                    </Link>
+                  </Button>
+                  <Button asChild variant="arcade-outline">
+                    <Link href="/jams">Open Jam Hub</Link>
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

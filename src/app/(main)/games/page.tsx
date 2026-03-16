@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import prisma from "@/lib/prisma"
 import { DiscoverySort, getDiscoveryOrderBy } from "@/lib/discovery"
+import { pickPrimaryJam, toPrimaryJamBadge } from "@/lib/jams"
 import { GamesBrowser } from "@/components/games/games-browser"
 import { CATEGORIES } from "@/lib/utils"
 import { SITE_NAME, SITE_URL } from "@/lib/site"
@@ -110,6 +111,23 @@ const getGames = unstable_cache(async (category?: string, sort?: string, q?: str
         seekingFeedback: true,
         aiTool: true,
         aiModel: true,
+        jamEntries: {
+          orderBy: { submittedAt: "desc" },
+          take: 4,
+          select: {
+            jam: {
+              select: {
+                slug: true,
+                title: true,
+                theme: true,
+                status: true,
+                startDate: true,
+                endDate: true,
+                votingEndDate: true,
+              },
+            },
+          },
+        },
         studioProfile: {
           select: { id: true, handle: true, displayName: true, image: true },
         },
@@ -136,6 +154,7 @@ export default async function GamesPage({ searchParams }: PageProps) {
   const normalizedGames = response.data.map((game) => ({
     ...game,
     createdAt: new Date(game.createdAt),
+    primaryJam: toPrimaryJamBadge(pickPrimaryJam(game.jamEntries)),
   }))
 
   const browseJsonLd = {

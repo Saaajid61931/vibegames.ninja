@@ -350,6 +350,16 @@ export async function POST(request: NextRequest) {
               userId: session.user.id,
             },
           })
+
+          await tx.notification.create({
+            data: {
+              userId: session.user.id,
+              title: "Jam submission confirmed",
+              message: `${createdGame.title} is now entered in ${jamSubmission.title}.`,
+              type: "JAM_ENTRY_SUBMITTED",
+              link: `/jams/${jamSubmission.slug}`,
+            },
+          })
         }
 
         return createdGame
