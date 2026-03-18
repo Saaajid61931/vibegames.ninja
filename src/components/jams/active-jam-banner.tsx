@@ -138,17 +138,21 @@ export async function ActiveJamBanner() {
           : "See Results"
 
   return (
-    <section className="border-b-2 border-[#4a4a6a] bg-[#11111d] py-6 sm:border-b-4 sm:py-8">
+    <section className="border-b-2 border-[#4a4a6a] bg-[#11111d] py-4 sm:border-b-4 sm:py-6">
       <div className="container mx-auto px-4">
-        <div className="space-y-5 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 sm:p-6">
-          <div className="relative aspect-[3/1] overflow-hidden border-2 border-[#4a4a6a] bg-[#0d0d15]">
+        <div className="mx-auto max-w-6xl space-y-4 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4 sm:p-5">
+          <Link
+            href={`/jams/${featuredJam.slug}`}
+            aria-label={`Open ${featuredJam.title} jam page`}
+            className="group relative block aspect-[3/1] overflow-hidden border-2 border-[#4a4a6a] bg-[#0d0d15] transition-colors hover:border-[#ff0040] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff0040] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a1a2e]"
+          >
             {bannerImage ? (
               <Image
                 src={bannerImage}
                 alt={featuredJam.title}
                 fill
                 sizes="(max-width: 1280px) 100vw, 1200px"
-                className="object-cover"
+                className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
               />
             ) : (
               <div className="flex h-full items-center justify-center p-6 text-center">
@@ -158,7 +162,8 @@ export async function ActiveJamBanner() {
                 </div>
               </div>
             )}
-          </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+          </Link>
 
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-3">
@@ -188,13 +193,13 @@ export async function ActiveJamBanner() {
             </div>
 
             <div className="flex flex-wrap gap-3 lg:justify-end">
-              <Button asChild variant="arcade">
+              <Button asChild variant="arcade" size="sm">
                 <Link href={actionHref}>
                   {actionLabel}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild variant="arcade-outline">
+              <Button asChild variant="arcade-outline" size="sm">
                 <Link href={`/jams/${featuredJam.slug}`}>Open Jam</Link>
               </Button>
             </div>
