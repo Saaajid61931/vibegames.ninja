@@ -140,51 +140,14 @@ export async function ActiveJamBanner() {
   return (
     <section className="border-b-2 border-[#4a4a6a] bg-[#11111d] py-6 sm:border-b-4 sm:py-8">
       <div className="container mx-auto px-4">
-        <div className="grid gap-5 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-center">
-          <div className="space-y-3">
-            <div className={`inline-flex items-center gap-2 font-pixel text-[10px] sm:text-xs ${accent.color}`}>
-              {accent.icon}
-              <span>{accent.label}</span>
-            </div>
-            <div>
-              <Link href={`/jams/${featuredJam.slug}`} className="group">
-                <h3 className="font-pixel text-sm text-white transition-colors group-hover:text-[#ff0040] sm:text-lg">
-                  {featuredJam.title}
-                </h3>
-              </Link>
-              {featuredJam.theme ? (
-                <p className="mt-1 font-pixel text-[10px] text-[#ffff00] sm:text-xs">
-                  THEME: {featuredJam.theme}
-                </p>
-              ) : null}
-            </div>
-            <div className="flex flex-wrap items-center gap-4 text-[11px] text-[#d5d8e6] sm:text-xs">
-              <span className="flex items-center gap-1">
-                <Trophy className="h-3.5 w-3.5" />
-                {featuredJam._count.entries} {featuredJam._count.entries === 1 ? "entry" : "entries"}
-              </span>
-              <span>{getTimingCopy(featuredJam)}</span>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Button asChild variant="arcade">
-                <Link href={actionHref}>
-                  {actionLabel}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="arcade-outline">
-                <Link href={`/jams/${featuredJam.slug}`}>Open Jam</Link>
-              </Button>
-            </div>
-          </div>
-
+        <div className="space-y-5 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 sm:p-6">
           <div className="relative aspect-[3/1] overflow-hidden border-2 border-[#4a4a6a] bg-[#0d0d15]">
             {bannerImage ? (
               <Image
                 src={bannerImage}
                 alt={featuredJam.title}
                 fill
-                sizes="(max-width: 1024px) 100vw, 320px"
+                sizes="(max-width: 1280px) 100vw, 1200px"
                 className="object-cover"
               />
             ) : (
@@ -195,6 +158,46 @@ export async function ActiveJamBanner() {
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div className="space-y-3">
+              <div className={`inline-flex items-center gap-2 font-pixel text-[10px] sm:text-xs ${accent.color}`}>
+                {accent.icon}
+                <span>{accent.label}</span>
+              </div>
+              <div>
+                <Link href={`/jams/${featuredJam.slug}`} className="group">
+                  <h3 className="font-pixel text-sm text-white transition-colors group-hover:text-[#ff0040] sm:text-lg">
+                    {featuredJam.title}
+                  </h3>
+                </Link>
+                {featuredJam.theme ? (
+                  <p className="mt-1 font-pixel text-[10px] text-[#ffff00] sm:text-xs">
+                    THEME: {featuredJam.theme}
+                  </p>
+                ) : null}
+              </div>
+              <div className="flex flex-wrap items-center gap-4 text-[11px] text-[#d5d8e6] sm:text-xs">
+                <span className="flex items-center gap-1">
+                  <Trophy className="h-3.5 w-3.5" />
+                  {featuredJam._count.entries} {featuredJam._count.entries === 1 ? "entry" : "entries"}
+                </span>
+                <span>{getTimingCopy(featuredJam)}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3 lg:justify-end">
+              <Button asChild variant="arcade">
+                <Link href={actionHref}>
+                  {actionLabel}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="arcade-outline">
+                <Link href={`/jams/${featuredJam.slug}`}>Open Jam</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
