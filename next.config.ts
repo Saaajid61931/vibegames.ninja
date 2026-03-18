@@ -3,8 +3,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactCompiler: true,
   images: {
-    loader: "custom",
-    loaderFile: "./src/lib/cloudflare-image-loader.ts",
     remotePatterns: [
       {
         protocol: "https",
@@ -12,11 +10,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "*.supabase.co",
+        hostname: "**.supabase.co",
       },
       {
         protocol: "https",
-        hostname: "*.r2.dev",
+        hostname: "**.r2.dev",
       },
     ],
   },
