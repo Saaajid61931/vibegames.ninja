@@ -178,7 +178,7 @@ export async function ActiveJamBanner() {
             </div>
           </div>
 
-          <div className="relative aspect-[16/9] overflow-hidden border-2 border-[#4a4a6a] bg-[#0d0d15]">
+          <div className="relative aspect-[3/1] overflow-hidden border-2 border-[#4a4a6a] bg-[#0d0d15]">
             {bannerImage ? (
               <Image
                 src={bannerImage}
