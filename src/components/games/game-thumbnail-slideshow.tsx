@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
+import { isRenderableImageSrc } from "@/lib/image-src"
 
 interface GameThumbnailSlideshowProps {
   title: string
@@ -28,11 +29,17 @@ export function GameThumbnailSlideshow({
     const ordered = [thumbnail, ...(thumbnailSlides || [])]
 
     return ordered.filter((url): url is string => {
-      if (!url || seen.has(url)) {
+      const currentUrl = typeof url === "string" ? url.trim() : ""
+
+      if (!isRenderableImageSrc(currentUrl)) {
         return false
       }
 
-      seen.add(url)
+      if (seen.has(currentUrl)) {
+        return false
+      }
+
+      seen.add(currentUrl)
       return true
     })
   }, [thumbnail, thumbnailSlides])

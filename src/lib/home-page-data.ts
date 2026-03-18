@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
 import { pickPrimaryJam, toPrimaryJamBadge } from "@/lib/jams"
 import { countUniqueCreators } from "@/lib/home-stats"
+import { logServerError } from "@/lib/server-log"
 import { CATEGORIES } from "@/lib/utils"
 
 const homeGameCardSelect = {
@@ -294,16 +295,16 @@ export const HOME_FEATURES = [
 
 export async function getHomePageData() {
   const [
-    games,
-    stats,
-    gameOfTheMonth,
-    mobileGames,
-    editorGames,
-    justLaunchedGames,
-    needsFeedbackGames,
-    updatedThisWeekGames,
-    builtWithToolsGames,
-  ] = await Promise.all([
+    gamesResult,
+    statsResult,
+    gameOfTheMonthResult,
+    mobileGamesResult,
+    editorGamesResult,
+    justLaunchedGamesResult,
+    needsFeedbackGamesResult,
+    updatedThisWeekGamesResult,
+    builtWithToolsGamesResult,
+  ] = await Promise.allSettled([
     getFeaturedGames(),
     getStats(),
     getGameOfTheMonth(),
@@ -314,6 +315,53 @@ export async function getHomePageData() {
     getUpdatedThisWeekGames(),
     getBuiltWithToolsGames(),
   ])
+
+  const getSettledValue = <T,>(label: string, result: PromiseSettledResult<T>, fallback: T) => {
+    if (result.status === "fulfilled") {
+      return result.value
+    }
+
+    logServerError("Home page data query failed", result.reason, {
+      route: "app/home",
+      query: label,
+    })
+
+    return fallback
+  }
+
+  const games = getSettledValue("featuredGames", gamesResult, [] as Awaited<ReturnType<typeof getFeaturedGames>>)
+  const stats = getSettledValue("stats", statsResult, {
+    games: 0,
+    creators: 0,
+    plays: 0,
+  })
+  const gameOfTheMonth = getSettledValue(
+    "gameOfTheMonth",
+    gameOfTheMonthResult,
+    null as Awaited<ReturnType<typeof getGameOfTheMonth>>
+  )
+  const mobileGames = getSettledValue("mobileGames", mobileGamesResult, [] as Awaited<ReturnType<typeof getMobileGames>>)
+  const editorGames = getSettledValue("editorGames", editorGamesResult, [] as Awaited<ReturnType<typeof getEditorGames>>)
+  const justLaunchedGames = getSettledValue(
+    "justLaunchedGames",
+    justLaunchedGamesResult,
+    [] as Awaited<ReturnType<typeof getJustLaunchedGames>>
+  )
+  const needsFeedbackGames = getSettledValue(
+    "needsFeedbackGames",
+    needsFeedbackGamesResult,
+    [] as Awaited<ReturnType<typeof getNeedsFeedbackGames>>
+  )
+  const updatedThisWeekGames = getSettledValue(
+    "updatedThisWeekGames",
+    updatedThisWeekGamesResult,
+    [] as Awaited<ReturnType<typeof getUpdatedThisWeekGames>>
+  )
+  const builtWithToolsGames = getSettledValue(
+    "builtWithToolsGames",
+    builtWithToolsGamesResult,
+    [] as Awaited<ReturnType<typeof getBuiltWithToolsGames>>
+  )
 
   return {
     stats,

@@ -9,7 +9,6 @@ import { useDropzone } from "react-dropzone"
 import { Upload, FileArchive, X, CheckCircle, AlertCircle, Loader2, Trophy } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { LaunchChecklist } from "@/components/creator/launch-checklist"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -428,9 +427,6 @@ export function UploadPageClient() {
   }
 
   if (success) {
-    const embedCode = createdGame
-      ? `<iframe src="${typeof window !== "undefined" ? window.location.origin : ""}/embed/${createdGame.slug}" width="800" height="600" allow="fullscreen" allowfullscreen></iframe>`
-      : ""
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
@@ -439,9 +435,6 @@ export function UploadPageClient() {
             <CardContent className="pt-6">
               <CheckCircle className="h-16 w-16 text-[var(--color-success)] mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-[var(--color-text)] mb-2 text-center">Your Game is Live! Let&apos;s Go!</h2>
-              <p className="text-[var(--color-text-secondary)] text-sm text-center">
-                This upload now has a play page, creator portfolio placement, and creator-focused next steps.
-              </p>
 
               {createdGame?.submittedJam && (
                 <div className="mt-4 rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)]/10 p-3 text-sm text-[var(--color-text)]">
@@ -454,26 +447,6 @@ export function UploadPageClient() {
                   {uploadWarnings.map((warning) => (
                     <p key={warning}>{warning}</p>
                   ))}
-                </div>
-              )}
-
-              {createdGame && (
-                <div className="mt-5 grid gap-4 md:grid-cols-2">
-                  <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-base)] p-4">
-                    <p className="text-xs font-semibold text-[var(--color-primary)]">Next 3 moves</p>
-                    <ul className="mt-3 space-y-2 text-sm text-[var(--color-text-secondary)]">
-                      <li>1. Share the play page outside the platform.</li>
-                      <li>2. {createdGame?.submittedJam ? "Pull players into the jam page so they see your entry." : "Ask for structured feedback while the game is fresh."}</li>
-                      <li>3. {formData.hasGhostSharing ? "Seed the leaderboard with your first ghost run." : "Add thumbnail slides or an update note after your first fixes."}</li>
-                    </ul>
-                  </div>
-                  <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-base)] p-4">
-                    <p className="text-xs font-semibold text-[var(--color-primary)]">Reusable asset</p>
-                    <p className="mt-2 text-xs text-[var(--color-text-tertiary)]">Embed snippet</p>
-                    <code className="mt-2 block break-all rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-[11px] text-[var(--color-text)]">
-                      {embedCode}
-                    </code>
-                  </div>
                 </div>
               )}
 
@@ -587,16 +560,6 @@ export function UploadPageClient() {
               </div>
             )}
 
-            {/* Game File Upload */}
-            <LaunchChecklist
-              title={formData.title}
-              description={formData.description}
-              instructions={formData.instructions}
-              thumbnail={thumbnailPreview}
-              supportsMobile={formData.supportsMobile}
-              latestUpdateNote={formData.latestUpdateNote}
-            />
-
             <Card>
               <CardHeader>
                 <CardTitle>Game Files</CardTitle>
@@ -649,19 +612,6 @@ export function UploadPageClient() {
                   )}
                 </div>
 
-                <div className="mt-4 rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3 space-y-2">
-                  <p className="text-xs font-medium text-[var(--color-text)]">Uploading a React game? Do this:</p>
-                  <ol className="list-decimal pl-4 space-y-1 text-xs text-[var(--color-text-secondary)]">
-                    <li>Open your React game project locally.</li>
-                    <li>Run <code>npm run build</code> (or your build command).</li>
-                    <li>Open the output folder (usually <code>dist</code> or <code>build</code>).</li>
-                    <li>Confirm <code>index.html</code> is inside that output folder.</li>
-                    <li>Zip the built files, then upload that zip above.</li>
-                  </ol>
-                  <p className="text-[11px] text-[var(--color-text-tertiary)]">
-                    Important: upload the built output, not source files. The zip must contain index.html.
-                  </p>
-                </div>
               </CardContent>
             </Card>
 

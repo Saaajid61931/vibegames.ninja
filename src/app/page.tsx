@@ -9,7 +9,6 @@ import { HomeHeroSection } from "@/components/home/home-hero-section"
 import {
   HomeCategoryBar,
   HomeCommunityCta,
-  HomeCommunityMomentumSection,
   HomeDiscoveryShortcuts,
   HomeFeatureGrid,
 } from "@/components/home/home-static-sections"
@@ -82,7 +81,6 @@ export default async function HomePage() {
         <HomeHeroSection stats={stats} />
         <HomeCategoryBar />
         <ActiveJamBanner />
-        <HomeCommunityMomentumSection />
         <RecentlyPlayed games={[...games, ...mobileGames, ...editorGames]} />
 
         {gameOfTheMonth?.game ? (
@@ -108,7 +106,6 @@ export default async function HomePage() {
           <HomeGameLane
             eyebrow="AUTOMATIC DISCOVERY"
             title="JUST LAUNCHED"
-            description="Fresh uploads get a visibility window instead of competing only with old winners."
             actionHref="/games?sort=new"
             actionLabel="SEE NEW GAMES"
             games={justLaunchedGames}
@@ -120,7 +117,6 @@ export default async function HomePage() {
           <HomeGameLane
             eyebrow="CREATOR SUPPORT"
             title="NEEDS FEEDBACK"
-            description="Creators can spotlight one game when they want useful player input, not just passive traffic."
             actionHref="/upload"
             actionLabel="UPLOAD YOUR BUILD"
             games={needsFeedbackGames}
@@ -131,7 +127,6 @@ export default async function HomePage() {
           <HomeGameLane
             eyebrow="ACTIVE CREATORS"
             title="UPDATED THIS WEEK"
-            description="Keep players returning with visible update momentum, not just one-and-done launches."
             actionHref="/creator"
             actionLabel="OPEN DASHBOARD"
             games={updatedThisWeekGames}
@@ -143,7 +138,6 @@ export default async function HomePage() {
           <HomeGameLane
             eyebrow="AI HOBBYIST ENERGY"
             title="BUILT WITH GPT, CLAUDE, OR CURSOR"
-            description="Show creators they are among peers shipping fast, remixing ideas, and getting public feedback."
             actionHref="/games"
             actionLabel="BROWSE MORE"
             games={builtWithToolsGames}

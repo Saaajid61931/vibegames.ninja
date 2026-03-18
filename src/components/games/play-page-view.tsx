@@ -8,9 +8,6 @@ import {
   MessageCircle,
   Play,
   Smartphone,
-  Sparkles,
-  Trophy,
-  User,
 } from "lucide-react"
 import { CommunityLevels } from "@/components/games/community-levels"
 import { CommentsSection } from "@/components/games/comments-section"
@@ -114,85 +111,30 @@ export function PlayPageView({ data, selectedLevelId, userId }: PlayPageViewProp
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-3">
-                {primaryJam && (
-                  <div className={`border-2 bg-[#1a1a2e] p-4 md:col-span-3 ${getJamPanelStyles(primaryJamStatus || "COMPLETED").border}`}>
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <span
-                          className={`inline-flex items-center rounded border px-2 py-1 font-arcade text-[10px] ${getJamPanelStyles(primaryJamStatus || "COMPLETED").badge}`}
-                        >
-                          {primaryJamStatus}
-                        </span>
-                        <h2 className="mt-3 font-arcade text-sm text-white">{primaryJam.title}</h2>
-                        <p className="mt-1 font-arcade text-xs text-[#8b93a6]">
-                          {primaryJam.theme ? `Theme: ${primaryJam.theme}. ` : ""}
-                          {getJamPanelMessage(primaryJam)}
-                        </p>
-                      </div>
-                      <Button asChild variant="arcade">
-                        <Link href={primaryJamAction?.href || `/jams/${primaryJam.slug}`}>
-                          {primaryJamAction?.label || "Visit Jam"}
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Link>
-                      </Button>
+              {primaryJam ? (
+                <div className={`border-2 bg-[#1a1a2e] p-4 ${getJamPanelStyles(primaryJamStatus || "COMPLETED").border}`}>
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <span
+                        className={`inline-flex items-center rounded border px-2 py-1 font-arcade text-[10px] ${getJamPanelStyles(primaryJamStatus || "COMPLETED").badge}`}
+                      >
+                        {primaryJamStatus}
+                      </span>
+                      <h2 className="mt-3 font-arcade text-sm text-white">{primaryJam.title}</h2>
+                      <p className="mt-1 font-arcade text-xs text-[#8b93a6]">
+                        {primaryJam.theme ? `Theme: ${primaryJam.theme}. ` : ""}
+                        {getJamPanelMessage(primaryJam)}
+                      </p>
                     </div>
+                    <Button asChild variant="arcade">
+                      <Link href={primaryJamAction?.href || `/jams/${primaryJam.slug}`}>
+                        {primaryJamAction?.label || "Visit Jam"}
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
                   </div>
-                )}
-                <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
-                  <div className="mb-2 flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-[#ffff00]" />
-                    <span className="font-arcade text-[11px] text-[#ffff00]">KEEP THIS GAME CLOSE</span>
-                  </div>
-                  <p className="font-arcade text-xs text-[#8b93a6]">
-                    Favorite it for quick access and follow the creator so new releases land in your notifications.
-                  </p>
                 </div>
-                {game.hasLevelEditor ? (
-                  <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Trophy className="h-4 w-4 text-[#00d1ff]" />
-                      <span className="font-arcade text-[11px] text-[#00d1ff]">COMMUNITY LEVELS</span>
-                    </div>
-                    <p className="font-arcade text-xs text-[#8b93a6]">
-                      Finish a run, then try player-made levels or remix one of your own to keep the game alive.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Trophy className="h-4 w-4 text-[#00d1ff]" />
-                      <span className="font-arcade text-[11px] text-[#00d1ff]">PLAY NEXT</span>
-                    </div>
-                    <p className="font-arcade text-xs text-[#8b93a6]">
-                      When you are done here, jump into related games below to keep your session going.
-                    </p>
-                  </div>
-                )}
-                <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
-                  <div className="mb-2 flex items-center gap-2">
-                    <ArrowRight className={`h-4 w-4 ${game.hasGhostSharing ? "text-[#00d1ff]" : "text-[#ff0040]"}`} />
-                    <span className={`font-arcade text-[11px] ${game.hasGhostSharing ? "text-[#00d1ff]" : "text-[#ff0040]"}`}>
-                      {game.hasGhostSharing ? "GHOST RACES" : "SHARE THE RUN"}
-                    </span>
-                  </div>
-                  <p className="font-arcade text-xs text-[#8b93a6]">
-                    {game.hasGhostSharing
-                      ? "Chase leaderboard ghosts, load a replay, and try to steal the fastest time."
-                      : "Copy the link or post straight to social to help this game reach more players."}
-                  </p>
-                </div>
-              </div>
-
-              {game.seekingFeedback && (
-                <div className="border-2 border-[#ff7a00] bg-[#ff7a00]/10 p-4">
-                  <p className="font-arcade text-[11px] text-[#ff7a00]">CREATOR REQUEST</p>
-                  <h3 className="mt-2 font-arcade text-sm text-white">This creator is actively looking for feedback</h3>
-                  <p className="mt-2 font-arcade text-xs text-[#ffd2a6]">
-                    Play for a minute, then leave a quick signal below so they know what to keep, fix, or remix next.
-                  </p>
-                </div>
-              )}
+              ) : null}
 
               <div className="flex flex-wrap gap-2 font-arcade text-xs">
                 <span className="px-2 py-1 bg-[#ffff00] text-[#0d0d15] font-bold">
@@ -280,32 +222,6 @@ export function PlayPageView({ data, selectedLevelId, userId }: PlayPageViewProp
                 recentComments={recentFeedbackComments}
                 isAuthenticated={isAuthenticated}
               />
-
-              <div className="border-2 border-[#4a4a6a] bg-[#11111d] p-4 sm:p-5">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="font-arcade text-[11px] text-[#ffff00]">AFTER YOU PLAY</p>
-                    <h3 className="mt-1 font-arcade text-sm text-white">Help this game grow</h3>
-                    <p className="mt-2 font-arcade text-xs text-[#8b93a6]">
-                      Leave a rating, favorite the game, follow {game.studioProfile ? game.studioProfile.displayName : game.creator.username || game.creator.name || "the creator"}, and share the link with friends.
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Link href={creatorProfileHref}>
-                      <Button variant="arcade-outline" size="sm" className="gap-2">
-                        <User className="h-4 w-4" />
-                        VIEW CREATOR
-                      </Button>
-                    </Link>
-                    <Link href="/jams">
-                      <Button variant="outline" size="sm" className="gap-2">
-                        <Trophy className="h-4 w-4" />
-                        JOIN A JAM
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </div>
 
               {selectedLevel && (
                 <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4 space-y-2">

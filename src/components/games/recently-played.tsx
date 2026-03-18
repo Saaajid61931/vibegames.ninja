@@ -56,9 +56,6 @@ export function RecentlyPlayed({ games }: RecentlyPlayedProps) {
               <span className="font-pixel text-[10px] text-[#00d1ff]">CONTINUE PLAYING</span>
             </div>
             <h2 className="font-pixel text-xl text-white sm:text-2xl md:text-3xl">RECENT RUNS</h2>
-            <p className="mt-2 max-w-2xl font-arcade text-sm text-[#8b93a6] sm:text-base">
-              Jump back into the games you opened recently and keep the momentum going.
-            </p>
           </div>
         </div>
 

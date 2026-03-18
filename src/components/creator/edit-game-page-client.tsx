@@ -20,7 +20,6 @@ import {
 } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { LaunchChecklist } from "@/components/creator/launch-checklist"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -418,15 +417,6 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
               </div>
             )}
 
-            <LaunchChecklist
-              title={formData.title}
-              description={formData.description}
-              instructions={formData.instructions}
-              thumbnail={thumbnailPreview || game?.thumbnail}
-              supportsMobile={formData.supportsMobile}
-              latestUpdateNote={formData.latestUpdateNote}
-            />
-
             <Card className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
               <CardHeader>
                 <CardTitle className="font-arcade text-sm">Change Thumbnail (Optional)</CardTitle>
@@ -549,19 +539,6 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                   )}
                 </div>
 
-                <div className="mt-4 border border-[#4a4a6a] bg-[#0d0d15] p-3 space-y-2">
-                  <p className="text-xs font-arcade text-white">Uploading a React game? Do this:</p>
-                  <ol className="list-decimal pl-4 space-y-1 text-xs text-[#4a4a6a] font-arcade">
-                    <li>Open your React game project.</li>
-                    <li>Run npm run build.</li>
-                    <li>Open the build output folder (usually dist or build).</li>
-                    <li>Check that index.html exists there.</li>
-                    <li>Zip that built output and upload it above.</li>
-                  </ol>
-                  <p className="text-[10px] text-[#4a4a6a] font-arcade">
-                    Upload built output only, not source files. The zip must include index.html.
-                  </p>
-                </div>
               </CardContent>
             </Card>
 

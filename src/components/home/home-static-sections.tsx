@@ -179,9 +179,6 @@ export function HomeDiscoveryShortcuts({ categoryLinks }: HomeCategoryBarProps) 
               <span className="font-pixel text-[10px] text-[#00d1ff]">DISCOVERY SHORTCUTS</span>
             </div>
             <h2 className="font-pixel text-xl text-white sm:text-2xl md:text-3xl">FIND YOUR NEXT RABBIT HOLE</h2>
-            <p className="mt-2 max-w-3xl font-arcade text-sm text-[#8b93a6] sm:text-base">
-              Explore mobile-ready games, level-editor sandboxes, and genre collections built to be easy to share and easy to revisit.
-            </p>
           </div>
         </div>
 
