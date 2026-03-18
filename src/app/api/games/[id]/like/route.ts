@@ -3,6 +3,8 @@ import { revalidateTag } from "next/cache"
 import { Prisma } from "@prisma/client"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
+import { createRateLimitResponse, enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/rate-limit"
+import { logServerError } from "@/lib/server-log"
 
 export async function POST(
   request: NextRequest,
@@ -16,6 +18,17 @@ export async function POST(
         { error: "AUTHENTICATION_REQUIRED" },
         { status: 401 }
       )
+    }
+
+    const rateLimit = enforceRateLimit({
+      request,
+      userId: session.user.id,
+      policy: RATE_LIMIT_POLICIES.likes,
+      keyPrefix: "api-game-like",
+    })
+
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit, "You are toggling likes too quickly. Please wait before trying again.")
     }
 
     const { id: gameId } = await params
@@ -102,7 +115,10 @@ export async function POST(
       likes,
     })
   } catch (error) {
-    console.error("Like error:", error)
+    logServerError("Like error", error, {
+      route: "/api/games/[id]/like",
+      method: "POST",
+    })
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2025") {
         return NextResponse.json({ error: "GAME_NOT_FOUND" }, { status: 404 })
@@ -158,7 +174,10 @@ export async function GET(
       likes: game.likes,
     })
   } catch (error) {
-    console.error("Get like status error:", error)
+    logServerError("Get like status error", error, {
+      route: "/api/games/[id]/like",
+      method: "GET",
+    })
     return NextResponse.json({ error: "SYSTEM_ERROR" }, { status: 500 })
   }
 }

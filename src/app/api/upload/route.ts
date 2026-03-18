@@ -3,9 +3,12 @@ import { Prisma } from "@prisma/client"
 import { revalidateTag } from "next/cache"
 import { v4 as uuidv4 } from "uuid"
 import { auth } from "@/lib/auth"
+import { getLiveJamStatus } from "@/lib/jams"
 import { normalizeMobileOrientation } from "@/lib/mobile-orientation"
 import prisma from "@/lib/prisma"
+import { logServerError } from "@/lib/server-log"
 import { slugify } from "@/lib/utils"
+import { gameUploadSchema } from "@/lib/validations"
 import {
   deleteGameAssetsFromR2,
   uploadGameToR2,
@@ -58,28 +61,6 @@ function buildGhostWarnings(report: GhostIntegrationReport | undefined): string[
   ]
 }
 
-function getCurrentJamStatus(jam: {
-  startDate: Date
-  endDate: Date
-  votingEndDate: Date
-}) {
-  const now = new Date()
-
-  if (now >= jam.startDate && now < jam.endDate) {
-    return "ACTIVE"
-  }
-
-  if (now >= jam.endDate && now < jam.votingEndDate) {
-    return "VOTING"
-  }
-
-  if (now >= jam.votingEndDate) {
-    return "COMPLETED"
-  }
-
-  return "UPCOMING"
-}
-
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
@@ -121,6 +102,32 @@ export async function POST(request: NextRequest) {
     const studioProfileId = typeof studioProfileIdRaw === "string" && studioProfileIdRaw.trim()
       ? studioProfileIdRaw.trim()
       : null
+
+    const validatedMetadata = gameUploadSchema.safeParse({
+      title,
+      description,
+      instructions: instructions ?? undefined,
+      category,
+      tags,
+      isAIGenerated,
+      aiTool: normalizedAiTool ?? undefined,
+      aiModel: aiModel ?? undefined,
+      supportsMobile,
+      mobileOrientation,
+      hasLevelEditor,
+      hasGhostSharing,
+      seekingFeedback,
+      latestUpdateNote: latestUpdateNote ?? undefined,
+      isPremium: false,
+      hasAds: true,
+    })
+
+    if (!validatedMetadata.success) {
+      return NextResponse.json(
+        { error: validatedMetadata.error.issues[0]?.message || "Invalid upload data" },
+        { status: 400 }
+      )
+    }
 
     if (!gameFile || !title || !description) {
       return NextResponse.json(
@@ -164,13 +171,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const currentJamStatus = getCurrentJamStatus(jam)
-      if (currentJamStatus !== jam.status) {
-        await prisma.gameJam.update({
-          where: { id: jam.id },
-          data: { status: currentJamStatus },
-        })
-      }
+      const currentJamStatus = getLiveJamStatus(jam)
 
       if (currentJamStatus !== "ACTIVE") {
         return NextResponse.json(
@@ -319,14 +320,7 @@ export async function POST(request: NextRequest) {
         }
 
         if (jamSubmission) {
-          const liveJamStatus = getCurrentJamStatus(jamSubmission)
-
-          if (liveJamStatus !== jamSubmission.status) {
-            await tx.gameJam.update({
-              where: { id: jamSubmission.id },
-              data: { status: liveJamStatus },
-            })
-          }
+          const liveJamStatus = getLiveJamStatus(jamSubmission)
 
           if (liveJamStatus !== "ACTIVE") {
             throw new Error(`${JAM_UPLOAD_ERROR_PREFIX}Selected game jam is no longer accepting submissions`)
@@ -392,7 +386,10 @@ export async function POST(request: NextRequest) {
       warnings,
     })
   } catch (error) {
-    console.error("Upload error:", error)
+    logServerError("Upload error", error, {
+      route: "/api/upload",
+      method: "POST",
+    })
 
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&

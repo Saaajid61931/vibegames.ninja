@@ -8,6 +8,8 @@ import {
   MAX_GHOST_LEADERBOARD_LIMIT,
 } from "@/lib/ghosts"
 import prisma from "@/lib/prisma"
+import { createRateLimitResponse, enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/rate-limit"
+import { logServerError } from "@/lib/server-log"
 import { ghostRunSchema } from "@/lib/validations"
 
 async function getPublishedLevelForGame(gameId: string, levelId: string) {
@@ -138,7 +140,10 @@ export async function GET(
       personalBest: data.personalBest,
     })
   } catch (error) {
-    console.error("Get ghosts error:", error)
+    logServerError("Get ghosts error", error, {
+      route: "/api/games/[id]/ghosts",
+      method: "GET",
+    })
     return NextResponse.json({ error: "Failed to fetch ghost leaderboard" }, { status: 500 })
   }
 }
@@ -151,6 +156,17 @@ export async function POST(
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const rateLimit = enforceRateLimit({
+      request,
+      userId: session.user.id,
+      policy: RATE_LIMIT_POLICIES.ghostUpload,
+      keyPrefix: "api-ghost-upload",
+    })
+
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit, "You are saving ghost runs too quickly. Please wait before uploading another replay.")
     }
 
     const { id } = await params
@@ -220,7 +236,10 @@ export async function POST(
       personalBest: data.personalBest,
     }, { status: 201 })
   } catch (error) {
-    console.error("Create ghost run error:", error)
+    logServerError("Create ghost run error", error, {
+      route: "/api/games/[id]/ghosts",
+      method: "POST",
+    })
     return NextResponse.json({ error: "Failed to save ghost run" }, { status: 500 })
   }
 }

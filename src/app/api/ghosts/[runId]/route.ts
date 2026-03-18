@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import { logServerError } from "@/lib/server-log"
 
 export async function GET(
   _request: NextRequest,
@@ -65,7 +66,10 @@ export async function GET(
       },
     })
   } catch (error) {
-    console.error("Get ghost run error:", error)
+    logServerError("Get ghost run error", error, {
+      route: "/api/ghosts/[runId]",
+      method: "GET",
+    })
     return NextResponse.json({ error: "Failed to load ghost run" }, { status: 500 })
   }
 }

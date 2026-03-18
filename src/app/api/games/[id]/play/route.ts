@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import { secondsUntilNextUtcDay, utcDayKey, upsertDailyGameAnalytics } from "@/lib/game-analytics"
+import { logServerError } from "@/lib/server-log"
 
 const PLAY_COOLDOWN_SECONDS = 30 * 60
 
@@ -13,66 +15,6 @@ function dailyGamePlayerCookieName(gameId: string, dayKey: string) {
 
 function levelPlayCookieName(levelId: string) {
   return `vg_play_level_${levelId}`
-}
-
-function startOfUtcDay(date: Date) {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
-}
-
-function nextUtcDay(date: Date) {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 1))
-}
-
-function utcDayKey(date: Date) {
-  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`
-}
-
-function secondsUntilNextUtcDay(date: Date) {
-  return Math.max(60, Math.ceil((nextUtcDay(date).getTime() - date.getTime()) / 1000))
-}
-
-async function updateDailyGameAnalytics(gameId: string, plays: number, uniquePlayers: number, date: Date) {
-  if (plays === 0 && uniquePlayers === 0) {
-    return
-  }
-
-  const dayStart = startOfUtcDay(date)
-  const dayEnd = nextUtcDay(date)
-
-  const existing = await prisma.gameAnalytics.findFirst({
-    where: {
-      gameId,
-      date: {
-        gte: dayStart,
-        lt: dayEnd,
-      },
-    },
-    select: {
-      id: true,
-    },
-  })
-
-  if (existing) {
-    await prisma.gameAnalytics.update({
-      where: { id: existing.id },
-      data: {
-        plays: { increment: plays },
-        uniquePlayers: { increment: uniquePlayers },
-      },
-      select: { id: true },
-    })
-    return
-  }
-
-  await prisma.gameAnalytics.create({
-    data: {
-      gameId,
-      date: dayStart,
-      plays,
-      uniquePlayers,
-    },
-    select: { id: true },
-  })
 }
 
 export async function POST(
@@ -133,11 +75,18 @@ export async function POST(
 
     if (shouldIncrementGame || shouldIncrementUniquePlayer) {
       updates.push(
-        updateDailyGameAnalytics(
+        upsertDailyGameAnalytics(
+          prisma,
           gameId,
-          shouldIncrementGame ? 1 : 0,
-          shouldIncrementUniquePlayer ? 1 : 0,
-          now
+          now,
+          {
+            plays: shouldIncrementGame ? 1 : 0,
+            uniquePlayers: shouldIncrementUniquePlayer ? 1 : 0,
+          },
+          {
+            plays: { increment: shouldIncrementGame ? 1 : 0 },
+            uniquePlayers: { increment: shouldIncrementUniquePlayer ? 1 : 0 },
+          }
         )
       )
     }
@@ -199,7 +148,10 @@ export async function POST(
 
     return response
   } catch (error) {
-    console.error("Track game play error:", error)
+    logServerError("Track game play error", error, {
+      route: "/api/games/[id]/play",
+      method: "POST",
+    })
     return NextResponse.json({ error: "Failed to track play" }, { status: 500 })
   }
 }

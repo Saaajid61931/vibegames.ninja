@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { refreshGameRating } from "@/lib/ratings"
 import { ratingSchema } from "@/lib/validations"
+import { logServerError } from "@/lib/server-log"
 
 export async function GET(
   _request: NextRequest,
@@ -27,7 +28,10 @@ export async function GET(
 
     return NextResponse.json({ score: rating?.score ?? null })
   } catch (error) {
-    console.error("Get game rating error:", error)
+    logServerError("Get game rating error", error, {
+      route: "/api/games/[id]/rate",
+      method: "GET",
+    })
     return NextResponse.json({ error: "Failed to fetch rating" }, { status: 500 })
   }
 }
@@ -100,7 +104,10 @@ export async function POST(
       ratingCount: updated?.ratingCount ?? 0,
     })
   } catch (error) {
-    console.error("Rate game error:", error)
+    logServerError("Rate game error", error, {
+      route: "/api/games/[id]/rate",
+      method: "POST",
+    })
     return NextResponse.json({ error: "Failed to rate game" }, { status: 500 })
   }
 }

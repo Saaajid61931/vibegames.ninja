@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowRight, Clock, Trophy, Vote, Zap } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
@@ -149,10 +150,13 @@ export async function ActiveJamBanner() {
     <section className="border-b-2 border-[#4a4a6a] sm:border-b-4">
       <div className="relative overflow-hidden">
         {featuredJam.bannerImage ? (
-          <img
+          <Image
             src={featuredJam.bannerImage}
-            alt={featuredJam.title}
-            className="absolute inset-0 h-full w-full object-cover"
+            alt=""
+            aria-hidden="true"
+            fill
+            sizes="100vw"
+            className="object-cover"
           />
         ) : null}
         <div className="absolute inset-0 bg-[#0d0d15]/55" />

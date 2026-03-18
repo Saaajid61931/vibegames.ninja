@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
 import prisma from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { logServerError } from "@/lib/server-log"
 
 /**
  * DELETE /api/featured/[id]
@@ -33,7 +34,12 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Failed to delete featured pick:", error)
+    logServerError("Failed to delete featured pick", error, {
+      route: "/api/featured/[id]",
+      method: "DELETE",
+      userId: session.user.id,
+      featuredId: id,
+    })
     return NextResponse.json({ error: "Failed to delete featured pick" }, { status: 500 })
   }
 }

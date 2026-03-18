@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
+import { logServerError } from "@/lib/server-log"
 import { uploadThumbnailSlidesToR2, validateR2Config } from "@/lib/storage"
 
 const MAX_SCREENSHOT_COUNT = 5
@@ -108,7 +109,10 @@ export async function POST(
       game: updated,
     })
   } catch (error) {
-    console.error("Auto thumbnail upload error:", error)
+    logServerError("Auto thumbnail upload error", error, {
+      route: "/api/games/[id]/thumbnail-slides",
+      method: "POST",
+    })
 
     if (process.env.NODE_ENV !== "production" && error instanceof Error) {
       return NextResponse.json({ error: error.message || "Failed to update thumbnail slideshow" }, { status: 500 })

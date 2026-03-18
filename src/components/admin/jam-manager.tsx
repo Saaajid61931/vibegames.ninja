@@ -1,6 +1,7 @@
 "use client"
 
 import { type ReactNode, useEffect, useState } from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -473,9 +474,12 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
                   The current banner will be removed when you save this jam.
                 </div>
               ) : currentBanner ? (
-                <img
+                <Image
                   src={currentBanner}
-                  alt=""
+                  alt={`${form.title || "Jam"} banner preview`}
+                  width={1500}
+                  height={500}
+                  unoptimized
                   className="aspect-[3/1] w-full rounded object-cover border border-[#2a2a4a]"
                 />
               ) : bannerFile ? (
@@ -534,9 +538,11 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
                 {jam.bannerImage ? (
-                  <img
+                  <Image
                     src={jam.bannerImage}
-                    alt=""
+                    alt={`${jam.title} banner`}
+                    width={960}
+                    height={320}
                     className="aspect-[3/1] w-full rounded object-cover border border-[#2a2a4a] flex-shrink-0 lg:w-48"
                   />
                 ) : (

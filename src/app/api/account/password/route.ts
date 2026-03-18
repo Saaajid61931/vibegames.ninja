@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { passwordChangeSchema } from "@/lib/validations"
+import { logServerError } from "@/lib/server-log"
 
 export async function PATCH(request: Request) {
   try {
@@ -61,7 +62,10 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ message: "Password updated." })
   } catch (error) {
-    console.error("Password update error:", error)
+    logServerError("Password update error", error, {
+      route: "/api/account/password",
+      method: "PATCH",
+    })
 
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&

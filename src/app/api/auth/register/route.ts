@@ -1,10 +1,22 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import prisma from "@/lib/prisma"
+import { createRateLimitResponse, enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/rate-limit"
+import { logServerError } from "@/lib/server-log"
 import { registerSchema } from "@/lib/validations"
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const rateLimit = enforceRateLimit({
+      request,
+      policy: RATE_LIMIT_POLICIES.register,
+      keyPrefix: "api-register",
+    })
+
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit, "Too many registration attempts. Please wait before trying again.")
+    }
+
     const body = await request.json()
     
     // Validate input
@@ -83,7 +95,10 @@ export async function POST(request: Request) {
       { status: 201 }
     )
   } catch (error) {
-    console.error("Registration error:", error)
+    logServerError("Registration error", error, {
+      route: "/api/auth/register",
+      method: "POST",
+    })
     return NextResponse.json(
       { error: "Something went wrong" },
       { status: 500 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Star, Play, SquarePen, Loader2, Trash2 } from "lucide-react"
@@ -176,9 +177,11 @@ export function CommunityLevels({ gameId, slug, selectedLevelId, currentUserId }
                   <div className="flex gap-3 min-w-0 flex-1">
                     {level.thumbnail && (
                       <Link href={`/play/${slug}?level=${level.id}`} className="flex-shrink-0">
-                        <img
+                        <Image
                           src={level.thumbnail}
-                          alt={level.name}
+                          alt={`Level thumbnail for ${level.name}`}
+                          width={64}
+                          height={40}
                           className="w-16 h-10 object-cover border border-[#2e3446] rounded-sm"
                         />
                       </Link>

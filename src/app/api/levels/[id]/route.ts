@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { levelInputSchema } from "@/lib/validations"
+import { logServerError } from "@/lib/server-log"
 
 const MAX_LEVEL_DATA_BYTES = 5 * 1024 * 1024
 
@@ -47,7 +48,10 @@ export async function GET(
 
     return NextResponse.json(level)
   } catch (error) {
-    console.error("Get level error:", error)
+    logServerError("Get level error", error, {
+      route: "/api/levels/[id]",
+      method: "GET",
+    })
     return NextResponse.json({ error: "Failed to fetch level" }, { status: 500 })
   }
 }
@@ -106,7 +110,10 @@ export async function PATCH(
 
     return NextResponse.json({ level: updated })
   } catch (error) {
-    console.error("Update level error:", error)
+    logServerError("Update level error", error, {
+      route: "/api/levels/[id]",
+      method: "PATCH",
+    })
     return NextResponse.json({ error: "Failed to update level" }, { status: 500 })
   }
 }
@@ -139,7 +146,10 @@ export async function DELETE(
 
     return NextResponse.json({ message: "Level deleted" })
   } catch (error) {
-    console.error("Delete level error:", error)
+    logServerError("Delete level error", error, {
+      route: "/api/levels/[id]",
+      method: "DELETE",
+    })
     return NextResponse.json({ error: "Failed to delete level" }, { status: 500 })
   }
 }

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import {
   Terminal,
   Layers,
@@ -135,9 +136,12 @@ export default async function MyLevelsPage() {
                     {/* Game thumbnail */}
                     <div className="w-full sm:w-20 h-32 sm:h-12 bg-[#1a1a2e] border border-[#4a4a6a] overflow-hidden flex-shrink-0">
                       {level.game.thumbnail ? (
-                        <img
+                        <Image
                           src={level.game.thumbnail}
-                          alt={level.game.title}
+                          alt={`Thumbnail for ${level.game.title}`}
+                          width={80}
+                          height={48}
+                          sizes="(max-width: 640px) 100vw, 80px"
                           className="w-full h-full object-cover grayscale"
                         />
                       ) : (

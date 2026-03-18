@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
-
-function startOfUtcDay(date: Date) {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
-}
-
-function nextUtcDay(date: Date) {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 1))
-}
+import {
+  findDailyGameAnalytics,
+  upsertDailyGameAnalytics,
+} from "@/lib/game-analytics"
+import { logServerError } from "@/lib/server-log"
 
 export async function POST(
   request: NextRequest,
@@ -32,25 +29,8 @@ export async function POST(
     }
 
     const now = new Date()
-    const dayStart = startOfUtcDay(now)
-    const dayEnd = nextUtcDay(now)
     const bounceValue = sessionMinutes <= 0.25 ? 100 : 0
-
-    const existing = await prisma.gameAnalytics.findFirst({
-      where: {
-        gameId,
-        date: {
-          gte: dayStart,
-          lt: dayEnd,
-        },
-      },
-      select: {
-        id: true,
-        plays: true,
-        avgSessionTime: true,
-        bounceRate: true,
-      },
-    })
+    const existing = await findDailyGameAnalytics(prisma, gameId, now)
 
     if (existing) {
       const sampleCount = Math.max(existing.plays, 1)
@@ -59,31 +39,45 @@ export async function POST(
       const nextBounceRate =
         (existing.bounceRate * Math.max(sampleCount - 1, 0) + bounceValue) / sampleCount
 
-      await prisma.gameAnalytics.update({
-        where: { id: existing.id },
-        data: {
-          avgSessionTime: nextAvgSessionTime,
-          bounceRate: nextBounceRate,
-        },
-        select: { id: true },
-      })
-    } else {
-      await prisma.gameAnalytics.create({
-        data: {
-          gameId,
-          date: dayStart,
+      await upsertDailyGameAnalytics(
+        prisma,
+        gameId,
+        now,
+        {
           plays: 0,
           uniquePlayers: 0,
           avgSessionTime: sessionMinutes,
           bounceRate: bounceValue,
         },
-        select: { id: true },
-      })
+        {
+          avgSessionTime: nextAvgSessionTime,
+          bounceRate: nextBounceRate,
+        }
+      )
+    } else {
+      await upsertDailyGameAnalytics(
+        prisma,
+        gameId,
+        now,
+        {
+          plays: 0,
+          uniquePlayers: 0,
+          avgSessionTime: sessionMinutes,
+          bounceRate: bounceValue,
+        },
+        {
+          avgSessionTime: sessionMinutes,
+          bounceRate: bounceValue,
+        }
+      )
     }
 
     return NextResponse.json({ tracked: true })
   } catch (error) {
-    console.error("Track game session error:", error)
+    logServerError("Track game session error", error, {
+      route: "/api/games/[id]/session",
+      method: "POST",
+    })
     return NextResponse.json({ error: "Failed to track session" }, { status: 500 })
   }
 }

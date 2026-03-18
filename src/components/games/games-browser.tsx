@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { startTransition, useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Search, Gamepad2, ChevronLeft, Loader2, Smartphone, SquarePen } from "lucide-react"
@@ -59,6 +59,8 @@ export function GamesBrowser({
   
   // Ref to skip initial effect run
   const isFirstRun = useRef(true)
+  const abortControllerRef = useRef<AbortController | null>(null)
+  const requestIdRef = useRef(0)
 
   const buildParams = useCallback((targetPage: number) => {
     const params = new URLSearchParams()
@@ -72,6 +74,12 @@ export function GamesBrowser({
   }, [category, sort, debouncedQ, supportsMobile, editorOnly])
 
   const fetchGames = useCallback(async (targetPage: number, append: boolean) => {
+    abortControllerRef.current?.abort()
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+    const requestId = requestIdRef.current + 1
+    requestIdRef.current = requestId
+
     if (append) {
       setLoadingMore(true)
     } else {
@@ -82,10 +90,16 @@ export function GamesBrowser({
       const params = buildParams(targetPage)
       const queryString = params.toString()
       const browseUrl = queryString ? `/games?${queryString}` : "/games"
-      router.replace(browseUrl, { scroll: false })
+      startTransition(() => {
+        router.replace(browseUrl, { scroll: false })
+      })
 
-      const res = await fetch(`/api/games?${queryString}`)
+      const res = await fetch(`/api/games?${queryString}`, { signal: controller.signal })
       const data = await res.json()
+
+      if (requestId !== requestIdRef.current) {
+        return
+      }
 
       if (data.data) {
         const normalized: BrowserGame[] = (data.data as ApiBrowserGame[]).map((game) => ({
@@ -99,8 +113,14 @@ export function GamesBrowser({
         setHasMore(Boolean(data.hasMore))
       }
     } catch (error) {
-      console.error("Failed to fetch games:", error)
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return
+      }
     } finally {
+      if (requestId !== requestIdRef.current) {
+        return
+      }
+
       if (append) {
         setLoadingMore(false)
       } else {
@@ -116,6 +136,12 @@ export function GamesBrowser({
     }
     void fetchGames(1, false)
   }, [category, sort, debouncedQ, supportsMobile, editorOnly, fetchGames])
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort()
+    }
+  }, [])
 
   const resetFilters = () => {
     setCategory("all")

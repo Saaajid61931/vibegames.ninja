@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
+import { createRateLimitResponse, enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/rate-limit"
+import { logServerError } from "@/lib/server-log"
 import { reportSchema } from "@/lib/validations"
 
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
+    const rateLimit = enforceRateLimit({
+      request,
+      userId: session?.user?.id,
+      policy: RATE_LIMIT_POLICIES.reports,
+      keyPrefix: "api-reports",
+    })
+
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit, "Too many reports were submitted recently. Please wait before sending another one.")
+    }
+
     const body = await request.json().catch(() => null)
     const parsed = reportSchema.safeParse(body)
 
@@ -58,7 +71,10 @@ export async function POST(request: NextRequest) {
       reportId: report.id,
     })
   } catch (error) {
-    console.error("Create report error:", error)
+    logServerError("Create report error", error, {
+      route: "/api/reports",
+      method: "POST",
+    })
     return NextResponse.json({ error: "Failed to submit report" }, { status: 500 })
   }
 }

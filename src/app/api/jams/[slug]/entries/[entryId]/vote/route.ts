@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
+import { getLiveJamStatus } from "@/lib/jams"
+import { createRateLimitResponse, enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/rate-limit"
+import { logServerError } from "@/lib/server-log"
 import { ratingSchema } from "@/lib/validations"
 
 export async function POST(
@@ -13,6 +16,17 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const rateLimit = enforceRateLimit({
+      request,
+      userId: session.user.id,
+      policy: RATE_LIMIT_POLICIES.jamVote,
+      keyPrefix: "api-jam-vote",
+    })
+
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit, "You are voting too quickly. Please wait before rating another entry.")
+    }
+
     const { slug, entryId } = await params
 
     const jam = await prisma.gameJam.findUnique({ where: { slug } })
@@ -20,14 +34,7 @@ export async function POST(
       return NextResponse.json({ error: "Jam not found" }, { status: 404 })
     }
 
-    // Auto-transition
-    const now = new Date()
-    let currentStatus = jam.status
-    if (currentStatus === "ACTIVE" && now >= jam.endDate) currentStatus = "VOTING"
-    if (currentStatus === "VOTING" && now >= jam.votingEndDate) currentStatus = "COMPLETED"
-    if (currentStatus !== jam.status) {
-      await prisma.gameJam.update({ where: { id: jam.id }, data: { status: currentStatus } })
-    }
+    const currentStatus = getLiveJamStatus(jam)
 
     if (currentStatus !== "VOTING") {
       return NextResponse.json({ error: "Voting is not open for this jam" }, { status: 400 })
@@ -70,7 +77,10 @@ export async function POST(
 
     return NextResponse.json({ vote })
   } catch (error) {
-    console.error("Vote error:", error)
+    logServerError("Vote error", error, {
+      route: "/api/jams/[slug]/entries/[entryId]/vote",
+      method: "POST",
+    })
     return NextResponse.json({ error: "Failed to vote" }, { status: 500 })
   }
 }

@@ -4,7 +4,9 @@ import { Prisma } from "@prisma/client"
 import { auth } from "@/lib/auth"
 import { normalizeMobileOrientation } from "@/lib/mobile-orientation"
 import prisma from "@/lib/prisma"
+import { logServerError } from "@/lib/server-log"
 import { slugify } from "@/lib/utils"
+import { gameUploadSchema } from "@/lib/validations"
 import {
   deleteStaleGameAssetsFromR2,
   uploadGameToR2,
@@ -80,7 +82,10 @@ export async function GET(
 
     return NextResponse.json(game)
   } catch (error) {
-    console.error("Get game error:", error)
+    logServerError("Get game error", error, {
+      route: "/api/games/[id]",
+      method: "GET",
+    })
     return NextResponse.json({ error: "Failed to fetch game" }, { status: 500 })
   }
 }
@@ -173,6 +178,32 @@ async function updateGame(
       latestUpdateNote = typeof body.latestUpdateNote === "string" && body.latestUpdateNote.trim()
         ? body.latestUpdateNote.trim()
         : null
+    }
+
+    const validatedMetadata = gameUploadSchema.safeParse({
+      title,
+      description,
+      instructions: instructions ?? undefined,
+      category,
+      tags,
+      isAIGenerated: true,
+      aiTool: aiTool ?? undefined,
+      aiModel: aiModel ?? undefined,
+      supportsMobile,
+      mobileOrientation,
+      hasLevelEditor,
+      hasGhostSharing,
+      seekingFeedback,
+      latestUpdateNote: latestUpdateNote ?? undefined,
+      isPremium: false,
+      hasAds: true,
+    })
+
+    if (!validatedMetadata.success) {
+      return NextResponse.json(
+        { error: validatedMetadata.error.issues[0]?.message || "Invalid game data" },
+        { status: 400 }
+      )
     }
 
     if (!title || !description) {
@@ -314,7 +345,10 @@ async function updateGame(
       warnings: uploadWarnings,
     })
   } catch (error) {
-    console.error("Update game error:", error)
+    logServerError("Update game error", error, {
+      route: "/api/games/[id]",
+      method: "PATCH",
+    })
 
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -393,7 +427,10 @@ export async function DELETE(
 
     return NextResponse.json({ message: "Game deleted successfully" })
   } catch (error) {
-    console.error("Delete game error:", error)
+    logServerError("Delete game error", error, {
+      route: "/api/games/[id]",
+      method: "DELETE",
+    })
     return NextResponse.json({ error: "Failed to delete game" }, { status: 500 })
   }
 }

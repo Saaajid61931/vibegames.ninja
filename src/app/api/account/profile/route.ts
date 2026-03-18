@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { profileSettingsSchema } from "@/lib/validations"
+import { logServerError } from "@/lib/server-log"
 
 export async function PATCH(request: Request) {
   try {
@@ -142,7 +143,10 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ user: updatedUser })
   } catch (error) {
-    console.error("Profile update error:", error)
+    logServerError("Profile update error", error, {
+      route: "/api/account/profile",
+      method: "PATCH",
+    })
 
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&

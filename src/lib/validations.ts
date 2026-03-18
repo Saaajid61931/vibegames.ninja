@@ -1,4 +1,5 @@
-import { z } from 'zod'
+import { z } from "zod"
+import { AI_MODELS, AI_TOOLS, CATEGORIES } from "./utils"
 
 const MAX_LEVEL_DATA_BYTES = 5 * 1024 * 1024
 export const MAX_GHOST_REPLAY_BYTES = 512 * 1024
@@ -44,6 +45,24 @@ const ghostReplayDataSchema = z
     'Level data exceeds 5MB limit'
   )
 
+const CATEGORY_VALUES = new Set(CATEGORIES.map((category) => category.value))
+const AI_TOOL_VALUES = new Set(AI_TOOLS.map((tool) => tool.value))
+const AI_MODEL_VALUES = new Set(AI_MODELS.map((model) => model.value))
+
+function optionalKnownValueSchema(values: Set<string>, errorMessage: string) {
+  return z.preprocess(
+    (value) => {
+      if (typeof value !== "string") {
+        return value
+      }
+
+      const normalized = value.trim().toLowerCase()
+      return normalized.length > 0 ? normalized : undefined
+    },
+    z.string().refine((value) => values.has(value), { message: errorMessage }).optional()
+  )
+}
+
 export const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
@@ -82,11 +101,25 @@ export const gameUploadSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters').max(2000, 'Description must be less than 2000 characters'),
   instructions: z.string().max(1000, 'Instructions must be less than 1000 characters').optional(),
-  category: z.string(),
+  category: z.preprocess(
+    (value) => {
+      if (typeof value !== "string") {
+        return value
+      }
+
+      return value.trim().toUpperCase()
+    },
+    z.string().refine(
+      (value) => CATEGORY_VALUES.has(value as (typeof CATEGORIES)[number]["value"]),
+      {
+      message: "Invalid category",
+      }
+    )
+  ),
   tags: z.string(),
   isAIGenerated: z.boolean().default(true),
-  aiTool: z.string().optional(),
-  aiModel: z.string().optional(),
+  aiTool: optionalKnownValueSchema(AI_TOOL_VALUES, "Invalid AI tool"),
+  aiModel: optionalKnownValueSchema(AI_MODEL_VALUES, "Invalid AI model"),
   supportsMobile: z.boolean().default(false),
   mobileOrientation: z.enum(['BOTH', 'PORTRAIT', 'LANDSCAPE']).default('BOTH'),
   hasLevelEditor: z.boolean().default(false),

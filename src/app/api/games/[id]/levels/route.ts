@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { levelInputSchema } from "@/lib/validations"
+import { logServerError } from "@/lib/server-log"
 
 const MAX_LEVEL_DATA_BYTES = 5 * 1024 * 1024
 
@@ -75,7 +76,10 @@ export async function GET(
       hasMore: skip + levels.length < total,
     })
   } catch (error) {
-    console.error("List levels error:", error)
+    logServerError("List levels error", error, {
+      route: "/api/games/[id]/levels",
+      method: "GET",
+    })
     return NextResponse.json({ error: "Failed to fetch levels" }, { status: 500 })
   }
 }
@@ -137,7 +141,10 @@ export async function POST(
 
     return NextResponse.json({ level }, { status: 201 })
   } catch (error) {
-    console.error("Create level error:", error)
+    logServerError("Create level error", error, {
+      route: "/api/games/[id]/levels",
+      method: "POST",
+    })
     return NextResponse.json({ error: "Failed to create level" }, { status: 500 })
   }
 }

@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { JamDetail } from "@/components/jams/jam-detail"
+import { getLiveJamStatus } from "@/lib/jams"
 import { SITE_NAME, SITE_URL } from "@/lib/site"
 
 export const dynamic = "force-dynamic"
@@ -56,23 +57,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 async function getJamData(slug: string) {
-  const now = new Date()
-
-  // Auto-transition
-  await prisma.gameJam.updateMany({
-    where: { status: "UPCOMING", startDate: { lte: now } },
-    data: { status: "ACTIVE" },
-  })
-  await prisma.gameJam.updateMany({
-    where: { status: "ACTIVE", endDate: { lte: now } },
-    data: { status: "VOTING" },
-  })
-  await prisma.gameJam.updateMany({
-    where: { status: "VOTING", votingEndDate: { lte: now } },
-    data: { status: "COMPLETED" },
-  })
-
-  const jam = await prisma.gameJam.findUnique({
+  return prisma.gameJam.findUnique({
     where: { slug },
     include: {
       createdBy: { select: { id: true, name: true, username: true } },
@@ -101,7 +86,6 @@ async function getJamData(slug: string) {
     },
   })
 
-  return jam
 }
 
 export default async function JamDetailPage({ params }: Props) {
@@ -113,10 +97,11 @@ export default async function JamDetailPage({ params }: Props) {
   }
 
   const session = await auth()
+  const liveStatus = getLiveJamStatus(jam)
 
   // Get user's published games for submission
   let userGames: { id: string; title: string; slug: string }[] = []
-  if (session?.user?.id && jam.status === "ACTIVE") {
+  if (session?.user?.id && liveStatus === "ACTIVE") {
     userGames = await prisma.game.findMany({
       where: { creatorId: session.user.id, status: "PUBLISHED" },
       select: { id: true, title: true, slug: true },
@@ -147,7 +132,7 @@ export default async function JamDetailPage({ params }: Props) {
   })
 
   // Sort by score for voting/completed
-  if (jam.status === "COMPLETED" || jam.status === "VOTING") {
+  if (liveStatus === "COMPLETED" || liveStatus === "VOTING") {
     entriesWithScores.sort((a, b) => b.avgScore - a.avgScore)
   }
 
@@ -159,7 +144,7 @@ export default async function JamDetailPage({ params }: Props) {
     theme: jam.theme,
     rules: jam.rules,
     bannerImage: jam.bannerImage,
-    status: jam.status,
+    status: liveStatus,
     startDate: jam.startDate.toISOString(),
     endDate: jam.endDate.toISOString(),
     votingEndDate: jam.votingEndDate.toISOString(),
@@ -174,9 +159,9 @@ export default async function JamDetailPage({ params }: Props) {
     name: jam.title,
     description: jam.description,
     eventStatus:
-      jam.status === "COMPLETED"
+      liveStatus === "COMPLETED"
         ? "https://schema.org/EventCompleted"
-        : jam.status === "UPCOMING"
+        : liveStatus === "UPCOMING"
           ? "https://schema.org/EventScheduled"
           : "https://schema.org/EventInProgress",
     eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode",

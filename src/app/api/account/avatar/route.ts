@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { uploadUserAvatarToR2, validateR2Config } from "@/lib/storage"
+import { logServerError } from "@/lib/server-log"
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024
 
@@ -67,7 +68,10 @@ export async function POST(request: Request) {
       image: updatedUser.image,
     })
   } catch (error) {
-    console.error("Avatar upload error:", error)
+    logServerError("Avatar upload error", error, {
+      route: "/api/account/avatar",
+      method: "POST",
+    })
 
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&

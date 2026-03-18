@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { FEEDBACK_SIGNAL_KEYS, FEEDBACK_SIGNAL_LABELS, summarizeFeedback } from "@/lib/creator-magnet"
+import { summarizeFeedback } from "@/lib/creator-magnet"
+import { buildStructuredFeedbackNotificationMessage, shouldNotifyStructuredFeedback } from "@/lib/structured-feedback-notification"
 import prisma from "@/lib/prisma"
+import { createRateLimitResponse, enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/rate-limit"
+import { logServerError } from "@/lib/server-log"
 import { structuredFeedbackSchema } from "@/lib/validations"
-
-function buildSignalSummary(input: Record<string, boolean>) {
-  return FEEDBACK_SIGNAL_KEYS.filter((key) => input[key]).map((key) => FEEDBACK_SIGNAL_LABELS[key])
-}
 
 export async function GET(
   _request: NextRequest,
@@ -73,7 +72,10 @@ export async function GET(
       userFeedback,
     })
   } catch (error) {
-    console.error("Get structured feedback error:", error)
+    logServerError("Get structured feedback error", error, {
+      route: "/api/games/[id]/feedback",
+      method: "GET",
+    })
     return NextResponse.json({ error: "SYSTEM_ERROR" }, { status: 500 })
   }
 }
@@ -86,6 +88,17 @@ export async function POST(
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: "AUTHENTICATION_REQUIRED" }, { status: 401 })
+    }
+
+    const rateLimit = enforceRateLimit({
+      request,
+      userId: session.user.id,
+      policy: RATE_LIMIT_POLICIES.feedback,
+      keyPrefix: "api-game-feedback",
+    })
+
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit, "You are sending feedback too quickly. Please wait a moment and try again.")
     }
 
     const { id: gameId } = await params
@@ -104,6 +117,16 @@ export async function POST(
     if (!game || game.status !== "PUBLISHED") {
       return NextResponse.json({ error: "GAME_NOT_FOUND" }, { status: 404 })
     }
+
+    const existingFeedback = await prisma.gameFeedback.findUnique({
+      where: {
+        userId_gameId: {
+          userId: session.user.id,
+          gameId,
+        },
+      },
+      select: { id: true },
+    })
 
     const feedback = await prisma.gameFeedback.upsert({
       where: {
@@ -131,17 +154,19 @@ export async function POST(
       },
     })
 
-    if (game.creatorId !== session.user.id) {
-      const signalSummary = buildSignalSummary({
-        fun: feedback.fun,
-        confusing: feedback.confusing,
-        tooHard: feedback.tooHard,
-        buggy: feedback.buggy,
+    if (
+      shouldNotifyStructuredFeedback({
+        existingFeedback: Boolean(existingFeedback),
+        creatorId: game.creatorId,
+        actorId: session.user.id,
       })
+    ) {
       const actor = session.user.username || session.user.name || "A player"
-      const message = feedback.comment
-        ? `${actor} left quick feedback on ${game.title}: ${feedback.comment}`
-        : `${actor} marked ${game.title} as ${signalSummary.join(", ").toLowerCase() || "worth revisiting"}.`
+      const message = buildStructuredFeedbackNotificationMessage({
+        gameTitle: game.title,
+        actorLabel: actor,
+        feedback,
+      })
 
       await prisma.notification.create({
         data: {
@@ -172,7 +197,10 @@ export async function POST(
       summary,
     })
   } catch (error) {
-    console.error("Create structured feedback error:", error)
+    logServerError("Create structured feedback error", error, {
+      route: "/api/games/[id]/feedback",
+      method: "POST",
+    })
     return NextResponse.json({ error: "SYSTEM_ERROR" }, { status: 500 })
   }
 }

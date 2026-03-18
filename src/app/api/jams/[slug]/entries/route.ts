@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
+import { getLiveJamStatus } from "@/lib/jams"
+import { createRateLimitResponse, enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/rate-limit"
+import { logServerError } from "@/lib/server-log"
 import { gameJamEntrySchema } from "@/lib/validations"
 
 export async function POST(
@@ -13,6 +16,17 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const rateLimit = enforceRateLimit({
+      request,
+      userId: session.user.id,
+      policy: RATE_LIMIT_POLICIES.jamSubmit,
+      keyPrefix: "api-jam-submit",
+    })
+
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit, "You are submitting jam entries too quickly. Please wait before trying again.")
+    }
+
     const { slug } = await params
     const jam = await prisma.gameJam.findUnique({ where: { slug } })
 
@@ -20,16 +34,7 @@ export async function POST(
       return NextResponse.json({ error: "Jam not found" }, { status: 404 })
     }
 
-    // Auto-transition status
-    const now = new Date()
-    let currentStatus = jam.status
-    if (currentStatus === "UPCOMING" && now >= jam.startDate) currentStatus = "ACTIVE"
-    if (currentStatus === "ACTIVE" && now >= jam.endDate) currentStatus = "VOTING"
-    if (currentStatus === "VOTING" && now >= jam.votingEndDate) currentStatus = "COMPLETED"
-
-    if (currentStatus !== jam.status) {
-      await prisma.gameJam.update({ where: { id: jam.id }, data: { status: currentStatus } })
-    }
+    const currentStatus = getLiveJamStatus(jam)
 
     if (currentStatus !== "ACTIVE") {
       return NextResponse.json(
@@ -105,7 +110,10 @@ export async function POST(
 
     return NextResponse.json({ entry }, { status: 201 })
   } catch (error) {
-    console.error("Submit jam entry error:", error)
+    logServerError("Submit jam entry error", error, {
+      route: "/api/jams/[slug]/entries",
+      method: "POST",
+    })
     return NextResponse.json({ error: "Failed to submit entry" }, { status: 500 })
   }
 }
@@ -145,7 +153,9 @@ export async function DELETE(
     }
 
     // Can only withdraw during ACTIVE phase
-    if (jam.status !== "ACTIVE" && session.user.role !== "ADMIN") {
+    const currentStatus = getLiveJamStatus(jam)
+
+    if (currentStatus !== "ACTIVE" && session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Can only withdraw entries while jam is active" }, { status: 400 })
     }
 
@@ -153,7 +163,10 @@ export async function DELETE(
 
     return NextResponse.json({ message: "Entry withdrawn" })
   } catch (error) {
-    console.error("Withdraw jam entry error:", error)
+    logServerError("Withdraw jam entry error", error, {
+      route: "/api/jams/[slug]/entries",
+      method: "DELETE",
+    })
     return NextResponse.json({ error: "Failed to withdraw entry" }, { status: 500 })
   }
 }

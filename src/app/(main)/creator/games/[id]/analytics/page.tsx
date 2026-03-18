@@ -1,5 +1,6 @@
 import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { ChevronLeft, Play, Heart, Eye, TrendingUp, Calendar, Gamepad2, BarChart3 } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { Header } from "@/components/layout/header"
@@ -78,9 +79,11 @@ export default async function GameAnalyticsPage({ params }: PageProps) {
         <div className="mb-8">
           <div className="flex items-start gap-4">
             {game.thumbnail && (
-              <img
+              <Image
                 src={game.thumbnail}
-                alt={game.title}
+                alt={`Thumbnail for ${game.title}`}
+                width={80}
+                height={48}
                 className="w-20 h-12 object-cover border border-[#4a4a6a] hidden sm:block"
               />
             )}

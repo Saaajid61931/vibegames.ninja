@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
+import { getNotificationFeed } from "@/lib/notifications"
 import prisma from "@/lib/prisma"
+import { logServerError } from "@/lib/server-log"
 
 export async function GET() {
   try {
@@ -10,31 +12,14 @@ export async function GET() {
       return NextResponse.json({ unreadCount: 0, notifications: [] })
     }
 
-    const [unreadCount, notifications] = await Promise.all([
-      prisma.notification.count({
-        where: {
-          userId: session.user.id,
-          read: false,
-        },
-      }),
-      prisma.notification.findMany({
-        where: { userId: session.user.id },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-        select: {
-          id: true,
-          title: true,
-          message: true,
-          link: true,
-          read: true,
-          createdAt: true,
-        },
-      }),
-    ])
+    const { unreadCount, notifications } = await getNotificationFeed(prisma, session.user.id, 5)
 
     return NextResponse.json({ unreadCount, notifications })
   } catch (error) {
-    console.error("Recent notifications error:", error)
+    logServerError("Recent notifications error", error, {
+      route: "/api/notifications/recent",
+      method: "GET",
+    })
     return NextResponse.json({ error: "SYSTEM_ERROR" }, { status: 500 })
   }
 }

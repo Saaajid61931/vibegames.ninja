@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import { createRateLimitResponse, enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/rate-limit"
+import { logServerError } from "@/lib/server-log"
 
 const SHARE_COOLDOWN_SECONDS = 10 * 60
 
@@ -13,6 +15,15 @@ export async function POST(
 ) {
   try {
     const { id: gameId } = await params
+    const rateLimit = enforceRateLimit({
+      request,
+      policy: RATE_LIMIT_POLICIES.shares,
+      keyPrefix: "api-game-share",
+    })
+
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit, "You are sharing too quickly. Please wait before sending another share signal.")
+    }
 
     const game = await prisma.game.findUnique({
       where: { id: gameId },
@@ -48,7 +59,10 @@ export async function POST(
 
     return response
   } catch (error) {
-    console.error("Track game share error:", error)
+    logServerError("Track game share error", error, {
+      route: "/api/games/[id]/share",
+      method: "POST",
+    })
     return NextResponse.json({ error: "Failed to track share" }, { status: 500 })
   }
 }

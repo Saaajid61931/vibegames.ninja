@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
+import { createAdminActionSuccessResponse } from "@/lib/admin-actions"
 import prisma from "@/lib/prisma"
 
 export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
@@ -24,6 +25,5 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     return NextResponse.json({ error: "Report not found" }, { status: 404 })
   }
 
-  const referer = request.headers.get("referer") || "/admin"
-  return NextResponse.redirect(new URL(referer, request.url))
+  return createAdminActionSuccessResponse()
 }

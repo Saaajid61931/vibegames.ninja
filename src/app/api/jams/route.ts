@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
+import { getLiveJamStatus } from "@/lib/jams"
 import { gameJamSchema } from "@/lib/validations"
 import { uploadJamBannerToR2, validateR2Config } from "@/lib/storage"
+import { logServerError } from "@/lib/server-log"
 
 const MAX_BANNER_BYTES = 5 * 1024 * 1024
 
@@ -14,37 +16,6 @@ function slugify(text: string): string {
     .slice(0, 80)
 }
 
-// Auto-transition jam statuses based on current date
-async function autoTransitionJamStatuses() {
-  const now = new Date()
-
-  // UPCOMING -> ACTIVE (startDate has passed)
-  await prisma.gameJam.updateMany({
-    where: { status: "UPCOMING", startDate: { lte: now } },
-    data: { status: "ACTIVE" },
-  })
-
-  // ACTIVE -> VOTING (endDate has passed)
-  await prisma.gameJam.updateMany({
-    where: { status: "ACTIVE", endDate: { lte: now } },
-    data: { status: "VOTING" },
-  })
-
-  // VOTING -> COMPLETED (votingEndDate has passed)
-  await prisma.gameJam.updateMany({
-    where: { status: "VOTING", votingEndDate: { lte: now } },
-    data: { status: "COMPLETED" },
-  })
-}
-
-function getJamStatus(start: Date, end: Date, votingEnd: Date) {
-  const now = new Date()
-  if (now >= start && now < end) return "ACTIVE"
-  if (now >= end && now < votingEnd) return "VOTING"
-  if (now >= votingEnd) return "COMPLETED"
-  return "UPCOMING"
-}
-
 function parseMaxEntries(value: FormDataEntryValue | null) {
   const parsed = Number.parseInt(String(value || "1"), 10)
   return Number.isFinite(parsed) ? parsed : 1
@@ -53,7 +24,6 @@ function parseMaxEntries(value: FormDataEntryValue | null) {
 export async function GET() {
   try {
     const session = await auth()
-    await autoTransitionJamStatuses()
 
     const jams = await prisma.gameJam.findMany({
       orderBy: [{ startDate: "desc" }],
@@ -86,11 +56,12 @@ export async function GET() {
 
     const enrichedJams = jams.map((jam) => {
       const userEntryCount = userEntryCounts.get(jam.id) || 0
-      const currentStatus = getJamStatus(jam.startDate, jam.endDate, jam.votingEndDate)
+      const currentStatus = getLiveJamStatus(jam)
       const remainingEntries = Math.max(jam.maxEntries - userEntryCount, 0)
 
       return {
         ...jam,
+        status: currentStatus,
         userEntryCount,
         remainingEntries,
         isEligibleToSubmit: currentStatus === "ACTIVE" && remainingEntries > 0,
@@ -106,7 +77,10 @@ export async function GET() {
 
     return NextResponse.json(grouped)
   } catch (error) {
-    console.error("List jams error:", error)
+    logServerError("List jams error", error, {
+      route: "/api/jams",
+      method: "GET",
+    })
     return NextResponse.json({ error: "Failed to fetch jams" }, { status: 500 })
   }
 }
@@ -168,8 +142,11 @@ export async function POST(request: NextRequest) {
       slug = `${slug}-${Date.now().toString(36)}`
     }
 
-    const now = new Date()
-    const status = getJamStatus(start, end, votingEnd)
+    const status = getLiveJamStatus({
+      startDate: start,
+      endDate: end,
+      votingEndDate: votingEnd,
+    })
 
     if (bannerFile) {
       const r2Config = validateR2Config()
@@ -212,7 +189,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ jam }, { status: 201 })
   } catch (error) {
-    console.error("Create jam error:", error)
+    logServerError("Create jam error", error, {
+      route: "/api/jams",
+      method: "POST",
+    })
     return NextResponse.json({ error: "Failed to create jam" }, { status: 500 })
   }
 }

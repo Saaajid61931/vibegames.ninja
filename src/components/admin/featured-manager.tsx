@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import Image from "next/image"
 import { Gamepad2, Crown, Trash2, Search, Calendar, Loader2, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -208,7 +209,13 @@ export function FeaturedManager() {
             <div className="flex items-center gap-3 p-3 bg-[#0d0d15] border-2 border-[#ffff00]">
               <div className="w-12 h-8 bg-[#1a1a2e] border border-[#4a4a6a] overflow-hidden flex-shrink-0">
                 {selectedGame.thumbnail ? (
-                  <img src={selectedGame.thumbnail} alt="" className="w-full h-full object-cover" />
+                  <Image
+                    src={selectedGame.thumbnail}
+                    alt={selectedGame.title}
+                    width={48}
+                    height={32}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <Gamepad2 className="h-3 w-3 text-[#4a4a6a]" />
@@ -257,12 +264,18 @@ export function FeaturedManager() {
                       }}
                       className="w-full flex items-center gap-3 p-3 hover:bg-[#1a1a2e] transition-colors text-left"
                     >
-                      <div className="w-10 h-7 bg-[#1a1a2e] border border-[#4a4a6a] overflow-hidden flex-shrink-0">
-                        {game.thumbnail ? (
-                          <img src={game.thumbnail} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Gamepad2 className="h-3 w-3 text-[#4a4a6a]" />
+                <div className="w-10 h-7 bg-[#1a1a2e] border border-[#4a4a6a] overflow-hidden flex-shrink-0">
+                  {game.thumbnail ? (
+                    <Image
+                      src={game.thumbnail}
+                      alt={game.title}
+                      width={40}
+                      height={28}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Gamepad2 className="h-3 w-3 text-[#4a4a6a]" />
                           </div>
                         )}
                       </div>
@@ -368,7 +381,13 @@ export function FeaturedManager() {
 
                 <div className="w-14 h-9 bg-[#0d0d15] border border-[#4a4a6a] overflow-hidden flex-shrink-0">
                   {item.game.thumbnail ? (
-                    <img src={item.game.thumbnail} alt="" className="w-full h-full object-cover" />
+                    <Image
+                      src={item.game.thumbnail}
+                      alt={item.game.title}
+                      width={56}
+                      height={36}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <Gamepad2 className="h-3 w-3 text-[#4a4a6a]" />

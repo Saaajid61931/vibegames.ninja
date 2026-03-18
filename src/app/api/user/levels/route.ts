@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
+import { logServerError } from "@/lib/server-log"
 
 export async function GET(request: NextRequest) {
   try {
@@ -64,7 +65,10 @@ export async function GET(request: NextRequest) {
       hasMore: skip + levels.length < total,
     })
   } catch (error) {
-    console.error("List user levels error:", error)
+    logServerError("List user levels error", error, {
+      route: "/api/user/levels",
+      method: "GET",
+    })
     return NextResponse.json({ error: "Failed to fetch levels" }, { status: 500 })
   }
 }

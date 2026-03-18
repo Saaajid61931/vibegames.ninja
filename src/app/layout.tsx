@@ -21,6 +21,7 @@ export const metadata: Metadata = {
     default: `${SITE_NAME} - AI Arcade`,
     template: `%s | ${SITE_NAME}`,
   },
+  manifest: "/manifest.webmanifest",
   description: SITE_DESCRIPTION,
   keywords: [
     "AI games",
@@ -55,6 +56,11 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: "/",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: SITE_NAME,
   },
 }
 

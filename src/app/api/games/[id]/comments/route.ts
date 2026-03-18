@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
+import { createRateLimitResponse, enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/rate-limit"
+import { logServerError } from "@/lib/server-log"
 import { commentSchema } from "@/lib/validations"
 
 export async function POST(
@@ -12,6 +14,17 @@ export async function POST(
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: "AUTHENTICATION_REQUIRED" }, { status: 401 })
+    }
+
+    const rateLimit = enforceRateLimit({
+      request,
+      userId: session.user.id,
+      policy: RATE_LIMIT_POLICIES.comments,
+      keyPrefix: "api-comments",
+    })
+
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit, "You are posting comments too quickly. Please wait a moment and try again.")
     }
 
     const { id: gameId } = await params
@@ -121,7 +134,10 @@ export async function POST(
       commentsCount,
     })
   } catch (error) {
-    console.error("Create comment error:", error)
+    logServerError("Create comment error", error, {
+      route: "/api/games/[id]/comments",
+      method: "POST",
+    })
     return NextResponse.json({ error: "SYSTEM_ERROR" }, { status: 500 })
   }
 }

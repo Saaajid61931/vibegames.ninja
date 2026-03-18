@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import {
-  Terminal,
   BarChart3,
   Play,
   Heart,
@@ -10,8 +9,6 @@ import {
   Gamepad2,
   TrendingUp,
   ArrowLeft,
-  Eye,
-  ExternalLink,
 } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { Header } from "@/components/layout/header"
@@ -19,7 +16,7 @@ import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import prisma from "@/lib/prisma"
-import { formatNumber, timeAgo } from "@/lib/utils"
+import { formatNumber } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 

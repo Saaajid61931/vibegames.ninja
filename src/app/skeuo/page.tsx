@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Gamepad2, Upload, Trophy, Zap, ChevronRight, Star, Heart } from "lucide-react";
+import { Gamepad2, Upload, Trophy, Zap, Heart } from "lucide-react";
 
 // Mock Data for the prototype
 const mockGames = [
@@ -111,7 +111,7 @@ export default function SkeuoHomePage() {
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {mockGames.map((game, i) => (
+                            {mockGames.map((game) => (
                                 <Link href={`/skeuo/game/${game.id}`} key={game.id} className="block group">
                                     {/* Cartridge Base */}
                                     <div className="skeuo-cartridge pt-8 pb-4 px-4 h-full transition-transform group-hover:-translate-y-2">

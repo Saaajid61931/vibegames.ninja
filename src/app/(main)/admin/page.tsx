@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { 
   Shield, 
   Gamepad2, 
@@ -23,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { FeaturedManager } from "@/components/admin/featured-manager"
 import { JamManager } from "@/components/admin/jam-manager"
 import { AdminActionButton } from "@/components/admin/admin-action-button"
+import { getLiveJamStatus } from "@/lib/jams"
 import prisma from "@/lib/prisma"
 import { formatNumber, timeAgo } from "@/lib/utils"
 
@@ -73,7 +75,7 @@ async function getAdminData() {
       title: j.title,
       slug: j.slug,
       description: j.description,
-      status: j.status,
+      status: getLiveJamStatus(j),
       theme: j.theme,
       rules: j.rules,
       bannerImage: j.bannerImage,
@@ -181,7 +183,13 @@ export default async function AdminPage() {
                       >
                         <div className="w-full sm:w-24 h-32 sm:h-14 bg-[#0d0d15] border-2 border-[#4a4a6a] overflow-hidden flex-shrink-0">
                           {game.thumbnail ? (
-                            <img src={game.thumbnail} alt="" className="w-full h-full object-cover" />
+                            <Image
+                              src={game.thumbnail}
+                              alt={game.title}
+                              width={96}
+                              height={128}
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
                               <Gamepad2 className="h-6 w-6 text-[#4a4a6a]" />

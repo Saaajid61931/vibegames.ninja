@@ -7,7 +7,8 @@ import { Bell, Plus, User, Menu, Settings, X } from "lucide-react"
 import { NinjaConsole } from "@/components/icons/ninja-console"
 import { NotificationsMenu } from "@/components/layout/notifications-menu"
 import { Button } from "@/components/ui/button"
-import { useEffect, useState } from "react"
+import { useState } from "react"
+import { useNotificationFeed } from "@/hooks/use-notification-feed"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,43 +22,7 @@ export function Header() {
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [unreadCount, setUnreadCount] = useState(0)
-
-  useEffect(() => {
-    if (!session?.user?.id) {
-      return
-    }
-
-    let active = true
-
-    const loadUnreadCount = async () => {
-      try {
-        const res = await fetch("/api/notifications/unread", { cache: "no-store" })
-        if (!res.ok) {
-          return
-        }
-
-        const data = await res.json()
-        if (active) {
-          setUnreadCount(typeof data.unreadCount === "number" ? data.unreadCount : 0)
-        }
-      } catch {
-        // Non-blocking header data.
-      }
-    }
-
-    const handleFocus = () => {
-      void loadUnreadCount()
-    }
-
-    void loadUnreadCount()
-    window.addEventListener("focus", handleFocus)
-
-    return () => {
-      active = false
-      window.removeEventListener("focus", handleFocus)
-    }
-  }, [session?.user?.id, pathname])
+  const { unreadCount, notifications, loading, refresh } = useNotificationFeed(session?.user?.id, pathname)
 
   const displayedUnreadCount = session?.user?.id
     ? (pathname.startsWith("/notifications") ? 0 : unreadCount)
@@ -135,7 +100,13 @@ export function Header() {
                       </Button>
                     </Link>
 
-                    <NotificationsMenu pathname={pathname} />
+                    <NotificationsMenu
+                      pathname={pathname}
+                      loading={loading}
+                      notifications={notifications}
+                      unreadCount={unreadCount}
+                      onRefresh={refresh}
+                    />
                     
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

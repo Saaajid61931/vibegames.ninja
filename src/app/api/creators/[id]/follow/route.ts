@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
+import { createRateLimitResponse, enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/rate-limit"
+import { logServerError } from "@/lib/server-log"
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -41,13 +43,17 @@ export async function GET(
       following,
     })
   } catch (error) {
-    console.error("Creator follow status error:", error)
+    void request
+    logServerError("Creator follow status error", error, {
+      route: "/api/creators/[id]/follow",
+      method: "GET",
+    })
     return NextResponse.json({ error: "SYSTEM_ERROR" }, { status: 500 })
   }
 }
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -55,6 +61,17 @@ export async function POST(
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "AUTHENTICATION_REQUIRED" }, { status: 401 })
+    }
+
+    const rateLimit = enforceRateLimit({
+      request,
+      userId: session.user.id,
+      policy: RATE_LIMIT_POLICIES.follows,
+      keyPrefix: "api-creator-follow",
+    })
+
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit, "You are following creators too quickly. Please wait before trying again.")
     }
 
     const { id: creatorId } = await params
@@ -111,7 +128,10 @@ export async function POST(
       followers,
     })
   } catch (error) {
-    console.error("Creator follow toggle error:", error)
+    logServerError("Creator follow toggle error", error, {
+      route: "/api/creators/[id]/follow",
+      method: "POST",
+    })
     return NextResponse.json({ error: "SYSTEM_ERROR" }, { status: 500 })
   }
 }

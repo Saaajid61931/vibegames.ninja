@@ -200,6 +200,8 @@ model GameAnalytics {
   adImpressions  Int      @default(0)
   adClicks       Int      @default(0)
   revenue        Float    @default(0)
+
+  @@unique([gameId, date])
 }
 
 model Favorite {
@@ -211,6 +213,7 @@ model Favorite {
   createdAt DateTime @default(now())
 
   @@unique([userId, gameId])
+  @@index([userId, createdAt])
 }
 
 model CreatorFollow {
@@ -237,6 +240,8 @@ model Comment {
   parentId  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([gameId, createdAt])
 }
 
 model Level {
@@ -365,6 +370,9 @@ model Report {
   createdAt   DateTime  @default(now())
   resolvedAt  DateTime?
   resolvedBy  String?
+
+  @@index([status, createdAt])
+  @@index([reporterId, gameId, reason, status])
 }
 
 model Notification {
@@ -377,6 +385,9 @@ model Notification {
   read      Boolean  @default(false)
   link      String?
   createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, read])
 }
 
 // Game of the Day — admin-curated with auto-fallback

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Bell, ExternalLink, Loader2 } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,63 +10,29 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import type { NotificationFeedItem } from "@/hooks/use-notification-feed"
 import { timeAgo } from "@/lib/utils"
-
-type NotificationSummary = {
-  id: string
-  title: string
-  message: string
-  link: string | null
-  read: boolean
-  createdAt: string
-}
 
 interface NotificationsMenuProps {
   pathname: string
+  loading: boolean
+  notifications: NotificationFeedItem[]
+  unreadCount: number
+  onRefresh: () => Promise<void>
 }
 
-export function NotificationsMenu({ pathname }: NotificationsMenuProps) {
+export function NotificationsMenu({
+  pathname,
+  loading,
+  notifications,
+  unreadCount,
+  onRefresh,
+}: NotificationsMenuProps) {
   const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [notifications, setNotifications] = useState<NotificationSummary[]>([])
-  const [unreadCount, setUnreadCount] = useState(0)
 
   const isNotificationsPage = pathname.startsWith("/notifications")
   const displayedUnreadCount = isNotificationsPage ? 0 : unreadCount
   const unreadLabel = displayedUnreadCount > 99 ? "99+" : String(displayedUnreadCount)
-
-  const loadNotifications = async () => {
-    setLoading(true)
-
-    try {
-      const res = await fetch("/api/notifications/recent", { cache: "no-store" })
-      if (!res.ok) {
-        return
-      }
-
-      const data = await res.json()
-      setUnreadCount(typeof data.unreadCount === "number" ? data.unreadCount : 0)
-      setNotifications(Array.isArray(data.notifications) ? data.notifications : [])
-    } catch {
-      // Non-blocking header data.
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    void loadNotifications()
-
-    const handleFocus = () => {
-      void loadNotifications()
-    }
-
-    window.addEventListener("focus", handleFocus)
-
-    return () => {
-      window.removeEventListener("focus", handleFocus)
-    }
-  }, [pathname])
 
   const buttonLabel = useMemo(() => {
     if (displayedUnreadCount === 0) {
@@ -82,7 +48,7 @@ export function NotificationsMenu({ pathname }: NotificationsMenuProps) {
       onOpenChange={(nextOpen) => {
         setOpen(nextOpen)
         if (nextOpen) {
-          void loadNotifications()
+          void onRefresh()
         }
       }}
     >

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft, Maximize2, Flag, Heart } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function SkeuoGamePage() {
     const [isPlaying, setIsPlaying] = useState(false);

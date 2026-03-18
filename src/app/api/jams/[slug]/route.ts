@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
+import { getLiveJamStatus } from "@/lib/jams"
 import { gameJamSchema } from "@/lib/validations"
 import { deleteJamBannerAssetsFromR2, uploadJamBannerToR2, validateR2Config } from "@/lib/storage"
+import { logServerError } from "@/lib/server-log"
 
 const MAX_BANNER_BYTES = 5 * 1024 * 1024
-
-function getJamStatus(start: Date, end: Date, votingEnd: Date) {
-  const now = new Date()
-  if (now >= start && now < end) return "ACTIVE"
-  if (now >= end && now < votingEnd) return "VOTING"
-  if (now >= votingEnd) return "COMPLETED"
-  return "UPCOMING"
-}
 
 function parseMaxEntries(value: FormDataEntryValue | null) {
   const parsed = Number.parseInt(String(value || "1"), 10)
@@ -25,21 +19,6 @@ export async function GET(
 ) {
   try {
     const { slug } = await params
-
-    // Auto-transition statuses
-    const now = new Date()
-    await prisma.gameJam.updateMany({
-      where: { status: "UPCOMING", startDate: { lte: now } },
-      data: { status: "ACTIVE" },
-    })
-    await prisma.gameJam.updateMany({
-      where: { status: "ACTIVE", endDate: { lte: now } },
-      data: { status: "VOTING" },
-    })
-    await prisma.gameJam.updateMany({
-      where: { status: "VOTING", votingEndDate: { lte: now } },
-      data: { status: "COMPLETED" },
-    })
 
     const jam = await prisma.gameJam.findUnique({
       where: { slug },
@@ -74,6 +53,8 @@ export async function GET(
       return NextResponse.json({ error: "Jam not found" }, { status: 404 })
     }
 
+    const liveStatus = getLiveJamStatus(jam)
+
     // Calculate average scores for entries
     const entriesWithScores = jam.entries.map((entry) => {
       const totalScore = entry.votes.reduce((sum, v) => sum + v.score, 0)
@@ -86,16 +67,20 @@ export async function GET(
     })
 
     // Sort by avg score descending for results view
-    if (jam.status === "COMPLETED" || jam.status === "VOTING") {
+    if (liveStatus === "COMPLETED" || liveStatus === "VOTING") {
       entriesWithScores.sort((a, b) => b.avgScore - a.avgScore)
     }
 
     return NextResponse.json({
       ...jam,
+      status: liveStatus,
       entries: entriesWithScores,
     })
   } catch (error) {
-    console.error("Get jam error:", error)
+    logServerError("Get jam error", error, {
+      route: "/api/jams/[slug]",
+      method: "GET",
+    })
     return NextResponse.json({ error: "Failed to fetch jam" }, { status: 500 })
   }
 }
@@ -174,7 +159,11 @@ export async function PATCH(
     }
 
     const updateData: Record<string, unknown> = {
-      status: getJamStatus(resolvedStart, resolvedEnd, resolvedVotingEnd),
+      status: getLiveJamStatus({
+        startDate: resolvedStart,
+        endDate: resolvedEnd,
+        votingEndDate: resolvedVotingEnd,
+      }),
     }
     if (parsed.data.title !== undefined) updateData.title = parsed.data.title
     if (parsed.data.description !== undefined) updateData.description = parsed.data.description
@@ -220,7 +209,10 @@ export async function PATCH(
 
     return NextResponse.json({ jam: updated })
   } catch (error) {
-    console.error("Update jam error:", error)
+    logServerError("Update jam error", error, {
+      route: "/api/jams/[slug]",
+      method: "PATCH",
+    })
     return NextResponse.json({ error: "Failed to update jam" }, { status: 500 })
   }
 }
@@ -249,7 +241,10 @@ export async function DELETE(
 
     return NextResponse.json({ message: "Jam deleted" })
   } catch (error) {
-    console.error("Delete jam error:", error)
+    logServerError("Delete jam error", error, {
+      route: "/api/jams/[slug]",
+      method: "DELETE",
+    })
     return NextResponse.json({ error: "Failed to delete jam" }, { status: 500 })
   }
 }

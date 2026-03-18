@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { Calendar, Users, Clock, Trophy, Zap, Vote } from "lucide-react"
@@ -69,9 +70,11 @@ function JamCard({ jam }: { jam: JamSummary }) {
       <Card className="bg-[#1a1a2e] border-[#2a2a4a] hover:border-[#ff0040] transition-all duration-200 overflow-hidden group cursor-pointer">
         {jam.bannerImage && (
           <div className="aspect-[3/1] overflow-hidden">
-            <img
+            <Image
               src={jam.bannerImage}
-              alt={jam.title}
+              alt={`${jam.title} banner`}
+              width={960}
+              height={320}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
             />
           </div>

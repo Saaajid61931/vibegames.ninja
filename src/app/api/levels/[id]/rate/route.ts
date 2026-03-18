@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { refreshLevelRating } from "@/lib/ratings"
 import { ratingSchema } from "@/lib/validations"
+import { logServerError } from "@/lib/server-log"
 
 export async function GET(
   _request: NextRequest,
@@ -27,7 +28,10 @@ export async function GET(
 
     return NextResponse.json({ score: rating?.score ?? null })
   } catch (error) {
-    console.error("Get level rating error:", error)
+    logServerError("Get level rating error", error, {
+      route: "/api/levels/[id]/rate",
+      method: "GET",
+    })
     return NextResponse.json({ error: "Failed to fetch rating" }, { status: 500 })
   }
 }
@@ -108,7 +112,10 @@ export async function POST(
       ratingCount: updated?.ratingCount ?? 0,
     })
   } catch (error) {
-    console.error("Rate level error:", error)
+    logServerError("Rate level error", error, {
+      route: "/api/levels/[id]/rate",
+      method: "POST",
+    })
     return NextResponse.json({ error: "Failed to rate level" }, { status: 500 })
   }
 }

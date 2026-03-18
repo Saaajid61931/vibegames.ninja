@@ -4,6 +4,7 @@ import { z } from "zod"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { slugify } from "@/lib/utils"
+import { logServerError } from "@/lib/server-log"
 
 const createStudioProfileSchema = z.object({
   displayName: z.string().trim().min(1).max(60),
@@ -45,7 +46,10 @@ export async function GET() {
 
     return NextResponse.json({ profiles })
   } catch (error) {
-    console.error("Studio profiles list error:", error)
+    logServerError("Studio profiles list error", error, {
+      route: "/api/studio-profiles",
+      method: "GET",
+    })
     return NextResponse.json({ error: "SYSTEM_ERROR" }, { status: 500 })
   }
 }
@@ -150,7 +154,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ profile: created }, { status: 201 })
   } catch (error) {
-    console.error("Studio profile create error:", error)
+    logServerError("Studio profile create error", error, {
+      route: "/api/studio-profiles",
+      method: "POST",
+    })
 
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return NextResponse.json(

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { unstable_cache, revalidateTag } from "next/cache"
 import prisma from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { logServerError } from "@/lib/server-log"
 
 // Game select shape — superset of GameCard props + description for hero
 const gameSelect = {
@@ -187,7 +188,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, featured })
   } catch (error) {
-    console.error("Failed to set featured game:", error)
+    logServerError("Failed to set featured game", error, {
+      route: "/api/featured",
+      method: "POST",
+      userId: session.user.id,
+    })
     return NextResponse.json({ error: "Failed to set featured game" }, { status: 500 })
   }
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -151,7 +152,6 @@ function EntryCard({
   entry,
   rank,
   jamStatus,
-  jamSlug,
   userId,
   onVote,
   votingEnabled,
@@ -160,7 +160,6 @@ function EntryCard({
   entry: JamEntry
   rank: number
   jamStatus: string
-  jamSlug: string
   userId: string | null
   onVote: (entryId: string, score: number) => void
   votingEnabled: boolean
@@ -175,9 +174,11 @@ function EntryCard({
         {/* Thumbnail */}
         <Link href={`/play/${entry.game.slug}`} className="sm:w-40 h-28 sm:h-auto block flex-shrink-0">
           {entry.game.thumbnail ? (
-            <img
+            <Image
               src={entry.game.thumbnail}
-              alt={entry.game.title}
+              alt={`Thumbnail for ${entry.game.title}`}
+              width={160}
+              height={112}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -386,11 +387,13 @@ export function JamDetail({
 
       {/* Banner */}
       {jam.bannerImage && (
-        <div className="mb-6 aspect-[3/1] w-full overflow-hidden rounded-lg">
-          <img
+        <div className="relative mb-6 aspect-[3/1] w-full overflow-hidden rounded-lg">
+          <Image
             src={jam.bannerImage}
-            alt={jam.title}
-            className="w-full h-full object-cover"
+            alt={`${jam.title} banner`}
+            fill
+            sizes="100vw"
+            className="object-cover"
           />
         </div>
       )}
@@ -589,7 +592,6 @@ export function JamDetail({
                   entry={entry}
                   rank={i + 1}
                   jamStatus={jam.status}
-                  jamSlug={jam.slug}
                   userId={userId}
                   onVote={handleVote}
                   votingEnabled={jam.status === "VOTING" && !!userId}

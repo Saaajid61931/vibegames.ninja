@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache"
 import prisma from "@/lib/prisma"
 import { DiscoverySort, getDiscoveryOrderBy } from "@/lib/discovery"
 import { pickPrimaryJam, toPrimaryJamBadge } from "@/lib/jams"
+import { logServerError } from "@/lib/server-log"
 
 const getCachedGames = unstable_cache(
   async (
@@ -131,7 +132,10 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("Error fetching games:", error)
+    logServerError("Error fetching games", error, {
+      route: "/api/games",
+      method: "GET",
+    })
     return NextResponse.json(
       { error: "Failed to fetch games" },
       { status: 500 }

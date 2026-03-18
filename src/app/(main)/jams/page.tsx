@@ -1,9 +1,9 @@
 import { Metadata } from "next"
-import prisma from "@/lib/prisma"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { JamsList } from "@/components/jams/jams-list"
 import { Trophy } from "lucide-react"
+import { listJamGroupsForPage } from "@/lib/jam-page-data"
 import { SITE_NAME, SITE_URL } from "@/lib/site"
 
 export const dynamic = "force-dynamic"
@@ -27,54 +27,8 @@ export const metadata: Metadata = {
   },
 }
 
-type JamWithCount = {
-  id: string
-  title: string
-  slug: string
-  description: string
-  theme: string | null
-  bannerImage: string | null
-  status: string
-  startDate: Date
-  endDate: Date
-  votingEndDate: Date
-  _count: { entries: number }
-}
-
-async function getJams() {
-  const now = new Date()
-
-  // Auto-transition statuses
-  await prisma.gameJam.updateMany({
-    where: { status: "UPCOMING", startDate: { lte: now } },
-    data: { status: "ACTIVE" },
-  })
-  await prisma.gameJam.updateMany({
-    where: { status: "ACTIVE", endDate: { lte: now } },
-    data: { status: "VOTING" },
-  })
-  await prisma.gameJam.updateMany({
-    where: { status: "VOTING", votingEndDate: { lte: now } },
-    data: { status: "COMPLETED" },
-  })
-
-  const jams = await prisma.gameJam.findMany({
-    orderBy: [{ startDate: "desc" }],
-    include: {
-      _count: { select: { entries: true } },
-    },
-  })
-
-  return {
-    active: jams.filter((j: JamWithCount) => j.status === "ACTIVE"),
-    upcoming: jams.filter((j: JamWithCount) => j.status === "UPCOMING"),
-    voting: jams.filter((j: JamWithCount) => j.status === "VOTING"),
-    completed: jams.filter((j: JamWithCount) => j.status === "COMPLETED"),
-  }
-}
-
 export default async function JamsPage() {
-  const groups = await getJams()
+  const groups = await listJamGroupsForPage()
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0d0d15]">

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { AlertCircle, Camera, CheckCircle2, Flag, Ghost, Loader2, TimerReset, Trophy } from "lucide-react"
+import { AlertCircle, Camera, CheckCircle2, Ghost, Loader2, TimerReset } from "lucide-react"
 import { GamePlayer, type GamePlayerHandle } from "@/components/games/game-player"
 import { Button } from "@/components/ui/button"
 import {
