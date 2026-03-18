@@ -82,7 +82,7 @@ export function ReportGameButton({ gameId, gameTitle }: ReportGameButtonProps) {
         type="button"
         variant="ghost"
         size="sm"
-        className="gap-2 text-[#4a4a6a] font-arcade flex-1 sm:flex-none min-w-[108px]"
+        className="gap-2 text-[#8b93a6] hover:text-white font-arcade flex-1 sm:flex-none min-w-[108px]"
         onClick={() => setOpen(true)}
       >
         <Flag className="h-4 w-4" />
@@ -104,7 +104,7 @@ export function ReportGameButton({ gameId, gameTitle }: ReportGameButtonProps) {
 
             <div className="space-y-4 p-4">
               <div className="space-y-2">
-                <Label htmlFor={`${descriptionId}-reason`} className="font-arcade text-xs text-[#4a4a6a]">
+                <Label htmlFor={`${descriptionId}-reason`} className="font-arcade text-xs text-[#8b93a6]">
                   Reason
                 </Label>
                 <Select value={reason} onValueChange={setReason}>
@@ -122,7 +122,7 @@ export function ReportGameButton({ gameId, gameTitle }: ReportGameButtonProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor={descriptionId} className="font-arcade text-xs text-[#4a4a6a]">
+                <Label htmlFor={descriptionId} className="font-arcade text-xs text-[#8b93a6]">
                   Details (optional)
                 </Label>
                 <Textarea
@@ -134,7 +134,7 @@ export function ReportGameButton({ gameId, gameTitle }: ReportGameButtonProps) {
                   className="min-h-[140px] font-arcade text-sm"
                   disabled={submitting || Boolean(success)}
                 />
-                <p className="text-right font-arcade text-[10px] text-[#4a4a6a]">{description.length}/500</p>
+                <p className="text-right font-arcade text-[10px] text-[#8b93a6]">{description.length}/500</p>
               </div>
 
               {error && <p className="font-arcade text-xs text-[#ff6b6b]">{error}</p>}

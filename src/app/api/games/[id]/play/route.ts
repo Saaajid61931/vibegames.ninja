@@ -61,10 +61,11 @@ export async function POST(
       shouldIncrementLevel = !request.cookies.get(levelPlayCookieName(level.id))
     }
 
-    const updates: Promise<unknown>[] = []
+    const criticalUpdates: Promise<unknown>[] = []
+    let analyticsTracked = true
 
     if (shouldIncrementGame) {
-      updates.push(
+      criticalUpdates.push(
         prisma.game.update({
           where: { id: gameId },
           data: { plays: { increment: 1 } },
@@ -73,9 +74,23 @@ export async function POST(
       )
     }
 
+    if (validLevelId && shouldIncrementLevel) {
+      criticalUpdates.push(
+        prisma.level.update({
+          where: { id: validLevelId },
+          data: { plays: { increment: 1 } },
+          select: { id: true },
+        })
+      )
+    }
+
+    if (criticalUpdates.length > 0) {
+      await Promise.all(criticalUpdates)
+    }
+
     if (shouldIncrementGame || shouldIncrementUniquePlayer) {
-      updates.push(
-        upsertDailyGameAnalytics(
+      try {
+        await upsertDailyGameAnalytics(
           prisma,
           gameId,
           now,
@@ -88,25 +103,20 @@ export async function POST(
             uniquePlayers: { increment: shouldIncrementUniquePlayer ? 1 : 0 },
           }
         )
-      )
-    }
-
-    if (validLevelId && shouldIncrementLevel) {
-      updates.push(
-        prisma.level.update({
-          where: { id: validLevelId },
-          data: { plays: { increment: 1 } },
-          select: { id: true },
+      } catch (analyticsError) {
+        analyticsTracked = false
+        logServerError("Track game play analytics error", analyticsError, {
+          route: "/api/games/[id]/play",
+          method: "POST",
+          gameId,
+          levelId: validLevelId,
         })
-      )
-    }
-
-    if (updates.length > 0) {
-      await Promise.all(updates)
+      }
     }
 
     const response = NextResponse.json({
       tracked: true,
+      analyticsTracked,
       gameIncremented: shouldIncrementGame,
       uniquePlayerIncremented: shouldIncrementUniquePlayer,
       levelIncremented: Boolean(validLevelId && shouldIncrementLevel),

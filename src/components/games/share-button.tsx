@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Check, Copy, Facebook, Loader2, MessageCircle, Send, Share2 } from "lucide-react"
+import { Check, Copy, Facebook, Loader2, MessageCircle, Share2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface ShareButtonProps {
@@ -17,9 +17,11 @@ type ShareTarget = {
 
 export function ShareButton({ gameId, title }: ShareButtonProps) {
   const [sharing, setSharing] = useState(false)
-  const [shared, setShared] = useState(false)
+  const [shareFeedback, setShareFeedback] = useState<"shared" | "copied" | null>(null)
 
   const shareUrl = typeof window !== "undefined" ? window.location.href : ""
+  const canUseNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function"
+  const canCopyLink = typeof navigator !== "undefined" && typeof navigator.clipboard?.writeText === "function"
   const encodedUrl = encodeURIComponent(shareUrl)
   const encodedTitle = encodeURIComponent(`Play ${title} on VibeGames.Ninja`)
   const shareTargets = useMemo<ShareTarget[]>(() => [
@@ -38,11 +40,6 @@ export function ShareButton({ gameId, title }: ShareButtonProps) {
       href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
       icon: Facebook,
     },
-    {
-      label: "Discord",
-      href: `https://discord.com/channels/@me`,
-      icon: Send,
-    },
   ], [encodedTitle, encodedUrl])
 
   const trackShare = () => {
@@ -52,12 +49,12 @@ export function ShareButton({ gameId, title }: ShareButtonProps) {
     }).catch(() => undefined)
   }
 
-  const markShared = () => {
-    setShared(true)
-    window.setTimeout(() => setShared(false), 2000)
+  const markFeedback = (type: "shared" | "copied") => {
+    setShareFeedback(type)
+    window.setTimeout(() => setShareFeedback(null), 2000)
   }
 
-  const handleCopy = async () => {
+  const handlePrimaryShare = async () => {
     if (sharing || !shareUrl) {
       return
     }
@@ -65,16 +62,17 @@ export function ShareButton({ gameId, title }: ShareButtonProps) {
     setSharing(true)
 
     try {
-      if (navigator.share) {
+      if (canUseNativeShare) {
         await navigator.share({ title, url: shareUrl })
-      } else if (navigator.clipboard?.writeText) {
+        trackShare()
+        markFeedback("shared")
+      } else if (canCopyLink) {
         await navigator.clipboard.writeText(shareUrl)
+        trackShare()
+        markFeedback("copied")
       } else {
         throw new Error("Clipboard not available")
       }
-
-      trackShare()
-      markShared()
     } catch (error) {
       if (!(error instanceof DOMException && error.name === "AbortError")) {
         console.error("Share failed:", error)
@@ -84,6 +82,32 @@ export function ShareButton({ gameId, title }: ShareButtonProps) {
     }
   }
 
+  const handleCopyLink = async () => {
+    if (sharing || !shareUrl || !canCopyLink) {
+      return
+    }
+
+    setSharing(true)
+
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      trackShare()
+      markFeedback("copied")
+    } catch (error) {
+      console.error("Copy failed:", error)
+    } finally {
+      setSharing(false)
+    }
+  }
+
+  const primaryLabel = shareFeedback === "shared"
+    ? "[SHARED]"
+    : shareFeedback === "copied"
+      ? "[COPIED]"
+      : canUseNativeShare
+        ? "[SHARE]"
+        : "[COPY LINK]"
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button
@@ -91,18 +115,34 @@ export function ShareButton({ gameId, title }: ShareButtonProps) {
         variant="outline"
         size="sm"
         className="min-w-[108px] flex-1 gap-2 font-arcade sm:flex-none"
-        onClick={handleCopy}
+        onClick={handlePrimaryShare}
         disabled={sharing}
       >
         {sharing ? (
           <Loader2 className="h-4 w-4 animate-spin" />
-        ) : shared ? (
+        ) : shareFeedback ? (
           <Check className="h-4 w-4" />
+        ) : canUseNativeShare ? (
+          <Share2 className="h-4 w-4" />
         ) : (
           <Copy className="h-4 w-4" />
         )}
-        {shared ? "[COPIED]" : "[COPY LINK]"}
+        {primaryLabel}
       </Button>
+
+      {canUseNativeShare && canCopyLink ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="min-w-[108px] flex-1 gap-2 font-arcade sm:flex-none"
+          onClick={handleCopyLink}
+          disabled={sharing}
+        >
+          <Copy className="h-4 w-4" />
+          [COPY LINK]
+        </Button>
+      ) : null}
 
       {shareTargets.map((target) => {
         const Icon = target.icon
@@ -113,7 +153,7 @@ export function ShareButton({ gameId, title }: ShareButtonProps) {
             target="_blank"
             rel="noreferrer"
             onClick={trackShare}
-            className="inline-flex h-10 min-w-10 items-center justify-center rounded-md border border-[var(--color-border)] bg-transparent px-3 text-[var(--color-text-secondary)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+            className="hidden h-10 min-w-10 items-center justify-center rounded-md border border-[var(--color-border)] bg-transparent px-3 text-[var(--color-text-secondary)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] sm:inline-flex"
             aria-label={`Share on ${target.label}`}
             title={`Share on ${target.label}`}
           >

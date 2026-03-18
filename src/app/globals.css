@@ -420,6 +420,26 @@ textarea,
   flex: 0 0 auto;
 }
 
+.responsive-lane {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scroll-padding-inline: 1rem;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.responsive-lane::-webkit-scrollbar {
+  display: none;
+}
+
+.responsive-lane > * {
+  flex: 0 0 min(84vw, 19rem);
+  scroll-snap-align: start;
+}
+
 /* ============================================
    RESPONSIVE
    ============================================ */
@@ -440,6 +460,28 @@ textarea,
   .marquee-content {
     font-size: 9px;
     padding: 6px 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .responsive-lane {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+    overflow: visible;
+    padding-bottom: 0;
+    scroll-padding-inline: 0;
+    scroll-snap-type: none;
+  }
+
+  .responsive-lane > * {
+    flex-basis: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-lane {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 

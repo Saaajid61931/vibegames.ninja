@@ -112,7 +112,7 @@ export function HomeFeatureGrid() {
                 <h3 className="text-sm font-bold text-white mb-3 font-pixel" style={{ color: feature.color }}>
                   {feature.title}
                 </h3>
-                <p className="text-sm sm:text-base text-[#4a4a6a] font-arcade">{feature.desc}</p>
+                <p className="font-arcade text-sm text-[#aab6d0] sm:text-base">{feature.desc}</p>
               </div>
             )
           })}
@@ -141,7 +141,7 @@ export function HomeCommunityCta() {
               <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-[#ff0040] animate-pulse" />
             </div>
 
-            <div className="space-y-3 sm:space-y-4 text-sm sm:text-lg text-[#4a4a6a] mb-8 font-arcade">
+            <div className="mb-8 space-y-3 font-arcade text-sm text-[#aab6d0] sm:space-y-4 sm:text-lg">
               <p>Share your creativity with the world</p>
               <p>Get inspired by other creators</p>
               <p>Connect and collaborate</p>

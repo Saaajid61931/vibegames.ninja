@@ -9,11 +9,12 @@ import {
   Play,
   Smartphone,
 } from "lucide-react"
-import { CommunityLevels } from "@/components/games/community-levels"
 import { CommentsSection } from "@/components/games/comments-section"
+import { CommunityLevels } from "@/components/games/community-levels"
 import { GameRating } from "@/components/games/game-rating"
 import { LevelRating } from "@/components/games/level-rating"
 import { LikeButton } from "@/components/games/like-button"
+import { PlayPageSidebar } from "@/components/games/play-page-sidebar"
 import { PlayTracker } from "@/components/games/play-tracker"
 import { PlayableGameSection } from "@/components/games/playable-game-section"
 import { ReportGameButton } from "@/components/games/report-game-button"
@@ -24,7 +25,6 @@ import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
 import { getJamPanelMessage, getJamPanelStyles, type PlayPageData } from "@/lib/play-page-data"
 import { formatNumber, timeAgo } from "@/lib/utils"
-import { PlayPageSidebar } from "@/components/games/play-page-sidebar"
 
 interface PlayPageViewProps {
   data: PlayPageData
@@ -59,6 +59,18 @@ export function PlayPageView({ data, selectedLevelId, userId }: PlayPageViewProp
   } = data
   const isAuthenticated = Boolean(userId)
 
+  const sidebar = (
+    <PlayPageSidebar
+      game={game}
+      category={category}
+      creatorProfileHref={creatorProfileHref}
+      creatorGamesCount={creatorGamesCount}
+      followersCount={followersCount}
+      initialFollowing={isFollowing}
+      relatedGames={relatedGames}
+    />
+  )
+
   return (
     <div className="min-h-screen flex flex-col bg-[#0d0d15]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(gameJsonLd) }} />
@@ -69,14 +81,14 @@ export function PlayPageView({ data, selectedLevelId, userId }: PlayPageViewProp
         <div className="container mx-auto px-4 py-4 sm:py-6">
           <Link
             href="/games"
-            className="inline-flex items-center gap-2 text-[#4a4a6a] hover:text-[#ffff00] mb-4 sm:mb-6 transition-colors font-arcade text-xs sm:text-sm"
+            className="mb-4 inline-flex items-center gap-2 font-arcade text-xs text-[#8b93a6] transition-colors hover:text-[#ffff00] sm:mb-6 sm:text-sm"
           >
             <ChevronLeft className="h-4 w-4" />
             BACK TO ARCADE
           </Link>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-            <div className="lg:col-span-2 space-y-6">
+          <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-3">
+            <div className="space-y-6 lg:col-span-2">
               <PlayTracker gameId={game.id} levelId={selectedLevel?.id ?? null} />
 
               <PlayableGameSection
@@ -96,10 +108,10 @@ export function PlayPageView({ data, selectedLevelId, userId }: PlayPageViewProp
               />
 
               <div className="flex flex-wrap items-center gap-4">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white flex-1 font-arcade">
+                <h1 className="flex-1 font-arcade text-xl font-bold text-white sm:text-2xl md:text-3xl">
                   {game.title}
                 </h1>
-                <div className="flex w-full sm:w-auto flex-wrap items-center gap-2">
+                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                   <LikeButton
                     gameId={game.id}
                     slug={game.slug}
@@ -137,47 +149,47 @@ export function PlayPageView({ data, selectedLevelId, userId }: PlayPageViewProp
               ) : null}
 
               <div className="flex flex-wrap gap-2 font-arcade text-xs">
-                <span className="px-2 py-1 bg-[#ffff00] text-[#0d0d15] font-bold">
+                <span className="bg-[#ffff00] px-2 py-1 font-bold text-[#0d0d15]">
                   [{category?.label.toUpperCase() || "GAME"}]
                 </span>
-                {game.isAIGenerated && (
-                  <span className="px-2 py-1 border border-[#ffff00] text-[#ffff00]">
+                {game.isAIGenerated ? (
+                  <span className="border border-[#ffff00] px-2 py-1 text-[#ffff00]">
                     [AI_GENERATED]
                   </span>
-                )}
-                {game.aiTool && (
-                  <span className="px-2 py-1 border border-[#4a4a6a] text-[#4a4a6a]">
+                ) : null}
+                {game.aiTool ? (
+                  <span className="border border-[#5e6882] px-2 py-1 text-[#a5aec4]">
                     [TOOL:{game.aiTool.toUpperCase()}]
                   </span>
-                )}
-                {game.aiModel && (
-                  <span className="px-2 py-1 border border-[#4a4a6a] text-[#4a4a6a]">
+                ) : null}
+                {game.aiModel ? (
+                  <span className="border border-[#5e6882] px-2 py-1 text-[#a5aec4]">
                     [MODEL:{game.aiModel.toUpperCase()}]
                   </span>
-                )}
+                ) : null}
                 <span
-                  className={`px-2 py-1 border ${game.supportsMobile ? "border-[#22c55e] text-[#22c55e]" : "border-[#4a4a6a] text-[#4a4a6a]"}`}
+                  className={`border px-2 py-1 ${game.supportsMobile ? "border-[#22c55e] text-[#22c55e]" : "border-[#5e6882] text-[#a5aec4]"}`}
                 >
                   [{mobileTagLabel}]
                 </span>
-                {game.hasLevelEditor && (
-                  <span className="px-2 py-1 border border-[#ffff00] text-[#ffff00]">
+                {game.hasLevelEditor ? (
+                  <span className="border border-[#ffff00] px-2 py-1 text-[#ffff00]">
                     [LEVEL_EDITOR]
                   </span>
-                )}
-                {game.hasGhostSharing && (
-                  <span className="px-2 py-1 border border-[#00d1ff] text-[#00d1ff]">
+                ) : null}
+                {game.hasGhostSharing ? (
+                  <span className="border border-[#00d1ff] px-2 py-1 text-[#00d1ff]">
                     [GHOST_RACES]
                   </span>
-                )}
+                ) : null}
                 {tagList.map((tag) => (
-                  <span key={tag.trim()} className="px-2 py-1 border border-[#4a4a6a] text-[#4a4a6a]">
+                  <span key={tag.trim()} className="border border-[#5e6882] px-2 py-1 text-[#a5aec4]">
                     #{tag.trim().toUpperCase()}
                   </span>
                 ))}
               </div>
 
-              <div className="flex flex-wrap gap-4 sm:gap-6 text-[#4a4a6a] font-arcade text-xs sm:text-sm border-y-2 border-[#222] py-4">
+              <div className="flex flex-wrap gap-4 border-y-2 border-[#222] py-4 font-arcade text-xs text-[#8b93a6] sm:gap-6 sm:text-sm">
                 <div className="flex items-center gap-2">
                   <Play className="h-4 w-4 text-[#ffff00]" />
                   <span>{formatNumber(game.plays)} PLAYS</span>
@@ -195,17 +207,23 @@ export function PlayPageView({ data, selectedLevelId, userId }: PlayPageViewProp
                   <span>UPLOADED {timeAgo(new Date(game.createdAt)).toUpperCase()}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Smartphone className={`h-4 w-4 ${game.supportsMobile ? "text-[#22c55e]" : "text-[#4a4a6a]"}`} />
+                  <Smartphone className={`h-4 w-4 ${game.supportsMobile ? "text-[#22c55e]" : "text-[#8b93a6]"}`} />
                   <span>{mobileSupportText}</span>
                 </div>
-                {game.aiModel && (
+                {game.aiModel ? (
                   <div className="flex items-center gap-2">
                     <Cpu className="h-4 w-4 text-[#ffff00]" />
                     <span>MODEL {game.aiModel.toUpperCase()}</span>
                   </div>
-                )}
+                ) : null}
               </div>
+            </div>
 
+            <aside className="self-start lg:sticky lg:top-24">
+              {sidebar}
+            </aside>
+
+            <div className="space-y-6 lg:col-span-2">
               <GameRating
                 gameId={game.id}
                 initialAverage={game.avgRating}
@@ -223,26 +241,26 @@ export function PlayPageView({ data, selectedLevelId, userId }: PlayPageViewProp
                 isAuthenticated={isAuthenticated}
               />
 
-              {selectedLevel && (
-                <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4 space-y-2">
+              {selectedLevel ? (
+                <div className="space-y-2 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
                   <p className="font-arcade text-xs text-[#ffff00]">CURRENT LEVEL</p>
                   <h3 className="font-arcade text-sm text-white">{selectedLevel.name}</h3>
-                  {selectedLevel.description && (
-                    <p className="font-arcade text-xs text-[#4a4a6a]">{selectedLevel.description}</p>
-                  )}
-                  <p className="font-arcade text-[10px] text-[#4a4a6a]">
+                  {selectedLevel.description ? (
+                    <p className="font-arcade text-xs text-[#a5aec4]">{selectedLevel.description}</p>
+                  ) : null}
+                  <p className="font-arcade text-[10px] text-[#8b93a6]">
                     by {selectedLevel.creator.username || selectedLevel.creator.name || "anonymous"}
                   </p>
 
-                  {userId === selectedLevel.creator.id && (
+                  {userId === selectedLevel.creator.id ? (
                     <Button asChild variant="arcade-outline" size="sm" className="mt-2">
                       <Link href={`/play/${game.slug}/editor?level=${selectedLevel.id}`}>EDIT THIS LEVEL</Link>
                     </Button>
-                  )}
+                  ) : null}
                 </div>
-              )}
+              ) : null}
 
-              {selectedLevel && (
+              {selectedLevel ? (
                 <LevelRating
                   levelId={selectedLevel.id}
                   initialAverage={selectedLevel.avgRating}
@@ -250,38 +268,38 @@ export function PlayPageView({ data, selectedLevelId, userId }: PlayPageViewProp
                   initialUserScore={selectedLevel.ratings?.[0]?.score ?? null}
                   isAuthenticated={isAuthenticated}
                 />
-              )}
+              ) : null}
 
               <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
                 <div className="border-b-2 border-[#4a4a6a] px-4 py-2">
                   <h3 className="font-arcade text-sm text-[#ffff00]">$ cat README.md</h3>
                 </div>
                 <div className="p-4">
-                  <p className="text-[#e5e5e5] whitespace-pre-wrap font-arcade text-sm">{game.description}</p>
-                  {game.latestUpdateNote && (
+                  <p className="whitespace-pre-wrap font-arcade text-sm text-[#e5e5e5]">{game.description}</p>
+                  {game.latestUpdateNote ? (
                     <div className="mt-4 border border-[#2e3446] bg-[#0d0d15] p-3">
                       <p className="font-arcade text-[11px] text-[#00d1ff]">RECENT UPDATE</p>
                       <p className="mt-2 font-arcade text-xs text-white">{game.latestUpdateNote}</p>
                     </div>
-                  )}
+                  ) : null}
 
-                  {game.instructions && (
-                    <div className="mt-6 pt-6 border-t border-[#222]">
-                      <h4 className="font-bold text-white mb-2 font-arcade text-sm text-[#ffff00]">CONTROLS:</h4>
-                      <p className="text-[#4a4a6a] whitespace-pre-wrap font-arcade text-sm">{game.instructions}</p>
+                  {game.instructions ? (
+                    <div className="mt-6 border-t border-[#222] pt-6">
+                      <h4 className="mb-2 font-arcade text-sm font-bold text-[#ffff00]">CONTROLS:</h4>
+                      <p className="whitespace-pre-wrap font-arcade text-sm text-[#a5aec4]">{game.instructions}</p>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
 
-              {game.hasLevelEditor && (
+              {game.hasLevelEditor ? (
                 <CommunityLevels
                   gameId={game.id}
                   slug={game.slug}
                   selectedLevelId={selectedLevelId}
                   currentUserId={userId ?? null}
                 />
-              )}
+              ) : null}
 
               <CommentsSection
                 gameId={game.id}
@@ -290,16 +308,6 @@ export function PlayPageView({ data, selectedLevelId, userId }: PlayPageViewProp
                 initialCommentsCount={game._count.comments}
               />
             </div>
-
-            <PlayPageSidebar
-              game={game}
-              category={category}
-              creatorProfileHref={creatorProfileHref}
-              creatorGamesCount={creatorGamesCount}
-              followersCount={followersCount}
-              initialFollowing={isFollowing}
-              relatedGames={relatedGames}
-            />
           </div>
         </div>
       </main>

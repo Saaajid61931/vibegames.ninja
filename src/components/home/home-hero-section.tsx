@@ -30,42 +30,42 @@ export function HomeHeroSection({ stats }: HomeHeroSectionProps) {
             </span>
           </h1>
 
-          <p className="text-base sm:text-xl md:text-2xl text-[#4a4a6a] mb-8 sm:mb-12 max-w-2xl mx-auto font-arcade">
+          <p className="mx-auto mb-8 max-w-2xl font-arcade text-base text-[#aab6d0] sm:mb-12 sm:text-xl md:text-2xl">
             Build, play, and remix games created with AI.
             Skills shouldn&apos;t be an issue to explore creativity.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/games">
-              <Button variant="arcade" size="xl" className="gap-3">
+          <div className="mx-auto flex max-w-md flex-col gap-4 sm:max-w-none sm:flex-row sm:justify-center">
+            <Link href="/games" className="block sm:inline-block">
+              <Button variant="arcade" size="xl" className="w-full gap-3">
                 <Gamepad2 className="h-5 w-5" />
                 START EXPLORING
               </Button>
             </Link>
-            <Link href="/upload">
-              <Button variant="outline" size="xl" className="gap-3">
+            <Link href="/upload" className="block sm:inline-block">
+              <Button variant="outline" size="xl" className="w-full gap-3">
                 <Upload className="h-5 w-5" />
                 CREATE A GAME
               </Button>
             </Link>
           </div>
 
-          <div className="mt-12 sm:mt-16 pt-6 sm:pt-8 border-t-2 sm:border-t-4 border-[#4a4a6a] grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-3xl mx-auto">
-            <div className="text-center p-3 sm:p-4 bg-[#1a1a2e] border-2 border-[#0080ff]">
-              <div className="text-[10px] text-[#0080ff] mb-1 font-pixel">GAMES</div>
-              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-white font-pixel">
+          <div className="mx-auto mt-12 grid max-w-3xl grid-cols-3 gap-2 border-t-2 border-[#4a4a6a] pt-6 sm:mt-16 sm:gap-4 sm:border-t-4 sm:pt-8">
+            <div className="bg-[#1a1a2e] border-2 border-[#0080ff] p-2.5 text-center sm:p-4">
+              <div className="mb-1 font-pixel text-[9px] text-[#0080ff] sm:text-[10px]">GAMES</div>
+              <div className="font-pixel text-base font-bold text-white sm:text-2xl md:text-3xl">
                 {stats.games.toString().padStart(6, "0")}
               </div>
             </div>
-            <div className="text-center p-3 sm:p-4 bg-[#1a1a2e] border-2 border-[#ff0040]">
-              <div className="text-[10px] text-[#ff0040] mb-1 font-pixel">CREATORS</div>
-              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-white font-pixel">
+            <div className="bg-[#1a1a2e] border-2 border-[#ff0040] p-2.5 text-center sm:p-4">
+              <div className="mb-1 font-pixel text-[9px] text-[#ff0040] sm:text-[10px]">CREATORS</div>
+              <div className="font-pixel text-base font-bold text-white sm:text-2xl md:text-3xl">
                 {stats.creators.toString().padStart(6, "0")}
               </div>
             </div>
-            <div className="text-center p-3 sm:p-4 bg-[#1a1a2e] border-2 border-[#ffff00]">
-              <div className="text-[10px] text-[#ffff00] mb-1 font-pixel">PLAYS</div>
-              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-white font-pixel">
+            <div className="bg-[#1a1a2e] border-2 border-[#ffff00] p-2.5 text-center sm:p-4">
+              <div className="mb-1 font-pixel text-[9px] text-[#ffff00] sm:text-[10px]">PLAYS</div>
+              <div className="font-pixel text-base font-bold text-white sm:text-2xl md:text-3xl">
                 {(stats.plays % 1000000).toString().padStart(6, "0")}
               </div>
             </div>
