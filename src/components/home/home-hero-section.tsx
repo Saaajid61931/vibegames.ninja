@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Gamepad2, Upload } from "lucide-react"
+import { Gamepad2, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { HomePageData } from "@/lib/home-page-data"
 
@@ -31,8 +31,8 @@ export function HomeHeroSection({ stats }: HomeHeroSectionProps) {
           </h1>
 
           <p className="mx-auto mb-8 max-w-2xl font-arcade text-base text-[#aab6d0] sm:mb-12 sm:text-xl md:text-2xl">
-            Build, play, and remix games created with AI.
-            Skills shouldn&apos;t be an issue to explore creativity.
+            Prompt game templates, play them instantly, and publish the ones that hit.
+            VibeGames is built for browser-native vibecoding.
           </p>
 
           <div className="mx-auto flex max-w-md flex-col gap-4 sm:max-w-none sm:flex-row sm:justify-center">
@@ -42,10 +42,10 @@ export function HomeHeroSection({ stats }: HomeHeroSectionProps) {
                 START EXPLORING
               </Button>
             </Link>
-            <Link href="/upload" className="block sm:inline-block">
+            <Link href="/create" className="block sm:inline-block">
               <Button variant="outline" size="xl" className="w-full gap-3">
-                <Upload className="h-5 w-5" />
-                CREATE A GAME
+                <Sparkles className="h-5 w-5" />
+                START BUILDING
               </Button>
             </Link>
           </div>

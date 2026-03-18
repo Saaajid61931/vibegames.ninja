@@ -15,6 +15,23 @@ enum MobileOrientation {
   LANDSCAPE
 }
 
+enum GameBuildSource {
+  UPLOAD
+  BUILDER
+}
+
+enum BuilderProjectStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum BuilderMessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
 // User & Auth Models
 model User {
   id            String    @id @default(cuid())
@@ -53,6 +70,7 @@ model User {
   jamEntries     GameJamEntry[]
   jamVotes       GameJamVote[]
   createdJams    GameJam[]
+  builderProjects BuilderProject[]
 }
 
 model UsernameRedirect {
@@ -141,6 +159,7 @@ model Game {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   publishedAt DateTime?
+  buildSource GameBuildSource @default(UPLOAD)
 
   creatorId String
   creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
@@ -148,6 +167,8 @@ model Game {
   // Optional publishing identity (studio/brand profile) owned by a real user
   studioProfileId String?
   studioProfile   StudioProfile? @relation(fields: [studioProfileId], references: [id], onDelete: SetNull)
+  sourceProjectId String? @unique
+  sourceProject   BuilderProject? @relation("BuilderSourceGame", fields: [sourceProjectId], references: [id], onDelete: SetNull)
 
   analytics    GameAnalytics[]
   favorites    Favorite[]
@@ -166,6 +187,65 @@ model Game {
   @@index([status, category])
   @@index([creatorId, status])
   @@index([studioProfileId, status])
+}
+
+model BuilderProject {
+  id                String               @id @default(cuid())
+  ownerId           String
+  owner             User                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title             String
+  description       String?
+  templateKey       String
+  status            BuilderProjectStatus @default(DRAFT)
+  category          String               @default("ARCADE")
+  tags              String               @default("")
+  supportsMobile    Boolean              @default(true)
+  mobileOrientation MobileOrientation    @default(BOTH)
+  thumbnail         String?
+  currentRevisionId String?
+  publishedRevisionId String?
+  currentRevision   BuilderRevision?     @relation("BuilderCurrentRevision", fields: [currentRevisionId], references: [id], onDelete: SetNull)
+  publishedRevision BuilderRevision?     @relation("BuilderPublishedRevision", fields: [publishedRevisionId], references: [id], onDelete: SetNull)
+  revisions         BuilderRevision[]    @relation("BuilderProjectRevisions")
+  messages          BuilderMessage[]
+  publishedGame     Game?                @relation("BuilderSourceGame")
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  @@index([ownerId, updatedAt])
+  @@index([status, updatedAt])
+}
+
+model BuilderRevision {
+  id            String            @id @default(cuid())
+  projectId     String
+  project       BuilderProject    @relation("BuilderProjectRevisions", fields: [projectId], references: [id], onDelete: Cascade)
+  prompt        String
+  actionKey     String?
+  summary       String
+  config        Json
+  snapshot      Json?
+  previewUrl    String
+  artifactUrl   String?
+  createdAt     DateTime          @default(now())
+  currentForProjects BuilderProject[] @relation("BuilderCurrentRevision")
+  publishedForProjects BuilderProject[] @relation("BuilderPublishedRevision")
+  messages      BuilderMessage[]
+
+  @@index([projectId, createdAt])
+}
+
+model BuilderMessage {
+  id         String             @id @default(cuid())
+  projectId  String
+  project    BuilderProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  revisionId String?
+  revision   BuilderRevision?   @relation(fields: [revisionId], references: [id], onDelete: SetNull)
+  role       BuilderMessageRole
+  content    String
+  createdAt  DateTime           @default(now())
+
+  @@index([projectId, createdAt])
 }
 
 model StudioProfile {

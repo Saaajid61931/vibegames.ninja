@@ -34,7 +34,7 @@ export function Header() {
     { name: "PLAY", href: "/games" },
     { name: "JAMS", href: "/jams" },
     ...(session?.user ? [{ name: "FAVES", href: "/favorites" }] : []),
-    { name: "UPLOAD", href: "/upload" },
+    { name: "CREATE", href: "/create" },
     { name: "CREATOR", href: "/creator" },
   ]
 
@@ -86,17 +86,17 @@ export function Header() {
                 <div className="h-9 w-20 bg-[var(--color-surface)] animate-pulse rounded-md" />
               ) : session?.user ? (
                 <>
-                  <Link href="/upload" className="md:hidden">
-                    <Button size="icon" aria-label="Upload game" className="h-10 w-10">
+                  <Link href="/create" className="md:hidden">
+                    <Button size="icon" aria-label="Create game" className="h-10 w-10">
                       <Plus className="h-4 w-4" />
                     </Button>
                   </Link>
 
                   <div className="hidden md:flex items-center gap-2">
-                    <Link href="/upload">
+                    <Link href="/create">
                       <Button size="sm" className="gap-1">
                         <Plus className="h-4 w-4" />
-                        <span className="hidden sm:inline">Upload</span>
+                        <span className="hidden sm:inline">Create</span>
                       </Button>
                     </Link>
 
@@ -127,6 +127,12 @@ export function Header() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
                           <Link href="/creator">Dashboard</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/create">Create</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/upload">Import Existing Game</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href="/settings">Settings</Link>
@@ -212,8 +218,11 @@ export function Header() {
                         ) : null}
                       </Button>
                     </Link>
+                    <Link href="/create">
+                      <Button className="w-full" onClick={() => setMobileMenuOpen(false)}>Create</Button>
+                    </Link>
                     <Link href="/upload">
-                      <Button className="w-full" onClick={() => setMobileMenuOpen(false)}>Upload</Button>
+                      <Button variant="outline" className="w-full" onClick={() => setMobileMenuOpen(false)}>Upload</Button>
                     </Link>
                     <Link href="/creator">
                       <Button variant="outline" className="w-full" onClick={() => setMobileMenuOpen(false)}>Dashboard</Button>

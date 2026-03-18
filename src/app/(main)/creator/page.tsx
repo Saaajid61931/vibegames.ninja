@@ -14,6 +14,7 @@ import {
   Settings,
   MessageSquarePlus,
   Trophy,
+  Sparkles,
 } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { Header } from "@/components/layout/header"
@@ -53,7 +54,7 @@ function getJamDeadlineCopy(jam: {
 }
 
 async function getCreatorData(userId: string) {
-  const [games, totalStats, levelCount, recentFeedback, jamEntries, activeJam] = await Promise.all([
+  const [games, totalStats, levelCount, recentFeedback, jamEntries, activeJam, builderProjects] = await Promise.all([
     prisma.game.findMany({
       where: { creatorId: userId },
       select: {
@@ -153,6 +154,29 @@ async function getCreatorData(userId: string) {
         title: true,
       },
     }),
+    prisma.builderProject.findMany({
+      where: { ownerId: userId },
+      orderBy: { updatedAt: "desc" },
+      take: 6,
+      select: {
+        id: true,
+        title: true,
+        templateKey: true,
+        status: true,
+        updatedAt: true,
+        currentRevision: {
+          select: {
+            summary: true,
+          },
+        },
+        publishedGame: {
+          select: {
+            slug: true,
+            title: true,
+          },
+        },
+      },
+    }),
   ])
 
   const feedbackSummary = summarizeFeedback(recentFeedback)
@@ -169,6 +193,7 @@ async function getCreatorData(userId: string) {
     activeJam,
     recentFeedback,
     feedbackSummary,
+    builderProjects,
   }
 }
 
@@ -179,7 +204,7 @@ export default async function CreatorDashboard() {
     redirect("/login")
   }
 
-  const { games, stats, recentFeedback, feedbackSummary, jamEntries, activeJam } = await getCreatorData(session.user.id)
+  const { games, stats, recentFeedback, feedbackSummary, jamEntries, activeJam, builderProjects } = await getCreatorData(session.user.id)
   const publishedGames = games.filter((game) => game.status === "PUBLISHED")
   const draftGames = games.filter((game) => game.status !== "PUBLISHED")
   const topGame = [...publishedGames].sort((a, b) => (b.plays + b.likes * 3) - (a.plays + a.likes * 3))[0]
@@ -202,8 +227,14 @@ export default async function CreatorDashboard() {
             </h1>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link href="/upload">
+            <Link href="/create">
               <Button className="gap-2 font-arcade">
+                <Sparkles className="h-4 w-4" />
+                [CREATE_GAME]
+              </Button>
+            </Link>
+            <Link href="/upload">
+              <Button variant="arcade-outline" className="gap-2 font-arcade">
                 <Plus className="h-4 w-4" />
                 [UPLOAD_GAME]
               </Button>
@@ -376,6 +407,56 @@ export default async function CreatorDashboard() {
                 ? `${formatNumber(topGame.plays)} plays and ${formatNumber(topGame.likes)} likes. Keep sharing this page and refresh its thumbnails often.`
                 : "Your first published hit will become the best asset for traffic and profile growth."}
             </p>
+          </div>
+        </div>
+
+        <div className="mb-8 border-2 border-[#4a4a6a]">
+          <div className="border-b-2 border-[#4a4a6a] bg-[#1a1a2e] px-4 py-3 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-[#00d1ff]" />
+              <span className="font-arcade text-sm">BUILDER DRAFTS</span>
+            </div>
+            <Button asChild variant="arcade-outline" size="sm">
+              <Link href="/create">Open Builder</Link>
+            </Button>
+          </div>
+          <div className="bg-[#0d0d15]">
+            {builderProjects.length > 0 ? (
+              <div className="divide-y divide-[#222]">
+                {builderProjects.map((project) => (
+                  <div key={project.id} className="p-4">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                      <div>
+                        <Link href={`/create?project=${project.id}`} className="font-arcade text-sm text-white hover:text-[#ffff00]">
+                          {project.title}
+                        </Link>
+                        <p className="mt-1 font-arcade text-[10px] text-[#00d1ff]">{project.templateKey}</p>
+                        <p className="mt-1 font-arcade text-[10px] text-[#8b93a6]">
+                          {project.currentRevision?.summary || "Starter ready to tune."} · {timeAgo(new Date(project.updatedAt))}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button asChild variant="arcade-outline" size="sm">
+                          <Link href={`/create?project=${project.id}`}>Continue Building</Link>
+                        </Button>
+                        {project.publishedGame ? (
+                          <Button asChild variant="arcade" size="sm">
+                            <Link href={`/play/${project.publishedGame.slug}`}>Open Live Game</Link>
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-4">
+                <p className="font-arcade text-sm text-white">No builder drafts yet.</p>
+                <p className="mt-2 font-arcade text-xs text-[#8b93a6]">
+                  Use VibeGames Builder when you want the fastest prompt-to-play loop for casual browser game ideas.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

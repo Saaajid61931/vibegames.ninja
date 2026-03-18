@@ -47,6 +47,7 @@ interface GamePlayerProps {
 
 export interface GamePlayerHandle {
   startAutoThumbnailCapture: () => Promise<void>
+  enterFullscreen: () => Promise<void>
 }
 
 type LockableScreenOrientation = ScreenOrientation & {
@@ -646,7 +647,10 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
     startAutoThumbnailCapture: async () => {
       await runAutoThumbnailCapture()
     },
-  }), [runAutoThumbnailCapture])
+    enterFullscreen: async () => {
+      await launchFullscreen()
+    },
+  }), [launchFullscreen, runAutoThumbnailCapture])
 
   return (
     <div ref={wrapperRef} className={`relative overflow-hidden ${isFullscreen ? "bg-black" : "border-2 border-[#4a4a6a] bg-[#1a1a2e]"}`}>
