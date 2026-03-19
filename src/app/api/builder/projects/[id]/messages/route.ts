@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { builderProjectDetailInclude, serializeBuilderProject } from "@/lib/builder/data"
 import { applyBuilderPrompt } from "@/lib/builder/provider"
+import { generateBuilderResultWithOpenRouter, OpenRouterBuilderError } from "@/lib/builder/openrouter"
+import type { BuilderProviderResult } from "@/lib/builder/types"
 import type { BuilderTemplateKey } from "@/lib/builder/types"
 import { builderMessageSchema } from "@/lib/builder/validations"
 import { getBuilderPreviewPath, getRequestOrigin } from "@/lib/builder/urls"
@@ -41,7 +43,33 @@ export async function POST(
       return NextResponse.json({ error: "PROJECT_NOT_FOUND" }, { status: 404 })
     }
 
-    const result = applyBuilderPrompt({
+    const openRouterApiKey = request.headers.get("x-openrouter-api-key")?.trim() || ""
+    let result: BuilderProviderResult | undefined
+
+    if (openRouterApiKey) {
+      try {
+        result = await generateBuilderResultWithOpenRouter({
+          templateKey: project.templateKey as BuilderTemplateKey,
+          currentConfig: project.currentRevision.config,
+          prompt: parsed.data.prompt,
+          actionKey: parsed.data.actionKey,
+          apiKey: openRouterApiKey,
+          origin: getRequestOrigin(request),
+        })
+      } catch (error) {
+        if (error instanceof OpenRouterBuilderError && [401, 402, 403, 404, 408, 413, 422, 429].includes(error.status)) {
+          return NextResponse.json({ error: error.message }, { status: error.status })
+        }
+
+        logServerError("OpenRouter builder call failed, falling back to local builder", error, {
+          route: "/api/builder/projects/[id]/messages",
+          method: "POST",
+          provider: "openrouter",
+        })
+      }
+    }
+
+    result ??= applyBuilderPrompt({
       templateKey: project.templateKey as BuilderTemplateKey,
       currentConfig: project.currentRevision.config,
       prompt: parsed.data.prompt,

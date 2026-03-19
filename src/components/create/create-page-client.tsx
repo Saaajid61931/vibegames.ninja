@@ -11,9 +11,13 @@ import { Footer } from "@/components/layout/footer"
 import { GamePlayer, type GamePlayerHandle } from "@/components/games/game-player"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { timeAgo } from "@/lib/utils"
+
+const OPENROUTER_STORAGE_KEY = "vibegames.builder.openrouter.apiKey"
 
 type Template = { key: string; label: string; eyebrow: string; description: string }
 type QuickAction = { key: string; label: string }
@@ -66,6 +70,8 @@ export function CreatePageClient() {
   const [captureStatus, setCaptureStatus] = useState("")
   const [capturedThumbnail, setCapturedThumbnail] = useState<string | null>(null)
   const [previewNonce, setPreviewNonce] = useState(0)
+  const [openRouterApiKey, setOpenRouterApiKey] = useState("")
+  const openRouterKeyLoadedRef = useRef(false)
 
   const activeTemplate = useMemo(() => templates.find((item) => item.key === project?.templateKey) || null, [project?.templateKey, templates])
 
@@ -74,6 +80,32 @@ export function CreatePageClient() {
       router.push(`/login?callbackUrl=${encodeURIComponent("/create")}`)
     }
   }, [router, status])
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    const savedKey = window.localStorage.getItem(OPENROUTER_STORAGE_KEY)
+    if (savedKey) {
+      setOpenRouterApiKey(savedKey)
+    }
+
+    openRouterKeyLoadedRef.current = true
+  }, [])
+
+  useEffect(() => {
+    if (!openRouterKeyLoadedRef.current || typeof window === "undefined") {
+      return
+    }
+
+    const trimmedKey = openRouterApiKey.trim()
+    if (trimmedKey) {
+      window.localStorage.setItem(OPENROUTER_STORAGE_KEY, trimmedKey)
+    } else {
+      window.localStorage.removeItem(OPENROUTER_STORAGE_KEY)
+    }
+  }, [openRouterApiKey])
 
   async function refreshProjects() {
     const data = await getJson<{ projects: Summary[] }>("/api/builder/projects")
@@ -144,9 +176,15 @@ export function CreatePageClient() {
     setBusy(actionKey || "prompt")
     setError("")
     try {
+      const headers: HeadersInit = { "Content-Type": "application/json" }
+      const trimmedKey = openRouterApiKey.trim()
+      if (trimmedKey) {
+        headers["x-openrouter-api-key"] = trimmedKey
+      }
+
       const data = await getJson<{ project: Detail }>(`/api/builder/projects/${project.id}/messages`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           prompt: prompt.trim() || quickActions.find((action) => action.key === actionKey)?.label || "Quick action",
           actionKey,
@@ -243,6 +281,33 @@ export function CreatePageClient() {
                           <p className="mt-2 text-xs text-[#9eb0d6]">{template.description}</p>
                         </button>
                       ))}
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">OpenRouter Key</CardTitle>
+                      <CardDescription>Saved only on this device and sent only when you apply a prompt.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="openrouter-key">API key</Label>
+                        <Input
+                          id="openrouter-key"
+                          variant="studio"
+                          type="password"
+                          autoComplete="off"
+                          spellCheck={false}
+                          value={openRouterApiKey}
+                          onChange={(event) => setOpenRouterApiKey(event.target.value)}
+                          placeholder="sk-or-v1-..."
+                        />
+                      </div>
+                      <p className="text-xs text-[var(--color-text-secondary)]">
+                        {openRouterApiKey.trim()
+                          ? "OpenRouter is connected on this browser. Prompt edits will use your key."
+                          : "Leave this blank to keep using the local fallback builder."}
+                      </p>
                     </CardContent>
                   </Card>
 
