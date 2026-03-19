@@ -20,7 +20,7 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex w-full items-center justify-between",
+      "flex w-full cursor-pointer items-center justify-between",
       "disabled:cursor-not-allowed disabled:opacity-50",
       variant === "studio" && [
         "h-10 px-3 py-2",

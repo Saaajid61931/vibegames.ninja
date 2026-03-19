@@ -5,8 +5,13 @@ import prisma from "@/lib/prisma"
 import { builderProjectDetailInclude, serializeBuilderProject } from "@/lib/builder/data"
 import { applyBuilderPrompt } from "@/lib/builder/provider"
 import { generateBuilderResultWithOpenRouter, OpenRouterBuilderError } from "@/lib/builder/openrouter"
-import type { BuilderProviderResult } from "@/lib/builder/types"
-import type { BuilderTemplateKey } from "@/lib/builder/types"
+import type {
+  BuilderApplyPromptResponse,
+  BuilderApplyProviderMeta,
+  BuilderProviderResult,
+  BuilderTemplateKey,
+} from "@/lib/builder/types"
+import { DEFAULT_BUILDER_OPENROUTER_MODEL } from "@/lib/builder/types"
 import { builderMessageSchema } from "@/lib/builder/validations"
 import { getBuilderPreviewPath, getRequestOrigin } from "@/lib/builder/urls"
 import { logServerError } from "@/lib/server-log"
@@ -44,7 +49,14 @@ export async function POST(
     }
 
     const openRouterApiKey = request.headers.get("x-openrouter-api-key")?.trim() || ""
+    const openRouterModel = parsed.data.openRouterModel?.trim() || null
+    const resolvedOpenRouterModel = openRouterModel || DEFAULT_BUILDER_OPENROUTER_MODEL
     let result: BuilderProviderResult | undefined
+    let provider: BuilderApplyProviderMeta = {
+      type: "local",
+      model: null,
+      fallbackFrom: null,
+    }
 
     if (openRouterApiKey) {
       try {
@@ -54,11 +66,23 @@ export async function POST(
           prompt: parsed.data.prompt,
           actionKey: parsed.data.actionKey,
           apiKey: openRouterApiKey,
+          model: resolvedOpenRouterModel,
           origin: getRequestOrigin(request),
         })
+        provider = {
+          type: "openrouter",
+          model: resolvedOpenRouterModel,
+          fallbackFrom: null,
+        }
       } catch (error) {
         if (error instanceof OpenRouterBuilderError && [401, 402, 403, 404, 408, 413, 422, 429].includes(error.status)) {
           return NextResponse.json({ error: error.message }, { status: error.status })
+        }
+
+        provider = {
+          type: "local",
+          model: resolvedOpenRouterModel,
+          fallbackFrom: "openrouter",
         }
 
         logServerError("OpenRouter builder call failed, falling back to local builder", error, {
@@ -149,9 +173,10 @@ export async function POST(
       })
     })
 
-    return NextResponse.json({
+    return NextResponse.json<BuilderApplyPromptResponse>({
       applied: result.ok,
       project: serializeBuilderProject(nextProject, getRequestOrigin(request)),
+      provider,
     })
   } catch (error) {
     logServerError("Apply builder prompt failed", error, {

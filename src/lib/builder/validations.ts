@@ -10,6 +10,17 @@ const QUICK_ACTION_KEYS = [
   "add-restart-polish",
 ] as const
 
+const openRouterModelSchema = z
+  .string()
+  .trim()
+  .min(1, "Pick a valid OpenRouter model.")
+  .max(120, "Keep the OpenRouter model under 120 characters.")
+  .regex(/^[a-zA-Z0-9./:_+-]+$/, "Use a valid OpenRouter model slug.")
+
+function isUuidOrCuid(value: string) {
+  return z.string().uuid().safeParse(value).success || z.string().cuid().safeParse(value).success
+}
+
 export const builderProjectCreateSchema = z.object({
   templateKey: z.enum(BUILDER_TEMPLATE_KEYS),
 })
@@ -21,10 +32,14 @@ export const builderMessageSchema = z.object({
     .min(2, "Write at least a short instruction for the builder.")
     .max(400, "Keep prompts under 400 characters."),
   actionKey: z.enum(QUICK_ACTION_KEYS).optional(),
+  openRouterModel: openRouterModelSchema.optional(),
 })
 
 export const builderRestoreSchema = z.object({
-  revisionId: z.string().cuid("Pick a valid revision to restore."),
+  revisionId: z
+    .string()
+    .trim()
+    .refine(isUuidOrCuid, "Pick a valid revision to restore."),
 })
 
 export const builderPublishSchema = z.object({

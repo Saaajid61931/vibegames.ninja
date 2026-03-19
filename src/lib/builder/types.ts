@@ -20,6 +20,8 @@ export const BUILDER_QUICK_ACTIONS = [
 
 export type BuilderQuickActionKey = (typeof BUILDER_QUICK_ACTIONS)[number]["key"]
 
+export const DEFAULT_BUILDER_OPENROUTER_MODEL = "openai/gpt-5.2-chat"
+
 export type BuilderThemeKey =
   | "neon"
   | "sunset"
@@ -92,3 +94,70 @@ export interface BuilderProviderResult {
   snapshot?: Record<string, unknown>
   rejectedReason?: string
 }
+
+/* ------------------------------------------------------------------ */
+/*  Client-side DTO types shared between create page and API routes   */
+/* ------------------------------------------------------------------ */
+
+export interface BuilderClientTemplate {
+  key: string
+  label: string
+  eyebrow: string
+  description: string
+}
+
+export interface BuilderClientQuickAction {
+  key: string
+  label: string
+}
+
+export interface BuilderApplyProviderMeta {
+  type: "local" | "openrouter"
+  model?: string | null
+  fallbackFrom?: "openrouter" | null
+}
+
+export interface BuilderProjectSummary {
+  id: string
+  title: string
+  description: string | null
+  templateKey: string
+  status: string
+  tags: string[]
+  supportsMobile: boolean
+  mobileOrientation: MobileOrientation
+  updatedAt: string
+  currentRevision: { id: string; summary: string; previewPath: string } | null
+  publishedGame: { slug: string; title: string } | null
+}
+
+export interface BuilderProjectDetail extends Omit<BuilderProjectSummary, "currentRevision"> {
+  currentRevision: {
+    id: string
+    summary: string
+    prompt: string
+    previewPath: string
+    config: unknown
+  } | null
+  revisions: Array<{ id: string; summary: string; createdAt: string }>
+  messages: Array<{
+    id: string
+    role: "USER" | "ASSISTANT" | "SYSTEM"
+    content: string
+    createdAt: string
+  }>
+}
+
+export interface BuilderApplyPromptResponse {
+  applied: boolean
+  project: BuilderProjectDetail
+  provider: BuilderApplyProviderMeta
+}
+
+export type BuilderBusyState =
+  | null
+  | { type: "creating"; templateKey: string }
+  | { type: "prompting" }
+  | { type: "prompting-action"; actionKey: string }
+  | { type: "restoring"; revisionId: string }
+  | { type: "publishing" }

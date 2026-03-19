@@ -68,6 +68,7 @@ export function Header() {
                   <Link
                     key={item.name}
                     href={item.href}
+                    prefetch={item.href === "/create" ? false : undefined}
                     className={`px-3 py-2 text-xs font-medium rounded-md transition-all ${
                       isActive
                         ? "bg-[var(--color-primary)] text-white"
@@ -86,14 +87,14 @@ export function Header() {
                 <div className="h-9 w-20 bg-[var(--color-surface)] animate-pulse rounded-md" />
               ) : session?.user ? (
                 <>
-                  <Link href="/create" className="md:hidden">
+                  <Link href="/create" prefetch={false} className="md:hidden">
                     <Button size="icon" aria-label="Create game" className="h-10 w-10">
                       <Plus className="h-4 w-4" />
                     </Button>
                   </Link>
 
                   <div className="hidden md:flex items-center gap-2">
-                    <Link href="/create">
+                    <Link href="/create" prefetch={false}>
                       <Button size="sm" className="gap-1">
                         <Plus className="h-4 w-4" />
                         <span className="hidden sm:inline">Create</span>
@@ -129,7 +130,7 @@ export function Header() {
                           <Link href="/creator">Dashboard</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/create">Create</Link>
+                          <Link href="/create" prefetch={false}>Create</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href="/upload">Import Existing Game</Link>
@@ -185,6 +186,7 @@ export function Header() {
                     <Link
                       key={item.name}
                       href={item.href}
+                      prefetch={item.href === "/create" ? false : undefined}
                       onClick={() => setMobileMenuOpen(false)}
                       className={`block px-3 py-2 rounded-md text-sm font-medium ${
                         isActive
@@ -218,7 +220,7 @@ export function Header() {
                         ) : null}
                       </Button>
                     </Link>
-                    <Link href="/create">
+                    <Link href="/create" prefetch={false}>
                       <Button className="w-full" onClick={() => setMobileMenuOpen(false)}>Create</Button>
                     </Link>
                     <Link href="/upload">

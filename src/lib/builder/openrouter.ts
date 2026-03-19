@@ -6,8 +6,8 @@ import type {
   BuilderQuickActionKey,
   BuilderTemplateKey,
 } from "@/lib/builder/types"
+import { DEFAULT_BUILDER_OPENROUTER_MODEL } from "@/lib/builder/types"
 
-const DEFAULT_OPENROUTER_MODEL = "openai/gpt-5.2-chat"
 const OPENROUTER_CHAT_COMPLETIONS_URL = "https://openrouter.ai/api/v1/chat/completions"
 const OPENROUTER_TITLE = "VibeGames Builder"
 
@@ -113,12 +113,14 @@ export async function generateBuilderResultWithOpenRouter(options: {
   currentConfig: unknown
   prompt: string
   apiKey: string
+  model?: string
   origin?: string | null
   actionKey?: BuilderQuickActionKey
 }): Promise<BuilderProviderResult> {
   const currentConfig = coerceBuilderConfig(options.templateKey, options.currentConfig)
+  const model = options.model?.trim() || DEFAULT_BUILDER_OPENROUTER_MODEL
   const body = {
-    model: DEFAULT_OPENROUTER_MODEL,
+    model,
     temperature: 0.7,
     response_format: { type: "json_object" },
     messages: [

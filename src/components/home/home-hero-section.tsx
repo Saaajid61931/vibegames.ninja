@@ -42,7 +42,7 @@ export function HomeHeroSection({ stats }: HomeHeroSectionProps) {
                 START EXPLORING
               </Button>
             </Link>
-            <Link href="/create" className="block sm:inline-block">
+            <Link href="/create" prefetch={false} className="block sm:inline-block">
               <Button variant="outline" size="xl" className="w-full gap-3">
                 <Sparkles className="h-5 w-5" />
                 START BUILDING
