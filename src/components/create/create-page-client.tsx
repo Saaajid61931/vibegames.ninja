@@ -1,81 +1,19 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import type { Session } from "next-auth"
-import { ExternalLink, Gamepad2, Layers3, Loader2, Sparkles, Upload } from "lucide-react"
+import {
+  ExternalLink,
+  Gamepad2,
+  Loader2,
+} from "lucide-react"
 import { ConversationPanel } from "@/components/create/conversation-panel"
 import { ProjectEditor } from "@/components/create/project-editor"
 import { ProjectPreview } from "@/components/create/project-preview"
 import { ProjectSidebar } from "@/components/create/project-sidebar"
-import { RevisionHistory } from "@/components/create/revision-history"
 import { ScratchGenerator } from "@/components/create/scratch-generator"
-import { TemplateSelector } from "@/components/create/template-selector"
 import { useBuilder } from "@/components/create/use-builder"
-import { Footer } from "@/components/layout/footer"
-import { Header } from "@/components/layout/header"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
-type OpenRouterTestState = {
-  status: "idle" | "testing" | "success" | "error"
-  message: string
-  model: string
-}
-
-function EmptyState({
-  openRouterConfigured,
-  openRouterTestState,
-}: {
-  openRouterConfigured: boolean
-  openRouterTestState: OpenRouterTestState
-}) {
-  const aiStatus =
-    openRouterTestState.status === "success"
-      ? openRouterTestState.message
-      : openRouterConfigured
-        ? "Your OpenRouter key is present. Pick a starter, then generate your first playable draft."
-        : "You can start with the local builder now, or add an OpenRouter key in the side panel for external AI generation."
-
-  return (
-    <Card variant="arcade">
-      <CardHeader variant="arcade">
-        <div className="flex items-center gap-2 text-[10px] font-arcade text-[#8ec5ff]">
-          <Sparkles className="h-4 w-4 text-[#00e5ff]" />
-          START YOUR FIRST RUN
-        </div>
-        <CardTitle className="font-arcade text-xl text-white">Build a playable game in 3 steps</CardTitle>
-        <CardDescription>{aiStatus}</CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-2xl border border-white/10 bg-[#10192d] p-4">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-[#8ec5ff]">Step 1</p>
-          <p className="mt-2 text-base font-semibold text-white">Describe or choose</p>
-          <p className="mt-2 text-sm leading-6 text-[#9eb0d6]">
-            Start from scratch with a concept prompt, or pick a starter yourself if you already
-            know the loop you want.
-          </p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-[#10192d] p-4">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-[#8ec5ff]">Step 2</p>
-          <p className="mt-2 text-base font-semibold text-white">Set your AI</p>
-          <p className="mt-2 text-sm leading-6 text-[#9eb0d6]">
-            Add and test your OpenRouter model if you want external generation, or stay on the
-            local builder.
-          </p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-[#10192d] p-4">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-[#8ec5ff]">Step 3</p>
-          <p className="mt-2 text-base font-semibold text-white">Describe the vibe</p>
-          <p className="mt-2 text-sm leading-6 text-[#9eb0d6]">
-            Ask for a theme, pacing, feedback, controls, or monetizable hook and iterate from the
-            live preview.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
 
 type CreatePageClientProps = {
   session: Session
@@ -84,280 +22,224 @@ type CreatePageClientProps = {
 export function CreatePageClient({ session }: CreatePageClientProps) {
   const b = useBuilder(session)
   const openRouterConfigured = b.openRouterApiKey.trim().length > 0
-  const heroStatus =
-    b.openRouterTestState.status === "success"
-      ? `AI ready on ${b.openRouterTestState.model}`
-      : b.openRouterTestState.status === "error"
-        ? "OpenRouter needs attention"
-        : openRouterConfigured
-          ? "OpenRouter key added"
-          : "Local builder ready"
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
+  /* ---- Loading state ---- */
   if (b.loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0d0d15]">
-        <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary)]" />
+      <div className="flex h-screen items-center justify-center bg-[#0a0e17]">
+        <div className="absolute inset-0 pixel-bg opacity-20" />
+        <div className="relative text-center">
+          <Loader2 className="mx-auto h-10 w-10 animate-spin text-[#0080ff]" />
+          <p className="mt-4 font-pixel text-sm tracking-widest text-[#0080ff] drop-shadow-[0_0_8px_rgba(0,128,255,0.4)]">
+            LOADING ARCADE BUILDER...
+          </p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0d0d15]">
-      <Header />
-      <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-6 rounded-[32px] border-2 border-[#27314a] bg-[radial-gradient(circle_at_top,_rgba(0,229,255,0.16),_transparent_38%),linear-gradient(135deg,#111a2e,#0a0f1c_72%)] p-5 sm:p-8">
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-arcade text-[#8ec5ff]">
-              <Sparkles className="h-4 w-4 text-[#00e5ff]" />
-              VIBEGAMES AI GAME STUDIO
+    <div className="flex h-screen flex-col overflow-hidden bg-[#0a0e17]">
+      {/* ============================================ */}
+      {/*  TOP BAR - Retro arcade header               */}
+      {/* ============================================ */}
+      <header className="relative z-20 flex h-14 shrink-0 items-center justify-between border-b-2 border-[#4a4a6a] bg-[#0d1420] px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0080ff]/10 via-transparent to-[#ff0040]/10" />
+        
+        {/* Left: Logo */}
+        <div className="relative flex items-center gap-4">
+          <Link href="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
+            <div className="flex h-8 w-8 items-center justify-center border-2 border-[#0080ff] bg-[#1a1a2e] shadow-[2px_2px_0_#000]">
+              <Gamepad2 className="h-4 w-4 text-[#0080ff]" />
             </div>
-            <div className="mt-4 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-              <div>
-                <h1 className="font-pixel text-2xl leading-tight text-white sm:text-4xl">
-                  Create, test, and tune a game from one screen.
-                </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-6 text-[#b8c4e3]">
-                  Pick a starter, connect your model, describe the experience you want, then judge
-                  the result in the live preview before you publish.
+            <span 
+              className="font-pixel text-base text-white drop-shadow-[2px_2px_0_#ff0040]"
+              style={{ fontFamily: "var(--font-pixel), monospace" }}
+            >
+              ARCADE BUILDER
+            </span>
+          </Link>
+
+          {/* Neon separator */}
+          <div className="h-6 w-0.5 bg-[#4a4a6a]" />
+
+          {/* Provider pill */}
+          <span
+            className={`font-pixel rounded border-2 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider shadow-[1px_1px_0_#000] ${
+              b.openRouterTestState.status === "success"
+                ? "border-emerald-500 bg-emerald-500/10 text-emerald-400"
+                : openRouterConfigured
+                  ? "border-[#0080ff] bg-[#0080ff]/10 text-[#0080ff]"
+                  : "border-[#4a4a6a] bg-[#1a1a2e] text-[#6b7fa3]"
+            }`}
+          >
+            {b.openRouterTestState.status === "success"
+              ? `AI: ${b.openRouterTestState.model.split("/").pop()}`
+              : openRouterConfigured
+                ? "OpenRouter"
+                : "Local"}
+          </span>
+        </div>
+
+        {/* Center: Project title */}
+        {b.project && (
+          <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-3">
+            <span className="max-w-[300px] truncate font-pixel text-xs text-white">
+              {b.project.title}
+            </span>
+            <span className="border-2 border-[#4a4a6a] bg-[#1a1a2e] px-2 py-0.5 font-pixel text-[9px] text-[#ffff00]">
+              {b.activeTemplate?.label || b.project.templateKey}
+            </span>
+            {b.project.publishedGame && (
+              <Link
+                href={`/play/${b.project.publishedGame.slug}`}
+                className="flex items-center gap-1 border-2 border-emerald-500 bg-emerald-500/10 px-2 py-0.5 font-pixel text-[9px] text-emerald-400 transition-colors hover:bg-emerald-500/20"
+              >
+                LIVE
+                <ExternalLink className="h-2.5 w-2.5" />
+              </Link>
+            )}
+          </div>
+        )}
+
+        {/* Right: Status */}
+        <div className="relative flex items-center gap-3">
+          {b.project && (
+            <div className="flex items-center gap-2 border-2 border-[#4a4a6a] bg-[#1a1a2e] px-2.5 py-1">
+              <span className="font-pixel text-[9px] text-[#6b7fa3]">REVISIONS</span>
+              <span className="font-pixel text-[11px] font-bold text-[#ffff00]">
+                {b.project.revisions.length.toString().padStart(2, "0")}
+              </span>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Notification bar for error/info */}
+      {(b.error || b.info) && (
+        <div
+          className={`shrink-0 px-4 py-2 font-pixel text-[10px] tracking-wider ${
+            b.error
+              ? "border-b-2 border-rose-500/40 bg-rose-500/10 text-rose-300"
+              : "border-b-2 border-[#0080ff]/40 bg-[#0080ff]/10 text-[#d9fbff]"
+          }`}
+        >
+          {b.error || b.info}
+        </div>
+      )}
+
+      {/* ============================================ */}
+      {/*  MAIN WORKSPACE - 3-column Lovable layout    */}
+      {/* ============================================ */}
+      <div className="flex min-h-0 flex-1">
+        {/* ---- LEFT: Sidebar ---- */}
+        <ProjectSidebar
+          projects={b.projects}
+          activeProjectId={b.project?.id}
+          activeProject={b.project}
+          templates={b.templates}
+          busy={b.busy}
+          openRouterApiKey={b.openRouterApiKey}
+          onApiKeyChange={b.setOpenRouterApiKey}
+          openRouterModel={b.openRouterModel}
+          onOpenRouterModelChange={b.setOpenRouterModel}
+          openRouterTestState={b.openRouterTestState}
+          onTestOpenRouter={() => void b.testOpenRouter()}
+          onSelectProject={(id) => void b.loadProject(id)}
+          onCreateFromTemplate={(key) => void b.createProject(key)}
+          onNewProject={() => {
+            // Clear active project to show welcome screen
+            // The user can then pick a starter or type a concept
+          }}
+          onRestoreRevision={(revisionId) => void b.restoreRevision(revisionId)}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
+
+        {/* ---- CENTER: Chat panel ---- */}
+        <div className="flex min-w-0 flex-1 flex-col border-r-2 border-[#4a4a6a]">
+          {b.project ? (
+            <>
+              {/* Conversation area - scrollable */}
+              <ConversationPanel messages={b.project.messages} />
+
+              {/* Editor at the bottom */}
+              <ProjectEditor
+                projectTitle={b.project.title}
+                templateLabel={b.activeTemplate?.label || b.project.templateKey}
+                quickActions={b.quickActions}
+                prompt={b.prompt}
+                onPromptChange={b.setPrompt}
+                busy={b.busy}
+                openRouterConfigured={openRouterConfigured}
+                openRouterTestState={b.openRouterTestState}
+                captureStatus={b.captureStatus}
+                capturedThumbnail={b.capturedThumbnail}
+                onApplyPrompt={(actionKey) => void b.applyPrompt(actionKey)}
+                onCapture={b.startCapture}
+                onPublish={() => void b.publishProject()}
+              />
+            </>
+          ) : (
+            /* Welcome / scratch generator when no project is active */
+            <ScratchGenerator
+              prompt={b.scratchPrompt}
+              onPromptChange={b.setScratchPrompt}
+              busy={b.busy}
+              openRouterConfigured={openRouterConfigured}
+              onGenerate={() => void b.createProjectFromScratch()}
+            />
+          )}
+        </div>
+
+        {/* ---- RIGHT: Preview panel ---- */}
+        <div className="hidden flex-[1.4] lg:flex lg:flex-col bg-[#080b13] relative">
+          <div className="absolute inset-0 pixel-bg opacity-5" />
+          {b.project ? (
+            <ProjectPreview
+              projectId={b.project.id}
+              revisionId={b.project.currentRevision?.id}
+              previewNonce={b.previewNonce}
+              title={b.project.title}
+              gameUrl={b.project.currentRevision?.previewPath || ""}
+              runtimeLabel={b.activeTemplate?.label || "Builder preview"}
+              supportsMobile={b.project.supportsMobile}
+              mobileOrientation={b.project.mobileOrientation}
+              revisionSummary={b.project.currentRevision?.summary}
+              playerRef={b.playerRef}
+              onRestart={b.restartPreview}
+              onFullscreen={b.enterFullscreen}
+              onCaptureProgress={({ captured, total }) =>
+                b.setCaptureStatus(`Captured ${captured} of ${total} preview frames...`)
+              }
+              onCaptureComplete={(images) => {
+                b.setCapturedThumbnail(images[0] || null)
+                b.setCaptureStatus(
+                  images[0]
+                    ? "Thumbnail captured from the live preview."
+                    : "Capture finished with no frames returned.",
+                )
+              }}
+              onCaptureError={(message) => b.setCaptureStatus(message)}
+            />
+          ) : (
+            /* Empty state for preview */
+            <div className="relative flex flex-1 items-center justify-center">
+              <div className="text-center">
+                <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center border-4 border-[#4a4a6a] bg-[#1a1a2e] shadow-[4px_4px_0_#000]">
+                  <Gamepad2 className="h-10 w-10 text-[#4a4a6a]" />
+                </div>
+                <p className="font-pixel text-base text-[#4a4a6a]">INSERT COIN TO START</p>
+                <p className="mt-4 max-w-xs font-pixel text-[10px] uppercase tracking-widest text-[#2d3a52]">
+                  Create or select a project to see the live preview here.
                 </p>
               </div>
-              <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[440px]">
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-[#8ec5ff]">Mode</p>
-                  <p className="mt-2 text-sm font-semibold text-white">{heroStatus}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-[#8ec5ff]">Starter</p>
-                  <p className="mt-2 text-sm font-semibold text-white">
-                    {b.activeTemplate?.label || "Choose one"}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-[#8ec5ff]">Drafts</p>
-                  <p className="mt-2 text-sm font-semibold text-white">{b.projects.length} saved</p>
-                </div>
-              </div>
             </div>
-          </div>
-
-          {b.error ? (
-            <div
-              role="alert"
-              className="mb-4 rounded-lg border border-[#ff5d73]/40 bg-[#ff5d73]/10 px-4 py-3 text-sm text-[#ffd6dc]"
-            >
-              {b.error}
-            </div>
-          ) : null}
-
-          {b.info ? (
-            <div
-              role="status"
-              className="mb-4 rounded-lg border border-[#00e5ff]/40 bg-[#00e5ff]/10 px-4 py-3 text-sm text-[#d9fbff]"
-            >
-              {b.info}
-            </div>
-          ) : null}
-
-          <Tabs defaultValue="builder">
-            <TabsList variant="arcade" className="w-full justify-start overflow-x-auto">
-              <TabsTrigger value="builder" variant="arcade">
-                AI Builder
-              </TabsTrigger>
-              <TabsTrigger value="import" variant="arcade">
-                Import Existing Game
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="builder">
-              <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-                <div className="space-y-6">
-                  {b.project ? (
-                    <Card variant="arcade">
-                      <CardHeader variant="arcade">
-                        <div className="flex flex-wrap items-start justify-between gap-4">
-                          <div>
-                            <div className="flex flex-wrap items-center gap-2 text-[10px] font-arcade text-[#8ec5ff]">
-                              <Gamepad2 className="h-4 w-4 text-[#00e5ff]" />
-                              CURRENT DRAFT
-                            </div>
-                            <CardTitle className="mt-3 font-arcade text-xl text-white">
-                              {b.project.title}
-                            </CardTitle>
-                            <CardDescription className="mt-2 max-w-2xl text-[#b8c4e3]">
-                              {b.project.description}
-                            </CardDescription>
-                          </div>
-                          {b.project.publishedGame ? (
-                            <Link
-                              href={`/play/${b.project.publishedGame.slug}`}
-                              className="inline-flex items-center gap-2 rounded-full border border-[#00e5ff]/30 bg-[#00e5ff]/10 px-4 py-2 text-sm text-[#d9fbff] transition hover:bg-[#00e5ff]/20"
-                            >
-                              Open live page
-                              <ExternalLink className="h-4 w-4" />
-                            </Link>
-                          ) : null}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="grid gap-4 md:grid-cols-3">
-                        <div className="rounded-2xl border border-white/10 bg-[#10192d] p-4">
-                          <p className="text-[10px] uppercase tracking-[0.24em] text-[#8ec5ff]">Template</p>
-                          <p className="mt-2 text-sm font-semibold text-white">
-                            {b.activeTemplate?.label || b.project.templateKey}
-                          </p>
-                        </div>
-                        <div className="rounded-2xl border border-white/10 bg-[#10192d] p-4">
-                          <p className="text-[10px] uppercase tracking-[0.24em] text-[#8ec5ff]">Revisions</p>
-                          <p className="mt-2 text-sm font-semibold text-white">
-                            {b.project.revisions.length} saved versions
-                          </p>
-                        </div>
-                        <div className="rounded-2xl border border-white/10 bg-[#10192d] p-4">
-                          <p className="text-[10px] uppercase tracking-[0.24em] text-[#8ec5ff]">Conversation</p>
-                          <p className="mt-2 text-sm font-semibold text-white">
-                            {b.project.messages.length} builder messages
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <EmptyState
-                      openRouterConfigured={openRouterConfigured}
-                      openRouterTestState={b.openRouterTestState}
-                    />
-                  )}
-
-                  {b.project ? (
-                    <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
-                      <div className="space-y-6">
-                        <ProjectEditor
-                          projectTitle={b.project.title}
-                          templateLabel={b.activeTemplate?.label || b.project.templateKey}
-                          quickActions={b.quickActions}
-                          prompt={b.prompt}
-                          onPromptChange={b.setPrompt}
-                          busy={b.busy}
-                          openRouterConfigured={openRouterConfigured}
-                          openRouterTestState={b.openRouterTestState}
-                          captureStatus={b.captureStatus}
-                          capturedThumbnail={b.capturedThumbnail}
-                          onApplyPrompt={(actionKey) => void b.applyPrompt(actionKey)}
-                          onCapture={b.startCapture}
-                          onPublish={() => void b.publishProject()}
-                        />
-                        <ConversationPanel messages={b.project.messages} />
-                      </div>
-
-                      <div className="space-y-6">
-                        <Card variant="arcade">
-                          <CardHeader variant="arcade">
-                            <div className="flex items-center gap-2 text-[10px] font-arcade text-[#8ec5ff]">
-                              <Layers3 className="h-4 w-4 text-[#00e5ff]" />
-                              LIVE PLAYTEST
-                            </div>
-                            <CardTitle className="font-arcade text-lg text-white">
-                              Preview the current revision
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <ProjectPreview
-                              projectId={b.project.id}
-                              revisionId={b.project.currentRevision?.id}
-                              previewNonce={b.previewNonce}
-                              title={b.project.title}
-                              gameUrl={b.project.currentRevision?.previewPath || ""}
-                              runtimeLabel={b.activeTemplate?.label || "Builder preview"}
-                              supportsMobile={b.project.supportsMobile}
-                              mobileOrientation={b.project.mobileOrientation}
-                              revisionSummary={b.project.currentRevision?.summary}
-                              playerRef={b.playerRef}
-                              onRestart={b.restartPreview}
-                              onFullscreen={b.enterFullscreen}
-                              onCaptureProgress={({ captured, total }) =>
-                                b.setCaptureStatus(`Captured ${captured} of ${total} preview frames...`)
-                              }
-                              onCaptureComplete={(images) => {
-                                b.setCapturedThumbnail(images[0] || null)
-                                b.setCaptureStatus(
-                                  images[0]
-                                    ? "Thumbnail captured from the live preview."
-                                    : "Capture finished with no frames returned.",
-                                )
-                              }}
-                              onCaptureError={(message) => b.setCaptureStatus(message)}
-                            />
-                          </CardContent>
-                        </Card>
-
-                        <RevisionHistory
-                          revisions={b.project.revisions}
-                          currentRevisionId={b.project.currentRevision?.id}
-                          busy={b.busy}
-                          onRestore={(revisionId) => void b.restoreRevision(revisionId)}
-                        />
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="space-y-6">
-                  <ScratchGenerator
-                    prompt={b.scratchPrompt}
-                    onPromptChange={b.setScratchPrompt}
-                    busy={b.busy}
-                    openRouterConfigured={openRouterConfigured}
-                    onGenerate={() => void b.createProjectFromScratch()}
-                  />
-                  <TemplateSelector
-                    templates={b.templates}
-                    busy={b.busy}
-                    onSelect={(key) => void b.createProject(key)}
-                  />
-                  <ProjectSidebar
-                    projects={b.projects}
-                    activeProjectId={b.project?.id}
-                    openRouterApiKey={b.openRouterApiKey}
-                    onApiKeyChange={b.setOpenRouterApiKey}
-                    openRouterModel={b.openRouterModel}
-                    onOpenRouterModelChange={b.setOpenRouterModel}
-                    openRouterTestState={b.openRouterTestState}
-                    onTestOpenRouter={() => void b.testOpenRouter()}
-                    onSelectProject={(id) => void b.loadProject(id)}
-                  />
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="import">
-              <Card variant="arcade">
-                <CardHeader variant="arcade">
-                  <div className="flex items-center gap-2 text-[10px] font-arcade text-[#8ec5ff]">
-                    <Upload className="h-4 w-4 text-[#00e5ff]" />
-                    BRING YOUR OWN BUILD
-                  </div>
-                  <CardTitle className="font-arcade text-xl text-white">Bring Your Own Build</CardTitle>
-                  <CardDescription>
-                    Already vibecoding somewhere else? Use the classic upload flow and keep the
-                    builder for prompt-native drafts.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="text-sm text-[var(--color-text-secondary)]">
-                    Upload finished HTML or zip builds, then use VibeGames for publish, thumbnails,
-                    ghost hooks, level-editor hooks, and game-page discovery.
-                  </div>
-                  <Link href="/upload">
-                    <Button>
-                      <Upload className="mr-2 h-4 w-4" />
-                      Open Upload Flow
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          )}
         </div>
-      </main>
-      <Footer />
+      </div>
     </div>
+
   )
 }
