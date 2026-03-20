@@ -2,7 +2,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { ArrowRight, Clock, Trophy, Vote, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import prisma from "@/lib/prisma"
+import prisma, { isPrismaDatasourceConfigured } from "@/lib/prisma"
 import { getLiveJamStatus } from "@/lib/jams"
 import { isRenderableImageSrc } from "@/lib/image-src"
 import { logServerError } from "@/lib/server-log"
@@ -73,6 +73,10 @@ const jamBannerSelect = {
 } as const
 
 async function getFeaturedJam() {
+  if (!isPrismaDatasourceConfigured()) {
+    return null
+  }
+
   try {
     const now = new Date()
 

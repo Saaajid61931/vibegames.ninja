@@ -2,10 +2,16 @@ import {
   type BuilderGameConfig,
   type BuilderProviderResult,
   type BuilderQuickActionKey,
+  type BuilderScratchResult,
   type BuilderTemplateKey,
   type BuilderThemeKey,
 } from "@/lib/builder/types"
-import { coerceBuilderConfig, retuneBuilderConfig } from "@/lib/builder/templates"
+import {
+  coerceBuilderConfig,
+  createBuilderDefaultConfig,
+  getBuilderTemplate,
+  retuneBuilderConfig,
+} from "@/lib/builder/templates"
 
 const NON_GAME_PATTERNS = [
   /\bspreadsheet\b/,
@@ -40,6 +46,28 @@ const QUICK_ACTION_RESPONSES: Record<BuilderQuickActionKey, string> = {
   "add-score-combo": "I added combo scoring so strong streaks feel worth chasing.",
   "add-restart-polish": "I polished the fail and retry loop so restarting feels immediate.",
 }
+
+const TEMPLATE_SELECTION_RULES: Array<{
+  templateKey: BuilderTemplateKey
+  patterns: RegExp[]
+}> = [
+  {
+    templateKey: "tile-puzzle",
+    patterns: [/\bpuzzle\b/, /\bgrid\b/, /\bmatch\b/, /\bmerge\b/, /\bbrain\b/, /\blogic\b/, /\btiles?\b/],
+  },
+  {
+    templateKey: "arena-shooter",
+    patterns: [/\bshooter\b/, /\barena\b/, /\bhorde\b/, /\bzombie\b/, /\bbullet\b/, /\bwave\b/, /\bsurvivor\b/],
+  },
+  {
+    templateKey: "tap-survival",
+    patterns: [/\bflappy\b/, /\bfly\b/, /\bbird\b/, /\btap\b/, /\bone[- ]thumb\b/, /\bvertical\b/, /\bportrait\b/],
+  },
+  {
+    templateKey: "endless-runner",
+    patterns: [/\brunner\b/, /\bjump\b/, /\bdash\b/, /\bparkour\b/, /\bobstacle\b/, /\bendless\b/, /\bsprint\b/],
+  },
+]
 
 function extractTitle(prompt: string) {
   const match = prompt.match(/(?:call it|name it|title it)\s+["']?([^"'\n]+)["']?/i)
@@ -79,6 +107,69 @@ function applyQuickAction(config: BuilderGameConfig, actionKey: BuilderQuickActi
       config.restartPolish = true
       changes.push("polished restart flow")
       break
+  }
+}
+
+export function selectBuilderTemplateForPrompt(prompt: string): BuilderTemplateKey {
+  const normalized = prompt.trim().toLowerCase()
+  let bestMatch: { templateKey: BuilderTemplateKey; score: number } = {
+    templateKey: "endless-runner",
+    score: 0,
+  }
+
+  for (const rule of TEMPLATE_SELECTION_RULES) {
+    const score = rule.patterns.reduce(
+      (total, pattern) => total + (pattern.test(normalized) ? 1 : 0),
+      0,
+    )
+
+    if (score > bestMatch.score) {
+      bestMatch = {
+        templateKey: rule.templateKey,
+        score,
+      }
+    }
+  }
+
+  return bestMatch.templateKey
+}
+
+export function createBuilderProjectFromPrompt(options: {
+  prompt: string
+  templateKey?: BuilderTemplateKey
+}): BuilderScratchResult {
+  const templateKey = options.templateKey ?? selectBuilderTemplateForPrompt(options.prompt)
+  const initialConfig = createBuilderDefaultConfig(templateKey)
+  const result = applyBuilderPrompt({
+    templateKey,
+    currentConfig: initialConfig,
+    prompt: options.prompt,
+  })
+
+  if (!result.ok) {
+    return {
+      ...result,
+      templateKey,
+    }
+  }
+
+  const nextConfig = result.nextConfig ?? initialConfig
+  const template = getBuilderTemplate(templateKey)
+
+  return {
+    ...result,
+    templateKey,
+    nextConfig,
+    summary:
+      result.summary || `Created a first draft using the ${template.label} starter under the hood.`,
+    response:
+      result.response ||
+      `I picked the ${template.label} starter as the closest fit for your concept and built the first playable version.`,
+    snapshot: {
+      ...(result.snapshot || {}),
+      autoTemplateSelection: !options.templateKey,
+      selectedTemplate: templateKey,
+    },
   }
 }
 

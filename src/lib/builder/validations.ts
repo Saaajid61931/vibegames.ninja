@@ -10,7 +10,7 @@ const QUICK_ACTION_KEYS = [
   "add-restart-polish",
 ] as const
 
-const openRouterModelSchema = z
+export const openRouterModelSchema = z
   .string()
   .trim()
   .min(1, "Pick a valid OpenRouter model.")
@@ -22,7 +22,22 @@ function isUuidOrCuid(value: string) {
 }
 
 export const builderProjectCreateSchema = z.object({
-  templateKey: z.enum(BUILDER_TEMPLATE_KEYS),
+  templateKey: z.enum(BUILDER_TEMPLATE_KEYS).optional(),
+  prompt: z
+    .string()
+    .trim()
+    .min(8, "Describe the game idea in a bit more detail.")
+    .max(400, "Keep the game idea under 400 characters.")
+    .optional(),
+  openRouterModel: openRouterModelSchema.optional(),
+}).superRefine((data, ctx) => {
+  if (!data.templateKey && !data.prompt) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Pick a starter or describe a game idea.",
+      path: ["templateKey"],
+    })
+  }
 })
 
 export const builderMessageSchema = z.object({
@@ -40,6 +55,10 @@ export const builderRestoreSchema = z.object({
     .string()
     .trim()
     .refine(isUuidOrCuid, "Pick a valid revision to restore."),
+})
+
+export const builderOpenRouterTestSchema = z.object({
+  openRouterModel: openRouterModelSchema.optional(),
 })
 
 export const builderPublishSchema = z.object({

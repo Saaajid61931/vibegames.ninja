@@ -1,5 +1,5 @@
 import { unstable_cache } from "next/cache"
-import prisma from "@/lib/prisma"
+import prisma, { isPrismaDatasourceConfigured } from "@/lib/prisma"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
 import { pickPrimaryJam, toPrimaryJamBadge } from "@/lib/jams"
 import { countUniqueCreators } from "@/lib/home-stats"
@@ -49,6 +49,10 @@ const homeGameCardSelect = {
 } as const
 
 const getFeaturedGames = unstable_cache(async () => {
+  if (!isPrismaDatasourceConfigured()) {
+    return []
+  }
+
   const curatedPicks = await prisma.featuredGame.findMany({
     where: {
       game: { status: "PUBLISHED" },
@@ -84,6 +88,10 @@ const getFeaturedGames = unstable_cache(async () => {
 }, ["home-featured-games"], { revalidate: 60, tags: ["games"] })
 
 const getMobileGames = unstable_cache(async () => {
+  if (!isPrismaDatasourceConfigured()) {
+    return []
+  }
+
   return prisma.game.findMany({
     where: {
       status: "PUBLISHED",
@@ -96,6 +104,10 @@ const getMobileGames = unstable_cache(async () => {
 }, ["home-mobile-games"], { revalidate: 60, tags: ["games"] })
 
 const getEditorGames = unstable_cache(async () => {
+  if (!isPrismaDatasourceConfigured()) {
+    return []
+  }
+
   return prisma.game.findMany({
     where: {
       status: "PUBLISHED",
@@ -108,6 +120,10 @@ const getEditorGames = unstable_cache(async () => {
 }, ["home-editor-games"], { revalidate: 60, tags: ["games"] })
 
 const getJustLaunchedGames = unstable_cache(async () => {
+  if (!isPrismaDatasourceConfigured()) {
+    return []
+  }
+
   const since = new Date(Date.now() - 72 * 60 * 60 * 1000)
   return prisma.game.findMany({
     where: {
@@ -123,6 +139,10 @@ const getJustLaunchedGames = unstable_cache(async () => {
 }, ["home-just-launched-games"], { revalidate: 60, tags: ["games"] })
 
 const getNeedsFeedbackGames = unstable_cache(async () => {
+  if (!isPrismaDatasourceConfigured()) {
+    return []
+  }
+
   return prisma.game.findMany({
     where: {
       status: "PUBLISHED",
@@ -135,6 +155,10 @@ const getNeedsFeedbackGames = unstable_cache(async () => {
 }, ["home-needs-feedback-games"], { revalidate: 60, tags: ["games"] })
 
 const getUpdatedThisWeekGames = unstable_cache(async () => {
+  if (!isPrismaDatasourceConfigured()) {
+    return []
+  }
+
   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   return prisma.game.findMany({
     where: {
@@ -150,6 +174,10 @@ const getUpdatedThisWeekGames = unstable_cache(async () => {
 }, ["home-updated-this-week-games"], { revalidate: 60, tags: ["games"] })
 
 const getBuiltWithToolsGames = unstable_cache(async () => {
+  if (!isPrismaDatasourceConfigured()) {
+    return []
+  }
+
   return prisma.game.findMany({
     where: {
       status: "PUBLISHED",
@@ -164,6 +192,14 @@ const getBuiltWithToolsGames = unstable_cache(async () => {
 }, ["home-built-with-tools-games"], { revalidate: 60, tags: ["games"] })
 
 const getStats = unstable_cache(async () => {
+  if (!isPrismaDatasourceConfigured()) {
+    return {
+      games: 0,
+      creators: 0,
+      plays: 0,
+    }
+  }
+
   const [gamesCount, creatorUsers, studioProfiles, totalPlays] = await Promise.all([
     prisma.game.count({ where: { status: "PUBLISHED" } }),
     prisma.user.findMany({ where: { role: { in: ["CREATOR", "ADMIN"] } }, select: { id: true } }),
@@ -181,6 +217,10 @@ const getStats = unstable_cache(async () => {
 }, ["home-stats"], { revalidate: 60, tags: ["games", "users"] })
 
 const getGameOfTheMonth = unstable_cache(async () => {
+  if (!isPrismaDatasourceConfigured()) {
+    return null
+  }
+
   const now = new Date()
   const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
 
@@ -294,6 +334,28 @@ export const HOME_FEATURES = [
 ] as const
 
 export async function getHomePageData() {
+  if (!isPrismaDatasourceConfigured()) {
+    return {
+      stats: {
+        games: 0,
+        creators: 0,
+        plays: 0,
+      },
+      gameOfTheMonth: null,
+      games: [],
+      mobileGames: [],
+      editorGames: [],
+      justLaunchedGames: [],
+      needsFeedbackGames: [],
+      updatedThisWeekGames: [],
+      builtWithToolsGames: [],
+      categoryLinks: CATEGORIES.slice(0, 6).map((category) => ({
+        ...category,
+        href: `/games?category=${category.value.toLowerCase()}`,
+      })),
+    }
+  }
+
   const [
     gamesResult,
     statsResult,

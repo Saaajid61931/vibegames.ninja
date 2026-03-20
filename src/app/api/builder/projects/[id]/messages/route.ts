@@ -56,6 +56,7 @@ export async function POST(
       type: "local",
       model: null,
       fallbackFrom: null,
+      message: null,
     }
 
     if (openRouterApiKey) {
@@ -73,6 +74,7 @@ export async function POST(
           type: "openrouter",
           model: resolvedOpenRouterModel,
           fallbackFrom: null,
+          message: null,
         }
       } catch (error) {
         if (error instanceof OpenRouterBuilderError && [401, 402, 403, 404, 408, 413, 422, 429].includes(error.status)) {
@@ -83,6 +85,10 @@ export async function POST(
           type: "local",
           model: resolvedOpenRouterModel,
           fallbackFrom: "openrouter",
+          message:
+            error instanceof OpenRouterBuilderError
+              ? error.message
+              : "OpenRouter was unavailable, so the local builder took over.",
         }
 
         logServerError("OpenRouter builder call failed, falling back to local builder", error, {

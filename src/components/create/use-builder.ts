@@ -8,6 +8,7 @@ import type {
   BuilderApplyPromptResponse,
   BuilderBusyState,
   BuilderClientQuickAction,
+  BuilderOpenRouterConnectionResponse,
   BuilderClientTemplate,
   BuilderProjectDetail,
   BuilderProjectSummary,
@@ -22,6 +23,12 @@ const OPENROUTER_STORAGE_KEY = "vibegames.builder.openrouter.apiKey"
 const OPENROUTER_MODEL_STORAGE_KEY = "vibegames.builder.openrouter.model"
 const AUTO_DISMISS_MS = 5_000
 const DEBOUNCE_MS = 400
+
+type OpenRouterTestState = {
+  status: "idle" | "testing" | "success" | "error"
+  message: string
+  model: string
+}
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -75,8 +82,14 @@ export function useBuilder(session: Session) {
 
   // ---- Form state ----
   const [prompt, setPrompt] = useState("")
+  const [scratchPrompt, setScratchPrompt] = useState("")
   const [openRouterApiKey, setOpenRouterApiKey] = useState("")
   const [openRouterModel, setOpenRouterModel] = useState("")
+  const [openRouterTestState, setOpenRouterTestState] = useState<OpenRouterTestState>({
+    status: "idle",
+    message: "",
+    model: DEFAULT_BUILDER_OPENROUTER_MODEL,
+  })
 
   // ---- Busy / loading / feedback ---- (fix #7: discriminated union)
   const [busy, setBusy] = useState<BuilderBusyState>(null)
@@ -136,6 +149,20 @@ export function useBuilder(session: Session) {
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
     }
+  }, [openRouterApiKey, openRouterModel])
+
+  useEffect(() => {
+    setOpenRouterTestState((prev) => {
+      if (prev.status === "idle" && !prev.message) {
+        return prev
+      }
+
+      return {
+        status: "idle",
+        message: "",
+        model: openRouterModel.trim() || DEFAULT_BUILDER_OPENROUTER_MODEL,
+      }
+    })
   }, [openRouterApiKey, openRouterModel])
 
   /* ------ Auto-dismiss error / info (fix #3) ------ */
@@ -224,16 +251,23 @@ export function useBuilder(session: Session) {
       setBusy({ type: "creating", templateKey })
       setError("")
       try {
-        const data = await getJson<{ project: BuilderProjectDetail }>("/api/builder/projects", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ templateKey }),
-        })
+        const data = await getJson<{ project: BuilderProjectDetail; note?: string }>(
+          "/api/builder/projects",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ templateKey }),
+          },
+        )
         setProject(data.project)
         setPrompt("")
+        setScratchPrompt("")
         setCapturedThumbnail(null)
         upsertProjectInList(data.project)
         router.replace(`/create?project=${data.project.id}`)
+        if (data.note) {
+          setInfo(data.note)
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to create project")
       } finally {
@@ -242,6 +276,68 @@ export function useBuilder(session: Session) {
     },
     [router, upsertProjectInList],
   )
+
+  const createProjectFromScratch = useCallback(async () => {
+    const concept = scratchPrompt.trim()
+    if (concept.length < 8) {
+      setError("Describe the game idea in a bit more detail first.")
+      return
+    }
+
+    setBusy({ type: "creating-from-scratch" })
+    setError("")
+    setInfo("")
+
+    try {
+      const headers: HeadersInit = { "Content-Type": "application/json" }
+      const trimmedKey = openRouterApiKey.trim()
+      const trimmedModel = openRouterModel.trim()
+
+      if (trimmedKey) {
+        headers["x-openrouter-api-key"] = trimmedKey
+      }
+
+      const data = await getJson<{ project: BuilderProjectDetail; note?: string }>(
+        "/api/builder/projects",
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            prompt: concept,
+            openRouterModel: trimmedModel || undefined,
+          }),
+        },
+      )
+
+      setProject(data.project)
+      setPrompt("")
+      setScratchPrompt("")
+      setCapturedThumbnail(null)
+      setPreviewNonce((n) => n + 1)
+      upsertProjectInList(data.project)
+      router.replace(`/create?project=${data.project.id}`)
+      if (trimmedKey) {
+        if (data.note?.includes("OpenRouter model")) {
+          setOpenRouterTestState({
+            status: "success",
+            message: `Last draft creation succeeded with ${trimmedModel || DEFAULT_BUILDER_OPENROUTER_MODEL}.`,
+            model: trimmedModel || DEFAULT_BUILDER_OPENROUTER_MODEL,
+          })
+        } else if (data.note?.includes("local generator instead")) {
+          setOpenRouterTestState({
+            status: "error",
+            message: data.note,
+            model: trimmedModel || DEFAULT_BUILDER_OPENROUTER_MODEL,
+          })
+        }
+      }
+      setInfo(data.note || "Created a first playable draft from your concept.")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to generate project")
+    } finally {
+      setBusy(null)
+    }
+  }, [scratchPrompt, openRouterApiKey, openRouterModel, router, upsertProjectInList])
 
   const applyPrompt = useCallback(
     async (actionKey?: string) => {
@@ -276,10 +372,23 @@ export function useBuilder(session: Session) {
         upsertProjectInList(data.project)
 
         if (data.provider.type === "openrouter" && data.provider.model) {
+          setOpenRouterTestState({
+            status: "success",
+            message: `Last generation succeeded with ${data.provider.model}.`,
+            model: data.provider.model,
+          })
           setInfo(`Prompt applied with OpenRouter model ${data.provider.model}.`)
         } else if (data.provider.fallbackFrom === "openrouter") {
+          setOpenRouterTestState({
+            status: "error",
+            message:
+              data.provider.message ||
+              "OpenRouter was unavailable, so the local builder handled this prompt instead.",
+            model: data.provider.model || trimmedModel || DEFAULT_BUILDER_OPENROUTER_MODEL,
+          })
           setInfo(
-            `OpenRouter was unavailable, so the local builder handled this prompt instead.`,
+            data.provider.message ||
+              "OpenRouter was unavailable, so the local builder handled this prompt instead.",
           )
         }
       } catch (err) {
@@ -290,6 +399,54 @@ export function useBuilder(session: Session) {
     },
     [project, prompt, openRouterApiKey, openRouterModel, quickActions, upsertProjectInList],
   )
+
+  const testOpenRouter = useCallback(async () => {
+    const trimmedKey = openRouterApiKey.trim()
+    const trimmedModel = openRouterModel.trim() || DEFAULT_BUILDER_OPENROUTER_MODEL
+
+    if (!trimmedKey) {
+      setOpenRouterTestState({
+        status: "error",
+        message: "Add your OpenRouter API key first.",
+        model: trimmedModel,
+      })
+      return
+    }
+
+    setOpenRouterTestState({
+      status: "testing",
+      message: "Testing OpenRouter connection...",
+      model: trimmedModel,
+    })
+
+    try {
+      const data = await getJson<BuilderOpenRouterConnectionResponse>(
+        "/api/builder/openrouter/test",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-openrouter-api-key": trimmedKey,
+          },
+          body: JSON.stringify({
+            openRouterModel: openRouterModel.trim() || undefined,
+          }),
+        },
+      )
+
+      setOpenRouterTestState({
+        status: "success",
+        message: data.message,
+        model: data.model,
+      })
+    } catch (err) {
+      setOpenRouterTestState({
+        status: "error",
+        message: err instanceof Error ? err.message : "OpenRouter test failed",
+        model: trimmedModel,
+      })
+    }
+  }, [openRouterApiKey, openRouterModel])
 
   const restoreRevision = useCallback(
     async (revisionId: string) => {
@@ -365,10 +522,14 @@ export function useBuilder(session: Session) {
     // Form state
     prompt,
     setPrompt,
+    scratchPrompt,
+    setScratchPrompt,
     openRouterApiKey,
     setOpenRouterApiKey,
     openRouterModel,
     setOpenRouterModel,
+    openRouterTestState,
+    testOpenRouter,
     // Busy / loading / feedback
     busy,
     loading,
@@ -390,6 +551,7 @@ export function useBuilder(session: Session) {
     // Actions
     loadProject,
     createProject,
+    createProjectFromScratch,
     applyPrompt,
     restoreRevision,
     publishProject,

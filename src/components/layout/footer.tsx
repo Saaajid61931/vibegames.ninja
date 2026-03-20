@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Github, Twitter, Heart } from "lucide-react"
+import { Github, Heart, Twitter } from "lucide-react"
 import { NinjaConsole } from "@/components/icons/ninja-console"
 
 export function Footer() {
@@ -8,57 +8,64 @@ export function Footer() {
   return (
     <footer className="border-t border-[var(--color-border)] bg-[var(--color-surface)]">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand */}
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-4">
+            <Link href="/" className="mb-4 flex items-center gap-2">
               <NinjaConsole className="h-6 w-6" />
               <span className="font-pixel text-xs">
                 <span className="text-[var(--color-primary)]">VIBE</span>
                 <span className="text-[var(--color-text)]">GAMES</span>
               </span>
             </Link>
-            <p className="text-sm text-[var(--color-text-secondary)] mb-4">
+            <p className="mb-4 text-sm text-[var(--color-text-secondary)]">
               A community for AI-made games. Build, play, and get inspired.
             </p>
             <div className="flex gap-2">
-              <a 
-                href="https://github.com/Saaajid61931/vibegames.ninja" 
-                target="_blank" 
-                rel="noopener noreferrer" 
+              <a
+                href="https://github.com/Saaajid61931/vibegames.ninja"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="VibeGames on GitHub"
-                className="p-2 rounded-md border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-colors"
+                className="rounded-md border border-[var(--color-border)] p-2 text-[var(--color-text-secondary)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
               >
                 <Github className="h-4 w-4" />
               </a>
-              <a 
-                href="https://twitter.com/vibegamesai" 
-                target="_blank" 
+              <a
+                href="https://twitter.com/vibegamesai"
+                target="_blank"
                 rel="noopener noreferrer"
                 aria-label="VibeGames on Twitter"
-                className="p-2 rounded-md border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors"
+                className="rounded-md border border-[var(--color-border)] p-2 text-[var(--color-text-secondary)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
               >
                 <Twitter className="h-4 w-4" />
               </a>
             </div>
           </div>
 
-          {/* Links */}
           <div>
-            <h3 className="text-sm font-semibold text-[var(--color-text)] mb-4">Platform</h3>
+            <h3 className="mb-4 text-sm font-semibold text-[var(--color-text)]">Platform</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/games" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors">
+                <Link
+                  href="/games"
+                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                >
                   Browse Games
                 </Link>
               </li>
               <li>
-                <Link href="/games?mobile=true" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors">
+                <Link
+                  href="/games?mobile=true"
+                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                >
                   Mobile Games
                 </Link>
               </li>
               <li>
-                <Link href="/upload" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors">
+                <Link
+                  href="/upload"
+                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                >
                   Upload Game
                 </Link>
               </li>
@@ -66,25 +73,37 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-[var(--color-text)] mb-4">Resources</h3>
+            <h3 className="mb-4 text-sm font-semibold text-[var(--color-text)]">Resources</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/creator" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors">
+                <Link
+                  href="/creator"
+                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                >
                   Creator Dashboard
                 </Link>
               </li>
               <li>
-                <Link href="/games?sort=popular" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors">
+                <Link
+                  href="/games?sort=popular"
+                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                >
                   Popular Games
                 </Link>
               </li>
               <li>
-                <Link href="/games?editor=true" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors">
+                <Link
+                  href="/games?editor=true"
+                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                >
                   Level Editor Games
                 </Link>
               </li>
               <li>
-                <Link href="/jams" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors">
+                <Link
+                  href="/jams"
+                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                >
                   Active Jams
                 </Link>
               </li>
@@ -92,15 +111,21 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-[var(--color-text)] mb-4">Legal</h3>
+            <h3 className="mb-4 text-sm font-semibold text-[var(--color-text)]">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/terms" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors">
+                <Link
+                  href="/terms"
+                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                >
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors">
+                <Link
+                  href="/privacy"
+                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                >
                   Privacy Policy
                 </Link>
               </li>
@@ -108,10 +133,9 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-[var(--color-border)] flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-[var(--color-border)] pt-8 md:flex-row">
           <p className="text-xs text-[var(--color-text-tertiary)]">
-            © {currentYear} VibeGames.Ninja. All rights reserved.
+            Copyright {currentYear} VibeGames.Ninja. All rights reserved.
           </p>
           <div className="flex items-center gap-1.5 text-[var(--color-text-tertiary)]">
             <span className="text-xs">Made with</span>

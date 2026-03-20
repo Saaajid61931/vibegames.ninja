@@ -95,6 +95,10 @@ export interface BuilderProviderResult {
   rejectedReason?: string
 }
 
+export interface BuilderScratchResult extends BuilderProviderResult {
+  templateKey: BuilderTemplateKey
+}
+
 /* ------------------------------------------------------------------ */
 /*  Client-side DTO types shared between create page and API routes   */
 /* ------------------------------------------------------------------ */
@@ -109,12 +113,14 @@ export interface BuilderClientTemplate {
 export interface BuilderClientQuickAction {
   key: string
   label: string
+  description: string
 }
 
 export interface BuilderApplyProviderMeta {
   type: "local" | "openrouter"
   model?: string | null
   fallbackFrom?: "openrouter" | null
+  message?: string | null
 }
 
 export interface BuilderProjectSummary {
@@ -154,9 +160,16 @@ export interface BuilderApplyPromptResponse {
   provider: BuilderApplyProviderMeta
 }
 
+export interface BuilderOpenRouterConnectionResponse {
+  ok: boolean
+  model: string
+  message: string
+}
+
 export type BuilderBusyState =
   | null
   | { type: "creating"; templateKey: string }
+  | { type: "creating-from-scratch" }
   | { type: "prompting" }
   | { type: "prompting-action"; actionKey: string }
   | { type: "restoring"; revisionId: string }

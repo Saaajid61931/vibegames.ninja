@@ -11,7 +11,7 @@ interface TemplateSelectorProps {
 }
 
 export function TemplateSelector({ templates, busy, onSelect }: TemplateSelectorProps) {
-  const isCreating = busy?.type === "creating"
+  const isCreating = busy?.type === "creating" || busy?.type === "creating-from-scratch"
 
   return (
     <Card variant="arcade">
@@ -21,7 +21,7 @@ export function TemplateSelector({ templates, busy, onSelect }: TemplateSelector
       </CardHeader>
       <CardContent className="grid gap-3">
         {templates.map((template) => {
-          const loading = isCreating && busy.templateKey === template.key
+          const loading = busy?.type === "creating" && busy.templateKey === template.key
           return (
             <button
               key={template.key}
