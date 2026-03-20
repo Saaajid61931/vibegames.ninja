@@ -2,13 +2,13 @@ import { Prisma } from "@prisma/client"
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
+import { normalizeBuilderAiSettings } from "@/lib/builder/ai-providers"
 import { createBuilderDefaultConfig } from "@/lib/builder/templates"
 import { createBuilderProjectFromPrompt } from "@/lib/builder/provider"
 import { builderProjectListSelect, serializeBuilderProjectListItem, builderProjectDetailInclude, serializeBuilderProject } from "@/lib/builder/data"
 import { builderProjectCreateSchema } from "@/lib/builder/validations"
 import { getBuilderPreviewPath, getRequestOrigin } from "@/lib/builder/urls"
-import { generateBuilderProjectFromScratchWithOpenRouter, OpenRouterBuilderError } from "@/lib/builder/openrouter"
-import { DEFAULT_BUILDER_OPENROUTER_MODEL } from "@/lib/builder/types"
+import { BuilderAiProviderError, generateBuilderProjectFromScratchWithAiProvider } from "@/lib/builder/ai-client"
 import { logServerError } from "@/lib/server-log"
 
 export async function GET(request: NextRequest) {
@@ -52,9 +52,7 @@ export async function POST(request: NextRequest) {
 
     const conceptPrompt = parsed.data.prompt?.trim() || ""
     const requestedTemplateKey = parsed.data.templateKey
-    const openRouterApiKey = request.headers.get("x-openrouter-api-key")?.trim() || ""
-    const resolvedOpenRouterModel =
-      parsed.data.openRouterModel?.trim() || DEFAULT_BUILDER_OPENROUTER_MODEL
+    const aiSettings = normalizeBuilderAiSettings(parsed.data.aiSettings)
 
     let config = requestedTemplateKey ? createBuilderDefaultConfig(requestedTemplateKey) : null
     let templateKey = requestedTemplateKey || "endless-runner"
@@ -81,19 +79,18 @@ export async function POST(request: NextRequest) {
     if (conceptPrompt) {
       let generated = null
 
-      if (openRouterApiKey) {
+      if (aiSettings.providerId !== "local") {
         try {
-          generated = await generateBuilderProjectFromScratchWithOpenRouter({
+          generated = await generateBuilderProjectFromScratchWithAiProvider({
             prompt: conceptPrompt,
             templateKey: requestedTemplateKey,
-            apiKey: openRouterApiKey,
-            model: resolvedOpenRouterModel,
+            settings: aiSettings,
             origin: getRequestOrigin(request),
           })
 
-          note = `Created the first draft with OpenRouter model ${resolvedOpenRouterModel}.`
+          note = `Created the first draft with ${generated.label} model ${generated.model}.`
         } catch (error) {
-          if (error instanceof OpenRouterBuilderError && [401, 402, 403, 404, 408, 413, 422, 429].includes(error.status)) {
+          if (error instanceof BuilderAiProviderError && [400, 401, 402, 403, 404, 408, 413, 422, 429].includes(error.status)) {
             return NextResponse.json({ error: error.message }, { status: error.status })
           }
 
@@ -102,14 +99,14 @@ export async function POST(request: NextRequest) {
             templateKey: requestedTemplateKey,
           })
           note =
-            error instanceof OpenRouterBuilderError
+            error instanceof BuilderAiProviderError
               ? `${error.message} The first draft was created with the local generator instead.`
-              : "OpenRouter was unavailable, so the local generator created the first draft instead."
+              : "The external AI provider was unavailable, so the local generator created the first draft instead."
 
-          logServerError("OpenRouter first-draft creation failed, falling back to local generator", error, {
+          logServerError("External builder provider failed during first draft creation", error, {
             route: "/api/builder/projects",
             method: "POST",
-            provider: "openrouter",
+            provider: aiSettings.providerId,
           })
         }
       } else {

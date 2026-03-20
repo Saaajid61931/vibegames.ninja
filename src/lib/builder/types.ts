@@ -20,7 +20,33 @@ export const BUILDER_QUICK_ACTIONS = [
 
 export type BuilderQuickActionKey = (typeof BUILDER_QUICK_ACTIONS)[number]["key"]
 
+export const BUILDER_AI_PROVIDER_IDS = [
+  "local",
+  "openrouter",
+  "openai",
+  "azure-openai",
+  "azure-cognitive-services",
+  "openai-compatible",
+] as const
+
+export type BuilderAiProviderId = (typeof BUILDER_AI_PROVIDER_IDS)[number]
+
+export const BUILDER_EXTERNAL_AI_PROVIDER_IDS = BUILDER_AI_PROVIDER_IDS.filter(
+  (providerId) => providerId !== "local",
+) as Exclude<BuilderAiProviderId, "local">[]
+
+export type BuilderExternalAiProviderId = (typeof BUILDER_EXTERNAL_AI_PROVIDER_IDS)[number]
+
+export const DEFAULT_BUILDER_AI_PROVIDER_ID: BuilderAiProviderId = "local"
 export const DEFAULT_BUILDER_OPENROUTER_MODEL = "openai/gpt-5.2-chat"
+
+export interface BuilderAiSettings {
+  providerId: BuilderAiProviderId
+  model?: string | null
+  apiKey?: string | null
+  baseUrl?: string | null
+  resourceName?: string | null
+}
 
 export type BuilderThemeKey =
   | "neon"
@@ -117,9 +143,10 @@ export interface BuilderClientQuickAction {
 }
 
 export interface BuilderApplyProviderMeta {
-  type: "local" | "openrouter"
+  type: BuilderAiProviderId
+  label?: string | null
   model?: string | null
-  fallbackFrom?: "openrouter" | null
+  fallbackFrom?: BuilderExternalAiProviderId | null
   message?: string | null
 }
 
@@ -160,11 +187,15 @@ export interface BuilderApplyPromptResponse {
   provider: BuilderApplyProviderMeta
 }
 
-export interface BuilderOpenRouterConnectionResponse {
+export interface BuilderAiConnectionResponse {
   ok: boolean
+  providerId: BuilderAiProviderId
+  providerLabel: string
   model: string
   message: string
 }
+
+export type BuilderOpenRouterConnectionResponse = BuilderAiConnectionResponse
 
 export type BuilderBusyState =
   | null

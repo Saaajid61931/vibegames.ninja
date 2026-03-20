@@ -3,15 +3,15 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { builderProjectDetailInclude, serializeBuilderProject } from "@/lib/builder/data"
+import { normalizeBuilderAiSettings } from "@/lib/builder/ai-providers"
 import { applyBuilderPrompt } from "@/lib/builder/provider"
-import { generateBuilderResultWithOpenRouter, OpenRouterBuilderError } from "@/lib/builder/openrouter"
+import { BuilderAiProviderError, generateBuilderResultWithAiProvider } from "@/lib/builder/ai-client"
 import type {
   BuilderApplyPromptResponse,
   BuilderApplyProviderMeta,
   BuilderProviderResult,
   BuilderTemplateKey,
 } from "@/lib/builder/types"
-import { DEFAULT_BUILDER_OPENROUTER_MODEL } from "@/lib/builder/types"
 import { builderMessageSchema } from "@/lib/builder/validations"
 import { getBuilderPreviewPath, getRequestOrigin } from "@/lib/builder/urls"
 import { logServerError } from "@/lib/server-log"
@@ -48,53 +48,54 @@ export async function POST(
       return NextResponse.json({ error: "PROJECT_NOT_FOUND" }, { status: 404 })
     }
 
-    const openRouterApiKey = request.headers.get("x-openrouter-api-key")?.trim() || ""
-    const openRouterModel = parsed.data.openRouterModel?.trim() || null
-    const resolvedOpenRouterModel = openRouterModel || DEFAULT_BUILDER_OPENROUTER_MODEL
+    const aiSettings = normalizeBuilderAiSettings(parsed.data.aiSettings)
     let result: BuilderProviderResult | undefined
     let provider: BuilderApplyProviderMeta = {
       type: "local",
+      label: "Local Builder",
       model: null,
       fallbackFrom: null,
       message: null,
     }
 
-    if (openRouterApiKey) {
+    if (aiSettings.providerId !== "local") {
       try {
-        result = await generateBuilderResultWithOpenRouter({
+        const externalResult = await generateBuilderResultWithAiProvider({
           templateKey: project.templateKey as BuilderTemplateKey,
           currentConfig: project.currentRevision.config,
           prompt: parsed.data.prompt,
           actionKey: parsed.data.actionKey,
-          apiKey: openRouterApiKey,
-          model: resolvedOpenRouterModel,
+          settings: aiSettings,
           origin: getRequestOrigin(request),
         })
+        result = externalResult
         provider = {
-          type: "openrouter",
-          model: resolvedOpenRouterModel,
+          type: externalResult.providerId,
+          label: externalResult.label,
+          model: externalResult.model,
           fallbackFrom: null,
           message: null,
         }
       } catch (error) {
-        if (error instanceof OpenRouterBuilderError && [401, 402, 403, 404, 408, 413, 422, 429].includes(error.status)) {
+        if (error instanceof BuilderAiProviderError && [400, 401, 402, 403, 404, 408, 413, 422, 429].includes(error.status)) {
           return NextResponse.json({ error: error.message }, { status: error.status })
         }
 
         provider = {
           type: "local",
-          model: resolvedOpenRouterModel,
-          fallbackFrom: "openrouter",
+          label: "Local Builder",
+          model: aiSettings.model || null,
+          fallbackFrom: aiSettings.providerId,
           message:
-            error instanceof OpenRouterBuilderError
+            error instanceof BuilderAiProviderError
               ? error.message
-              : "OpenRouter was unavailable, so the local builder took over.",
+              : "The external AI provider was unavailable, so the local builder took over.",
         }
 
-        logServerError("OpenRouter builder call failed, falling back to local builder", error, {
+        logServerError("External builder provider failed, falling back to local builder", error, {
           route: "/api/builder/projects/[id]/messages",
           method: "POST",
-          provider: "openrouter",
+          provider: aiSettings.providerId,
         })
       }
     }

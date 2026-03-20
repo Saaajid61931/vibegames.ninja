@@ -11,12 +11,7 @@ interface ProjectEditorProps {
   prompt: string
   onPromptChange: (value: string) => void
   busy: BuilderBusyState
-  openRouterConfigured: boolean
-  openRouterTestState: {
-    status: "idle" | "testing" | "success" | "error"
-    message: string
-    model: string
-  }
+  externalAiConfigured: boolean
   captureStatus: string
   capturedThumbnail: string | null
   onApplyPrompt: (actionKey?: string) => void
@@ -29,7 +24,7 @@ export function ProjectEditor({
   prompt,
   onPromptChange,
   busy,
-  openRouterConfigured,
+  externalAiConfigured,
   captureStatus,
   capturedThumbnail,
   onApplyPrompt,
@@ -136,7 +131,7 @@ export function ProjectEditor({
           className="btn-arcade flex h-[52px] w-[52px] shrink-0 cursor-pointer items-center justify-center border-2 disabled:opacity-40"
           disabled={isBusy || prompt.trim().length < 2}
           onClick={() => onApplyPrompt()}
-          title={openRouterConfigured ? "SEND TO ARCADE CPU" : "PROCESS LOCALLY"}
+          title={externalAiConfigured ? "SEND TO EXTERNAL AI" : "PROCESS LOCALLY"}
         >
           {isPrompting ? <Loader2 className="h-6 w-6 animate-spin" /> : <Send className="h-6 w-6" />}
         </button>

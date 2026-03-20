@@ -13,7 +13,7 @@ interface ScratchGeneratorProps {
   prompt: string
   onPromptChange: (value: string) => void
   busy: BuilderBusyState
-  openRouterConfigured: boolean
+  externalAiConfigured: boolean
   onGenerate: () => void
 }
 
@@ -21,7 +21,7 @@ export function ScratchGenerator({
   prompt,
   onPromptChange,
   busy,
-  openRouterConfigured,
+  externalAiConfigured,
   onGenerate,
 }: ScratchGeneratorProps) {
   const isGenerating = busy?.type === "creating-from-scratch"
@@ -98,7 +98,7 @@ export function ScratchGenerator({
               ) : (
                 <Wand2 className="h-4 w-4" />
               )}
-              {openRouterConfigured ? "GENERATE" : "GENERATE (LOCAL)"}
+              {externalAiConfigured ? "GENERATE" : "GENERATE (LOCAL)"}
             </button>
           </div>
         </div>
@@ -134,4 +134,3 @@ export function ScratchGenerator({
     </div>
   )
 }
-

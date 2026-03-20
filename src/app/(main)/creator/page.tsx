@@ -14,7 +14,6 @@ import {
   Settings,
   MessageSquarePlus,
   Trophy,
-  Sparkles,
 } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { Header } from "@/components/layout/header"
@@ -54,7 +53,7 @@ function getJamDeadlineCopy(jam: {
 }
 
 async function getCreatorData(userId: string) {
-  const [games, totalStats, levelCount, recentFeedback, jamEntries, activeJam, builderProjects] = await Promise.all([
+  const [games, totalStats, levelCount, recentFeedback, jamEntries, activeJam] = await Promise.all([
     prisma.game.findMany({
       where: { creatorId: userId },
       select: {
@@ -154,29 +153,6 @@ async function getCreatorData(userId: string) {
         title: true,
       },
     }),
-    prisma.builderProject.findMany({
-      where: { ownerId: userId },
-      orderBy: { updatedAt: "desc" },
-      take: 6,
-      select: {
-        id: true,
-        title: true,
-        templateKey: true,
-        status: true,
-        updatedAt: true,
-        currentRevision: {
-          select: {
-            summary: true,
-          },
-        },
-        publishedGame: {
-          select: {
-            slug: true,
-            title: true,
-          },
-        },
-      },
-    }),
   ])
 
   const feedbackSummary = summarizeFeedback(recentFeedback)
@@ -193,7 +169,6 @@ async function getCreatorData(userId: string) {
     activeJam,
     recentFeedback,
     feedbackSummary,
-    builderProjects,
   }
 }
 
@@ -204,7 +179,7 @@ export default async function CreatorDashboard() {
     redirect("/login")
   }
 
-  const { games, stats, recentFeedback, feedbackSummary, jamEntries, activeJam, builderProjects } = await getCreatorData(session.user.id)
+  const { games, stats, recentFeedback, feedbackSummary, jamEntries, activeJam } = await getCreatorData(session.user.id)
   const publishedGames = games.filter((game) => game.status === "PUBLISHED")
   const draftGames = games.filter((game) => game.status !== "PUBLISHED")
   const topGame = [...publishedGames].sort((a, b) => (b.plays + b.likes * 3) - (a.plays + a.likes * 3))[0]
@@ -216,9 +191,9 @@ export default async function CreatorDashboard() {
       
       <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-8 border-b-2 border-[#4a4a6a]">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b-2 border-[#4a4a6a] pb-8">
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="mb-2 flex items-center gap-2">
               <Terminal className="h-5 w-5 text-[#ffff00]" />
               <span className="text-[#ffff00] font-arcade text-sm">CREATOR.DASHBOARD</span>
             </div>
@@ -227,16 +202,16 @@ export default async function CreatorDashboard() {
             </h1>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link href="/create">
+            <Link href={activeJam ? `/upload?jam=${encodeURIComponent(activeJam.slug)}` : "/upload"}>
               <Button className="gap-2 font-arcade">
-                <Sparkles className="h-4 w-4" />
-                [CREATE_GAME]
+                <Plus className="h-4 w-4" />
+                [{activeJam ? "UPLOAD_FOR_JAM" : "UPLOAD_GAME"}]
               </Button>
             </Link>
-            <Link href="/upload">
+            <Link href="/jams">
               <Button variant="arcade-outline" className="gap-2 font-arcade">
-                <Plus className="h-4 w-4" />
-                [UPLOAD_GAME]
+                <Trophy className="h-4 w-4" />
+                [JAMS]
               </Button>
             </Link>
             <Link href="/creator/analytics">
@@ -322,7 +297,7 @@ export default async function CreatorDashboard() {
             <Trophy className="h-4 w-4 text-[#22c55e]" />
             <span className="font-arcade text-sm">YOUR JAM ENTRIES</span>
           </div>
-          <div className="bg-[#0d0d15]">
+          <div className="bg-[#0d0d15] p-4">
             {jamEntries.length > 0 ? (
               <div className="divide-y divide-[#222]">
                 {jamEntries.map((entry) => {
@@ -413,53 +388,32 @@ export default async function CreatorDashboard() {
         <div className="mb-8 border-2 border-[#4a4a6a]">
           <div className="border-b-2 border-[#4a4a6a] bg-[#1a1a2e] px-4 py-3 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-[#00d1ff]" />
-              <span className="font-arcade text-sm">BUILDER DRAFTS</span>
+              <Plus className="h-4 w-4 text-[#00d1ff]" />
+              <span className="font-arcade text-sm">UPLOAD FLOW</span>
             </div>
             <Button asChild variant="arcade-outline" size="sm">
-              <Link href="/create">Open Builder</Link>
+              <Link href={activeJam ? `/upload?jam=${encodeURIComponent(activeJam.slug)}` : "/upload"}>
+                {activeJam ? "Upload for Jam" : "Open Upload"}
+              </Link>
             </Button>
           </div>
-          <div className="bg-[#0d0d15]">
-            {builderProjects.length > 0 ? (
-              <div className="divide-y divide-[#222]">
-                {builderProjects.map((project) => (
-                  <div key={project.id} className="p-4">
-                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                      <div>
-                        <Link href={`/create?project=${project.id}`} className="font-arcade text-sm text-white hover:text-[#ffff00]">
-                          {project.title}
-                        </Link>
-                        <p className="mt-1 font-arcade text-[10px] text-[#00d1ff]">{project.templateKey}</p>
-                        <p className="mt-1 font-arcade text-[10px] text-[#8b93a6]">
-                          {project.currentRevision?.summary || "Starter ready to tune."} · {timeAgo(new Date(project.updatedAt))}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Button asChild variant="arcade-outline" size="sm">
-                          <Link href={`/create?project=${project.id}`}>Continue Building</Link>
-                        </Button>
-                        {project.publishedGame ? (
-                          <Button asChild variant="arcade" size="sm">
-                            <Link href={`/play/${project.publishedGame.slug}`}>Open Live Game</Link>
-                          </Button>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-4">
-                <p className="font-arcade text-sm text-white">No builder drafts yet.</p>
-                <p className="mt-2 font-arcade text-xs text-[#8b93a6]">
-                  Use VibeGames Builder when you want the fastest prompt-to-play loop for casual browser game ideas.
-                </p>
-              </div>
-            )}
+          <div className="bg-[#0d0d15] p-4">
+            <p className="font-arcade text-sm text-white">Upload finished browser games directly from here.</p>
+            <p className="mt-2 font-arcade text-xs text-[#8b93a6]">
+              Use the upload page for new launches, jam submissions, and updates to existing titles. The old native builder flow is no longer part of the main product path.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button asChild variant="arcade">
+                <Link href={activeJam ? `/upload?jam=${encodeURIComponent(activeJam.slug)}` : "/upload"}>
+                  {activeJam ? "Upload for Live Jam" : "Upload a Game"}
+                </Link>
+              </Button>
+              <Button asChild variant="arcade-outline">
+                <Link href="/games">Browse Live Games</Link>
+              </Button>
+            </div>
           </div>
         </div>
-
         {recentFeedback.length > 0 && (
           <div className="mb-8 border-2 border-[#4a4a6a]">
             <div className="border-b-2 border-[#4a4a6a] bg-[#1a1a2e] px-4 py-3 flex items-center gap-2">
@@ -649,3 +603,4 @@ export default async function CreatorDashboard() {
     </div>
   )
 }
+

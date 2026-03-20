@@ -31,8 +31,8 @@ export function HomeHeroSection({ stats }: HomeHeroSectionProps) {
           </h1>
 
           <p className="mx-auto mb-8 max-w-2xl font-arcade text-base text-[#aab6d0] sm:mb-12 sm:text-xl md:text-2xl">
-            Prompt game templates, play them instantly, and publish the ones that hit.
-            VibeGames is built for browser-native vibecoding.
+            Discover browser games, upload your own builds, and publish the ones that hit.
+            VibeGames is built for creator-friendly sharing.
           </p>
 
           <div className="mx-auto flex max-w-md flex-col gap-4 sm:max-w-none sm:flex-row sm:justify-center">
@@ -42,10 +42,10 @@ export function HomeHeroSection({ stats }: HomeHeroSectionProps) {
                 START EXPLORING
               </Button>
             </Link>
-            <Link href="/create" prefetch={false} className="block sm:inline-block">
+            <Link href="/upload" prefetch={false} className="block sm:inline-block">
               <Button variant="outline" size="xl" className="w-full gap-3">
                 <Sparkles className="h-5 w-5" />
-                START BUILDING
+                START UPLOADING
               </Button>
             </Link>
           </div>

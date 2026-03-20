@@ -6,6 +6,7 @@ import {
   ChevronDown,
   ChevronRight,
   CircleAlert,
+  Cpu,
   Key,
   Loader2,
   PanelLeftClose,
@@ -16,9 +17,18 @@ import {
 import { Input } from "@/components/ui/input"
 import { TemplateSelector } from "@/components/create/template-selector"
 import { RevisionHistory } from "@/components/create/revision-history"
-import { DEFAULT_BUILDER_OPENROUTER_MODEL } from "@/lib/builder/types"
+import {
+  BUILDER_AI_PROVIDER_OPTIONS,
+  builderAiSettingsAreConfigured,
+} from "@/lib/builder/ai-providers"
+import type {
+  BuilderAiFieldKey,
+  BuilderAiProviderOption,
+} from "@/lib/builder/ai-providers"
 import { timeAgo } from "@/lib/utils"
 import type {
+  BuilderAiProviderId,
+  BuilderAiSettings,
   BuilderBusyState,
   BuilderClientTemplate,
   BuilderProjectSummary,
@@ -31,16 +41,17 @@ interface ProjectSidebarProps {
   activeProject: BuilderProjectDetail | null
   templates: BuilderClientTemplate[]
   busy: BuilderBusyState
-  openRouterApiKey: string
-  onApiKeyChange: (value: string) => void
-  openRouterModel: string
-  onOpenRouterModelChange: (value: string) => void
-  openRouterTestState: {
+  aiSettings: BuilderAiSettings
+  activeAiProvider: BuilderAiProviderOption
+  onAiProviderChange: (value: BuilderAiProviderId) => void
+  onAiSettingChange: (field: BuilderAiFieldKey, value: string) => void
+  aiTestState: {
     status: "idle" | "testing" | "success" | "error"
     message: string
     model: string
+    providerId: BuilderAiProviderId
   }
-  onTestOpenRouter: () => void
+  onTestAiProvider: () => void
   onSelectProject: (id: string) => void
   onCreateFromTemplate: (key: string) => void
   onNewProject: () => void
@@ -57,12 +68,12 @@ export function ProjectSidebar({
   activeProject,
   templates,
   busy,
-  openRouterApiKey,
-  onApiKeyChange,
-  openRouterModel,
-  onOpenRouterModelChange,
-  openRouterTestState,
-  onTestOpenRouter,
+  aiSettings,
+  activeAiProvider,
+  onAiProviderChange,
+  onAiSettingChange,
+  aiTestState,
+  onTestAiProvider,
   onSelectProject,
   onCreateFromTemplate,
   onNewProject,
@@ -74,6 +85,9 @@ export function ProjectSidebar({
     new Set(["starters", "drafts"]),
   )
 
+  const providerConfigured = builderAiSettingsAreConfigured(aiSettings)
+  const usingLocalProvider = aiSettings.providerId === "local"
+
   const toggleSection = (id: SectionId) => {
     setExpandedSections((prev) => {
       const next = new Set(prev)
@@ -82,8 +96,6 @@ export function ProjectSidebar({
       return next
     })
   }
-
-  const keyConfigured = openRouterApiKey.trim().length > 0
 
   if (collapsed) {
     return (
@@ -210,104 +222,177 @@ export function ProjectSidebar({
               {/* Status indicator */}
               <div
                 className={`border-2 px-3 py-2 ${
-                  openRouterTestState.status === "success"
+                  aiTestState.status === "success"
                     ? "border-emerald-500 bg-emerald-500/5"
-                    : openRouterTestState.status === "error"
+                    : aiTestState.status === "error"
                       ? "border-rose-500 bg-rose-500/5"
                       : "border-[#4a4a6a] bg-[#1a1a2e]"
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  {openRouterTestState.status === "success" ? (
+                  {aiTestState.status === "success" ? (
                     <BadgeCheck className="h-3.5 w-3.5 text-emerald-400" />
-                  ) : openRouterTestState.status === "error" ? (
+                  ) : aiTestState.status === "error" ? (
                     <CircleAlert className="h-3.5 w-3.5 text-rose-400" />
-                  ) : openRouterTestState.status === "testing" ? (
+                  ) : aiTestState.status === "testing" ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin text-[#0080ff]" />
+                  ) : usingLocalProvider ? (
+                    <Cpu className="h-3.5 w-3.5 text-[#ffff00]" />
                   ) : (
                     <PlugZap className="h-3.5 w-3.5 text-[#6b7fa3]" />
                   )}
                   <span
                     className={`font-pixel text-[9px] font-bold ${
-                      openRouterTestState.status === "success"
+                      aiTestState.status === "success"
                         ? "text-emerald-300"
-                        : openRouterTestState.status === "error"
+                        : aiTestState.status === "error"
                           ? "text-rose-300"
                           : "text-[#8fa5d1]"
                     }`}
                   >
-                    {openRouterTestState.status === "success"
+                    {aiTestState.status === "success"
                       ? "CONNECTED"
-                      : openRouterTestState.status === "error"
+                      : aiTestState.status === "error"
                         ? "ERROR"
-                        : keyConfigured
-                          ? "KEY ADDED"
-                          : "LOCAL MODE"}
+                        : usingLocalProvider
+                          ? "LOCAL MODE"
+                          : providerConfigured
+                            ? "READY"
+                            : "SETUP NEEDED"}
                   </span>
                 </div>
-                {openRouterTestState.message && (
+                {aiTestState.message && (
                   <p className="mt-1.5 font-pixel text-[8px] leading-3 text-[#6b7fa3]">
-                    {openRouterTestState.message.toUpperCase()}
+                    {aiTestState.message.toUpperCase()}
                   </p>
                 )}
               </div>
 
-              {/* API key */}
               <div className="space-y-2">
-                <label className="flex items-center gap-1.5 font-pixel text-[9px] text-[#8fa5d1]">
-                  <Key className="h-3 w-3" />
-                  API KEY
-                </label>
-                <Input
-                  variant="studio"
-                  type="password"
-                  autoComplete="off"
-                  spellCheck={false}
-                  value={openRouterApiKey}
-                  onChange={(e) => onApiKeyChange(e.target.value)}
-                  placeholder="sk-or-v1-..."
-                  className="h-9 border-2 border-[#4a4a6a] bg-[#1a1a2e] text-xs font-pixel text-white focus:border-[#0080ff]"
-                />
+                <label className="font-pixel text-[9px] text-[#8fa5d1]">PROVIDER</label>
+                <select
+                  value={aiSettings.providerId}
+                  onChange={(event) => onAiProviderChange(event.target.value as BuilderAiProviderId)}
+                  className="h-9 w-full border-2 border-[#4a4a6a] bg-[#1a1a2e] px-3 font-pixel text-[10px] text-white focus:border-[#0080ff] focus:outline-none"
+                >
+                  {BUILDER_AI_PROVIDER_OPTIONS.map((provider) => (
+                    <option key={provider.id} value={provider.id}>
+                      {provider.label.toUpperCase()}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              {/* Model */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="font-pixel text-[9px] text-[#8fa5d1]">MODEL</label>
-                  {openRouterModel.trim() && (
-                    <button
-                      type="button"
-                      className="cursor-pointer font-pixel text-[8px] text-[#6b7fa3] hover:text-white"
-                      onClick={() => onOpenRouterModelChange("")}
-                    >
-                      RESET
-                    </button>
+                <p className="font-pixel text-[8px] leading-4 text-[#6b7fa3]">
+                  {activeAiProvider.description.toUpperCase()}
+                </p>
+                <p className="font-pixel text-[8px] leading-4 text-[#4a5c7e]">
+                  AUTH: {activeAiProvider.authLabel.toUpperCase()}
+                </p>
+              </div>
+
+              {activeAiProvider.fieldOrder.includes("resourceName") && (
+                <div className="space-y-2">
+                  <label className="font-pixel text-[9px] text-[#8fa5d1]">RESOURCE NAME</label>
+                  <Input
+                    variant="studio"
+                    autoComplete="off"
+                    spellCheck={false}
+                    value={aiSettings.resourceName || ""}
+                    onChange={(event) => onAiSettingChange("resourceName", event.target.value)}
+                    placeholder="my-azure-resource"
+                    className="h-9 border-2 border-[#4a4a6a] bg-[#1a1a2e] text-xs font-pixel text-white focus:border-[#0080ff]"
+                  />
+                </div>
+              )}
+
+              {activeAiProvider.fieldOrder.includes("baseUrl") && (
+                <div className="space-y-2">
+                  <label className="font-pixel text-[9px] text-[#8fa5d1]">BASE URL</label>
+                  <Input
+                    variant="studio"
+                    autoComplete="off"
+                    spellCheck={false}
+                    value={aiSettings.baseUrl || ""}
+                    onChange={(event) => onAiSettingChange("baseUrl", event.target.value)}
+                    placeholder="http://127.0.0.1:11434/v1"
+                    className="h-9 border-2 border-[#4a4a6a] bg-[#1a1a2e] font-mono text-[10px] text-[#8fa5d1] focus:border-[#0080ff]"
+                  />
+                </div>
+              )}
+
+              {activeAiProvider.fieldOrder.includes("apiKey") && (
+                <div className="space-y-2">
+                  <label className="flex items-center gap-1.5 font-pixel text-[9px] text-[#8fa5d1]">
+                    <Key className="h-3 w-3" />
+                    API KEY
+                  </label>
+                  <Input
+                    variant="studio"
+                    type="password"
+                    autoComplete="off"
+                    spellCheck={false}
+                    value={aiSettings.apiKey || ""}
+                    onChange={(event) => onAiSettingChange("apiKey", event.target.value)}
+                    placeholder={activeAiProvider.id === "openrouter" ? "sk-or-v1-..." : "Enter your API key"}
+                    className="h-9 border-2 border-[#4a4a6a] bg-[#1a1a2e] text-xs font-pixel text-white focus:border-[#0080ff]"
+                  />
+                </div>
+              )}
+
+              {activeAiProvider.fieldOrder.includes("model") && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="font-pixel text-[9px] text-[#8fa5d1]">MODEL</label>
+                    {aiSettings.model?.trim() && (
+                      <button
+                        type="button"
+                        className="cursor-pointer font-pixel text-[8px] text-[#6b7fa3] hover:text-white"
+                        onClick={() => onAiSettingChange("model", "")}
+                      >
+                        RESET
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    variant="studio"
+                    autoComplete="off"
+                    spellCheck={false}
+                    list="builder-ai-models"
+                    value={aiSettings.model || ""}
+                    onChange={(event) => onAiSettingChange("model", event.target.value)}
+                    placeholder={activeAiProvider.modelPlaceholder || "Enter a model id"}
+                    className="h-9 border-2 border-[#4a4a6a] bg-[#1a1a2e] font-mono text-[10px] text-[#ffff00] focus:border-[#0080ff]"
+                  />
+                  {activeAiProvider.suggestedModels.length > 0 && (
+                    <>
+                      <datalist id="builder-ai-models">
+                        {activeAiProvider.suggestedModels.map((model) => (
+                          <option key={model} value={model} />
+                        ))}
+                      </datalist>
+                      <p className="font-pixel text-[8px] leading-4 text-[#4a5c7e]">
+                        SUGGESTED: {activeAiProvider.suggestedModels.slice(0, 3).join(" · ").toUpperCase()}
+                      </p>
+                    </>
                   )}
                 </div>
-                <Input
-                  variant="studio"
-                  autoComplete="off"
-                  spellCheck={false}
-                  value={openRouterModel}
-                  onChange={(e) => onOpenRouterModelChange(e.target.value)}
-                  placeholder={DEFAULT_BUILDER_OPENROUTER_MODEL}
-                  className="h-9 border-2 border-[#4a4a6a] bg-[#1a1a2e] font-mono text-[10px] text-[#ffff00] focus:border-[#0080ff]"
-                />
-              </div>
+              )}
 
               {/* Test button */}
               <button
                 type="button"
                 className="flex w-full cursor-pointer items-center justify-center gap-2 border-2 border-[#4a4a6a] bg-[#1a1a2e] px-3 py-2.5 font-pixel text-[9px] text-[#8fa5d1] transition-all hover:border-[#0080ff] hover:text-white disabled:opacity-40"
-                disabled={openRouterTestState.status === "testing"}
-                onClick={onTestOpenRouter}
+                disabled={aiTestState.status === "testing"}
+                onClick={onTestAiProvider}
               >
-                {openRouterTestState.status === "testing" ? (
+                {aiTestState.status === "testing" ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 ) : (
                   <PlugZap className="h-3.5 w-3.5" />
                 )}
-                TEST CONNECTION
+                {usingLocalProvider ? "CHECK LOCAL BUILDER" : "TEST PROVIDER"}
               </button>
             </div>
           )}

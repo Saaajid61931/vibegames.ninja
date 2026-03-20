@@ -4,35 +4,39 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { Session } from "next-auth"
 import { useRouter, useSearchParams } from "next/navigation"
 import type { GamePlayerHandle } from "@/components/games/game-player"
+import {
+  builderAiSettingsAreConfigured,
+  getBuilderAiProviderOption,
+  getBuilderDefaultModel,
+  getBuilderProviderLabel,
+  normalizeBuilderAiSettings,
+} from "@/lib/builder/ai-providers"
+import type { BuilderAiFieldKey } from "@/lib/builder/ai-providers"
 import type {
+  BuilderAiConnectionResponse,
+  BuilderAiProviderId,
+  BuilderAiSettings,
   BuilderApplyPromptResponse,
   BuilderBusyState,
   BuilderClientQuickAction,
-  BuilderOpenRouterConnectionResponse,
   BuilderClientTemplate,
   BuilderProjectDetail,
   BuilderProjectSummary,
 } from "@/lib/builder/types"
-import { DEFAULT_BUILDER_OPENROUTER_MODEL } from "@/lib/builder/types"
+import { DEFAULT_BUILDER_AI_PROVIDER_ID } from "@/lib/builder/types"
 
-/* ------------------------------------------------------------------ */
-/*  Constants                                                          */
-/* ------------------------------------------------------------------ */
-
-const OPENROUTER_STORAGE_KEY = "vibegames.builder.openrouter.apiKey"
-const OPENROUTER_MODEL_STORAGE_KEY = "vibegames.builder.openrouter.model"
+const AI_SETTINGS_STORAGE_KEY = "vibegames.builder.ai.settings"
+const LEGACY_OPENROUTER_STORAGE_KEY = "vibegames.builder.openrouter.apiKey"
+const LEGACY_OPENROUTER_MODEL_STORAGE_KEY = "vibegames.builder.openrouter.model"
 const AUTO_DISMISS_MS = 5_000
 const DEBOUNCE_MS = 400
 
-type OpenRouterTestState = {
+type AiTestState = {
   status: "idle" | "testing" | "success" | "error"
   message: string
   model: string
+  providerId: BuilderAiProviderId
 }
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
 
 async function getJson<T>(input: RequestInfo, init?: RequestInit) {
   const res = await fetch(input, init)
@@ -41,7 +45,6 @@ async function getJson<T>(input: RequestInfo, init?: RequestInit) {
   return data as T
 }
 
-/** Convert a full project detail into a lightweight sidebar summary. */
 function toSummary(detail: BuilderProjectDetail): BuilderProjectSummary {
   return {
     id: detail.id,
@@ -64,9 +67,22 @@ function toSummary(detail: BuilderProjectDetail): BuilderProjectSummary {
   }
 }
 
-/* ------------------------------------------------------------------ */
-/*  Hook                                                               */
-/* ------------------------------------------------------------------ */
+function getResolvedModel(settings: BuilderAiSettings) {
+  return settings.model?.trim() || getBuilderDefaultModel(settings.providerId)
+}
+
+function createIdleAiTestState(settings: BuilderAiSettings): AiTestState {
+  return {
+    status: "idle",
+    message: "",
+    model: getResolvedModel(settings),
+    providerId: settings.providerId,
+  }
+}
+
+function getPersistableAiSettings(settings: BuilderAiSettings) {
+  return normalizeBuilderAiSettings(settings)
+}
 
 export function useBuilder(session: Session) {
   const router = useRouter()
@@ -74,98 +90,110 @@ export function useBuilder(session: Session) {
 
   const playerRef = useRef<GamePlayerHandle | null>(null)
 
-  // ---- Data state ----
   const [templates, setTemplates] = useState<BuilderClientTemplate[]>([])
   const [quickActions, setQuickActions] = useState<BuilderClientQuickAction[]>([])
   const [projects, setProjects] = useState<BuilderProjectSummary[]>([])
   const [project, setProject] = useState<BuilderProjectDetail | null>(null)
 
-  // ---- Form state ----
   const [prompt, setPrompt] = useState("")
   const [scratchPrompt, setScratchPrompt] = useState("")
-  const [openRouterApiKey, setOpenRouterApiKey] = useState("")
-  const [openRouterModel, setOpenRouterModel] = useState("")
-  const [openRouterTestState, setOpenRouterTestState] = useState<OpenRouterTestState>({
-    status: "idle",
-    message: "",
-    model: DEFAULT_BUILDER_OPENROUTER_MODEL,
-  })
+  const [aiSettings, setAiSettings] = useState<BuilderAiSettings>(() =>
+    normalizeBuilderAiSettings({ providerId: DEFAULT_BUILDER_AI_PROVIDER_ID }),
+  )
+  const [aiTestState, setAiTestState] = useState<AiTestState>(() =>
+    createIdleAiTestState(normalizeBuilderAiSettings({ providerId: DEFAULT_BUILDER_AI_PROVIDER_ID })),
+  )
 
-  // ---- Busy / loading / feedback ---- (fix #7: discriminated union)
   const [busy, setBusy] = useState<BuilderBusyState>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [info, setInfo] = useState("")
 
-  // ---- Preview / capture ----
   const [captureStatus, setCaptureStatus] = useState("")
   const [capturedThumbnail, setCapturedThumbnail] = useState<string | null>(null)
   const [previewNonce, setPreviewNonce] = useState(0)
 
-  // ---- Refs ---- (fix #9: initRef prevents searchParams re-render loop)
   const initRef = useRef(false)
   const initialProjectIdRef = useRef(searchParams.get("project"))
-  const openRouterSettingsLoadedRef = useRef(false)
+  const aiSettingsLoadedRef = useRef(false)
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const normalizedAiSettings = useMemo(() => normalizeBuilderAiSettings(aiSettings), [aiSettings])
+
+  const activeAiProvider = useMemo(
+    () => getBuilderAiProviderOption(normalizedAiSettings.providerId),
+    [normalizedAiSettings.providerId],
+  )
+
+  const externalAiConfigured = useMemo(
+    () =>
+      normalizedAiSettings.providerId !== "local" &&
+      builderAiSettingsAreConfigured(normalizedAiSettings),
+    [normalizedAiSettings],
+  )
 
   const activeTemplate = useMemo(
     () => templates.find((t) => t.key === project?.templateKey) ?? null,
     [project?.templateKey, templates],
   )
 
-  /* ------ Load OpenRouter key from localStorage (fix #5: no typeof window guard) ------ */
-
   useEffect(() => {
-    const savedKey = window.localStorage.getItem(OPENROUTER_STORAGE_KEY)
-    if (savedKey) setOpenRouterApiKey(savedKey)
-    const savedModel = window.localStorage.getItem(OPENROUTER_MODEL_STORAGE_KEY)
-    if (savedModel) setOpenRouterModel(savedModel)
-    openRouterSettingsLoadedRef.current = true
+    try {
+      const saved = window.localStorage.getItem(AI_SETTINGS_STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved) as Partial<BuilderAiSettings>
+        setAiSettings(normalizeBuilderAiSettings(parsed))
+      } else {
+        const legacyKey = window.localStorage.getItem(LEGACY_OPENROUTER_STORAGE_KEY)
+        const legacyModel = window.localStorage.getItem(LEGACY_OPENROUTER_MODEL_STORAGE_KEY)
+        if (legacyKey || legacyModel) {
+          setAiSettings(
+            normalizeBuilderAiSettings({
+              providerId: "openrouter",
+              apiKey: legacyKey || undefined,
+              model: legacyModel || undefined,
+            }),
+          )
+        }
+      }
+    } catch {
+      setAiSettings(normalizeBuilderAiSettings({ providerId: DEFAULT_BUILDER_AI_PROVIDER_ID }))
+    } finally {
+      aiSettingsLoadedRef.current = true
+    }
   }, [])
 
-  /* ------ Persist OpenRouter key with debounce (fix #13) ------ */
-
   useEffect(() => {
-    if (!openRouterSettingsLoadedRef.current) return
+    if (!aiSettingsLoadedRef.current) return
 
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
     debounceTimerRef.current = setTimeout(() => {
-      const trimmedKey = openRouterApiKey.trim()
-      const trimmedModel = openRouterModel.trim()
-
-      if (trimmedKey) {
-        window.localStorage.setItem(OPENROUTER_STORAGE_KEY, trimmedKey)
-      } else {
-        window.localStorage.removeItem(OPENROUTER_STORAGE_KEY)
-      }
-
-      if (trimmedModel && trimmedModel !== DEFAULT_BUILDER_OPENROUTER_MODEL) {
-        window.localStorage.setItem(OPENROUTER_MODEL_STORAGE_KEY, trimmedModel)
-      } else {
-        window.localStorage.removeItem(OPENROUTER_MODEL_STORAGE_KEY)
-      }
+      const persisted = getPersistableAiSettings(normalizedAiSettings)
+      window.localStorage.setItem(AI_SETTINGS_STORAGE_KEY, JSON.stringify(persisted))
+      window.localStorage.removeItem(LEGACY_OPENROUTER_STORAGE_KEY)
+      window.localStorage.removeItem(LEGACY_OPENROUTER_MODEL_STORAGE_KEY)
     }, DEBOUNCE_MS)
 
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
     }
-  }, [openRouterApiKey, openRouterModel])
+  }, [normalizedAiSettings])
 
   useEffect(() => {
-    setOpenRouterTestState((prev) => {
-      if (prev.status === "idle" && !prev.message) {
+    setAiTestState((prev) => {
+      const nextIdleState = createIdleAiTestState(normalizedAiSettings)
+      if (
+        prev.status === "idle" &&
+        !prev.message &&
+        prev.providerId === nextIdleState.providerId &&
+        prev.model === nextIdleState.model
+      ) {
         return prev
       }
 
-      return {
-        status: "idle",
-        message: "",
-        model: openRouterModel.trim() || DEFAULT_BUILDER_OPENROUTER_MODEL,
-      }
+      return nextIdleState
     })
-  }, [openRouterApiKey, openRouterModel])
-
-  /* ------ Auto-dismiss error / info (fix #3) ------ */
+  }, [normalizedAiSettings])
 
   useEffect(() => {
     if (!error) return
@@ -178,8 +206,6 @@ export function useBuilder(session: Session) {
     const timer = setTimeout(() => setInfo(""), AUTO_DISMISS_MS)
     return () => clearTimeout(timer)
   }, [info])
-
-  /* ------ Update sidebar list locally (fix #14: no redundant refreshProjects) ------ */
 
   const upsertProjectInList = useCallback((detail: BuilderProjectDetail) => {
     setProjects((prev) => {
@@ -194,14 +220,10 @@ export function useBuilder(session: Session) {
     })
   }, [])
 
-  /* ------ Load a single project ------ */
-
   const loadProject = useCallback(
     async (id: string) => {
       try {
-        const data = await getJson<{ project: BuilderProjectDetail }>(
-          `/api/builder/projects/${id}`,
-        )
+        const data = await getJson<{ project: BuilderProjectDetail }>(`/api/builder/projects/${id}`)
         setProject(data.project)
         router.replace(`/create?project=${id}`)
       } catch (err) {
@@ -210,8 +232,6 @@ export function useBuilder(session: Session) {
     },
     [router],
   )
-
-  /* ------ Initial data load (fix #9: initRef guard) ------ */
 
   useEffect(() => {
     if (initRef.current) return
@@ -244,7 +264,29 @@ export function useBuilder(session: Session) {
     }
   }, [loadProject])
 
-  /* ------ Actions (fix #6: all wrapped in useCallback) ------ */
+  const setAiProviderId = useCallback((providerId: BuilderAiProviderId) => {
+    setAiSettings((prev) =>
+      normalizeBuilderAiSettings({
+        ...prev,
+        providerId,
+        model:
+          providerId === "local"
+            ? null
+            : prev.providerId === providerId
+              ? prev.model
+              : getBuilderDefaultModel(providerId) || prev.model,
+      }),
+    )
+  }, [])
+
+  const updateAiSetting = useCallback((field: BuilderAiFieldKey, value: string) => {
+    setAiSettings((prev) =>
+      normalizeBuilderAiSettings({
+        ...prev,
+        [field]: value,
+      }),
+    )
+  }, [])
 
   const createProject = useCallback(
     async (templateKey: string) => {
@@ -265,9 +307,7 @@ export function useBuilder(session: Session) {
         setCapturedThumbnail(null)
         upsertProjectInList(data.project)
         router.replace(`/create?project=${data.project.id}`)
-        if (data.note) {
-          setInfo(data.note)
-        }
+        if (data.note) setInfo(data.note)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to create project")
       } finally {
@@ -284,27 +324,23 @@ export function useBuilder(session: Session) {
       return
     }
 
+    const settings = normalizeBuilderAiSettings(aiSettings)
+    const providerLabel = getBuilderProviderLabel(settings.providerId)
+    const resolvedModel = getResolvedModel(settings)
+
     setBusy({ type: "creating-from-scratch" })
     setError("")
     setInfo("")
 
     try {
-      const headers: HeadersInit = { "Content-Type": "application/json" }
-      const trimmedKey = openRouterApiKey.trim()
-      const trimmedModel = openRouterModel.trim()
-
-      if (trimmedKey) {
-        headers["x-openrouter-api-key"] = trimmedKey
-      }
-
       const data = await getJson<{ project: BuilderProjectDetail; note?: string }>(
         "/api/builder/projects",
         {
           method: "POST",
-          headers,
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             prompt: concept,
-            openRouterModel: trimmedModel || undefined,
+            aiSettings: settings,
           }),
         },
       )
@@ -316,28 +352,32 @@ export function useBuilder(session: Session) {
       setPreviewNonce((n) => n + 1)
       upsertProjectInList(data.project)
       router.replace(`/create?project=${data.project.id}`)
-      if (trimmedKey) {
-        if (data.note?.includes("OpenRouter model")) {
-          setOpenRouterTestState({
-            status: "success",
-            message: `Last draft creation succeeded with ${trimmedModel || DEFAULT_BUILDER_OPENROUTER_MODEL}.`,
-            model: trimmedModel || DEFAULT_BUILDER_OPENROUTER_MODEL,
-          })
-        } else if (data.note?.includes("local generator instead")) {
-          setOpenRouterTestState({
+
+      if (settings.providerId !== "local") {
+        if (data.note?.toLowerCase().includes("local generator instead")) {
+          setAiTestState({
             status: "error",
             message: data.note,
-            model: trimmedModel || DEFAULT_BUILDER_OPENROUTER_MODEL,
+            model: resolvedModel,
+            providerId: settings.providerId,
+          })
+        } else {
+          setAiTestState({
+            status: "success",
+            message: `Last draft creation succeeded with ${providerLabel}.`,
+            model: resolvedModel,
+            providerId: settings.providerId,
           })
         }
       }
+
       setInfo(data.note || "Created a first playable draft from your concept.")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate project")
     } finally {
       setBusy(null)
     }
-  }, [scratchPrompt, openRouterApiKey, openRouterModel, router, upsertProjectInList])
+  }, [aiSettings, router, scratchPrompt, upsertProjectInList])
 
   const applyPrompt = useCallback(
     async (actionKey?: string) => {
@@ -345,50 +385,52 @@ export function useBuilder(session: Session) {
       setBusy(actionKey ? { type: "prompting-action", actionKey } : { type: "prompting" })
       setError("")
       setInfo("")
-      try {
-        const headers: HeadersInit = { "Content-Type": "application/json" }
-        const trimmedKey = openRouterApiKey.trim()
-        const trimmedModel = openRouterModel.trim()
-        if (trimmedKey) headers["x-openrouter-api-key"] = trimmedKey
 
+      try {
         const data = await getJson<BuilderApplyPromptResponse>(
           `/api/builder/projects/${project.id}/messages`,
           {
             method: "POST",
-            headers,
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               prompt:
                 prompt.trim() ||
-                quickActions.find((a) => a.key === actionKey)?.label ||
+                quickActions.find((action) => action.key === actionKey)?.label ||
                 "Quick action",
               actionKey,
-              openRouterModel: trimmedModel || undefined,
+              aiSettings: normalizeBuilderAiSettings(aiSettings),
             }),
           },
         )
+
         setProject(data.project)
         setPrompt("")
         setPreviewNonce((n) => n + 1)
         upsertProjectInList(data.project)
 
-        if (data.provider.type === "openrouter" && data.provider.model) {
-          setOpenRouterTestState({
+        if (data.provider.type !== "local" && data.provider.model) {
+          const providerLabel = data.provider.label || getBuilderProviderLabel(data.provider.type)
+          setAiTestState({
             status: "success",
-            message: `Last generation succeeded with ${data.provider.model}.`,
+            message: `Last generation succeeded with ${providerLabel}.`,
             model: data.provider.model,
+            providerId: data.provider.type,
           })
-          setInfo(`Prompt applied with OpenRouter model ${data.provider.model}.`)
-        } else if (data.provider.fallbackFrom === "openrouter") {
-          setOpenRouterTestState({
+          setInfo(`Prompt applied with ${providerLabel} model ${data.provider.model}.`)
+        } else if (data.provider.fallbackFrom) {
+          setAiTestState({
             status: "error",
             message:
               data.provider.message ||
-              "OpenRouter was unavailable, so the local builder handled this prompt instead.",
-            model: data.provider.model || trimmedModel || DEFAULT_BUILDER_OPENROUTER_MODEL,
+              "The external AI provider was unavailable, so the local builder handled this prompt instead.",
+            model:
+              data.provider.model ||
+              getResolvedModel(normalizeBuilderAiSettings({ ...aiSettings, providerId: data.provider.fallbackFrom })),
+            providerId: data.provider.fallbackFrom,
           })
           setInfo(
             data.provider.message ||
-              "OpenRouter was unavailable, so the local builder handled this prompt instead.",
+              "The external AI provider was unavailable, so the local builder handled this prompt instead.",
           )
         }
       } catch (err) {
@@ -397,56 +439,58 @@ export function useBuilder(session: Session) {
         setBusy(null)
       }
     },
-    [project, prompt, openRouterApiKey, openRouterModel, quickActions, upsertProjectInList],
+    [aiSettings, project, prompt, quickActions, upsertProjectInList],
   )
 
-  const testOpenRouter = useCallback(async () => {
-    const trimmedKey = openRouterApiKey.trim()
-    const trimmedModel = openRouterModel.trim() || DEFAULT_BUILDER_OPENROUTER_MODEL
+  const testAiProvider = useCallback(async () => {
+    const settings = normalizeBuilderAiSettings(aiSettings)
+    const provider = getBuilderAiProviderOption(settings.providerId)
+    const resolvedModel = getResolvedModel(settings)
 
-    if (!trimmedKey) {
-      setOpenRouterTestState({
+    if (settings.providerId !== "local" && !builderAiSettingsAreConfigured(settings)) {
+      setAiTestState({
         status: "error",
-        message: "Add your OpenRouter API key first.",
-        model: trimmedModel,
+        message: `Complete the ${provider.label} setup first.`,
+        model: resolvedModel,
+        providerId: settings.providerId,
       })
       return
     }
 
-    setOpenRouterTestState({
+    setAiTestState({
       status: "testing",
-      message: "Testing OpenRouter connection...",
-      model: trimmedModel,
+      message:
+        settings.providerId === "local"
+          ? "Checking the local builder..."
+          : `Testing ${provider.label} connection...`,
+      model: resolvedModel,
+      providerId: settings.providerId,
     })
 
     try {
-      const data = await getJson<BuilderOpenRouterConnectionResponse>(
-        "/api/builder/openrouter/test",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-openrouter-api-key": trimmedKey,
-          },
-          body: JSON.stringify({
-            openRouterModel: openRouterModel.trim() || undefined,
-          }),
-        },
-      )
+      const data = await getJson<BuilderAiConnectionResponse>("/api/builder/ai/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          aiSettings: settings,
+        }),
+      })
 
-      setOpenRouterTestState({
+      setAiTestState({
         status: "success",
         message: data.message,
         model: data.model,
+        providerId: data.providerId,
       })
     } catch (err) {
-      setOpenRouterTestState({
+      setAiTestState({
         status: "error",
-        message: err instanceof Error ? err.message : "OpenRouter test failed",
-        model: trimmedModel,
+        message: err instanceof Error ? err.message : "AI provider test failed",
+        model: resolvedModel,
+        providerId: settings.providerId,
       })
     }
-  }, [openRouterApiKey, openRouterModel])
+  }, [aiSettings])
 
   const restoreRevision = useCallback(
     async (revisionId: string) => {
@@ -493,7 +537,7 @@ export function useBuilder(session: Session) {
     } finally {
       setBusy(null)
     }
-  }, [project, capturedThumbnail, upsertProjectInList])
+  }, [capturedThumbnail, project, upsertProjectInList])
 
   const restartPreview = useCallback(() => {
     setPreviewNonce((n) => n + 1)
@@ -508,47 +552,39 @@ export function useBuilder(session: Session) {
     void playerRef.current?.enterFullscreen()
   }, [])
 
-  /* ------ Public API ------ */
-
   return {
-    // Auth
     session,
-    // Data
     templates,
     quickActions,
     projects,
     project,
     activeTemplate,
-    // Form state
+    activeAiProvider,
+    externalAiConfigured,
     prompt,
     setPrompt,
     scratchPrompt,
     setScratchPrompt,
-    openRouterApiKey,
-    setOpenRouterApiKey,
-    openRouterModel,
-    setOpenRouterModel,
-    openRouterTestState,
-    testOpenRouter,
-    // Busy / loading / feedback
+    aiSettings: normalizedAiSettings,
+    setAiProviderId,
+    updateAiSetting,
+    aiTestState,
+    testAiProvider,
     busy,
     loading,
     error,
     info,
     setError,
     setInfo,
-    // Preview
     playerRef,
     previewNonce,
     restartPreview,
     enterFullscreen,
-    // Capture
     captureStatus,
     setCaptureStatus,
     capturedThumbnail,
     setCapturedThumbnail,
     startCapture,
-    // Actions
     loadProject,
     createProject,
     createProjectFromScratch,
@@ -557,5 +593,3 @@ export function useBuilder(session: Session) {
     publishProject,
   }
 }
-
-export type UseBuilderReturn = ReturnType<typeof useBuilder>

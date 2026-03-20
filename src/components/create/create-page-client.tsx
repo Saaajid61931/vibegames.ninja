@@ -21,7 +21,6 @@ type CreatePageClientProps = {
 
 export function CreatePageClient({ session }: CreatePageClientProps) {
   const b = useBuilder(session)
-  const openRouterConfigured = b.openRouterApiKey.trim().length > 0
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   /* ---- Loading state ---- */
@@ -67,17 +66,17 @@ export function CreatePageClient({ session }: CreatePageClientProps) {
           {/* Provider pill */}
           <span
             className={`font-pixel rounded border-2 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider shadow-[1px_1px_0_#000] ${
-              b.openRouterTestState.status === "success"
+              b.aiTestState.status === "success"
                 ? "border-emerald-500 bg-emerald-500/10 text-emerald-400"
-                : openRouterConfigured
+                : b.aiSettings.providerId !== "local"
                   ? "border-[#0080ff] bg-[#0080ff]/10 text-[#0080ff]"
                   : "border-[#4a4a6a] bg-[#1a1a2e] text-[#6b7fa3]"
             }`}
           >
-            {b.openRouterTestState.status === "success"
-              ? `AI: ${b.openRouterTestState.model.split("/").pop()}`
-              : openRouterConfigured
-                ? "OpenRouter"
+            {b.aiTestState.status === "success"
+              ? `AI: ${b.aiTestState.model.split("/").pop() || b.activeAiProvider.shortLabel}`
+              : b.aiSettings.providerId !== "local"
+                ? b.activeAiProvider.shortLabel
                 : "Local"}
           </span>
         </div>
@@ -140,12 +139,12 @@ export function CreatePageClient({ session }: CreatePageClientProps) {
           activeProject={b.project}
           templates={b.templates}
           busy={b.busy}
-          openRouterApiKey={b.openRouterApiKey}
-          onApiKeyChange={b.setOpenRouterApiKey}
-          openRouterModel={b.openRouterModel}
-          onOpenRouterModelChange={b.setOpenRouterModel}
-          openRouterTestState={b.openRouterTestState}
-          onTestOpenRouter={() => void b.testOpenRouter()}
+          aiSettings={b.aiSettings}
+          activeAiProvider={b.activeAiProvider}
+          onAiProviderChange={b.setAiProviderId}
+          onAiSettingChange={b.updateAiSetting}
+          aiTestState={b.aiTestState}
+          onTestAiProvider={() => void b.testAiProvider()}
           onSelectProject={(id) => void b.loadProject(id)}
           onCreateFromTemplate={(key) => void b.createProject(key)}
           onNewProject={() => {
@@ -172,8 +171,7 @@ export function CreatePageClient({ session }: CreatePageClientProps) {
                 prompt={b.prompt}
                 onPromptChange={b.setPrompt}
                 busy={b.busy}
-                openRouterConfigured={openRouterConfigured}
-                openRouterTestState={b.openRouterTestState}
+                externalAiConfigured={b.externalAiConfigured}
                 captureStatus={b.captureStatus}
                 capturedThumbnail={b.capturedThumbnail}
                 onApplyPrompt={(actionKey) => void b.applyPrompt(actionKey)}
@@ -187,7 +185,7 @@ export function CreatePageClient({ session }: CreatePageClientProps) {
               prompt={b.scratchPrompt}
               onPromptChange={b.setScratchPrompt}
               busy={b.busy}
-              openRouterConfigured={openRouterConfigured}
+              externalAiConfigured={b.externalAiConfigured}
               onGenerate={() => void b.createProjectFromScratch()}
             />
           )}

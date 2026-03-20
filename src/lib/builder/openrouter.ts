@@ -500,6 +500,8 @@ export async function testOpenRouterConnection(options: {
 
   return {
     ok: parsed.ok,
+    providerId: "openrouter",
+    providerLabel: "OpenRouter",
     model,
     message: usedJsonMode
       ? `${parsed.message} JSON mode is available for this model.`

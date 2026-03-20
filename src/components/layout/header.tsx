@@ -34,7 +34,7 @@ export function Header() {
     { name: "PLAY", href: "/games" },
     { name: "JAMS", href: "/jams" },
     ...(session?.user ? [{ name: "FAVES", href: "/favorites" }] : []),
-    { name: "CREATE", href: "/create" },
+    { name: "UPLOAD", href: "/upload" },
     { name: "CREATOR", href: "/creator" },
   ]
 
@@ -68,7 +68,7 @@ export function Header() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    prefetch={item.href === "/create" ? false : undefined}
+                    prefetch={item.href === "/upload" ? false : undefined}
                     className={`px-3 py-2 text-xs font-medium rounded-md transition-all ${
                       isActive
                         ? "bg-[var(--color-primary)] text-white"
@@ -87,17 +87,17 @@ export function Header() {
                 <div className="h-9 w-20 bg-[var(--color-surface)] animate-pulse rounded-md" />
               ) : session?.user ? (
                 <>
-                  <Link href="/create" prefetch={false} className="md:hidden">
-                    <Button size="icon" aria-label="Create game" className="h-10 w-10">
+                  <Link href="/upload" prefetch={false} className="md:hidden">
+                    <Button size="icon" aria-label="Upload game" className="h-10 w-10">
                       <Plus className="h-4 w-4" />
                     </Button>
                   </Link>
 
                   <div className="hidden md:flex items-center gap-2">
-                    <Link href="/create" prefetch={false}>
+                    <Link href="/upload" prefetch={false}>
                       <Button size="sm" className="gap-1">
                         <Plus className="h-4 w-4" />
-                        <span className="hidden sm:inline">Create</span>
+                        <span className="hidden sm:inline">Upload</span>
                       </Button>
                     </Link>
 
@@ -130,10 +130,10 @@ export function Header() {
                           <Link href="/creator">Dashboard</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/create" prefetch={false}>Create</Link>
+                          <Link href="/upload" prefetch={false}>Upload Game</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/upload">Import Existing Game</Link>
+                          <Link href="/jams">Game Jams</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href="/settings">Settings</Link>
@@ -186,7 +186,7 @@ export function Header() {
                     <Link
                       key={item.name}
                       href={item.href}
-                      prefetch={item.href === "/create" ? false : undefined}
+                      prefetch={item.href === "/upload" ? false : undefined}
                       onClick={() => setMobileMenuOpen(false)}
                       className={`block px-3 py-2 rounded-md text-sm font-medium ${
                         isActive
@@ -220,8 +220,8 @@ export function Header() {
                         ) : null}
                       </Button>
                     </Link>
-                    <Link href="/create" prefetch={false}>
-                      <Button className="w-full" onClick={() => setMobileMenuOpen(false)}>Create</Button>
+                    <Link href="/upload" prefetch={false}>
+                      <Button className="w-full" onClick={() => setMobileMenuOpen(false)}>Upload</Button>
                     </Link>
                     <Link href="/upload">
                       <Button variant="outline" className="w-full" onClick={() => setMobileMenuOpen(false)}>Upload</Button>
