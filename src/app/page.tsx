@@ -15,7 +15,7 @@ import {
 import { getHomePageData } from "@/lib/home-page-data"
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site"
 
-export const revalidate = 60
+export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
   title: "AI Arcade - Build, Play & Get Inspired",
