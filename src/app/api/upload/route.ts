@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     
     const gameFile = formData.get("gameFile") as File | null
+    const gameHtmlRaw = formData.get("gameHtml")
     const thumbnail = formData.get("thumbnail") as File | null
     const title = formData.get("title") as string
     const description = formData.get("description") as string
@@ -93,6 +94,8 @@ export async function POST(request: NextRequest) {
     const jamSlugRaw = formData.get("jamSlug")
     const studioProfileIdRaw = formData.get("studioProfileId")
 
+    const gameHtml = typeof gameHtmlRaw === "string" ? gameHtmlRaw : null
+    const sourceGameFile = gameFile ?? (gameHtml?.trim() ? new File([gameHtml], "index.html", { type: "text/html; charset=utf-8" }) : null)
     const aiModel = aiModelRaw?.trim() ? aiModelRaw.trim() : null
     const normalizedAiTool = aiTool?.trim() ? aiTool.trim() : null
     const mobileOrientation = normalizeMobileOrientation(supportsMobile, mobileOrientationRaw)
@@ -129,7 +132,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!gameFile || !title || !description) {
+    if (!sourceGameFile || !title || !description) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -221,7 +224,7 @@ export async function POST(request: NextRequest) {
     }
 
     const validExtensions = [".html", ".zip"]
-    const isValidGameFile = validExtensions.some((ext) => gameFile.name.toLowerCase().endsWith(ext))
+    const isValidGameFile = validExtensions.some((ext) => sourceGameFile.name.toLowerCase().endsWith(ext))
     if (!isValidGameFile) {
       return NextResponse.json(
         { error: "Game file must be .html or .zip" },
@@ -231,7 +234,7 @@ export async function POST(request: NextRequest) {
 
     const maxUploadSizeMb = Number(process.env.MAX_UPLOAD_SIZE_MB || "50")
     const maxUploadBytes = maxUploadSizeMb * 1024 * 1024
-    if (gameFile.size > maxUploadBytes) {
+    if (sourceGameFile.size > maxUploadBytes) {
       return NextResponse.json(
         { error: `Game file exceeds ${maxUploadSizeMb}MB limit` },
         { status: 400 }
@@ -263,7 +266,7 @@ export async function POST(request: NextRequest) {
       slug = `${slug}-${gameId.slice(0, 8)}`
     }
 
-    const uploadResult = await uploadGameToR2(gameId, gameFile, {
+    const uploadResult = await uploadGameToR2(gameId, sourceGameFile, {
       injectPlatformSdk: hasLevelEditor || hasGhostSharing,
       inspectLevelEditorIntegration: hasLevelEditor,
       inspectGhostIntegration: hasGhostSharing,

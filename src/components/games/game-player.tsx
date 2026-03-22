@@ -16,7 +16,7 @@ interface GamePlayerProps {
   runtimeLabel: string
   supportsMobile?: boolean
   mobileOrientation?: MobileOrientation
-  mode?: "play" | "editor"
+  mode?: "play" | "editor" | "preview"
   levelData?: unknown
   levelName?: string
   levelDescription?: string | null
@@ -101,6 +101,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
   const [gameReady, setGameReady] = useState(false)
   const [fullscreenError, setFullscreenError] = useState("")
   const [isAutoCapturing, setIsAutoCapturing] = useState(false)
+  const effectiveMode = mode === "preview" ? "play" : mode
 
   const requiredOrientation = supportsMobile && mobileOrientation !== "BOTH"
     ? mobileOrientation
@@ -257,7 +258,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
       {
         source: "vibegames-platform",
         type: "VG_INIT",
-        payload: { mode },
+        payload: { mode: effectiveMode },
       },
       "*"
     )
@@ -289,7 +290,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
         "*"
       )
     }
-  }, [mode, levelData, levelName, levelDescription, gameReady, isLoading])
+  }, [mode, effectiveMode, levelData, levelName, levelDescription, gameReady, isLoading])
 
   useEffect(() => {
     const targetWindow = iframeRef.current?.contentWindow
@@ -665,7 +666,13 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
             <span className="font-arcade text-xs text-[#4a4a6a] ml-2 truncate">RUNTIME: {runtimeLabel}</span>
           </div>
           <span className="font-arcade text-[10px] text-[#8b93a6] shrink-0">
-            {isAutoCapturing ? "AUTO CAPTURE" : mode === "play" ? "FULLSCREEN ONLY" : "EDITOR MODE"}
+            {isAutoCapturing
+              ? "AUTO CAPTURE"
+              : mode === "preview"
+                ? "PREVIEW MODE"
+                : mode === "play"
+                  ? "FULLSCREEN ONLY"
+                  : "EDITOR MODE"}
           </span>
         </div>
       )}
