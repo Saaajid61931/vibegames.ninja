@@ -266,21 +266,23 @@ export async function POST(request: NextRequest) {
       slug = `${slug}-${gameId.slice(0, 8)}`
     }
 
-    const uploadResult = await uploadGameToR2(gameId, sourceGameFile, {
-      injectPlatformSdk: hasLevelEditor || hasGhostSharing,
-      inspectLevelEditorIntegration: hasLevelEditor,
-      inspectGhostIntegration: hasGhostSharing,
-    })
-    const gameUrl = uploadResult.gameUrl
-
-    // Save thumbnail to R2
+    let uploadResult:
+      | Awaited<ReturnType<typeof uploadGameToR2>>
+      | null = null
     let thumbnailUrl: string | null = null
-    if (thumbnail) {
-      thumbnailUrl = await uploadThumbnailToR2(gameId, thumbnail)
-    }
-
     let game
     try {
+      const nextUploadResult = await uploadGameToR2(gameId, sourceGameFile, {
+        injectPlatformSdk: hasLevelEditor || hasGhostSharing,
+        inspectLevelEditorIntegration: hasLevelEditor,
+        inspectGhostIntegration: hasGhostSharing,
+      })
+      uploadResult = nextUploadResult
+
+      if (thumbnail) {
+        thumbnailUrl = await uploadThumbnailToR2(gameId, thumbnail)
+      }
+
       game = await prisma.$transaction(async (tx) => {
         const createdGame = await tx.game.create({
           data: {
@@ -300,7 +302,7 @@ export async function POST(request: NextRequest) {
             seekingFeedback,
             latestUpdateNote,
             isAIGenerated,
-            gameUrl,
+            gameUrl: nextUploadResult.gameUrl,
             thumbnail: thumbnailUrl,
             thumbnailSlides: thumbnailUrl ? [thumbnailUrl] : [],
             creatorId: session.user.id,
@@ -362,15 +364,15 @@ export async function POST(request: NextRequest) {
         return createdGame
       })
     } catch (dbError) {
-      await deleteGameAssetsFromR2(gameId)
+      await deleteGameAssetsFromR2(gameId).catch(() => undefined)
       throw dbError
     }
 
     revalidateTag("games", "max")
 
     const warnings = [
-      ...(hasLevelEditor ? buildLevelEditorWarnings(uploadResult.levelEditorIntegration) : []),
-      ...(hasGhostSharing ? buildGhostWarnings(uploadResult.ghostIntegration) : []),
+      ...(hasLevelEditor && uploadResult ? buildLevelEditorWarnings(uploadResult.levelEditorIntegration) : []),
+      ...(hasGhostSharing && uploadResult ? buildGhostWarnings(uploadResult.ghostIntegration) : []),
     ]
 
     return NextResponse.json({
