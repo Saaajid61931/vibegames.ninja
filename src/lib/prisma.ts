@@ -24,10 +24,6 @@ export function isPrismaDatasourceConfigured() {
     return false
   }
 
-  if (process.env.NODE_ENV === "production") {
-    return databaseUrl.startsWith("prisma://")
-  }
-
   return VALID_DEVELOPMENT_DATABASE_URL_PREFIXES.some((prefix) =>
     databaseUrl.startsWith(prefix),
   )
