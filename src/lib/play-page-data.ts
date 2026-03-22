@@ -2,9 +2,11 @@ import type { Metadata } from "next"
 import { cache } from "react"
 import { summarizeFeedback } from "@/lib/creator-magnet"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
+import { isRenderableImageSrc } from "@/lib/image-src"
 import { getJamAction, getLiveJamStatus, pickPrimaryJam } from "@/lib/jams"
 import { getMobileOrientationLabel } from "@/lib/mobile-orientation"
 import prisma from "@/lib/prisma"
+import { logServerError } from "@/lib/server-log"
 import { SITE_NAME, SITE_URL } from "@/lib/site"
 import { CATEGORIES } from "@/lib/utils"
 
@@ -134,53 +136,68 @@ async function getRelatedGames(category: string, excludeId: string) {
 }
 
 export async function generatePlayPageMetadata(slug: string): Promise<Metadata> {
-  const game = await getGame(slug)
+  try {
+    const game = await getGame(slug)
 
-  if (!game) {
-    return {
-      title: "Game Not Found",
-      robots: { index: false, follow: false },
+    if (!game) {
+      return {
+        title: "Game Not Found",
+        robots: { index: false, follow: false },
+      }
     }
-  }
 
-  const description = `${game.description.slice(0, 140)}${game.description.length > 140 ? "..." : ""}`
-  const gamePath = `/play/${game.slug}`
-  const fallbackOgImage = `${SITE_URL}/icon.svg`
-  const ogImage = game.thumbnail
-    ? new URL(game.thumbnail, SITE_URL).toString()
-    : fallbackOgImage
+    const description = `${game.description.slice(0, 140)}${game.description.length > 140 ? "..." : ""}`
+    const gamePath = `/play/${game.slug}`
+    const fallbackOgImage = `${SITE_URL}/icon.svg`
+    const thumbnailSrc = typeof game.thumbnail === "string" ? game.thumbnail.trim() : ""
+    const ogImage = !isRenderableImageSrc(thumbnailSrc)
+      ? fallbackOgImage
+      : thumbnailSrc.startsWith("/")
+        ? new URL(thumbnailSrc, SITE_URL).toString()
+        : thumbnailSrc
 
-  return {
-    title: `${game.title} - Free AI Game`,
-    description,
-    alternates: {
-      canonical: gamePath,
-    },
-    openGraph: {
-      title: `${game.title} - Play on VibeGames.Ninja`,
+    return {
+      title: `${game.title} - Free AI Game`,
       description,
-      url: `${SITE_URL}${gamePath}`,
-      type: "website",
-      siteName: SITE_NAME,
-      images: [
-        {
-          url: ogImage,
-          width: 1200,
-          height: 630,
-          alt: `${game.title} on ${SITE_NAME}`,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `${game.title} - Play on VibeGames.Ninja`,
-      description,
-      images: [ogImage],
-    },
-    keywords: game.tags
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean),
+      alternates: {
+        canonical: gamePath,
+      },
+      openGraph: {
+        title: `${game.title} - Play on VibeGames.Ninja`,
+        description,
+        url: `${SITE_URL}${gamePath}`,
+        type: "website",
+        siteName: SITE_NAME,
+        images: [
+          {
+            url: ogImage,
+            width: 1200,
+            height: 630,
+            alt: `${game.title} on ${SITE_NAME}`,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${game.title} - Play on VibeGames.Ninja`,
+        description,
+        images: [ogImage],
+      },
+      keywords: game.tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean),
+    }
+  } catch (error) {
+    logServerError("Play page metadata failed", error, {
+      route: "app/play/[slug]",
+      slug,
+    })
+
+    return {
+      title: "Play Game",
+      description: "Open this game on VibeGames.Ninja.",
+    }
   }
 }
 
@@ -198,15 +215,15 @@ export async function getPlayPageData(
   const isStudioPublished = Boolean(game.studioProfile)
 
   const [
-    relatedGames,
-    followersCount,
-    creatorGamesCount,
-    isFollowing,
-    isLiked,
-    userGameRating,
-    selectedLevel,
-    userStructuredFeedback,
-  ] = await Promise.all([
+    relatedGamesResult,
+    followersCountResult,
+    creatorGamesCountResult,
+    isFollowingResult,
+    isLikedResult,
+    userGameRatingResult,
+    selectedLevelResult,
+    userStructuredFeedbackResult,
+  ] = await Promise.allSettled([
     getRelatedGames(game.category, game.id),
     isStudioPublished
       ? Promise.resolve(0)
@@ -298,6 +315,67 @@ export async function getPlayPageData(
         })
       : Promise.resolve(null),
   ])
+
+  const getSettledValue = <T,>(label: string, result: PromiseSettledResult<T>, fallback: T) => {
+    if (result.status === "fulfilled") {
+      return result.value
+    }
+
+    logServerError("Play page query failed", result.reason, {
+      route: "app/play/[slug]",
+      slug,
+      gameId: game.id,
+      query: label,
+      userId: userId ?? null,
+      level: selectedLevelId || null,
+    })
+
+    return fallback
+  }
+
+  const relatedGames = getSettledValue("relatedGames", relatedGamesResult, [] as Awaited<ReturnType<typeof getRelatedGames>>)
+  const followersCount = getSettledValue("followersCount", followersCountResult, 0)
+  const creatorGamesCount = getSettledValue("creatorGamesCount", creatorGamesCountResult, 0)
+  const isFollowing = getSettledValue("isFollowing", isFollowingResult, false)
+  const isLiked = getSettledValue("isLiked", isLikedResult, false)
+  const userGameRating = getSettledValue("userGameRating", userGameRatingResult, null as { score: number } | null)
+  const selectedLevel = getSettledValue(
+    "selectedLevel",
+    selectedLevelResult,
+    null as Awaited<
+      ReturnType<
+        typeof prisma.level.findFirst<{
+          select: {
+            id: true
+            name: true
+            description: true
+            data: true
+            avgRating: true
+            ratingCount: true
+            creator: {
+              select: { id: true, name: true, username: true }
+            }
+            ratings: {
+              where: { userId: string }
+              select: { score: true }
+              take: 1
+            }
+          }
+        }>
+      >
+    >
+  )
+  const userStructuredFeedback = getSettledValue(
+    "userStructuredFeedback",
+    userStructuredFeedbackResult,
+    null as {
+      fun: boolean
+      confusing: boolean
+      tooHard: boolean
+      buggy: boolean
+      comment: string | null
+    } | null
+  )
 
   const creatorProfileHref = game.studioProfile
     ? `/studio/${game.studioProfile.handle}`

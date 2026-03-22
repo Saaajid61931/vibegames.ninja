@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { generatePlayPageMetadata, getPlayPageData } from "@/lib/play-page-data"
 import { PlayPageView } from "@/components/games/play-page-view"
+import { logServerError } from "@/lib/server-log"
 
 export const dynamic = "force-dynamic"
 
@@ -18,10 +19,37 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function PlayPage({ params, searchParams }: PageProps) {
-  const session = await auth()
   const { slug } = await params
   const { level: selectedLevelId } = await searchParams
-  const data = await getPlayPageData(slug, selectedLevelId, session?.user?.id)
+  let session: { user?: { id?: string | null } } | null = null
+
+  try {
+    session = await auth()
+  } catch (error) {
+    logServerError("Play page auth lookup failed", error, {
+      route: "app/play/[slug]",
+      slug,
+    })
+  }
+
+  let data: Awaited<ReturnType<typeof getPlayPageData>> | null = null
+
+  try {
+    data = await getPlayPageData(slug, selectedLevelId, session?.user?.id)
+  } catch (error) {
+    logServerError("Play page data load failed", error, {
+      route: "app/play/[slug]",
+      slug,
+      level: selectedLevelId || null,
+      userId: session?.user?.id ?? null,
+    })
+
+    if (session?.user?.id) {
+      data = await getPlayPageData(slug, selectedLevelId, null)
+    } else {
+      throw error
+    }
+  }
 
   if (!data) {
     notFound()
