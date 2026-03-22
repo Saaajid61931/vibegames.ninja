@@ -32,7 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { GhostSharingSetupGuide } from "@/components/games/ghost-sharing-setup-guide"
 import { LevelEditorSetupGuide } from "@/components/games/level-editor-setup-guide"
 import { MOBILE_ORIENTATION_OPTIONS } from "@/lib/mobile-orientation"
-import { CATEGORIES, AI_MODELS, AI_TOOLS } from "@/lib/utils"
+import { CATEGORIES } from "@/lib/utils"
 
 type ActiveJamOption = {
   id: string
@@ -257,7 +257,6 @@ export function UploadPageClient() {
     instructions: "",
     category: "OTHER",
     tags: "",
-    aiTool: "",
     aiModel: "",
     supportsMobile: false,
     mobileOrientation: "BOTH",
@@ -700,7 +699,6 @@ export function UploadPageClient() {
       uploadData.append("instructions", formData.instructions)
       uploadData.append("category", formData.category)
       uploadData.append("tags", formData.tags)
-      uploadData.append("aiTool", formData.aiTool)
       uploadData.append("aiModel", formData.aiModel.trim())
       uploadData.append("supportsMobile", String(formData.supportsMobile))
       uploadData.append("mobileOrientation", formData.mobileOrientation)
@@ -1182,7 +1180,7 @@ export function UploadPageClient() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label>Category *</Label>
                     <Select
@@ -1203,44 +1201,15 @@ export function UploadPageClient() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>AI Tool Used</Label>
-                    <Select
-                      value={formData.aiTool}
-                      onValueChange={(value) => setFormData({ ...formData, aiTool: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select AI tool" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {AI_TOOLS.map((tool) => (
-                          <SelectItem key={tool.value} value={tool.value}>
-                            {tool.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
                     <Label>AI Model Used</Label>
-                    <Select
+                    <Input
                       value={formData.aiModel}
-                      onValueChange={(value) => setFormData({ ...formData, aiModel: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select AI model" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {AI_MODELS.map((model) => (
-                          <SelectItem key={model.value} value={model.value}>
-                            {model.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      onChange={(e) => setFormData({ ...formData, aiModel: e.target.value })}
+                      placeholder="e.g. GPT-4.1, Claude 3.7 Sonnet, Gemini 2.5 Pro"
+                    />
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 md:col-span-2">
                     <Label>Game Jam</Label>
                     <Select
                       value={selectedJamSlug || "__none__"}
