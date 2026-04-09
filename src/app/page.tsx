@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { GameOfTheDay } from "@/components/games/game-of-the-day"
-import { RecentlyPlayed } from "@/components/games/recently-played"
+import { RecentlyPlayedDeferred } from "@/components/games/recently-played-deferred"
 import { ActiveJamBanner } from "@/components/jams/active-jam-banner"
 import { HomeGameLane } from "@/components/home/home-game-lane"
 import { HomeHeroSection } from "@/components/home/home-hero-section"
@@ -15,7 +15,7 @@ import {
 import { getHomePageData } from "@/lib/home-page-data"
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 export const metadata: Metadata = {
   title: "AI Arcade - Build, Play & Get Inspired",
@@ -75,13 +75,16 @@ export default async function HomePage() {
     <div className="min-h-screen flex flex-col bg-[#0d0d15]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
-      <Header />
+      <Header prefetchLinks={false} />
 
       <main className="flex-1">
         <HomeHeroSection stats={stats} />
         <HomeCategoryBar />
         <ActiveJamBanner />
-        <RecentlyPlayed games={[...games, ...mobileGames, ...editorGames]} />
+        <RecentlyPlayedDeferred
+          games={[...games, ...mobileGames, ...editorGames]}
+          animateThumbnailSlides={false}
+        />
 
         {gameOfTheMonth?.game ? (
           <GameOfTheDay
@@ -97,6 +100,7 @@ export default async function HomePage() {
           actionHref="/games"
           actionLabel="VIEW ALL"
           games={games}
+          animateThumbnailSlides={false}
         />
 
         <HomeFeatureGrid />
@@ -110,6 +114,7 @@ export default async function HomePage() {
             actionLabel="SEE NEW GAMES"
             games={justLaunchedGames}
             sectionClassName="bg-[#11111d]"
+            animateThumbnailSlides={false}
           />
         ) : null}
 
@@ -120,6 +125,7 @@ export default async function HomePage() {
             actionHref="/upload"
             actionLabel="UPLOAD YOUR BUILD"
             games={needsFeedbackGames}
+            animateThumbnailSlides={false}
           />
         ) : null}
 
@@ -131,6 +137,7 @@ export default async function HomePage() {
             actionLabel="OPEN DASHBOARD"
             games={updatedThisWeekGames}
             sectionClassName="bg-[#11111d]"
+            animateThumbnailSlides={false}
           />
         ) : null}
 
@@ -141,6 +148,7 @@ export default async function HomePage() {
             actionHref="/games"
             actionLabel="BROWSE MORE"
             games={builtWithToolsGames}
+            animateThumbnailSlides={false}
           />
         ) : null}
 
@@ -153,6 +161,7 @@ export default async function HomePage() {
             actionHref="/games?mobile=true"
             actionLabel="SEE MOBILE GAMES"
             games={mobileGames}
+            animateThumbnailSlides={false}
           />
         ) : null}
 
@@ -164,11 +173,12 @@ export default async function HomePage() {
             actionLabel="BROWSE EDITOR GAMES"
             games={editorGames}
             sectionClassName="bg-[#11111d]"
+            animateThumbnailSlides={false}
           />
         ) : null}
       </main>
 
-      <Footer />
+      <Footer prefetchLinks={false} />
     </div>
   )
 }

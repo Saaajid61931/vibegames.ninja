@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useState } from "react"
 import { Clock3 } from "lucide-react"
 import { GameCard } from "@/components/games/game-card"
 import type { GameCardData } from "@/types"
@@ -12,23 +12,27 @@ type RecentEntry = {
 
 interface RecentlyPlayedProps {
   games: GameCardData[]
+  animateThumbnailSlides?: boolean
 }
 
-export function RecentlyPlayed({ games }: RecentlyPlayedProps) {
-  const recentGames = useMemo(() => {
-    try {
-      if (typeof window === "undefined") {
-        return []
-      }
+export function RecentlyPlayed({
+  games,
+  animateThumbnailSlides = true,
+}: RecentlyPlayedProps) {
+  const [recentGames, setRecentGames] = useState<GameCardData[]>([])
 
+  useEffect(() => {
+    try {
       const raw = window.localStorage.getItem("vg-recently-played")
       if (!raw) {
-        return []
+        setRecentGames([])
+        return
       }
 
       const parsed = JSON.parse(raw) as RecentEntry[]
       if (!Array.isArray(parsed) || parsed.length === 0) {
-        return []
+        setRecentGames([])
+        return
       }
 
       const gamesById = new Map(games.map((game) => [game.id, game]))
@@ -36,9 +40,9 @@ export function RecentlyPlayed({ games }: RecentlyPlayedProps) {
         .map((entry) => gamesById.get(entry.gameId))
         .filter((game): game is GameCardData => Boolean(game))
 
-      return ordered.slice(0, 4)
+      setRecentGames(ordered.slice(0, 4))
     } catch {
-      return []
+      setRecentGames([])
     }
   }, [games])
 
@@ -61,7 +65,11 @@ export function RecentlyPlayed({ games }: RecentlyPlayedProps) {
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
           {recentGames.map((game) => (
-            <GameCard key={game.id} game={game} />
+            <GameCard
+              key={game.id}
+              game={game}
+              animateThumbnailSlides={animateThumbnailSlides}
+            />
           ))}
         </div>
       </div>

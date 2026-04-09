@@ -12,6 +12,7 @@ interface GameThumbnailSlideshowProps {
   priority?: boolean
   imageClassName?: string
   showIndicators?: boolean
+  animateSlides?: boolean
 }
 
 const SLIDESHOW_INTERVAL_MS = 2800
@@ -23,6 +24,7 @@ export function GameThumbnailSlideshow({
   priority = false,
   imageClassName = "object-cover",
   showIndicators = true,
+  animateSlides = true,
 }: GameThumbnailSlideshowProps) {
   const frames = useMemo(() => {
     const seen = new Set<string>()
@@ -46,11 +48,16 @@ export function GameThumbnailSlideshow({
 
   const [activeIndex, setActiveIndex] = useState(0)
   const frameKey = frames.join("|")
-  const visibleIndex = frames.length === 0 ? 0 : activeIndex % frames.length
+  const visibleIndex =
+    frames.length === 0
+      ? 0
+      : animateSlides
+        ? activeIndex % frames.length
+        : 0
   const currentSrc = frames[visibleIndex]
 
   useEffect(() => {
-    if (frames.length < 2) {
+    if (!animateSlides || frames.length < 2) {
       return
     }
 
@@ -61,7 +68,7 @@ export function GameThumbnailSlideshow({
     return () => {
       window.clearInterval(intervalId)
     }
-  }, [frames.length])
+  }, [animateSlides, frames.length])
 
   if (frames.length === 0) {
     return null

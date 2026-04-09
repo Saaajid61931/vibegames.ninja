@@ -90,6 +90,7 @@ export function GameOfTheDay({ game, monthlyStars, monthlyRatings }: GameOfTheDa
             {/* Thumbnail */}
             <Link
               href={`/play/${game.slug}`}
+              prefetch={false}
               className="relative w-full lg:w-[55%] aspect-video lg:aspect-auto lg:min-h-[320px] overflow-hidden bg-[#0d0d15] flex-shrink-0"
             >
               {game.thumbnail ? (
@@ -124,7 +125,7 @@ export function GameOfTheDay({ game, monthlyStars, monthlyRatings }: GameOfTheDa
             <div className="flex-1 p-6 sm:p-8 flex flex-col justify-between">
               <div>
                 {/* Title */}
-                <Link href={`/play/${game.slug}`}>
+                <Link href={`/play/${game.slug}`} prefetch={false}>
                   <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white font-pixel mb-3 hover:text-[#ffff00] transition-colors leading-tight">
                     {game.title}
                   </h3>
@@ -179,7 +180,7 @@ export function GameOfTheDay({ game, monthlyStars, monthlyRatings }: GameOfTheDa
 
               {/* CTA */}
               <div className="flex flex-col sm:flex-row gap-3">
-                <Link href={`/play/${game.slug}`} className="flex-1 sm:flex-none">
+                <Link href={`/play/${game.slug}`} prefetch={false} className="flex-1 sm:flex-none">
                   <Button variant="arcade" size="lg" className="w-full sm:w-auto gap-3">
                     <Play className="h-5 w-5" />
                     PLAY NOW

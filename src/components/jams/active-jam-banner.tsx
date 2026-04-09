@@ -1,5 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
+import { unstable_cache } from "next/cache"
 import { ArrowRight, Clock, Trophy, Vote, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import prisma, { isPrismaDatasourceConfigured } from "@/lib/prisma"
@@ -72,54 +73,58 @@ const jamBannerSelect = {
   _count: { select: { entries: true } },
 } as const
 
-async function getFeaturedJam() {
-  if (!isPrismaDatasourceConfigured()) {
-    return null
-  }
+const getFeaturedJam = unstable_cache(
+  async () => {
+    if (!isPrismaDatasourceConfigured()) {
+      return null
+    }
 
-  try {
-    const now = new Date()
+    try {
+      const now = new Date()
 
-    return (
-      (await prisma.gameJam.findFirst({
-        where: {
-          startDate: { lte: now },
-          endDate: { gt: now },
-        },
-        orderBy: { endDate: "asc" },
-        select: jamBannerSelect,
-      })) ||
-      (await prisma.gameJam.findFirst({
-        where: {
-          endDate: { lte: now },
-          votingEndDate: { gt: now },
-        },
-        orderBy: { votingEndDate: "asc" },
-        select: jamBannerSelect,
-      })) ||
-      (await prisma.gameJam.findFirst({
-        where: {
-          startDate: { gt: now },
-        },
-        orderBy: { startDate: "asc" },
-        select: jamBannerSelect,
-      })) ||
-      (await prisma.gameJam.findFirst({
-        where: {
-          votingEndDate: { lte: now },
-        },
-        orderBy: { votingEndDate: "desc" },
-        select: jamBannerSelect,
-      }))
-    )
-  } catch (error) {
-    logServerError("Failed to render active jam banner", error, {
-      route: "app/home",
-      component: "ActiveJamBanner",
-    })
-    return null
-  }
-}
+      return (
+        (await prisma.gameJam.findFirst({
+          where: {
+            startDate: { lte: now },
+            endDate: { gt: now },
+          },
+          orderBy: { endDate: "asc" },
+          select: jamBannerSelect,
+        })) ||
+        (await prisma.gameJam.findFirst({
+          where: {
+            endDate: { lte: now },
+            votingEndDate: { gt: now },
+          },
+          orderBy: { votingEndDate: "asc" },
+          select: jamBannerSelect,
+        })) ||
+        (await prisma.gameJam.findFirst({
+          where: {
+            startDate: { gt: now },
+          },
+          orderBy: { startDate: "asc" },
+          select: jamBannerSelect,
+        })) ||
+        (await prisma.gameJam.findFirst({
+          where: {
+            votingEndDate: { lte: now },
+          },
+          orderBy: { votingEndDate: "desc" },
+          select: jamBannerSelect,
+        }))
+      )
+    } catch (error) {
+      logServerError("Failed to render active jam banner", error, {
+        route: "app/home",
+        component: "ActiveJamBanner",
+      })
+      return null
+    }
+  },
+  ["home-featured-jam"],
+  { revalidate: 60, tags: ["jams"] }
+)
 
 export async function ActiveJamBanner() {
   const featuredJam = await getFeaturedJam()
@@ -147,6 +152,7 @@ export async function ActiveJamBanner() {
         <div className="mx-auto max-w-6xl space-y-4 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4 sm:p-5">
           <Link
             href={`/jams/${featuredJam.slug}`}
+            prefetch={false}
             aria-label={`Open ${featuredJam.title} jam page`}
             className="group relative block aspect-[3/1] overflow-hidden border-2 border-[#4a4a6a] bg-[#0d0d15] transition-colors hover:border-[#ff0040] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff0040] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a1a2e]"
           >
@@ -198,13 +204,13 @@ export async function ActiveJamBanner() {
 
             <div className="flex flex-wrap gap-3 lg:justify-end">
               <Button asChild variant="arcade" size="sm">
-                <Link href={actionHref}>
+                <Link href={actionHref} prefetch={false}>
                   {actionLabel}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="arcade-outline" size="sm">
-                <Link href={`/jams/${featuredJam.slug}`}>Open Jam</Link>
+                <Link href={`/jams/${featuredJam.slug}`} prefetch={false}>Open Jam</Link>
               </Button>
             </div>
           </div>

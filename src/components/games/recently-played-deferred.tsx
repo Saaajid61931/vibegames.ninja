@@ -2,18 +2,26 @@
 
 import dynamic from "next/dynamic"
 import { useEffect, useState } from "react"
-import { SessionProvider } from "next-auth/react"
+import type { GameCardData } from "@/types"
 
-const DeferredPageTransitionLoader = dynamic(
-  () => import("@/components/layout/page-transition-loader").then((mod) => mod.PageTransitionLoader),
+const DeferredRecentlyPlayed = dynamic(
+  () => import("@/components/games/recently-played").then((mod) => mod.RecentlyPlayed),
   {
     ssr: false,
     loading: () => null,
   }
 )
 
-export function Providers({ children }: { children: React.ReactNode }) {
-  const [showPageTransitionLoader, setShowPageTransitionLoader] = useState(false)
+interface RecentlyPlayedDeferredProps {
+  games: GameCardData[]
+  animateThumbnailSlides?: boolean
+}
+
+export function RecentlyPlayedDeferred({
+  games,
+  animateThumbnailSlides = true,
+}: RecentlyPlayedDeferredProps) {
+  const [shouldRender, setShouldRender] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -23,7 +31,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     firstFrameId = window.requestAnimationFrame(() => {
       secondFrameId = window.requestAnimationFrame(() => {
         if (!cancelled) {
-          setShowPageTransitionLoader(true)
+          setShouldRender(true)
         }
       })
     })
@@ -41,10 +49,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  if (!shouldRender) {
+    return null
+  }
+
   return (
-    <SessionProvider>
-      {children}
-      {showPageTransitionLoader ? <DeferredPageTransitionLoader /> : null}
-    </SessionProvider>
+    <DeferredRecentlyPlayed
+      games={games}
+      animateThumbnailSlides={animateThumbnailSlides}
+    />
   )
 }

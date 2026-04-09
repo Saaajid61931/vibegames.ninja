@@ -37,9 +37,13 @@ interface GameCardProps {
       image?: string | null
     } | null
   }
+  animateThumbnailSlides?: boolean
 }
 
-export function GameCard({ game }: GameCardProps) {
+export function GameCard({
+  game,
+  animateThumbnailSlides = true,
+}: GameCardProps) {
   const category = CATEGORIES.find(c => c.value === game.category)
   const jamTone =
     game.primaryJam?.status === "ACTIVE"
@@ -65,6 +69,7 @@ export function GameCard({ game }: GameCardProps) {
             thumbnailSlides={game.thumbnailSlides}
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
             imageClassName="object-cover transition-transform duration-300 group-hover:scale-105"
+            animateSlides={animateThumbnailSlides}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">

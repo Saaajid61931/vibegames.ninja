@@ -12,22 +12,22 @@ export function HomeCategoryBar() {
     <section className="border-b-2 sm:border-b-4 border-[#4a4a6a] bg-[#1a1a2e] py-6 overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-          <Link href="/games">
+          <Link href="/games" prefetch={false}>
             <Button variant="arcade-outline" size="sm" className="rounded-full">ALL GAMES</Button>
           </Link>
-          <Link href="/games?category=action">
+          <Link href="/games?category=action" prefetch={false}>
             <Button variant="outline" size="sm" className="rounded-full border-[#0080ff] text-[#0080ff] hover:bg-[#0080ff] hover:text-white">ACTION</Button>
           </Link>
-          <Link href="/games?category=puzzle">
+          <Link href="/games?category=puzzle" prefetch={false}>
             <Button variant="outline" size="sm" className="rounded-full border-[#ffff00] text-[#ffff00] hover:bg-[#ffff00] hover:text-black">PUZZLE</Button>
           </Link>
-          <Link href="/games?category=rpg">
+          <Link href="/games?category=rpg" prefetch={false}>
             <Button variant="outline" size="sm" className="rounded-full border-[#ff0040] text-[#ff0040] hover:bg-[#ff0040] hover:text-white">RPG</Button>
           </Link>
-          <Link href="/games?category=adventure">
+          <Link href="/games?category=adventure" prefetch={false}>
             <Button variant="outline" size="sm" className="rounded-full border-[#00ff40] text-[#00ff40] hover:bg-[#00ff40] hover:text-black">ADVENTURE</Button>
           </Link>
-          <Link href="/games?category=arcade">
+          <Link href="/games?category=arcade" prefetch={false}>
             <Button variant="outline" size="sm" className="rounded-full border-[#ffa500] text-[#ffa500] hover:bg-[#ffa500] hover:text-black">ARCADE</Button>
           </Link>
         </div>
@@ -51,10 +51,10 @@ export function HomeCommunityMomentumSection() {
               Join an active jam to build around a theme, get discovered faster, and give creators a clearer reason to upload now.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
-              <Link href="/jams">
+              <Link href="/jams" prefetch={false}>
                 <Button variant="arcade">VIEW GAME JAMS</Button>
               </Link>
-              <Link href="/upload">
+              <Link href="/upload" prefetch={false}>
                 <Button variant="outline">UPLOAD A JAM BUILD</Button>
               </Link>
             </div>
@@ -148,13 +148,13 @@ export function HomeCommunityCta() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/register">
+              <Link href="/register" prefetch={false}>
                 <Button variant="arcade" size="lg" className="gap-3">
                   <Upload className="h-5 w-5" />
                   START CREATING
                 </Button>
               </Link>
-              <Link href="/games">
+              <Link href="/games" prefetch={false}>
                 <Button variant="secondary" size="lg" className="gap-3">
                   <Gamepad2 className="h-5 w-5" />
                   BROWSE GAMES
@@ -183,17 +183,17 @@ export function HomeDiscoveryShortcuts({ categoryLinks }: HomeCategoryBarProps) 
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <Link href="/games?mobile=true" className="group border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 transition-all hover:border-[#22c55e] hover:-translate-y-1">
+          <Link href="/games?mobile=true" prefetch={false} className="group border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 transition-all hover:border-[#22c55e] hover:-translate-y-1">
             <p className="font-pixel text-[10px] text-[#22c55e]">PLAY ANYWHERE</p>
             <h3 className="mt-2 font-pixel text-sm text-white">MOBILE-FRIENDLY GAMES</h3>
             <p className="mt-3 font-arcade text-sm text-[#8b93a6]">Short sessions, touch controls, and games that feel good on the go.</p>
           </Link>
-          <Link href="/games?editor=true" className="group border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 transition-all hover:border-[#ffff00] hover:-translate-y-1">
+          <Link href="/games?editor=true" prefetch={false} className="group border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 transition-all hover:border-[#ffff00] hover:-translate-y-1">
             <p className="font-pixel text-[10px] text-[#ffff00]">MAKE IT YOURS</p>
             <h3 className="mt-2 font-pixel text-sm text-white">LEVEL EDITOR PICKS</h3>
             <p className="mt-3 font-arcade text-sm text-[#8b93a6]">Play, remix, and publish community levels to keep games alive longer.</p>
           </Link>
-          <Link href="/jams" className="group border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 transition-all hover:border-[#ff0040] hover:-translate-y-1">
+          <Link href="/jams" prefetch={false} className="group border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 transition-all hover:border-[#ff0040] hover:-translate-y-1">
             <p className="font-pixel text-[10px] text-[#ff0040]">COMMUNITY EVENTS</p>
             <h3 className="mt-2 font-pixel text-sm text-white">JOIN A GAME JAM</h3>
             <p className="mt-3 font-arcade text-sm text-[#8b93a6]">Compete, get discovered, and ride the momentum of deadline-driven launches.</p>
@@ -202,7 +202,7 @@ export function HomeDiscoveryShortcuts({ categoryLinks }: HomeCategoryBarProps) 
 
         <div className="mt-6 flex flex-wrap gap-3">
           {categoryLinks.map((category) => (
-            <Link key={category.value} href={category.href}>
+            <Link key={category.value} href={category.href} prefetch={false}>
               <Button variant="outline" size="sm" className="rounded-full border-[#4a4a6a] text-[#c9d1ff] hover:border-[#ffff00] hover:text-[#ffff00]">
                 {category.label}
               </Button>

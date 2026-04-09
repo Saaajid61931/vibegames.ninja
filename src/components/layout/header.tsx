@@ -18,7 +18,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-export function Header() {
+interface HeaderProps {
+  prefetchLinks?: boolean
+}
+
+export function Header({ prefetchLinks = true }: HeaderProps) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -51,7 +55,7 @@ export function Header() {
         <div className="container mx-auto px-4">
           <div className="flex h-14 items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 group">
+            <Link href="/" prefetch={prefetchLinks ? undefined : false} className="flex items-center gap-2 group">
               <NinjaConsole className="h-6 w-6" />
               <span className="font-pixel text-xs tracking-tight">
                 <span className="text-[var(--color-primary)]">VIBE</span>
@@ -68,7 +72,7 @@ export function Header() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    prefetch={item.href === "/upload" ? false : undefined}
+                    prefetch={item.href === "/upload" ? false : (prefetchLinks ? undefined : false)}
                     className={`px-3 py-2 text-xs font-medium rounded-md transition-all ${
                       isActive
                         ? "bg-[var(--color-primary)] text-white"
@@ -127,19 +131,19 @@ export function Header() {
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                          <Link href="/creator">Dashboard</Link>
+                          <Link href="/creator" prefetch={prefetchLinks ? undefined : false}>Dashboard</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href="/upload" prefetch={false}>Upload Game</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/jams">Game Jams</Link>
+                          <Link href="/jams" prefetch={prefetchLinks ? undefined : false}>Game Jams</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/settings">Settings</Link>
+                          <Link href="/settings" prefetch={prefetchLinks ? undefined : false}>Settings</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/favorites">Favorites</Link>
+                          <Link href="/favorites" prefetch={prefetchLinks ? undefined : false}>Favorites</Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-[var(--color-danger)] focus:text-[var(--color-danger)]" onClick={() => signOut()}>
@@ -151,12 +155,12 @@ export function Header() {
                 </>
               ) : (
                 <div className="hidden md:flex items-center gap-2">
-                  <Link href="/login">
+                  <Link href="/login" prefetch={prefetchLinks ? undefined : false}>
                     <Button variant="ghost" size="sm">
                       Sign in
                     </Button>
                   </Link>
-                  <Link href="/register">
+                  <Link href="/register" prefetch={prefetchLinks ? undefined : false}>
                     <Button size="sm">
                       Get Started
                     </Button>
@@ -186,7 +190,7 @@ export function Header() {
                     <Link
                       key={item.name}
                       href={item.href}
-                      prefetch={item.href === "/upload" ? false : undefined}
+                      prefetch={item.href === "/upload" ? false : (prefetchLinks ? undefined : false)}
                       onClick={() => setMobileMenuOpen(false)}
                       className={`block px-3 py-2 rounded-md text-sm font-medium ${
                         isActive
@@ -209,7 +213,7 @@ export function Header() {
                     <p className="text-xs text-[var(--color-text-tertiary)] truncate">{session.user.email}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    <Link href="/notifications">
+                    <Link href="/notifications" prefetch={prefetchLinks ? undefined : false}>
                       <Button variant="outline" className="w-full gap-1" onClick={() => setMobileMenuOpen(false)}>
                         <Bell className="h-4 w-4" />
                         Notifs
@@ -223,20 +227,20 @@ export function Header() {
                     <Link href="/upload" prefetch={false}>
                       <Button className="w-full" onClick={() => setMobileMenuOpen(false)}>Upload</Button>
                     </Link>
-                    <Link href="/upload">
+                    <Link href="/upload" prefetch={false}>
                       <Button variant="outline" className="w-full" onClick={() => setMobileMenuOpen(false)}>Upload</Button>
                     </Link>
-                    <Link href="/creator">
+                    <Link href="/creator" prefetch={prefetchLinks ? undefined : false}>
                       <Button variant="outline" className="w-full" onClick={() => setMobileMenuOpen(false)}>Dashboard</Button>
                     </Link>
-                    <Link href="/settings">
+                    <Link href="/settings" prefetch={prefetchLinks ? undefined : false}>
                       <Button variant="outline" className="w-full gap-1" onClick={() => setMobileMenuOpen(false)}>
                         <Settings className="h-4 w-4" />
                         Settings
                       </Button>
                     </Link>
                   </div>
-                  <Link href="/favorites">
+                  <Link href="/favorites" prefetch={prefetchLinks ? undefined : false}>
                     <Button variant="outline" className="w-full" onClick={() => setMobileMenuOpen(false)}>Favorites</Button>
                   </Link>
                   <Button variant="ghost" className="w-full" onClick={() => signOut()}>
@@ -245,10 +249,10 @@ export function Header() {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2 border-t border-[var(--color-border)] pt-4">
-                  <Link href="/login">
+                  <Link href="/login" prefetch={prefetchLinks ? undefined : false}>
                     <Button variant="outline" className="w-full">Sign in</Button>
                   </Link>
-                  <Link href="/register">
+                  <Link href="/register" prefetch={prefetchLinks ? undefined : false}>
                     <Button className="w-full">Get Started</Button>
                   </Link>
                 </div>

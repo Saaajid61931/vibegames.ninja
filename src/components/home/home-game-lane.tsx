@@ -14,6 +14,7 @@ type HomeGameLaneProps = {
   sectionClassName?: string
   emptyTitle?: string
   emptyDescription?: string
+  animateThumbnailSlides?: boolean
 }
 
 export function HomeGameLane({
@@ -26,6 +27,7 @@ export function HomeGameLane({
   sectionClassName = "",
   emptyTitle = "NO GAMES FOUND",
   emptyDescription = "Be the first to deploy!",
+  animateThumbnailSlides = true,
 }: HomeGameLaneProps) {
   return (
     <section className={`py-14 sm:py-20 border-b-2 sm:border-b-4 border-[#4a4a6a] ${sectionClassName}`.trim()}>
@@ -38,7 +40,7 @@ export function HomeGameLane({
               <p className="mt-2 font-arcade text-sm text-[#8b93a6]">{description}</p>
             ) : null}
           </div>
-          <Link href={actionHref}>
+          <Link href={actionHref} prefetch={false}>
             <Button variant="secondary" size="sm" className="gap-2">
               {actionLabel}
               <ChevronRight className="h-4 w-4" />
@@ -49,7 +51,11 @@ export function HomeGameLane({
         {games.length > 0 ? (
           <div className="responsive-lane">
             {games.map((game) => (
-              <GameCard key={game.id} game={game} />
+              <GameCard
+                key={game.id}
+                game={game}
+                animateThumbnailSlides={animateThumbnailSlides}
+              />
             ))}
           </div>
         ) : (
@@ -57,7 +63,7 @@ export function HomeGameLane({
             <Gamepad2 className="h-16 w-16 text-[#4a4a6a] mx-auto mb-4" />
             <h3 className="text-xl font-bold text-[#4a4a6a] mb-2 font-pixel">{emptyTitle}</h3>
             <p className="text-[#4a4a6a] mb-6 font-arcade text-lg">{emptyDescription}</p>
-            <Link href="/upload">
+            <Link href="/upload" prefetch={false}>
               <Button variant="arcade">UPLOAD GAME</Button>
             </Link>
           </div>

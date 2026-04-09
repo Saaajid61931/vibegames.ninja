@@ -2,7 +2,11 @@ import Link from "next/link"
 import { Github, Heart, Twitter } from "lucide-react"
 import { NinjaConsole } from "@/components/icons/ninja-console"
 
-export function Footer() {
+interface FooterProps {
+  prefetchLinks?: boolean
+}
+
+export function Footer({ prefetchLinks = true }: FooterProps) {
   const currentYear = new Date().getFullYear()
 
   return (
@@ -10,7 +14,7 @@ export function Footer() {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="md:col-span-1">
-            <Link href="/" className="mb-4 flex items-center gap-2">
+            <Link href="/" prefetch={prefetchLinks ? undefined : false} className="mb-4 flex items-center gap-2">
               <NinjaConsole className="h-6 w-6" />
               <span className="font-pixel text-xs">
                 <span className="text-[var(--color-primary)]">VIBE</span>
@@ -48,6 +52,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/games"
+                  prefetch={prefetchLinks ? undefined : false}
                   className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
                 >
                   Browse Games
@@ -56,6 +61,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/games?mobile=true"
+                  prefetch={prefetchLinks ? undefined : false}
                   className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
                 >
                   Mobile Games
@@ -64,6 +70,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/upload"
+                  prefetch={false}
                   className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
                 >
                   Upload Game
@@ -78,6 +85,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/creator"
+                  prefetch={prefetchLinks ? undefined : false}
                   className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
                 >
                   Creator Dashboard
@@ -86,6 +94,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/games?sort=popular"
+                  prefetch={prefetchLinks ? undefined : false}
                   className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
                 >
                   Popular Games
@@ -94,6 +103,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/games?editor=true"
+                  prefetch={prefetchLinks ? undefined : false}
                   className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
                 >
                   Level Editor Games
@@ -102,6 +112,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/jams"
+                  prefetch={prefetchLinks ? undefined : false}
                   className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
                 >
                   Active Jams
@@ -116,6 +127,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/terms"
+                  prefetch={prefetchLinks ? undefined : false}
                   className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
                 >
                   Terms of Service
@@ -124,6 +136,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/privacy"
+                  prefetch={prefetchLinks ? undefined : false}
                   className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
                 >
                   Privacy Policy

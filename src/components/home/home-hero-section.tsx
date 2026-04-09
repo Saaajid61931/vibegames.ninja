@@ -36,7 +36,7 @@ export function HomeHeroSection({ stats }: HomeHeroSectionProps) {
           </p>
 
           <div className="mx-auto flex max-w-md flex-col gap-4 sm:max-w-none sm:flex-row sm:justify-center">
-            <Link href="/games" className="block sm:inline-block">
+            <Link href="/games" prefetch={false} className="block sm:inline-block">
               <Button variant="arcade" size="xl" className="w-full gap-3">
                 <Gamepad2 className="h-5 w-5" />
                 START EXPLORING
