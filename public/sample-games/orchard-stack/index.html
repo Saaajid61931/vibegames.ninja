@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Orchard Stack</title>
+    <style>
+        :root {
+            --oat: #F5F5DC;
+            --clay: #A0522D;
+            --moss: #606C38;
+            --bark: #5D4037;
+            --faded-red: #BC544B;
+            --sky: #87CEEB;
+            --grass: #283618;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--sky);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            touch-action: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 500px;
+            max-height: 800px;
+            background-color: var(--sky);
+            box-shadow: 0 0 50px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: var(--bark);
+        }
+
+        .hud {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 10;
+        }
+
+        .score-box {
+            background: rgba(245, 245, 220, 0.8);
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 3px solid var(--bark);
+            font-weight: bold;
+            font-size: 1.2rem;
+            pointer-events: auto;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(40, 54, 24, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px;
+            z-index: 20;
+            pointer-events: auto;
+            color: var(--oat);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: var(--oat);
+            text-shadow: 3px 3px 0px var(--bark);
+        }
+
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        button {
+            background: var(--faded-red);
+            color: var(--oat);
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 var(--bark);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 var(--bark);
+        }
+
+        .best-score {
+            margin-top: 20px;
+            font-style: italic;
+            opacity: 0.9;
+        }
+
+        .controls-hint {
+            margin-top: 40px;
+            font-size: 0.9rem;
+            background: rgba(0,0,0,0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="canvas"></canvas>
+    
+    <div id="ui">
+        <div class="hud">
+            <div class="score-box">Crates: <span id="current-score">0</span></div>
+            <div class="score-box">Best: <span id="best-score-hud">0</span></div>
+        </div>
+
+        <div id="start-screen" class="screen">
+            <h1>Orchard Stack</h1>
+            <p>The harvest is in! Stack the crates safely on the wagon. Watch out for the sway!</p>
+            <button id="start-btn">START HARVEST</button>
+            <div class="best-score">Record: <span id="best-score-start">0</span> crates</div>
+            <div class="controls-hint">Tap, Click, or Press Space to drop</div>
+        </div>
+
+        <div id="game-over-screen" class="screen hidden">
+            <h1 style="color: var(--faded-red)">CROP TOPPLED!</h1>
+            <p id="game-over-msg">The stack was too wobbly.</p>
+            <div style="font-size: 2rem; margin-bottom: 20px;">Score: <span id="final-score">0</span></div>
+            <button id="restart-btn">TRY AGAIN</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const startScreen = document.getElementById('start-screen');
+    const gameOverScreen = document.getElementById('game-over-screen');
+    const startBtn = document.getElementById('start-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const currentScoreEl = document.getElementById('current-score');
+    const bestScoreHudEl = document.getElementById('best-score-hud');
+    const bestScoreStartEl = document.getElementById('best-score-start');
+    const finalScoreEl = document.getElementById('final-score');
+
+    // Game Constants
+    const CRATE_W = 80;
+    const CRATE_H = 50;
+    const WAGON_W = 120;
+    const WAGON_H = 20;
+    const GRAVITY = 0.6;
+    const INITIAL_SPEED = 3;
+    const SPEED_INCREMENT = 0.15;
+    const MAX_SPEED = 10;
+    const SWAY_LIMIT = 0.8; // Radians (~45 degrees)
+
+    // Game State
+    let state = 'START';
+    let score = 0;
+    let bestScore = localStorage.getItem('orchardStackBest') || 0;
+    let width, height;
+    let cameraY = 0;
+    let targetCameraY = 0;
+    let particles = [];
+
+    let crane = {
+        x: 0,
+        y: 80,
+        dir: 1,
+        speed: INITIAL_SPEED
+    };
+
+    let activeCrate = null;
+    let stack = [];
+    let wagon = { x: 0, y: 0 };
+    let totalLean = 0; // Current lean angle
+    let swayPhase = 0; // For oscillation
+
+    function init() {
+        resize();
+        window.addEventListener('resize', resize);
+        bestScoreHudEl.innerText = bestScore;
+        bestScoreStartEl.innerText = bestScore;
+        
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowDown') {
+                e.preventDefault();
+                handleInput();
+            }
+        });
+        canvas.addEventListener('mousedown', handleInput);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleInput();
+        }, { passive: false });
+
+        requestAnimationFrame(update);
+    }
+
+    function resize() {
+        width = canvas.parentElement.clientWidth;
+        height = canvas.parentElement.clientHeight;
+        canvas.width = width;
+        canvas.height = height;
+        
+        wagon.x = width / 2;
+        wagon.y = height - 100;
+        crane.y = 120;
+        if (!crane.x) {
+            crane.x = width / 2;
+        }
+    }
+
+    function startGame() {
+        score = 0;
+        state = 'PLAYING';
+        stack = [];
+        activeCrate = createNewCrate();
+        cameraY = 0;
+        targetCameraY = 0;
+        totalLean = 0;
+        swayPhase = 0;
+        crane.speed = INITIAL_SPEED;
+        crane.dir = 1;
+        crane.x = width / 2;
+        
+        currentScoreEl.innerText = score;
+        startScreen.classList.add('hidden');
+        gameOverScreen.classList.add('hidden');
+    }
+
+    function createNewCrate() {
+        return {
+            x: crane.x,
+            y: crane.y,
+            w: CRATE_W,
+            h: CRATE_H,
+            vx: 0,
+            vy: 0,
+            dropped: false,
+            landed: false,
+            lean: 0 // Individual contribution to lean
+        };
+    }
+
+    function handleInput() {
+        if (state !== 'PLAYING') return;
+        if (activeCrate && !activeCrate.dropped) {
+            activeCrate.dropped = true;
+        }
+    }
+
+    function update(time) {
+        if (state === 'PLAYING') {
+            // Crane movement
+            if (!activeCrate.dropped) {
+                crane.x += crane.dir * crane.speed;
+                if (crane.x > width - CRATE_W/2 - 20 || crane.x < CRATE_W/2 + 20) {
+                    crane.dir *= -1;
+                }
+                activeCrate.x = crane.x;
+            } else {
+                // Falling crate
+                activeCrate.vy += GRAVITY;
+                activeCrate.y += activeCrate.vy;
+
+                // Check collision
+                let targetY = wagon.y;
+                let targetX = wagon.x;
+                let targetW = WAGON_W;
+
+                if (stack.length > 0) {
+                    const topCrate = stack[stack.length - 1];
+                    targetY = topCrate.y;
+                    targetX = topCrate.x;
+                    targetW = topCrate.w;
+                }
+
+                // Landing logic
+                if (activeCrate.y + activeCrate.h/2 >= targetY - (stack.length === 0 ? WAGON_H/2 : CRATE_H/2)) {
+                    const offset = activeCrate.x - targetX;
+                    const combinedWidth = (activeCrate.w + targetW) / 2;
+
+                    if (Math.abs(offset) < combinedWidth) {
+                        // Landed successfully
+                        activeCrate.y = targetY - (stack.length === 0 ? (WAGON_H + CRATE_H)/2 : CRATE_H);
+                        activeCrate.landed = true;
+                        
+                        // Calculate physics impact
+                        // Offset adds to the "lean" of the stack
+                        // Normalize offset: -1 to 1
+                        const normalizedOffset = offset / (targetW / 2);
+                        activeCrate.lean = normalizedOffset * 0.1; 
+                        totalLean += activeCrate.lean;
+
+                        stack.push(activeCrate);
+                        score++;
+                        currentScoreEl.innerText = score;
+                        
+                        createParticles(activeCrate.x, activeCrate.y + activeCrate.h/2, '#F5F5DC');
+
+                        // Increase difficulty
+                        crane.speed = Math.min(MAX_SPEED, INITIAL_SPEED + (score * SPEED_INCREMENT));
+
+                        // Move camera up if stack is high
+                        if (stack.length > 5) {
+                            targetCameraY = (stack.length - 5) * CRATE_H;
+                        }
+
+                        activeCrate = createNewCrate();
+                    } else {
+                        // Missed
+                        if (activeCrate.y > height + 100) {
+                            endGame("The crate fell off the wagon!");
+                        }
+                    }
+                }
+            }
+
+            // Sway logic
+            swayPhase += 0.02 + (stack.length * 0.002);
+            const currentSway = Math.sin(swayPhase) * (Math.abs(totalLean) + stack.length * 0.01);
+            
+            // If lean + sway exceeds limit, topple
+            if (Math.abs(totalLean + currentSway) > SWAY_LIMIT) {
+                endGame("The stack became too unstable!");
+            }
+        }
+
+        // Camera smoothing
+        cameraY += (targetCameraY - cameraY) * 0.1;
+
+        // Particle update
+        particles.forEach((p, i) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.2;
+            p.life -= 0.02;
+            if (p.life <= 0) particles.splice(i, 1);
+        });
+
+        draw();
+        requestAnimationFrame(update);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, width, height);
+
+        // Draw Background
+        const grad = ctx.createLinearGradient(0, 0, 0, height);
+        grad.addColorStop(0, '#87CEEB');
+        grad.addColorStop(1, '#E0F4FF');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, width, height);
+
+        // Hills
+        ctx.fillStyle = '#606C38';
+        drawHill(0, height - 50, width, 100, 0.5);
+        ctx.fillStyle = '#283618';
+        drawHill(0, height - 30, width, 80, 0.8);
+
+        ctx.save();
+        ctx.translate(0, cameraY);
+
+        // Draw Wagon
+        drawWagon(wagon.x, wagon.y);
+
+        // Draw Stack
+        let runningLean = 0;
+        let pivotX = wagon.x;
+        let pivotY = wagon.y - WAGON_H/2;
+
+        stack.forEach((crate, i) => {
+            runningLean += crate.lean;
+            const sway = Math.sin(swayPhase) * (Math.abs(totalLean) + stack.length * 0.01);
+            const totalAngle = runningLean + sway;
+
+            ctx.save();
+            ctx.translate(pivotX, pivotY);
+            ctx.rotate(totalAngle);
+            
+            // Draw crate relative to pivot
+            drawCrate(0, -CRATE_H/2);
+            
+            // Update pivot for next crate
+            pivotY = -CRATE_H;
+            ctx.restore();
+            
+            // We don't actually move the pivotX because the rotation handles the visual stacking
+            // But for simple "lean", we just rotate each level
+        });
+
+        // Draw Falling Crate
+        if (activeCrate && activeCrate.dropped) {
+            drawCrate(activeCrate.x, activeCrate.y);
+        }
+
+        ctx.restore();
+
+        // Draw Crane & Active Crate (un-dropped)
+        if (activeCrate && !activeCrate.dropped) {
+            // Rope
+            ctx.strokeStyle = '#5D4037';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(crane.x, 0);
+            ctx.lineTo(crane.x, crane.y - CRATE_H/2);
+            ctx.stroke();
+
+            drawCrate(crane.x, crane.y);
+            
+            // Crane Top
+            ctx.fillStyle = '#5D4037';
+            ctx.fillRect(0, 0, width, 15);
+        }
+
+        // Draw Particles
+        particles.forEach(p => {
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y + cameraY, p.size, p.size);
+            ctx.globalAlpha = 1;
+        });
+    }
+
+    function drawHill(x, y, w, h, curve) {
+        ctx.beginPath();
+        ctx.moveTo(x, y + h);
+        ctx.quadraticCurveTo(x + w/2, y - h * curve, x + w, y + h);
+        ctx.fill();
+    }
+
+    function drawWagon(x, y) {
+        // Wheels
+        ctx.fillStyle = '#333';
+        ctx.beginPath();
+        ctx.arc(x - 40, y + 15, 12, 0, Math.PI * 2);
+        ctx.arc(x + 40, y + 15, 12, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Body
+        ctx.fillStyle = '#A0522D';
+        ctx.fillRect(x - WAGON_W/2, y - WAGON_H/2, WAGON_W, WAGON_H);
+        
+        // Detail
+        ctx.strokeStyle = '#5D4037';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x - WAGON_W/2 + 5, y - WAGON_H/2 + 4, WAGON_W - 10, WAGON_H - 8);
+    }
+
+    function drawCrate(x, y) {
+        ctx.save();
+        ctx.translate(x, y);
+
+        // Main box
+        ctx.fillStyle = '#BC544B'; // Faded Red
+        ctx.fillRect(-CRATE_W/2, -CRATE_H/2, CRATE_W, CRATE_H);
+        
+        // Wood Grain / Texture
+        ctx.strokeStyle = '#8B0000';
+        ctx.lineWidth = 1;
+        for(let i = -CRATE_H/2 + 10; i < CRATE_H/2; i += 10) {
+            ctx.beginPath();
+            ctx.moveTo(-CRATE_W/2 + 5, i);
+            ctx.lineTo(CRATE_W/2 - 5, i);
+            ctx.stroke();
+        }
+
+        // Border / Frame
+        ctx.strokeStyle = '#5D4037';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(-CRATE_W/2, -CRATE_H/2, CRATE_W, CRATE_H);
+        
+        // Diagonal Braces
+        ctx.beginPath();
+        ctx.moveTo(-CRATE_W/2, -CRATE_H/2);
+        ctx.lineTo(CRATE_W/2, CRATE_H/2);
+        ctx.moveTo(CRATE_W/2, -CRATE_H/2);
+        ctx.lineTo(-CRATE_W/2, CRATE_H/2);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    function createParticles(x, y, color) {
+        for (let i = 0; i < 8; i++) {
+            particles.push({
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 6,
+                vy: (Math.random() - 0.5) * 6,
+                size: Math.random() * 5 + 2,
+                color: color,
+                life: 1
+            });
+        }
+    }
+
+    function endGame(msg) {
+        state = 'GAMEOVER';
+        if (score > bestScore) {
+            bestScore = score;
+            localStorage.setItem('orchardStackBest', bestScore);
+            bestScoreHudEl.innerText = bestScore;
+            bestScoreStartEl.innerText = bestScore;
+        }
+        
+        finalScoreEl.innerText = score;
+        document.getElementById('game-over-msg').innerText = msg;
+        gameOverScreen.classList.remove('hidden');
+        
+        // Topple animation (simple)
+        particles.push(...stack.map(c => ({
+            x: c.x,
+            y: c.y,
+            vx: (Math.random() - 0.5) * 10,
+            vy: -Math.random() * 10,
+            size: 10,
+            color: '#BC544B',
+            life: 2
+        })));
+    }
+
+    init();
+
+</script>
+</body>
+</html>

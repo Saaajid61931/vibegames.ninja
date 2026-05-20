@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Switchback Station</title>
+    <style>
+        :root {
+            --parchment: #f4e4bc;
+            --paper: #f8edd0;
+            --ink: #2c3e50;
+            --forest: #2d5a27;
+            --brick: #8b0000;
+            --brass: #b8860b;
+            --slate: #5c6b73;
+            --wood: #6c4f3d;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.35), transparent 35%),
+                radial-gradient(circle at bottom right, rgba(0, 0, 0, 0.08), transparent 30%),
+                #d7b787;
+            color: var(--ink);
+            font-family: Georgia, "Times New Roman", serif;
+            overflow: hidden;
+        }
+
+        #game-wrapper {
+            width: min(96vw, 640px);
+            min-height: min(94vh, 860px);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 12%),
+                var(--parchment);
+            border: 8px double var(--ink);
+            box-shadow: 0 22px 40px rgba(0, 0, 0, 0.28);
+            display: flex;
+            flex-direction: column;
+            padding: 18px;
+            position: relative;
+        }
+
+        header {
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--ink);
+            margin-bottom: 14px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(1.7rem, 5vw, 2.5rem);
+            font-variant: small-caps;
+            letter-spacing: 0.12em;
+            color: var(--brick);
+        }
+
+        #stats-bar {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-chip {
+            background: rgba(255, 255, 255, 0.45);
+            border: 2px solid rgba(44, 62, 80, 0.18);
+            border-radius: 999px;
+            padding: 6px 12px;
+        }
+
+        #steam-gauge {
+            position: relative;
+            height: 22px;
+            border: 2px solid var(--ink);
+            background: rgba(255, 255, 255, 0.65);
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+
+        #steam-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, var(--slate), #7c8e95);
+            transition: width 0.2s ease;
+        }
+
+        #steam-label {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            letter-spacing: 0.12em;
+        }
+
+        #grid-container {
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+            flex-grow: 1;
+            aspect-ratio: 1 / 1;
+            display: grid;
+            gap: 2px;
+            background: var(--ink);
+            border: 2px solid var(--ink);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tile {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.25), transparent 18%),
+                var(--paper);
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .tile.fixed {
+            cursor: default;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.25), transparent 18%),
+                #efe0bb;
+        }
+
+        .tile:hover:not(.fixed) {
+            filter: brightness(0.97);
+        }
+
+        .track-svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            pointer-events: none;
+        }
+
+        #train-head {
+            position: absolute;
+            z-index: 5;
+            pointer-events: none;
+            transition: left 0.28s linear, top 0.28s linear, transform 0.28s linear;
+        }
+
+        #controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 14px;
+            font: inherit;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            background: var(--brass);
+            border: 2px solid var(--ink);
+            cursor: pointer;
+            box-shadow: 2px 2px 0 var(--ink);
+        }
+
+        button.secondary {
+            background: var(--slate);
+        }
+
+        button:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0 0 0 var(--ink);
+        }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 28px;
+            background:
+                linear-gradient(180deg, rgba(248, 237, 208, 0.98), rgba(244, 228, 188, 0.98)),
+                var(--parchment);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .tutorial-text {
+            max-width: 420px;
+            line-height: 1.6;
+            margin: 0 0 24px;
+        }
+
+        .best-score {
+            margin-top: 14px;
+            font-weight: bold;
+            color: var(--forest);
+        }
+
+        .status-note {
+            margin-top: 10px;
+            font-size: 0.95rem;
+            color: var(--wood);
+        }
+
+        @media (max-width: 480px) {
+            #game-wrapper {
+                padding: 12px;
+            }
+
+            .overlay {
+                padding: 20px;
+            }
+
+            #controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="game-wrapper">
+    <header>
+        <h1>Switchback Station</h1>
+    </header>
+
+    <div id="stats-bar">
+        <div class="stat-chip">Stage: <span id="stage-val">1</span></div>
+        <div class="stat-chip">Stations: <span id="station-val">0/2</span></div>
+        <div class="stat-chip">Best: <span id="best-val">1</span></div>
+    </div>
+
+    <div id="steam-gauge">
+        <div id="steam-fill"></div>
+        <div id="steam-label">STEAM PRESSURE</div>
+    </div>
+
+    <div id="grid-container">
+        <svg id="train-head" viewBox="0 0 100 100" aria-hidden="true">
+            <rect x="18" y="34" width="64" height="30" fill="#2c3e50" rx="6" />
+            <rect x="56" y="22" width="18" height="16" fill="#8b0000" />
+            <circle cx="34" cy="70" r="8" fill="#b8860b" />
+            <circle cx="66" cy="70" r="8" fill="#b8860b" />
+            <path d="M70 22 Q78 6 88 12" stroke="#2c3e50" stroke-width="5" fill="none" stroke-linecap="round" />
+        </svg>
+    </div>
+
+    <div id="controls">
+        <button id="dispatch-btn">Dispatch Train</button>
+        <button id="restart-btn" class="secondary">Reset Stage</button>
+    </div>
+
+    <div id="start-screen" class="overlay">
+        <h1>Switchback Station</h1>
+        <p class="tutorial-text">
+            Rotate the loose track tiles to build a continuous route from the depot through every numbered station in order.
+            Each rotation costs steam, and every train movement burns a little more. Tap or click tiles to rotate them,
+            then press <strong>Dispatch Train</strong> or hit <strong>Space</strong>.
+        </p>
+        <button id="start-btn">Begin Journey</button>
+        <div id="best-display" class="best-score"></div>
+        <div class="status-note">Paper map puzzle. No neon. All local.</div>
+    </div>
+
+    <div id="game-over" class="overlay hidden">
+        <h1 id="over-title">Out of Steam</h1>
+        <p id="over-msg" class="tutorial-text">The train ground to a halt before the route was ready.</p>
+        <p>Reached Stage <span id="final-stage">1</span></p>
+        <button id="retry-btn">New Timetable</button>
+    </div>
+</div>
+
+<script>
+    const GRID_SIZE = 6;
+    const DIRECTIONS = [
+        { dr: -1, dc: 0 },
+        { dr: 0, dc: 1 },
+        { dr: 1, dc: 0 },
+        { dr: 0, dc: -1 },
+    ];
+
+    const COLORS = {
+        ink: "#2c3e50",
+        brass: "#b8860b",
+        brick: "#8b0000",
+        forest: "#2d5a27",
+        wood: "#6c4f3d",
+        paper: "#f8edd0",
+    };
+
+    const elements = {
+        grid: document.getElementById("grid-container"),
+        steamFill: document.getElementById("steam-fill"),
+        stageVal: document.getElementById("stage-val"),
+        stationVal: document.getElementById("station-val"),
+        bestVal: document.getElementById("best-val"),
+        bestDisplay: document.getElementById("best-display"),
+        train: document.getElementById("train-head"),
+        startScreen: document.getElementById("start-screen"),
+        gameOver: document.getElementById("game-over"),
+        dispatchBtn: document.getElementById("dispatch-btn"),
+        restartBtn: document.getElementById("restart-btn"),
+    };
+
+    const state = {
+        stage: 1,
+        bestStage: Number(localStorage.getItem("switchback-best") || 1),
+        steam: 100,
+        grid: [],
+        stationsToHit: [],
+        currentStationIdx: 0,
+        depot: null,
+        trainPos: null,
+        heading: 1,
+        isMoving: false,
+        timer: null,
+        stepTimeout: null,
+    };
+
+    function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function shuffle(array) {
+        const copy = [...array];
+        for (let i = copy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+    }
+
+    function keyFor(r, c) {
+        return `${r},${c}`;
+    }
+
+    function opposite(dir) {
+        return (dir + 2) % 4;
+    }
+
+    function createTile(kind, rotation, extra = {}) {
+        return {
+            kind,
+            rotation,
+            fixed: extra.fixed || false,
+            label: extra.label || "",
+            stationId: extra.stationId || null,
+            row: extra.row || 0,
+            col: extra.col || 0,
+            el: null,
+        };
+    }
+
+    function getConnections(tile) {
+        switch (tile.kind) {
+            case "terminal":
+                return [((tile.rotation % 4) + 1) % 4];
+            case "straight":
+                return tile.rotation % 2 === 0 ? [1, 3] : [0, 2];
+            case "curve":
+                return [
+                    [0, 1],
+                    [1, 2],
+                    [2, 3],
+                    [3, 0],
+                ][tile.rotation % 4];
+            case "cross":
+                return [0, 1, 2, 3];
+            default:
+                return [];
+        }
+    }
+
+    function descriptorFromConnections(connections) {
+        const sorted = [...connections].sort((a, b) => a - b);
+        if (sorted.length === 1) {
+            return { kind: "terminal", rotation: (sorted[0] + 3) % 4 };
+        }
+        if (sorted.length === 2) {
+            const [a, b] = sorted;
+            if ((a === 0 && b === 2) || (a === 1 && b === 3)) {
+                return { kind: "straight", rotation: a === 1 ? 0 : 1 };
+            }
+
+            const pairs = {
+                "0,1": 0,
+                "1,2": 1,
+                "2,3": 2,
+                "0,3": 3,
+            };
+            return { kind: "curve", rotation: pairs[`${a},${b}`] };
+        }
+        return { kind: "cross", rotation: 0 };
+    }
+
+    function randomDecoyTile() {
+        const choices = [
+            createTile("straight", randomInt(0, 1)),
+            createTile("curve", randomInt(0, 3)),
+            createTile("curve", randomInt(0, 3)),
+            createTile("cross", 0),
+        ];
+        return choices[randomInt(0, choices.length - 1)];
+    }
+
+    function trackMarkup(kind) {
+        if (kind === "terminal") {
+            return `
+                <path d="M 50 50 L 100 50" stroke="${COLORS.ink}" stroke-width="14" stroke-linecap="round" fill="none" />
+                <path d="M 50 50 L 100 50" stroke="${COLORS.paper}" stroke-width="6" stroke-linecap="round" fill="none" />
+            `;
+        }
+
+        if (kind === "straight") {
+            return `
+                <path d="M 0 50 L 100 50" stroke="${COLORS.ink}" stroke-width="14" stroke-linecap="round" fill="none" />
+                <path d="M 0 50 L 100 50" stroke="${COLORS.paper}" stroke-width="6" stroke-linecap="round" fill="none" />
+                <g stroke="${COLORS.wood}" stroke-width="4">
+                    <path d="M 18 42 L 18 58" />
+                    <path d="M 38 42 L 38 58" />
+                    <path d="M 58 42 L 58 58" />
+                    <path d="M 78 42 L 78 58" />
+                </g>
+            `;
+        }
+
+        if (kind === "curve") {
+            return `
+                <path d="M 50 0 Q 50 50 100 50" stroke="${COLORS.ink}" stroke-width="14" stroke-linecap="round" fill="none" />
+                <path d="M 50 0 Q 50 50 100 50" stroke="${COLORS.paper}" stroke-width="6" stroke-linecap="round" fill="none" />
+                <g stroke="${COLORS.wood}" stroke-width="4">
+                    <path d="M 52 14 L 60 24" />
+                    <path d="M 61 27 L 70 36" />
+                    <path d="M 74 40 L 86 48" />
+                </g>
+            `;
+        }
+
+        return `
+            <path d="M 0 50 L 100 50 M 50 0 L 50 100" stroke="${COLORS.ink}" stroke-width="14" stroke-linecap="round" fill="none" />
+            <path d="M 0 50 L 100 50 M 50 0 L 50 100" stroke="${COLORS.paper}" stroke-width="6" stroke-linecap="round" fill="none" />
+        `;
+    }
+
+    function tileDecoration(tile) {
+        if (tile.label === "D") {
+            return `
+                <rect x="18" y="18" width="46" height="36" rx="6" fill="${COLORS.slate}" stroke="${COLORS.ink}" stroke-width="3" />
+                <text x="41" y="43" text-anchor="middle" font-size="28" font-weight="bold" fill="white">D</text>
+            `;
+        }
+
+        if (tile.stationId) {
+            return `
+                <circle cx="50" cy="50" r="20" fill="white" stroke="${COLORS.brick}" stroke-width="4" />
+                <text x="50" y="57" text-anchor="middle" font-size="26" font-weight="bold" fill="${COLORS.brick}">${tile.stationId}</text>
+            `;
+        }
+
+        return "";
+    }
+
+    function renderTile(tile) {
+        tile.el.className = `tile${tile.fixed ? " fixed" : ""}`;
+        tile.el.innerHTML = `
+            <svg viewBox="0 0 100 100" class="track-svg" style="transform: rotate(${tile.rotation * 90}deg)">
+                ${trackMarkup(tile.kind)}
+                ${tileDecoration(tile)}
+            </svg>
+        `;
+    }
+
+    function buildPath() {
+        const startRow = randomInt(1, GRID_SIZE - 2);
+        const depot = { row: startRow, col: 0 };
+        const stationCount = Math.min(2 + Math.floor((state.stage - 1) / 2), 4);
+        const columns = shuffle([1, 2, 3, 4, 5]).slice(0, stationCount).sort((a, b) => a - b);
+
+        const stations = [];
+        let previousRow = startRow;
+        columns.forEach((col, index) => {
+            let row = randomInt(0, GRID_SIZE - 1);
+            if (index === columns.length - 1 && Math.abs(row - previousRow) > 2) {
+                row = previousRow + Math.sign(row - previousRow) * 2;
+            }
+            row = Math.max(0, Math.min(GRID_SIZE - 1, row));
+            previousRow = row;
+            stations.push({ row, col, id: index + 1 });
+        });
+
+        const connections = new Map();
+        const labels = new Map([[keyFor(depot.row, depot.col), "D"]]);
+        stations.forEach((station) => labels.set(keyFor(station.row, station.col), station.id));
+
+        function addEdge(a, b) {
+            const dir =
+                a.row === b.row
+                    ? (b.col > a.col ? 1 : 3)
+                    : b.row > a.row
+                    ? 2
+                    : 0;
+            const aKey = keyFor(a.row, a.col);
+            const bKey = keyFor(b.row, b.col);
+            if (!connections.has(aKey)) connections.set(aKey, new Set());
+            if (!connections.has(bKey)) connections.set(bKey, new Set());
+            connections.get(aKey).add(dir);
+            connections.get(bKey).add(opposite(dir));
+        }
+
+        let current = { ...depot };
+        stations.forEach((station) => {
+            while (current.col < station.col) {
+                const next = { row: current.row, col: current.col + 1 };
+                addEdge(current, next);
+                current = next;
+            }
+            while (current.row !== station.row) {
+                const next = {
+                    row: current.row + Math.sign(station.row - current.row),
+                    col: current.col,
+                };
+                addEdge(current, next);
+                current = next;
+            }
+        });
+
+        return { depot, stations, connections, labels };
+    }
+
+    function generateLevel() {
+        clearInterval(state.timer);
+        clearTimeout(state.stepTimeout);
+        state.isMoving = false;
+        state.currentStationIdx = 0;
+        state.steam = 100;
+
+        const path = buildPath();
+        state.depot = path.depot;
+        state.stationsToHit = path.stations;
+        state.trainPos = { r: path.depot.row, c: path.depot.col };
+
+        state.grid = Array.from({ length: GRID_SIZE }, (_, row) =>
+            Array.from({ length: GRID_SIZE }, (_, col) => {
+                const tile = randomDecoyTile();
+                tile.row = row;
+                tile.col = col;
+                return tile;
+            })
+        );
+
+        for (const [cellKey, connectionSet] of path.connections.entries()) {
+            const [row, col] = cellKey.split(",").map(Number);
+            const descriptor = descriptorFromConnections([...connectionSet]);
+            const label = path.labels.get(cellKey) || "";
+            const stationId = typeof label === "number" ? label : null;
+            const fixed = label === "D" || Boolean(stationId);
+            const rotation = fixed
+                ? descriptor.rotation
+                : (descriptor.rotation + randomInt(1, 3)) % 4;
+
+            state.grid[row][col] = createTile(descriptor.kind, rotation, {
+                fixed,
+                label: label === "D" ? "D" : "",
+                stationId,
+                row,
+                col,
+            });
+        }
+
+        const depotTile = state.grid[path.depot.row][path.depot.col];
+        state.heading = getConnections(depotTile)[0];
+
+        renderGrid();
+        updateTrainUI();
+        updateStatsUI();
+        updateSteamUI();
+        elements.gameOver.classList.add("hidden");
+
+        state.timer = setInterval(() => {
+            if (state.isMoving) {
+                return;
+            }
+
+            spendSteam(2, "Out of Steam", "The furnace went cold before the route was ready.");
+        }, 1000);
+    }
+
+    function renderGrid() {
+        elements.grid.innerHTML = "";
+        elements.grid.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
+        state.grid.forEach((row) => {
+            row.forEach((tile) => {
+                const cell = document.createElement("button");
+                cell.type = "button";
+                cell.className = "tile";
+                cell.addEventListener("click", () => rotateTile(tile.row, tile.col));
+                tile.el = cell;
+                renderTile(tile);
+                elements.grid.appendChild(cell);
+            });
+        });
+        elements.grid.appendChild(elements.train);
+    }
+
+    function rotateTile(row, col) {
+        if (state.isMoving) {
+            return;
+        }
+
+        const tile = state.grid[row][col];
+        if (tile.fixed) {
+            return;
+        }
+
+        tile.rotation = (tile.rotation + 1) % 4;
+        renderTile(tile);
+        spendSteam(1, "Out of Steam", "Too many reroutes drained the boiler dry.");
+    }
+
+    function spendSteam(amount, title, message) {
+        state.steam = Math.max(0, state.steam - amount);
+        updateSteamUI();
+        if (state.steam === 0) {
+            endGame(title, message);
+            return false;
+        }
+        return true;
+    }
+
+    function updateSteamUI() {
+        elements.steamFill.style.width = `${state.steam}%`;
+        elements.steamFill.style.background = state.steam < 25
+            ? `linear-gradient(90deg, ${COLORS.brick}, #b13a2a)`
+            : `linear-gradient(90deg, ${COLORS.slate}, #7c8e95)`;
+    }
+
+    function updateStatsUI() {
+        elements.stageVal.textContent = state.stage;
+        elements.stationVal.textContent = `${state.currentStationIdx}/${state.stationsToHit.length}`;
+        elements.bestVal.textContent = state.bestStage;
+        elements.bestDisplay.textContent = `Company Record: Stage ${state.bestStage}`;
+    }
+
+    function updateTrainUI() {
+        const cellSize = 100 / GRID_SIZE;
+        elements.train.style.width = `${cellSize}%`;
+        elements.train.style.height = `${cellSize}%`;
+        elements.train.style.left = `${state.trainPos.c * cellSize}%`;
+        elements.train.style.top = `${state.trainPos.r * cellSize}%`;
+        elements.train.style.transform = `rotate(${state.heading * 90}deg)`;
+    }
+
+    function beginMovement() {
+        if (state.isMoving) {
+            return;
+        }
+        state.isMoving = true;
+        stepTrain();
+    }
+
+    function stepTrain() {
+        if (!spendSteam(6, "Out of Steam", "The locomotive stalled between stations.")) {
+            return;
+        }
+
+        const currentTile = state.grid[state.trainPos.r][state.trainPos.c];
+        const currentConnections = getConnections(currentTile);
+        if (!currentConnections.includes(state.heading)) {
+            endGame("Derailment", "The train reached a dead rail and tipped into the ballast.");
+            return;
+        }
+
+        const nextRow = state.trainPos.r + DIRECTIONS[state.heading].dr;
+        const nextCol = state.trainPos.c + DIRECTIONS[state.heading].dc;
+        if (nextRow < 0 || nextRow >= GRID_SIZE || nextCol < 0 || nextCol >= GRID_SIZE) {
+            endGame("Off the Map", "The route carried the train beyond the timetable.");
+            return;
+        }
+
+        const nextTile = state.grid[nextRow][nextCol];
+        const nextConnections = getConnections(nextTile);
+        if (!nextConnections.includes(opposite(state.heading))) {
+            endGame("Broken Connection", "Those rails do not actually meet.");
+            return;
+        }
+
+        state.trainPos = { r: nextRow, c: nextCol };
+        updateTrainUI();
+
+        if (nextTile.stationId) {
+            const expectedStation = state.currentStationIdx + 1;
+            if (nextTile.stationId !== expectedStation) {
+                endGame(
+                    "Wrong Station",
+                    `Expected station ${expectedStation}, but the locomotive rolled into station ${nextTile.stationId}.`
+                );
+                return;
+            }
+
+            state.currentStationIdx++;
+            state.steam = Math.min(100, state.steam + 16);
+            updateStatsUI();
+            updateSteamUI();
+
+            if (state.currentStationIdx === state.stationsToHit.length) {
+                winStage();
+                return;
+            }
+        }
+
+        const exitOptions = nextConnections.filter((dir) => dir !== opposite(state.heading));
+        if (exitOptions.length === 0) {
+            endGame("Dead End", "The service line ended before the final station.");
+            return;
+        }
+
+        state.heading = exitOptions[0];
+        updateTrainUI();
+        state.stepTimeout = setTimeout(stepTrain, 320);
+    }
+
+    function winStage() {
+        state.isMoving = false;
+        clearTimeout(state.stepTimeout);
+        state.bestStage = Math.max(state.bestStage, state.stage);
+        localStorage.setItem("switchback-best", state.bestStage);
+        state.stage += 1;
+        updateStatsUI();
+        setTimeout(generateLevel, 850);
+    }
+
+    function endGame(title, message) {
+        state.isMoving = false;
+        clearTimeout(state.stepTimeout);
+        clearInterval(state.timer);
+        document.getElementById("over-title").textContent = title;
+        document.getElementById("over-msg").textContent = message;
+        document.getElementById("final-stage").textContent = state.stage;
+        elements.gameOver.classList.remove("hidden");
+    }
+
+    function startNewGame() {
+        state.stage = 1;
+        elements.startScreen.classList.add("hidden");
+        elements.gameOver.classList.add("hidden");
+        generateLevel();
+    }
+
+    function resetStage() {
+        elements.gameOver.classList.add("hidden");
+        generateLevel();
+    }
+
+    function init() {
+        updateStatsUI();
+        updateSteamUI();
+        elements.dispatchBtn.addEventListener("click", beginMovement);
+        elements.restartBtn.addEventListener("click", resetStage);
+        document.getElementById("start-btn").addEventListener("click", startNewGame);
+        document.getElementById("retry-btn").addEventListener("click", startNewGame);
+
+        window.addEventListener("keydown", (event) => {
+            if (event.code === "Space") {
+                event.preventDefault();
+                if (!elements.startScreen.classList.contains("hidden")) {
+                    startNewGame();
+                } else if (!state.isMoving && elements.gameOver.classList.contains("hidden")) {
+                    beginMovement();
+                }
+            }
+        });
+    }
+
+    init();
+</script>
+</body>
+</html>

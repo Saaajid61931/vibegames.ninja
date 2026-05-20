@@ -69,6 +69,15 @@ export function Footer({ prefetchLinks = true }: FooterProps) {
               </li>
               <li>
                 <Link
+                  href="/instant-plays"
+                  prefetch={prefetchLinks ? undefined : false}
+                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                >
+                  Instant Plays
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/upload"
                   prefetch={false}
                   className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"

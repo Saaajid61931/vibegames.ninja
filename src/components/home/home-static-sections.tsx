@@ -1,7 +1,8 @@
 import Link from "next/link"
-import { Gamepad2, Heart, Star, Trophy, Upload, Zap } from "lucide-react"
+import { ArrowRight, Gamepad2, Heart, Sparkles, Star, Trophy, Upload, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { HomePageData } from "@/lib/home-page-data"
+import { featuredInstantPlayGames } from "@/lib/instant-play-games"
 
 type HomeCategoryBarProps = {
   categoryLinks: HomePageData["categoryLinks"]
@@ -162,6 +163,63 @@ export function HomeCommunityCta() {
               </Link>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export function HomeInstantPlaysSection() {
+  return (
+    <section className="border-b-2 border-[#4a4a6a] bg-[#11111d] py-12 sm:border-b-4 sm:py-16">
+      <div className="container mx-auto px-4">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <div className="mb-2 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-[#00d1ff]" />
+              <span className="font-pixel text-[10px] text-[#00d1ff]">INSTANT PLAYS</span>
+            </div>
+            <h2 className="font-pixel text-xl text-white sm:text-2xl md:text-3xl">
+              NO-SIGNUP GAMES TO SHARE TODAY
+            </h2>
+            <p className="mt-3 max-w-2xl font-arcade text-sm leading-6 text-[#aab6d0]">
+              Standalone HTML5 games give first-time visitors a fast reason to click, play, and pass the link along.
+            </p>
+          </div>
+          <Link href="/instant-plays" prefetch={false}>
+            <Button variant="outline" className="gap-2">
+              OPEN INSTANT PLAYS
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {featuredInstantPlayGames.map((game) => (
+            <Link
+              key={game.slug}
+              href={game.href}
+              prefetch={false}
+              className="group border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 transition-all hover:-translate-y-1"
+            >
+              <div className="mb-4 aspect-video border-2 border-[#4a4a6a] bg-[#0d0d15] p-3">
+                <div
+                  className="h-full w-full border-2"
+                  style={{
+                    borderColor: game.accent,
+                    background: `linear-gradient(135deg, ${game.accent}3d, #0d0d15 62%)`,
+                  }}
+                />
+              </div>
+              <p className="font-pixel text-[10px]" style={{ color: game.accent }}>
+                {game.category.toUpperCase()}
+              </p>
+              <h3 className="mt-2 font-pixel text-sm text-white group-hover:text-[#ffff00]">
+                {game.title}
+              </h3>
+              <p className="mt-3 font-arcade text-sm leading-6 text-[#8b93a6]">{game.hook}</p>
+            </Link>
+          ))}
         </div>
       </div>
     </section>
