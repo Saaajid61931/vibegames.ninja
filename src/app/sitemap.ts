@@ -17,12 +17,6 @@ function getStaticPages(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
-      url: `${SITE_URL}/instant-plays`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
       url: `${SITE_URL}/jams`,
       lastModified: new Date(),
       changeFrequency: "daily",

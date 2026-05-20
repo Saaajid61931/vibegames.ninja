@@ -11,7 +11,6 @@ import {
   HomeCommunityCta,
   HomeDiscoveryShortcuts,
   HomeFeatureGrid,
-  HomeInstantPlaysSection,
 } from "@/components/home/home-static-sections"
 import { getHomePageData } from "@/lib/home-page-data"
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site"
@@ -105,7 +104,6 @@ export default async function HomePage() {
         />
 
         <HomeFeatureGrid />
-        <HomeInstantPlaysSection />
         <HomeCommunityCta />
 
         {justLaunchedGames.length > 0 ? (
