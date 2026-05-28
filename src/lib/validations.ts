@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { AI_TOOLS, CATEGORIES } from "./utils"
+import { AI_MODELS, AI_TOOLS, CATEGORIES } from "./utils"
 
 const MAX_LEVEL_DATA_BYTES = 5 * 1024 * 1024
 export const MAX_GHOST_REPLAY_BYTES = 512 * 1024
@@ -47,6 +47,7 @@ const ghostReplayDataSchema = z
 
 const CATEGORY_VALUES = new Set(CATEGORIES.map((category) => category.value))
 const AI_TOOL_VALUES = new Set(AI_TOOLS.map((tool) => tool.value))
+const AI_MODEL_VALUES = new Set(AI_MODELS.map((model) => model.value))
 
 function optionalKnownValueSchema(values: Set<string>, errorMessage: string) {
   return z.preprocess(
@@ -118,7 +119,7 @@ export const gameUploadSchema = z.object({
   tags: z.string(),
   isAIGenerated: z.boolean().default(true),
   aiTool: optionalKnownValueSchema(AI_TOOL_VALUES, "Invalid AI tool"),
-  aiModel: z.string().trim().max(120, "AI model must be 120 characters or less").optional(),
+  aiModel: optionalKnownValueSchema(AI_MODEL_VALUES, "Invalid AI model"),
   supportsMobile: z.boolean().default(false),
   mobileOrientation: z.enum(['BOTH', 'PORTRAIT', 'LANDSCAPE']).default('BOTH'),
   hasLevelEditor: z.boolean().default(false),

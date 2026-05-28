@@ -32,6 +32,7 @@ export function PlayTracker({ gameId, levelId }: PlayTrackerProps) {
         ...entries.filter((entry) => entry && typeof entry.gameId === "string" && entry.gameId !== gameId),
       ].slice(0, 12)
       window.localStorage.setItem("vg-recently-played", JSON.stringify(nextEntries))
+      window.dispatchEvent(new Event("vg-recently-played-change"))
     } catch {
       // Ignore storage issues.
     }

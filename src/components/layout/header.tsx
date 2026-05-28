@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
-import { Bell, Plus, User, Menu, Settings, X } from "lucide-react"
+import { Bell, Heart, LayoutDashboard, Plus, User, Menu, Settings, X } from "lucide-react"
 import { NinjaConsole } from "@/components/icons/ninja-console"
 import { NotificationsMenu } from "@/components/layout/notifications-menu"
 import { Button } from "@/components/ui/button"
@@ -212,11 +212,11 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                     </p>
                     <p className="text-xs text-[var(--color-text-tertiary)] truncate">{session.user.email}</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <div className="grid grid-cols-2 gap-2">
                     <Link href="/notifications" prefetch={prefetchLinks ? undefined : false}>
-                      <Button variant="outline" className="w-full gap-1" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setMobileMenuOpen(false)}>
                         <Bell className="h-4 w-4" />
-                        Notifs
+                        Alerts
                         {displayedUnreadCount > 0 ? (
                           <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-[#ff0040] px-1.5 py-0.5 text-[10px] font-bold text-white">
                             {unreadLabel}
@@ -225,35 +225,48 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                       </Button>
                     </Link>
                     <Link href="/upload" prefetch={false}>
-                      <Button className="w-full" onClick={() => setMobileMenuOpen(false)}>Upload</Button>
-                    </Link>
-                    <Link href="/upload" prefetch={false}>
-                      <Button variant="outline" className="w-full" onClick={() => setMobileMenuOpen(false)}>Upload</Button>
+                      <Button className="w-full justify-start gap-2" onClick={() => setMobileMenuOpen(false)}>
+                        <Plus className="h-4 w-4" />
+                        Upload
+                      </Button>
                     </Link>
                     <Link href="/creator" prefetch={prefetchLinks ? undefined : false}>
-                      <Button variant="outline" className="w-full" onClick={() => setMobileMenuOpen(false)}>Dashboard</Button>
+                      <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setMobileMenuOpen(false)}>
+                        <LayoutDashboard className="h-4 w-4" />
+                        Dashboard
+                      </Button>
                     </Link>
-                    <Link href="/settings" prefetch={prefetchLinks ? undefined : false}>
-                      <Button variant="outline" className="w-full gap-1" onClick={() => setMobileMenuOpen(false)}>
+                    <Link href="/favorites" prefetch={prefetchLinks ? undefined : false}>
+                      <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setMobileMenuOpen(false)}>
+                        <Heart className="h-4 w-4" />
+                        Favorites
+                      </Button>
+                    </Link>
+                    <Link href="/settings" prefetch={prefetchLinks ? undefined : false} className="col-span-2">
+                      <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setMobileMenuOpen(false)}>
                         <Settings className="h-4 w-4" />
                         Settings
                       </Button>
                     </Link>
                   </div>
-                  <Link href="/favorites" prefetch={prefetchLinks ? undefined : false}>
-                    <Button variant="outline" className="w-full" onClick={() => setMobileMenuOpen(false)}>Favorites</Button>
-                  </Link>
-                  <Button variant="ghost" className="w-full" onClick={() => signOut()}>
+                  <Button
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      signOut()
+                    }}
+                  >
                     Sign out
                   </Button>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2 border-t border-[var(--color-border)] pt-4">
                   <Link href="/login" prefetch={prefetchLinks ? undefined : false}>
-                    <Button variant="outline" className="w-full">Sign in</Button>
+                    <Button variant="outline" className="w-full" onClick={() => setMobileMenuOpen(false)}>Sign in</Button>
                   </Link>
                   <Link href="/register" prefetch={prefetchLinks ? undefined : false}>
-                    <Button className="w-full">Get Started</Button>
+                    <Button className="w-full" onClick={() => setMobileMenuOpen(false)}>Get Started</Button>
                   </Link>
                 </div>
               )}

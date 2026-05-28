@@ -1,9 +1,9 @@
 "use client"
 
-import { startTransition, useCallback, useEffect, useRef, useState } from "react"
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ChevronLeft, Gamepad2, Loader2, Search, Smartphone, SquarePen } from "lucide-react"
+import { ChevronLeft, Gamepad2, Loader2, Search, Smartphone, SquarePen, X } from "lucide-react"
 import { GameCard } from "@/components/games/game-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -174,6 +174,34 @@ export function GamesBrowser({
     editorOnly,
   ].filter(Boolean).length
 
+  const activeFilterLabels = useMemo(() => {
+    const labels: string[] = []
+    const selectedCategory = CATEGORY_OPTIONS.find((option) => option.value === category)
+    const selectedSort = SORT_OPTIONS.find((option) => option.key === sort)
+
+    if (category !== "all") {
+      labels.push(selectedCategory?.label || category.toUpperCase())
+    }
+
+    if (sort !== "trending") {
+      labels.push(selectedSort?.label || sort.toUpperCase())
+    }
+
+    if (q.trim()) {
+      labels.push(`"${q.trim()}"`)
+    }
+
+    if (supportsMobile) {
+      labels.push("MOBILE")
+    }
+
+    if (editorOnly) {
+      labels.push("EDITOR")
+    }
+
+    return labels
+  }, [category, editorOnly, q, sort, supportsMobile])
+
   const resetFilters = () => {
     setCategory("all")
     setSort("trending")
@@ -223,13 +251,30 @@ export function GamesBrowser({
             value={q}
             onChange={(event) => setQ(event.target.value)}
             placeholder="SEARCH ARCADE..."
-            className="pl-12 text-base sm:text-lg"
+            className="pl-12 pr-12 text-base sm:text-lg"
           />
+          {q ? (
+            <button
+              type="button"
+              aria-label="Clear search"
+              className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-[#8b93a6] transition-colors hover:bg-[#1a1a2e] hover:text-white"
+              onClick={() => setQ("")}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          ) : null}
         </div>
 
         <div className="rounded-lg border-2 border-[#4a4a6a] bg-[#11111d] p-3 sm:p-4">
           <div className="flex items-center justify-between gap-3">
-            <span className="font-pixel text-[10px] text-[#8b93a6]">FILTERS</span>
+            <div className="flex items-center gap-2">
+              <span className="font-pixel text-[10px] text-[#8b93a6]">FILTERS</span>
+              {activeFilterCount > 0 ? (
+                <span className="rounded border border-[#ffff00]/40 px-2 py-1 text-[10px] text-[#ffff00]">
+                  {activeFilterCount} active
+                </span>
+              ) : null}
+            </div>
             {activeFilterCount > 0 ? (
               <Button
                 variant="ghost"
@@ -304,7 +349,7 @@ export function GamesBrowser({
               type="button"
               variant="ghost"
               size="sm"
-              className="mt-3 w-full font-arcade text-xs text-[#ffff00] sm:hidden"
+              className="mt-3 w-full font-arcade text-xs text-[#ffff00] sm:w-auto"
               onClick={() => setShowAllCategories(true)}
             >
               SHOW ALL CATEGORIES
@@ -314,13 +359,31 @@ export function GamesBrowser({
               type="button"
               variant="ghost"
               size="sm"
-              className="mt-3 w-full font-arcade text-xs text-[#8b93a6] sm:hidden"
+              className="mt-3 w-full font-arcade text-xs text-[#8b93a6] sm:w-auto"
               onClick={() => setShowAllCategories(false)}
             >
               SHOW FEWER CATEGORIES
             </Button>
           ) : null}
         </div>
+      </div>
+
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="font-arcade text-sm text-[#8b93a6]">
+          {loading ? "Updating arcade floor..." : `${games.length} of ${total} ${total === 1 ? "game" : "games"} shown`}
+        </p>
+        {activeFilterLabels.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {activeFilterLabels.map((label) => (
+              <span
+                key={label}
+                className="rounded border border-[#4a4a6a] bg-[#11111d] px-2 py-1 text-[11px] text-[#d5d8e6]"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {loading ? (

@@ -74,26 +74,27 @@ function LoginForm() {
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle>Welcome back</CardTitle>
-        <CardDescription>Sign in to your account to continue</CardDescription>
+    <Card variant="arcade">
+      <CardHeader variant="arcade" className="text-center">
+        <CardTitle className="font-arcade text-sm text-white">WELCOME BACK</CardTitle>
+        <CardDescription className="font-arcade text-xs text-[#8b93a6]">SIGN IN TO YOUR ACCOUNT TO CONTINUE</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="p-3 rounded-md bg-[var(--color-danger)]/10 border border-[var(--color-danger)] text-[var(--color-danger)] text-sm">
+            <div className="p-3 border-2 border-[var(--color-arcade-red)] bg-[var(--color-arcade-red)]/10 text-[var(--color-arcade-red)] font-arcade text-xs text-center uppercase">
               {error}
             </div>
           )}
 
           <div className="space-y-2">
-            <Label>Email</Label>
+            <Label variant="arcade">Email</Label>
             <div className="relative">
               <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-tertiary)]" />
               <Input
                 id="email"
                 type="email"
+                variant="arcade"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
@@ -105,8 +106,8 @@ function LoginForm() {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>Password</Label>
-              <Link href="/forgot-password" className="text-xs text-[var(--color-primary)] hover:underline">
+              <Label variant="arcade">Password</Label>
+              <Link href="/forgot-password" className="text-[10px] font-arcade text-[var(--color-arcade-yellow)] hover:underline uppercase">
                 Forgot password?
               </Link>
             </div>
@@ -115,6 +116,7 @@ function LoginForm() {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
+                variant="arcade"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
@@ -124,7 +126,7 @@ function LoginForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] hover:text-[var(--color-text)]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] hover:text-white"
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4" />
@@ -135,7 +137,7 @@ function LoginForm() {
             </div>
           </div>
 
-          <Button type="submit" className="w-full gap-2" disabled={loading}>
+          <Button type="submit" variant="arcade" className="w-full gap-2 font-arcade uppercase" disabled={loading}>
             {loading ? "Signing in..." : "Sign in"}
             <ArrowRight className="h-4 w-4" />
           </Button>
@@ -143,12 +145,12 @@ function LoginForm() {
 
         {oauthProviders.length > 0 && (
           <>
-            <div className="relative my-6">
+            <div className="relative my-6 font-arcade">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[var(--color-border)]" />
+                <div className="w-full border-t-2 border-[var(--color-border-strong)]" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-[var(--color-surface)] px-2 text-[var(--color-text-tertiary)]">
+                <span className="bg-[#0d0d15] px-2 text-[var(--color-text-secondary)] uppercase text-[10px]">
                   Or continue with
                 </span>
               </div>
@@ -159,7 +161,8 @@ function LoginForm() {
                 <Button
                   key={provider.id}
                   type="button"
-                  variant="outline"
+                  variant="arcade-outline"
+                  className="font-arcade uppercase"
                   onClick={() => signIn(provider.id, { callbackUrl })}
                 >
                   {provider.name}
@@ -169,9 +172,9 @@ function LoginForm() {
           </>
         )}
 
-        <p className="mt-6 text-center text-sm text-[var(--color-text-secondary)]">
+        <p className="mt-6 text-center text-sm font-arcade text-[var(--color-text-secondary)] uppercase text-[10px]">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-[var(--color-primary)] hover:underline">
+          <Link href="/register" className="text-[var(--color-arcade-yellow)] hover:underline ml-1">
             Sign up
           </Link>
         </p>
@@ -182,17 +185,17 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-[#0d0d15] px-4 py-12 text-white">
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-3 mb-8">
-          <NinjaConsole className="h-8 w-8" />
-          <span className="font-pixel text-sm text-[var(--color-text)]">
-            <span className="text-[var(--color-primary)]">VIBE</span>GAMES
+          <NinjaConsole className="h-8 w-8 text-[#ffff00]" />
+          <span className="font-pixel text-sm text-white">
+            <span className="text-[var(--color-arcade-yellow)]">VIBE</span>GAMES
           </span>
         </Link>
 
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div className="font-arcade text-center text-white">Loading...</div>}>
           <LoginForm />
         </Suspense>
       </div>

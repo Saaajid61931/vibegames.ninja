@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useMemo, useSyncExternalStore } from "react"
 import { Clock3 } from "lucide-react"
 import { GameCard } from "@/components/games/game-card"
 import type { GameCardData } from "@/types"
@@ -15,24 +15,50 @@ interface RecentlyPlayedProps {
   animateThumbnailSlides?: boolean
 }
 
+const RECENTLY_PLAYED_STORAGE_KEY = "vg-recently-played"
+const RECENTLY_PLAYED_EVENT = "vg-recently-played-change"
+
+function subscribeToRecentlyPlayed(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange)
+  window.addEventListener(RECENTLY_PLAYED_EVENT, onStoreChange)
+
+  return () => {
+    window.removeEventListener("storage", onStoreChange)
+    window.removeEventListener(RECENTLY_PLAYED_EVENT, onStoreChange)
+  }
+}
+
+function getRecentlyPlayedSnapshot() {
+  try {
+    return window.localStorage.getItem(RECENTLY_PLAYED_STORAGE_KEY) || ""
+  } catch {
+    return ""
+  }
+}
+
+function getServerRecentlyPlayedSnapshot() {
+  return ""
+}
+
 export function RecentlyPlayed({
   games,
   animateThumbnailSlides = true,
 }: RecentlyPlayedProps) {
-  const [recentGames, setRecentGames] = useState<GameCardData[]>([])
+  const recentGamesSnapshot = useSyncExternalStore(
+    subscribeToRecentlyPlayed,
+    getRecentlyPlayedSnapshot,
+    getServerRecentlyPlayedSnapshot
+  )
 
-  useEffect(() => {
+  const recentGames = useMemo(() => {
     try {
-      const raw = window.localStorage.getItem("vg-recently-played")
-      if (!raw) {
-        setRecentGames([])
-        return
+      if (!recentGamesSnapshot) {
+        return []
       }
 
-      const parsed = JSON.parse(raw) as RecentEntry[]
+      const parsed = JSON.parse(recentGamesSnapshot) as RecentEntry[]
       if (!Array.isArray(parsed) || parsed.length === 0) {
-        setRecentGames([])
-        return
+        return []
       }
 
       const gamesById = new Map(games.map((game) => [game.id, game]))
@@ -40,11 +66,11 @@ export function RecentlyPlayed({
         .map((entry) => gamesById.get(entry.gameId))
         .filter((game): game is GameCardData => Boolean(game))
 
-      setRecentGames(ordered.slice(0, 4))
+      return ordered.slice(0, 4)
     } catch {
-      setRecentGames([])
+      return []
     }
-  }, [games])
+  }, [games, recentGamesSnapshot])
 
   if (recentGames.length === 0) {
     return null

@@ -40,6 +40,8 @@ const homeGameCardSelect = {
       },
     },
   },
+
+
   studioProfile: {
     select: { id: true, handle: true, displayName: true, image: true },
   },
@@ -191,7 +193,7 @@ const getBuiltWithToolsGames = unstable_cache(async () => {
   })
 }, ["home-built-with-tools-games"], { revalidate: 60, tags: ["games"] })
 
-const getStats = unstable_cache(async () => {
+async function getStats() {
   if (!isPrismaDatasourceConfigured()) {
     return {
       games: 0,
@@ -214,7 +216,7 @@ const getStats = unstable_cache(async () => {
     ),
     plays: totalPlays._sum.plays || 0,
   }
-}, ["home-stats"], { revalidate: 60, tags: ["games", "users"] })
+}
 
 const getGameOfTheMonth = unstable_cache(async () => {
   if (!isPrismaDatasourceConfigured()) {

@@ -85,36 +85,37 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-[#0d0d15] px-4 py-12 text-white">
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-3 mb-8">
-          <NinjaConsole className="h-8 w-8" />
-          <span className="font-pixel text-sm text-[var(--color-text)]">
-            <span className="text-[var(--color-primary)]">VIBE</span>GAMES
+          <NinjaConsole className="h-8 w-8 text-[#ffff00]" />
+          <span className="font-pixel text-sm text-white">
+            <span className="text-[var(--color-arcade-yellow)]">VIBE</span>GAMES
           </span>
         </Link>
 
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle>Create an account</CardTitle>
-            <CardDescription>Start publishing games in the arcade</CardDescription>
+        <Card variant="arcade">
+          <CardHeader variant="arcade" className="text-center">
+            <CardTitle className="font-arcade text-sm text-white">CREATE AN ACCOUNT</CardTitle>
+            <CardDescription className="font-arcade text-xs text-[#8b93a6]">START PUBLISHING GAMES IN THE ARCADE</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="p-3 rounded-md bg-[var(--color-danger)]/10 border border-[var(--color-danger)] text-[var(--color-danger)] text-sm">
+                <div className="p-3 border-2 border-[var(--color-arcade-red)] bg-[var(--color-arcade-red)]/10 text-[var(--color-arcade-red)] font-arcade text-xs text-center uppercase">
                   {error}
                 </div>
               )}
 
               <div className="space-y-2">
-                <Label>Full Name</Label>
+                <Label variant="arcade">Full Name</Label>
                 <div className="relative">
                   <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-tertiary)]" />
                   <Input
                     id="name"
                     type="text"
+                    variant="arcade"
                     value={formData.name}
                     onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                     placeholder="John Doe"
@@ -125,12 +126,13 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Username</Label>
+                <Label variant="arcade">Username</Label>
                 <div className="relative">
                   <AtSign className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-tertiary)]" />
                   <Input
                     id="username"
                     type="text"
+                    variant="arcade"
                     value={formData.username}
                     onChange={(e) =>
                       setFormData((prev) => ({
@@ -146,12 +148,13 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Email</Label>
+                <Label variant="arcade">Email</Label>
                 <div className="relative">
                   <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-tertiary)]" />
                   <Input
                     id="email"
                     type="email"
+                    variant="arcade"
                     value={formData.email}
                     onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                     placeholder="you@example.com"
@@ -162,12 +165,13 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Password</Label>
+                <Label variant="arcade">Password</Label>
                 <div className="relative">
                   <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-tertiary)]" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
+                    variant="arcade"
                     minLength={8}
                     value={formData.password}
                     onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
@@ -178,7 +182,7 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] hover:text-[var(--color-text)]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] hover:text-white"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -189,7 +193,7 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full gap-2" disabled={loading}>
+              <Button type="submit" variant="arcade" className="w-full gap-2 font-arcade uppercase" disabled={loading}>
                 {loading ? "Creating account..." : "Create account"}
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -197,12 +201,12 @@ export default function RegisterPage() {
 
             {oauthProviders.length > 0 && (
               <>
-                <div className="relative my-6">
+                <div className="relative my-6 font-arcade">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-[var(--color-border)]" />
+                    <div className="w-full border-t-2 border-[var(--color-border-strong)]" />
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-[var(--color-surface)] px-2 text-[var(--color-text-tertiary)]">
+                    <span className="bg-[#0d0d15] px-2 text-[var(--color-text-secondary)] uppercase text-[10px]">
                       Or continue with
                     </span>
                   </div>
@@ -213,7 +217,8 @@ export default function RegisterPage() {
                     <Button
                       key={provider.id}
                       type="button"
-                      variant="outline"
+                      variant="arcade-outline"
+                      className="font-arcade uppercase"
                       onClick={() => signIn(provider.id, { callbackUrl: "/creator" })}
                     >
                       {provider.name}
@@ -223,9 +228,9 @@ export default function RegisterPage() {
               </>
             )}
 
-            <p className="mt-6 text-center text-sm text-[var(--color-text-secondary)]">
+            <p className="mt-6 text-center text-sm font-arcade text-[var(--color-text-secondary)] uppercase text-[10px]">
               Already have an account?{" "}
-              <Link href="/login" className="text-[var(--color-primary)] hover:underline">
+              <Link href="/login" className="text-[var(--color-arcade-yellow)] hover:underline ml-1">
                 Sign in
               </Link>
             </p>

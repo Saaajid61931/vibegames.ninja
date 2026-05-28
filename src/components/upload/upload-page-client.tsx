@@ -798,41 +798,46 @@ export function UploadPageClient() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-[#0d0d15]">
         <Header />
-        <main className="flex-1 flex items-center justify-center px-4">
-          <Card className="max-w-2xl w-full">
+        <main className="flex-1 flex items-center justify-center px-4 py-8">
+          <Card variant="arcade" className="max-w-2xl w-full">
+            <CardHeader variant="arcade">
+              <CardTitle className="font-arcade text-white text-center flex items-center justify-center gap-2">
+                <CheckCircle className="h-6 w-6 text-[var(--color-success)]" />
+                GAME_PUBLISHED
+              </CardTitle>
+            </CardHeader>
             <CardContent className="pt-6">
-              <CheckCircle className="h-16 w-16 text-[var(--color-success)] mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-[var(--color-text)] mb-2 text-center">Your Game is Live! Let&apos;s Go!</h2>
+              <h2 className="text-xl font-bold text-white mb-4 text-center font-arcade">YOUR GAME IS LIVE! LET&apos;S GO!</h2>
 
               {createdGame?.submittedJam && (
-                <div className="mt-4 rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)]/10 p-3 text-sm text-[var(--color-text)]">
-                  Submitted to <span className="font-semibold">{createdGame.submittedJam.title}</span>.
+                <div className="mt-4 border-2 border-[var(--color-success)] bg-[var(--color-success)]/5 p-3 text-sm text-[var(--color-success)] font-arcade">
+                  SUBMITTED TO: <span className="font-semibold">{createdGame.submittedJam.title.toUpperCase()}</span>
                 </div>
               )}
 
               {uploadWarnings.length > 0 && (
-                <div className="mt-4 rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)]/10 p-3 text-xs text-[var(--color-text)]">
+                <div className="mt-4 border-2 border-[var(--color-warning)] bg-[var(--color-warning)]/5 p-3 text-xs text-[var(--color-warning)] font-arcade">
                   {uploadWarnings.map((warning) => (
-                    <p key={warning}>{warning}</p>
+                    <p key={warning}>{warning.toUpperCase()}</p>
                   ))}
                 </div>
               )}
 
-              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 {createdGame && (
-                  <Button className="w-full" onClick={() => router.push(`/play/${createdGame.slug}`)}>
-                    Open Play Page
+                  <Button variant="arcade" className="w-full font-arcade" onClick={() => router.push(`/play/${createdGame.slug}`)}>
+                    [PLAY_PAGE]
                   </Button>
                 )}
                 {createdGame?.submittedJam && (
-                  <Button variant="outline" className="w-full" onClick={() => router.push(`/jams/${createdGame.submittedJam!.slug}`)}>
-                    Open Jam Page
+                  <Button variant="arcade-outline" className="w-full font-arcade" onClick={() => router.push(`/jams/${createdGame.submittedJam!.slug}`)}>
+                    [JAM_PAGE]
                   </Button>
                 )}
-                <Button variant="outline" className="w-full" onClick={() => router.push("/creator")}>
-                  Go to Dashboard
+                <Button variant="arcade-outline" className="w-full font-arcade" onClick={() => router.push("/creator")}>
+                  [DASHBOARD]
                 </Button>
               </div>
             </CardContent>
@@ -844,61 +849,64 @@ export function UploadPageClient() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#0d0d15] text-white">
       <Header />
       
       <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
         <div className="max-w-5xl mx-auto">
           {/* Page Header */}
-          <div className="mb-8 overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(125,92,255,0.16),transparent_35%),radial-gradient(circle_at_80%_20%,rgba(0,196,255,0.12),transparent_24%),linear-gradient(180deg,rgba(14,18,32,0.96),rgba(10,14,24,0.98))] p-6 shadow-[0_18px_60px_rgba(5,10,24,0.22)] sm:p-8">
-            <h1 className="flex items-center gap-3 text-3xl font-semibold text-white sm:text-4xl">
-              <Upload className="h-6 w-6 text-[var(--color-primary)]" />
+          <div className="mb-8 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-6 shadow-[0_18px_60px_rgba(5,10,24,0.22)] sm:p-8">
+            <div className="mb-2 flex items-center gap-2">
+              <Upload className="h-5 w-5 text-[#ffff00]" />
+              <span className="text-[#ffff00] font-arcade text-sm">PUBLISH.PIPELINE</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white font-arcade uppercase">
               Upload Your Game
             </h1>
-            <p className="text-[var(--color-text-secondary)] mt-2">
-              Share your AI-made HTML5 game with the world
+            <p className="text-[var(--color-text-secondary)] mt-2 font-arcade text-xs uppercase">
+              Share your AI-made HTML5 game with the community
             </p>
             {draftNotice && (
-              <div className="mt-4 flex flex-col gap-3 rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)]/10 p-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-[var(--color-text)]">{draftNotice}</p>
-                <Button type="button" variant="outline" size="sm" onClick={clearSavedDraft}>
-                  Clear saved draft
+              <div className="mt-4 flex flex-col gap-3 border-2 border-[#ffff00]/30 bg-[#ffff00]/5 p-3 sm:flex-row sm:items-center sm:justify-between font-arcade text-xs text-[#ffff00]">
+                <p>{draftNotice.toUpperCase()}</p>
+                <Button type="button" variant="arcade-outline" size="sm" onClick={clearSavedDraft}>
+                  [CLEAR_DRAFT]
                 </Button>
               </div>
             )}
             {selectedJam && (
-              <div className="mt-4 rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)]/10 p-4">
+              <div className="mt-4 border-2 border-[#22c55e]/30 bg-[#22c55e]/5 p-4 font-arcade text-xs">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text)]">Publishing into {selectedJam.title}</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">
-                      {selectedJam.theme ? `Theme: ${selectedJam.theme}. ` : ""}This game will be submitted automatically after publish.
+                    <p className="font-semibold text-white">SUBMITTING TO: {selectedJam.title.toUpperCase()}</p>
+                    <p className="text-[#8b93a6] mt-1">
+                      {selectedJam.theme ? `THEME: ${selectedJam.theme.toUpperCase()}. ` : ""}THIS GAME WILL BE SUBMITTED AUTOMATICALLY ON PUBLISH.
                     </p>
                   </div>
-                  <Link href={`/jams/${selectedJam.slug}`} className="text-sm text-[var(--color-primary)] hover:underline">
-                    View jam details
+                  <Link href={`/jams/${selectedJam.slug}`} className="text-[#ffff00] hover:underline font-arcade">
+                    [VIEW JAM DETAILS]
                   </Link>
                 </div>
               </div>
             )}
             {jamSelectionNotice && (
-              <div className="mt-4 rounded-md border border-[var(--color-warning)] bg-[var(--color-warning)]/10 p-3 text-sm text-[var(--color-text)]">
-                {jamSelectionNotice}
+              <div className="mt-4 border-2 border-[var(--color-warning)] bg-[var(--color-warning)]/5 p-3 text-sm text-[var(--color-warning)] font-arcade text-xs">
+                {jamSelectionNotice.toUpperCase()}
               </div>
             )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="p-4 rounded-md bg-[var(--color-danger)]/10 border border-[var(--color-danger)] text-[var(--color-danger)] flex items-center gap-3 text-sm">
+              <div className="p-4 border-2 border-[var(--color-danger)] bg-[var(--color-danger)]/10 text-[var(--color-danger)] flex items-center gap-3 text-sm font-arcade">
                 <AlertCircle className="h-5 w-5 flex-shrink-0" />
-                {error}
+                {error.toUpperCase()}
               </div>
             )}
 
             {uploading && (
-              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-base)] p-4">
-                <p className="text-sm font-semibold text-[var(--color-text)]">Publishing pipeline</p>
+              <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4 font-arcade">
+                <p className="text-sm font-semibold text-white">PUBLISHING PIPELINE</p>
                 <div className="mt-3 grid gap-2 sm:grid-cols-4">
                   {[
                     { id: "uploading", label: "Uploading files" },
@@ -914,15 +922,15 @@ export function UploadPageClient() {
                     return (
                       <div
                         key={step.id}
-                        className={`rounded border px-3 py-2 text-xs ${
+                        className={`border px-3 py-2 text-xs text-center font-arcade ${
                           isActive
-                            ? "border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
+                            ? "border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-bold"
                             : isDone
                               ? "border-[var(--color-success)] bg-[var(--color-success)]/10 text-[var(--color-success)]"
                               : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-tertiary)]"
                         }`}
                       >
-                        {step.label}
+                        {step.label.toUpperCase()}
                       </div>
                     )
                   })}
@@ -930,13 +938,13 @@ export function UploadPageClient() {
               </div>
             )}
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Code2 className="h-5 w-5 text-[var(--color-primary)]" />
-                  Game Source
+            <Card variant="arcade">
+              <CardHeader variant="arcade">
+                <CardTitle className="flex items-center gap-2 font-arcade text-white">
+                  <Code2 className="h-5 w-5 text-[#ffff00]" />
+                  GAME_SOURCE
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="font-arcade text-xs text-[#8b93a6]">
                   Upload a .zip file, upload a single .html file, or paste your HTML code directly.
                 </CardDescription>
               </CardHeader>
@@ -946,26 +954,26 @@ export function UploadPageClient() {
                   onValueChange={(value) => setGameSourceMode(value as GameSourceMode)}
                   className="space-y-4"
                 >
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="upload" disabled={uploading || autoThumbnailState === "capturing"}>
+                  <TabsList variant="arcade" className="grid w-full grid-cols-2">
+                    <TabsTrigger variant="arcade" value="upload" disabled={uploading || autoThumbnailState === "capturing"}>
                       <Upload className="mr-2 h-4 w-4" />
-                      Upload File
+                      UPLOAD_FILE
                     </TabsTrigger>
-                    <TabsTrigger value="paste" disabled={uploading || autoThumbnailState === "capturing"}>
+                    <TabsTrigger variant="arcade" value="paste" disabled={uploading || autoThumbnailState === "capturing"}>
                       <Code2 className="mr-2 h-4 w-4" />
-                      Paste HTML
+                      PASTE_HTML
                     </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="upload" className="mt-0 space-y-3">
+                  <TabsContent value="upload" className="mt-0 space-y-3 font-arcade">
                     <div
                       {...getGameRootProps()}
-                      className={`border-2 border-dashed rounded-lg p-5 sm:p-8 text-center cursor-pointer transition-all ${
+                      className={`border-3 border-dashed rounded-none p-5 sm:p-8 text-center cursor-pointer transition-all ${
                         isGameDragActive
                           ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5"
                           : gameFile
                             ? "border-[var(--color-success)] bg-[var(--color-success)]/5"
-                            : "border-[var(--color-border)] hover:border-[var(--color-primary)]"
+                            : "border-[var(--color-border-strong)] hover:border-[var(--color-primary)]"
                       }`}
                     >
                       <input {...getGameInputProps()} />
@@ -974,7 +982,7 @@ export function UploadPageClient() {
                           <FileArchive className="h-10 w-10 text-[var(--color-success)]" />
                           <div className="text-center sm:text-left min-w-0">
                             <p className="font-medium text-[var(--color-text)]">{gameFile.name}</p>
-                            <p className="text-sm text-[var(--color-text-secondary)]">
+                            <p className="text-xs text-[var(--color-text-secondary)]">
                               {(gameFile.size / 1024 / 1024).toFixed(2)} MB
                             </p>
                           </div>
@@ -984,7 +992,7 @@ export function UploadPageClient() {
                               e.stopPropagation()
                               setGameFile(null)
                             }}
-                            className="p-1 text-[var(--color-text-tertiary)] hover:text-[var(--color-text)]"
+                            className="p-1 text-[var(--color-text-tertiary)] hover:text-[var(--color-text)] cursor-pointer"
                           >
                             <X className="h-5 w-5" />
                           </button>
@@ -992,33 +1000,34 @@ export function UploadPageClient() {
                       ) : (
                         <>
                           <Upload className="h-12 w-12 text-[var(--color-text-tertiary)] mx-auto mb-4" />
-                          <p className="text-[var(--color-text)] mb-2">
+                          <p className="text-[var(--color-text)] mb-2 text-xs uppercase font-bold">
                             Drag & drop your game file here, or click to browse
                           </p>
-                          <p className="text-sm text-[var(--color-text-tertiary)]">
+                          <p className="text-[10px] text-[var(--color-text-tertiary)] uppercase">
                             Max file size: 50MB | Supported: .zip, .html
                           </p>
                         </>
                       )}
                     </div>
 
-                    <p className="text-xs text-[var(--color-text-secondary)]">
+                    <p className="text-[10px] text-[var(--color-text-secondary)] uppercase">
                       ZIP uploads work for complete projects. Preview and auto thumbnails are available for pasted HTML or a single .html file.
                     </p>
                   </TabsContent>
 
                   <TabsContent value="paste" className="mt-0 space-y-3">
                     <div className="space-y-2">
-                      <Label htmlFor="pasted-html">Paste HTML code</Label>
+                      <Label variant="arcade" htmlFor="pasted-html">Paste HTML code</Label>
                       <Textarea
                         id="pasted-html"
+                        variant="arcade"
                         value={pastedGameHtml}
                         onChange={(e) => setPastedGameHtml(e.target.value)}
                         placeholder="Paste your full index.html here..."
                         className="min-h-[260px] font-mono text-xs"
                         disabled={uploading || autoThumbnailState === "capturing"}
                       />
-                      <p className="text-xs text-[var(--color-text-secondary)]">
+                      <p className="text-[10px] text-[var(--color-text-secondary)] font-arcade uppercase">
                         Paste a complete HTML document for the best preview. If your game depends on local assets, ZIP upload is still the safest option.
                       </p>
                     </div>
@@ -1027,13 +1036,13 @@ export function UploadPageClient() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MonitorPlay className="h-5 w-5 text-[var(--color-primary)]" />
-                  Preview & Auto Thumbnails
+            <Card variant="arcade">
+              <CardHeader variant="arcade">
+                <CardTitle className="flex items-center gap-2 font-arcade text-white">
+                  <MonitorPlay className="h-5 w-5 text-[#ffff00]" />
+                  PREVIEW_AND_AUTO_THUMBNAILS
                 </CardTitle>
-                <CardDescription>{previewSourceDescription}</CardDescription>
+                <CardDescription className="font-arcade text-xs text-[#8b93a6]">{previewSourceDescription.toUpperCase()}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {previewGameUrl ? (
@@ -1050,17 +1059,17 @@ export function UploadPageClient() {
                       onAutoThumbnailCaptureError={handleAutoThumbnailCaptureError}
                     />
 
-                    <div className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-base)] p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-3 border-2 border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-4 sm:flex-row sm:items-center sm:justify-between font-arcade">
                       <div className="space-y-1">
-                        <p className="text-sm font-medium text-[var(--color-text)]">Auto thumbnails</p>
-                        <p className="text-xs text-[var(--color-text-secondary)]">{autoThumbnailMessage}</p>
+                        <p className="text-sm font-medium text-[var(--color-text)]">AUTO THUMBNAILS</p>
+                        <p className="text-[10px] text-[var(--color-text-secondary)]">{autoThumbnailMessage.toUpperCase()}</p>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2">
                         <Button
                           type="button"
-                          variant={autoThumbnailState === "ready" ? "outline" : "default"}
-                          className="gap-2"
+                          variant={autoThumbnailState === "ready" ? "arcade-outline" : "arcade"}
+                          className="gap-2 font-arcade"
                           onClick={startAutoThumbnailCapture}
                           disabled={!previewGameUrl || uploading || autoThumbnailState === "capturing"}
                         >
@@ -1069,14 +1078,14 @@ export function UploadPageClient() {
                           ) : (
                             <Camera className="h-4 w-4" />
                           )}
-                          {autoThumbnailState === "ready" ? "Recapture" : "Capture"}
+                          {autoThumbnailState === "ready" ? "[RECAPTURE]" : "[CAPTURE]"}
                         </Button>
 
                         {autoThumbnailImages.length > 0 && (
                           <Button
                             type="button"
-                            variant="outline"
-                            className="gap-2"
+                            variant="arcade-outline"
+                            className="gap-2 font-arcade"
                             onClick={() => {
                               setAutoThumbnailImages([])
                               setAutoThumbnailState("idle")
@@ -1086,25 +1095,25 @@ export function UploadPageClient() {
                             }}
                             disabled={uploading}
                           >
-                            Clear
+                            [CLEAR]
                           </Button>
                         )}
                       </div>
                     </div>
 
                     {autoThumbnailImages.length > 0 && (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="text-sm font-medium text-[var(--color-text)]">Captured thumbnails</p>
-                          <p className="text-xs text-[var(--color-text-secondary)]">
-                            {autoThumbnailImages.length} screenshot{autoThumbnailImages.length === 1 ? "" : "s"} ready for upload
+                      <div className="space-y-3 font-arcade">
+                        <div className="flex items-center justify-between gap-3 text-xs">
+                          <p className="font-medium text-[var(--color-text)]">CAPTURED THUMBNAILS</p>
+                          <p className="text-[#8b93a6]">
+                            {autoThumbnailImages.length} SCREENSHOT{autoThumbnailImages.length === 1 ? "" : "S"} READY FOR UPLOAD
                           </p>
                         </div>
                         <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
                           {autoThumbnailImages.map((image, index) => (
                             <div
                               key={`${index}-${image.slice(0, 32)}`}
-                              className="overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface)]"
+                              className="overflow-hidden border-2 border-[var(--color-border-strong)] bg-[var(--color-surface)]"
                             >
                               <Image
                                 src={image}
@@ -1117,20 +1126,20 @@ export function UploadPageClient() {
                             </div>
                           ))}
                         </div>
-                        <p className="text-xs text-[var(--color-text-secondary)]">
+                        <p className="text-[10px] text-[var(--color-text-secondary)] uppercase">
                           These captured shots will be uploaded as a thumbnail slideshow when you publish.
                         </p>
                       </div>
                     )}
                   </>
                 ) : (
-                  <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-base)] px-6 py-10 text-center">
+                  <div className="flex flex-col items-center justify-center border-3 border-dashed border-[var(--color-border-strong)] bg-[var(--color-base)] px-6 py-10 text-center">
                     <Sparkles className="h-10 w-10 text-[var(--color-text-tertiary)]" />
-                    <p className="mt-3 text-sm font-medium text-[var(--color-text)]">
-                      Preview appears here once you upload a single .html file or paste your HTML code.
+                    <p className="mt-3 text-sm font-medium text-[var(--color-text)] font-arcade">
+                      PREVIEW APPEARS HERE ONCE YOU UPLOAD A SINGLE .HTML FILE OR PASTE YOUR HTML CODE.
                     </p>
-                    <p className="mt-2 max-w-xl text-xs text-[var(--color-text-secondary)]">
-                      ZIP uploads still publish normally. If you want preview and auto thumbnails, switch to Paste HTML or upload a standalone .html file.
+                    <p className="mt-2 max-w-xl text-[10px] text-[var(--color-text-secondary)] font-arcade">
+                      ZIP UPLOADS STILL PUBLISH NORMALLY. IF YOU WANT PREVIEW AND AUTO THUMBNAILS, SWITCH TO PASTE HTML OR UPLOAD A STANDALONE .HTML FILE.
                     </p>
                   </div>
                 )}
@@ -1138,19 +1147,20 @@ export function UploadPageClient() {
             </Card>
 
             {/* Game Details */}
-            <Card className="border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] shadow-[0_18px_50px_rgba(5,10,24,0.16)]">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-[var(--color-primary)]" />
-                  Game Details
+            <Card variant="arcade">
+              <CardHeader variant="arcade">
+                <CardTitle className="flex items-center gap-2 font-arcade text-white">
+                  <Sparkles className="h-5 w-5 text-[#ffff00]" />
+                  GAME_DETAILS
                 </CardTitle>
-                <CardDescription>Tell players about your game</CardDescription>
+                <CardDescription className="font-arcade text-xs text-[#8b93a6]">Tell players about your game</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Game Title *</Label>
+                  <Label variant="arcade">Game Title *</Label>
                   <Input
                     id="title"
+                    variant="arcade"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="My Awesome Game"
@@ -1159,9 +1169,10 @@ export function UploadPageClient() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Description *</Label>
+                  <Label variant="arcade">Description *</Label>
                   <Textarea
                     id="description"
+                    variant="arcade"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="Describe your game, what makes it fun, and how to play..."
@@ -1171,9 +1182,10 @@ export function UploadPageClient() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>How to Play (optional)</Label>
+                  <Label variant="arcade">How to Play (optional)</Label>
                   <Textarea
                     id="instructions"
+                    variant="arcade"
                     value={formData.instructions}
                     onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
                     placeholder="Controls: Arrow keys to move, Space to jump..."
@@ -1182,17 +1194,17 @@ export function UploadPageClient() {
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Category *</Label>
+                    <Label variant="arcade">Category *</Label>
                     <Select
                       value={formData.category}
                       onValueChange={(value) => setFormData({ ...formData, category: value })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger variant="arcade">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent variant="arcade">
                         {CATEGORIES.map((cat) => (
-                          <SelectItem key={cat.value} value={cat.value}>
+                          <SelectItem variant="arcade" key={cat.value} value={cat.value}>
                             {cat.icon} {cat.label}
                           </SelectItem>
                         ))}
@@ -1201,8 +1213,10 @@ export function UploadPageClient() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>AI Model Used</Label>
+                    <Label variant="arcade">AI Model Used</Label>
                     <Input
+                      id="aiModel"
+                      variant="arcade"
                       value={formData.aiModel}
                       onChange={(e) => setFormData({ ...formData, aiModel: e.target.value })}
                       placeholder="e.g. GPT-4.1, Claude 3.7 Sonnet, Gemini 2.5 Pro"
@@ -1210,7 +1224,7 @@ export function UploadPageClient() {
                   </div>
 
                   <div className="space-y-2 md:col-span-2">
-                    <Label>Game Jam</Label>
+                    <Label variant="arcade">Game Jam</Label>
                     <Select
                       value={selectedJamSlug || "__none__"}
                       onValueChange={(value) => {
@@ -1219,42 +1233,42 @@ export function UploadPageClient() {
                       }}
                       disabled={loadingJams}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger variant="arcade">
                         <SelectValue placeholder={loadingJams ? "Loading active jams..." : "No jam selected"} />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none__">No jam selected</SelectItem>
+                      <SelectContent variant="arcade">
+                        <SelectItem variant="arcade" value="__none__">No jam selected</SelectItem>
                         {activeJams.map((jam) => (
-                          <SelectItem key={jam.slug} value={jam.slug}>
+                          <SelectItem variant="arcade" key={jam.slug} value={jam.slug}>
                             {jam.theme ? `${jam.title} - ${jam.theme}` : jam.title}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-[var(--color-text-secondary)]">
+                    <p className="text-xs text-[var(--color-text-secondary)] font-arcade text-[10px]">
                       Choose an active jam to auto-submit this game as soon as it is published.
                     </p>
                     {jamLoadError && (
-                      <p className="text-xs text-[var(--color-danger)]">{jamLoadError}</p>
+                      <p className="text-xs text-[var(--color-danger)] font-arcade">{jamLoadError}</p>
                     )}
                   </div>
                 </div>
 
                 {selectedJam && (
-                  <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
+                  <div className="border-2 border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-4 font-arcade text-xs">
                     <div className="flex items-start gap-3">
-                      <Trophy className="mt-0.5 h-4 w-4 text-[var(--color-primary)]" />
+                      <Trophy className="mt-0.5 h-4 w-4 text-[var(--color-arcade-yellow)]" />
                       <div className="space-y-1">
-                        <p className="text-sm font-medium text-[var(--color-text)]">{selectedJam.title}</p>
-                        <p className="text-xs text-[var(--color-text-secondary)]">
-                          {selectedJam.theme ? `Theme: ${selectedJam.theme}. ` : ""}
-                          Submissions close on {new Date(selectedJam.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}.
+                        <p className="font-semibold text-white">{selectedJam.title.toUpperCase()}</p>
+                        <p className="text-[#8b93a6]">
+                          {selectedJam.theme ? `THEME: ${selectedJam.theme.toUpperCase()}. ` : ""}
+                          SUBMISSIONS CLOSE ON {new Date(selectedJam.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase()}.
                         </p>
-                        <p className="text-xs text-[var(--color-text-tertiary)]">
-                          You have used {selectedJam.userEntryCount} of {selectedJam.maxEntries} {selectedJam.maxEntries === 1 ? "slot" : "slots"}. {selectedJam.remainingEntries} left.
+                        <p className="text-[#8b93a6]">
+                          YOU HAVE USED {selectedJam.userEntryCount} OF {selectedJam.maxEntries} {selectedJam.maxEntries === 1 ? "SLOT" : "SLOTS"}. {selectedJam.remainingEntries} LEFT.
                         </p>
-                        <p className={`text-xs ${selectedJam.isEligibleToSubmit ? "text-[var(--color-success)]" : "text-[var(--color-warning)]"}`}>
-                          {selectedJam.isEligibleToSubmit ? "Eligible for auto-submission right now." : "This jam will not accept another entry from you right now."}
+                        <p className={`font-semibold ${selectedJam.isEligibleToSubmit ? "text-[var(--color-success)]" : "text-[var(--color-warning)]"}`}>
+                          {selectedJam.isEligibleToSubmit ? "ELIGIBLE FOR AUTO-SUBMISSION RIGHT NOW." : "THIS JAM WILL NOT ACCEPT ANOTHER ENTRY FROM YOU RIGHT NOW."}
                         </p>
                       </div>
                     </div>
@@ -1262,16 +1276,17 @@ export function UploadPageClient() {
                 )}
 
                 <div className="space-y-2">
-                  <Label>Tags (comma-separated)</Label>
+                  <Label variant="arcade">Tags (comma-separated)</Label>
                   <Input
                     id="tags"
+                    variant="arcade"
                     value={formData.tags}
                     onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                     placeholder="platformer, retro, fun, easy"
                   />
                 </div>
 
-                <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
+                <div className="border-2 border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-3">
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
@@ -1283,18 +1298,18 @@ export function UploadPageClient() {
                           mobileOrientation: e.target.checked ? formData.mobileOrientation : "BOTH",
                         })
                       }
-                      className="h-4 w-4 rounded border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                      className="h-5 w-5 border-[3px] border-[var(--color-border-strong)] bg-[var(--color-base)] text-[var(--color-arcade-yellow)] focus:ring-[var(--color-arcade-yellow)] accent-[var(--color-arcade-yellow)]"
                     />
                     <div>
-                      <p className="text-sm font-medium text-[var(--color-text)]">Supports mobile devices</p>
-                      <p className="text-xs text-[var(--color-text-secondary)]">Show players that this game is playable on mobile</p>
+                      <p className="text-sm font-medium text-[var(--color-text)] font-arcade">SUPPORTS MOBILE DEVICES</p>
+                      <p className="text-xs text-[var(--color-text-secondary)] font-arcade text-[10px]">SHOW PLAYERS THAT THIS GAME IS PLAYABLE ON MOBILE</p>
                     </div>
                   </label>
                 </div>
 
                 {formData.supportsMobile && (
-                  <div className="space-y-2 rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
-                    <Label>Mobile orientation</Label>
+                  <div className="space-y-2 border-2 border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-3">
+                    <Label variant="arcade">Mobile orientation</Label>
                     <Select
                       value={formData.mobileOrientation}
                       onValueChange={(value) =>
@@ -1304,49 +1319,49 @@ export function UploadPageClient() {
                         })
                       }
                     >
-                      <SelectTrigger>
+                      <SelectTrigger variant="arcade">
                         <SelectValue placeholder="Choose orientation support" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent variant="arcade">
                         {MOBILE_ORIENTATION_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
+                          <SelectItem variant="arcade" key={option.value} value={option.value}>
                             {option.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-[var(--color-text-secondary)]">
-                      Choose whether the fullscreen game should run in portrait, landscape, or both on mobile.
+                    <p className="text-xs text-[var(--color-text-secondary)] font-arcade text-[10px]">
+                      CHOOSE WHETHER THE FULLSCREEN GAME SHOULD RUN IN PORTRAIT, LANDSCAPE, OR BOTH ON MOBILE.
                     </p>
                   </div>
                 )}
 
-                <details className="rounded-lg border border-[var(--color-border)] bg-[var(--color-base)]">
-                  <summary className="cursor-pointer list-none px-4 py-3">
+                <details className="border-2 border-[var(--color-border-strong)] bg-[var(--color-surface-2)]">
+                  <summary className="cursor-pointer list-none px-4 py-3 font-arcade">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm font-medium text-[var(--color-text)]">Advanced Settings</p>
-                        <p className="text-xs text-[var(--color-text-secondary)]">
-                          Optional discovery, creator, and community features.
+                        <p className="text-sm font-medium text-[var(--color-text)]">ADVANCED SETTINGS</p>
+                        <p className="text-xs text-[var(--color-text-secondary)] font-arcade text-[10px]">
+                          OPTIONAL DISCOVERY, CREATOR, AND COMMUNITY FEATURES.
                         </p>
                       </div>
-                      <span className="text-xs text-[var(--color-text-tertiary)]">Optional</span>
+                      <span className="text-xs text-[#8b93a6]">[OPTIONAL]</span>
                     </div>
                   </summary>
 
-                  <div className="space-y-4 border-t border-[var(--color-border)] px-4 py-4">
+                  <div className="space-y-4 border-t-2 border-[var(--color-border-strong)] px-4 py-4">
                     {session.user.id && (
-                      <div className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-                        <div className="flex flex-col gap-1">
-                          <Label>Publish as</Label>
-                          <p className="text-xs text-[var(--color-text-tertiary)]">
-                            Studio profiles let you publish games under a saved brand name.
+                      <div className="space-y-3 border-2 border-[var(--color-border-strong)] bg-[var(--color-base)] p-4">
+                        <div className="flex flex-col gap-1 font-arcade">
+                          <Label variant="arcade">Publish as</Label>
+                          <p className="text-xs text-[#8b93a6] text-[10px]">
+                            STUDIO PROFILES LET YOU PUBLISH GAMES UNDER A SAVED BRAND NAME.
                           </p>
                         </div>
 
                         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                           <div className="space-y-2">
-                            <Label>Studio profile (optional)</Label>
+                            <Label variant="arcade">Studio profile (optional)</Label>
                             <Select
                               value={formData.studioProfileId}
                               onValueChange={(value) =>
@@ -1356,13 +1371,13 @@ export function UploadPageClient() {
                                 }))
                               }
                             >
-                              <SelectTrigger>
+                              <SelectTrigger variant="arcade">
                                 <SelectValue placeholder="Your account" />
                               </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="__none__">Your account</SelectItem>
+                              <SelectContent variant="arcade">
+                                <SelectItem variant="arcade" value="__none__">Your account</SelectItem>
                                 {studioProfiles.map((p) => (
-                                  <SelectItem key={p.id} value={p.id}>
+                                  <SelectItem variant="arcade" key={p.id} value={p.id}>
                                     {p.displayName} (@{p.handle})
                                   </SelectItem>
                                 ))}
@@ -1371,12 +1386,12 @@ export function UploadPageClient() {
                           </div>
 
                           <div className="space-y-2">
-                            <Label>Create new studio</Label>
+                            <Label variant="arcade">Create new studio</Label>
                             <div className="flex gap-2">
                               <Button
                                 type="button"
-                                variant="outline"
-                                className="w-full"
+                                variant="arcade"
+                                className="w-full font-arcade"
                                 onClick={async () => {
                                   setStudioError("")
                                   setCreatingStudio(true)
@@ -1406,7 +1421,7 @@ export function UploadPageClient() {
                                 }}
                                 disabled={creatingStudio || !newStudio.displayName.trim()}
                               >
-                                {creatingStudio ? "Creating..." : "Create"}
+                                {creatingStudio ? "Creating..." : "[Create]"}
                               </Button>
                             </div>
                           </div>
@@ -1414,16 +1429,18 @@ export function UploadPageClient() {
 
                         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                           <div className="space-y-2">
-                            <Label>Studio display name</Label>
+                            <Label variant="arcade">Studio display name</Label>
                             <Input
+                              variant="arcade"
                               value={newStudio.displayName}
                               onChange={(e) => setNewStudio({ ...newStudio, displayName: e.target.value })}
                               placeholder="e.g. Neon Arcade Labs"
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>Studio handle (optional)</Label>
+                            <Label variant="arcade">Studio handle (optional)</Label>
                             <Input
+                              variant="arcade"
                               value={newStudio.handle}
                               onChange={(e) => setNewStudio({ ...newStudio, handle: e.target.value })}
                               placeholder="e.g. neon-arcade"
@@ -1432,82 +1449,83 @@ export function UploadPageClient() {
                         </div>
 
                         {studioError && (
-                          <div className="text-sm text-[var(--color-danger)]">{studioError}</div>
+                          <div className="text-sm text-[var(--color-danger)] font-arcade">{studioError}</div>
                         )}
                       </div>
                     )}
 
                     <div className="space-y-2">
-                      <Label>Launch / update note</Label>
+                      <Label variant="arcade">Launch / update note</Label>
                       <Textarea
+                        variant="arcade"
                         value={formData.latestUpdateNote}
                         onChange={(e) => setFormData({ ...formData, latestUpdateNote: e.target.value })}
                         placeholder="What changed, what should players notice, or what kind of feedback do you want?"
                         maxLength={280}
                       />
-                      <p className="text-xs text-[var(--color-text-tertiary)]">
-                        Shown on the play page and creator portfolio so your profile feels active.
+                      <p className="text-xs text-[var(--color-text-tertiary)] font-arcade text-[10px]">
+                        SHOWN ON THE PLAY PAGE AND CREATOR PORTFOLIO SO YOUR PROFILE FEELS ACTIVE.
                       </p>
                     </div>
 
-                    <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
+                    <div className="border-2 border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-3">
                       <label className="flex items-center gap-3 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={formData.seekingFeedback}
                           onChange={(e) => setFormData({ ...formData, seekingFeedback: e.target.checked })}
-                          className="h-4 w-4 rounded border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                          className="h-5 w-5 border-[3px] border-[var(--color-border-strong)] bg-[var(--color-base)] text-[var(--color-arcade-yellow)] focus:ring-[var(--color-arcade-yellow)] accent-[var(--color-arcade-yellow)]"
                         />
                         <div>
-                          <p className="text-sm font-medium text-[var(--color-text)]">Put this in the feedback lane</p>
-                          <p className="text-xs text-[var(--color-text-secondary)]">Only one of your games can be marked this way at a time, which helps smaller launches get eyes quickly.</p>
+                          <p className="text-sm font-medium text-[var(--color-text)] font-arcade">PUT THIS IN THE FEEDBACK LANE</p>
+                          <p className="text-xs text-[var(--color-text-secondary)] font-arcade text-[10px]">ONLY ONE OF YOUR GAMES CAN BE MARKED THIS WAY AT A TIME, WHICH HELPS SMALLER LAUNCHES GET EYES QUICKLY.</p>
                         </div>
                       </label>
                     </div>
 
-                    <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
+                    <div className="border-2 border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-3">
                       <label className="flex items-center gap-3 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={formData.hasLevelEditor}
                           onChange={(e) => setFormData({ ...formData, hasLevelEditor: e.target.checked })}
-                          className="h-4 w-4 rounded border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                          className="h-5 w-5 border-[3px] border-[var(--color-border-strong)] bg-[var(--color-base)] text-[var(--color-arcade-yellow)] focus:ring-[var(--color-arcade-yellow)] accent-[var(--color-arcade-yellow)]"
                         />
                         <div>
-                          <p className="text-sm font-medium text-[var(--color-text)]">Community level editor</p>
-                          <p className="text-xs text-[var(--color-text-secondary)]">Turn this game into a remixable playground where players can build, save, rate, and share custom levels.</p>
+                          <p className="text-sm font-medium text-[var(--color-text)] font-arcade">COMMUNITY LEVEL EDITOR</p>
+                          <p className="text-xs text-[var(--color-text-secondary)] font-arcade text-[10px]">TURN THIS GAME INTO A REMIXABLE PLAYGROUND WHERE PLAYERS CAN BUILD, SAVE, RATE, AND SHARE CUSTOM LEVELS.</p>
                         </div>
                       </label>
                     </div>
 
                     {formData.hasLevelEditor && (
-                      <div className="space-y-2">
-                        <p className="text-xs text-[var(--color-text-secondary)]">
-                          Level editor is for games where players should build and share custom stages.
+                      <div className="space-y-2 font-arcade text-xs">
+                        <p className="text-[#8b93a6] text-[10px]">
+                          LEVEL EDITOR IS FOR GAMES WHERE PLAYERS SHOULD BUILD AND SHARE CUSTOM STAGES.
                         </p>
                         <LevelEditorSetupGuide />
                       </div>
                     )}
 
-                    <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
+                    <div className="border-2 border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-3">
                       <label className="flex items-center gap-3 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={formData.hasGhostSharing}
                           onChange={(e) => setFormData({ ...formData, hasGhostSharing: e.target.checked })}
-                          className="h-4 w-4 rounded border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                          className="h-5 w-5 border-[3px] border-[var(--color-border-strong)] bg-[var(--color-base)] text-[var(--color-arcade-yellow)] focus:ring-[var(--color-arcade-yellow)] accent-[var(--color-arcade-yellow)]"
                         />
                         <div>
-                          <p className="text-sm font-medium text-[var(--color-text)]">Ghost races + time leaderboard</p>
-                          <p className="text-xs text-[var(--color-text-secondary)]">Best for games that can deterministically replay a run from structured data. Players can race ghosts and climb a time board.</p>
+                          <p className="text-sm font-medium text-[var(--color-text)] font-arcade">GHOST RACES + TIME LEADERBOARD</p>
+                          <p className="text-xs text-[var(--color-text-secondary)] font-arcade text-[10px]">BEST FOR GAMES THAT CAN DETERMINISTICALLY REPLAY A RUN FROM STRUCTURED DATA. PLAYERS CAN RACE GHOSTS AND CLIMB A TIME BOARD.</p>
                         </div>
                       </label>
                     </div>
 
                     {formData.hasGhostSharing && (
-                      <div className="space-y-2">
-                        <p className="text-xs text-[var(--color-text-secondary)]">
-                          Ghost races are separate from level editor and work for any game with deterministic replay data.
+                      <div className="space-y-2 font-arcade text-xs">
+                        <p className="text-[#8b93a6] text-[10px]">
+                          GHOST RACES ARE SEPARATE FROM LEVEL EDITOR AND WORK FOR ANY GAME WITH DETERMINISTIC REPLAY DATA.
                         </p>
                         <GhostSharingSetupGuide />
                       </div>
@@ -1518,23 +1536,23 @@ export function UploadPageClient() {
             </Card>
 
             {/* Thumbnail */}
-            <Card className="border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] shadow-[0_18px_50px_rgba(5,10,24,0.16)]">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Camera className="h-5 w-5 text-[var(--color-primary)]" />
-                  Thumbnail
+            <Card variant="arcade">
+              <CardHeader variant="arcade">
+                <CardTitle className="flex items-center gap-2 font-arcade text-white">
+                  <Camera className="h-5 w-5 text-[#ffff00]" />
+                  THUMBNAIL
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="font-arcade text-xs text-[#8b93a6]">
                   Upload an eye-catching image for your game (recommended: 800x450px). If you captured auto thumbnails, they will take priority when you publish.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div
                   {...getThumbnailRootProps()}
-                  className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all ${
+                  className={`border-3 border-dashed rounded-none p-6 text-center cursor-pointer transition-all ${
                     thumbnailPreview
-                      ? "border-[var(--color-success)]"
-                      : "border-[var(--color-border)] hover:border-[var(--color-primary)]"
+                      ? "border-[var(--color-success)] bg-[var(--color-success)]/5"
+                      : "border-[var(--color-border-strong)] hover:border-[var(--color-primary)]"
                   }`}
                 >
                   <input {...getThumbnailInputProps()} />
@@ -1546,7 +1564,7 @@ export function UploadPageClient() {
                         width={800}
                         height={450}
                         unoptimized
-                        className="max-h-48 mx-auto rounded-md border border-[var(--color-border)]"
+                        className="max-h-48 mx-auto rounded-none border-2 border-[var(--color-border-strong)]"
                       />
                       <button
                         type="button"
@@ -1555,7 +1573,7 @@ export function UploadPageClient() {
                           setThumbnailFile(null)
                           setThumbnailPreview(null)
                         }}
-                        className="absolute top-2 right-2 p-1 bg-[var(--color-surface)] rounded-md border border-[var(--color-border)] text-[var(--color-text-tertiary)] hover:text-[var(--color-text)]"
+                        className="absolute top-2 right-2 p-1 bg-[var(--color-surface)] border-2 border-[var(--color-border-strong)] text-[var(--color-text-tertiary)] hover:text-[var(--color-text)] cursor-pointer"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -1563,36 +1581,36 @@ export function UploadPageClient() {
                   ) : (
                     <>
                       <Upload className="h-8 w-8 text-[var(--color-text-tertiary)] mx-auto mb-2" />
-                      <p className="text-[var(--color-text-secondary)] text-sm">Click or drag to upload thumbnail</p>
+                      <p className="text-[var(--color-text-secondary)] text-sm font-arcade text-[11px] uppercase">Click or drag to upload thumbnail</p>
                     </>
                   )}
                 </div>
-                <p className="mt-3 text-xs text-[var(--color-text-secondary)]">
-                  Thumbnail status: {thumbnailStatusLabel}
+                <p className="mt-3 text-xs text-[var(--color-text-secondary)] font-arcade text-[10px]">
+                  THUMBNAIL STATUS: {thumbnailStatusLabel.toUpperCase()}
                 </p>
                 {autoThumbnailImages.length > 0 && (
-                  <p className="mt-2 text-xs text-[var(--color-text-secondary)]">
-                    Auto thumbnails are ready, so the slideshow from the preview will be used on publish.
+                  <p className="mt-2 text-xs text-[var(--color-text-secondary)] font-arcade text-[10px]">
+                    AUTO THUMBNAILS ARE READY, SO THE SLIDESHOW FROM THE PREVIEW WILL BE USED ON PUBLISH.
                   </p>
                 )}
               </CardContent>
             </Card>
 
             {/* Actions */}
-            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-              <Button type="button" variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
-                Cancel
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 font-arcade">
+              <Button type="button" variant="arcade-outline" onClick={() => router.back()} className="w-full sm:w-auto">
+                [CANCEL]
               </Button>
-              <Button type="submit" disabled={uploading || !hasGameSource || autoThumbnailState === "capturing"} className="w-full sm:w-auto">
+              <Button type="submit" variant="arcade" disabled={uploading || !hasGameSource || autoThumbnailState === "capturing"} className="w-full sm:w-auto">
                 {uploading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Uploading...
+                    [UPLOADING...]
                   </>
                 ) : (
                   <>
                     <Upload className="h-4 w-4 mr-2" />
-                    Publish Game
+                    [PUBLISH_GAME]
                   </>
                 )}
               </Button>

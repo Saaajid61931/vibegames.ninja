@@ -131,6 +131,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+    const metadata = validatedMetadata.data
 
     if (!sourceGameFile || !title || !description) {
       return NextResponse.json(
@@ -291,10 +292,10 @@ export async function POST(request: NextRequest) {
             title,
             description,
             instructions,
-            category: category.toUpperCase(),
+            category: metadata.category,
             tags,
-            aiTool: normalizedAiTool,
-            aiModel,
+            aiTool: metadata.aiTool ?? null,
+            aiModel: metadata.aiModel ?? null,
             supportsMobile,
             mobileOrientation,
             hasLevelEditor,

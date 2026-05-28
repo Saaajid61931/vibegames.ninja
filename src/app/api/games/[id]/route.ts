@@ -205,6 +205,7 @@ async function updateGame(
         { status: 400 }
       )
     }
+    const metadata = validatedMetadata.data
 
     if (!title || !description) {
       return NextResponse.json({ error: "Title and description are required" }, { status: 400 })
@@ -306,10 +307,10 @@ async function updateGame(
         slug: newSlug,
         description,
         instructions: instructions || null,
-        category: category.toUpperCase() || "OTHER",
+        category: metadata.category,
         tags,
-        aiTool: aiTool || null,
-        aiModel: aiModel || null,
+        aiTool: metadata.aiTool ?? null,
+        aiModel: metadata.aiModel ?? null,
         supportsMobile,
         mobileOrientation,
         hasLevelEditor,
