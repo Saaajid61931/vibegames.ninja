@@ -106,21 +106,6 @@ window.gameInputs = {
 
 window.addEventListener("keydown", window.gameInputs.onKeyDown);
 window.addEventListener("keyup", window.gameInputs.onKeyUp);`
-      },
-      {
-        type: "heading",
-        text: "Put it all together in your prompt"
-      },
-      {
-        type: "paragraph",
-        text: "When initiating a project with Cursor or Claude, copy-paste this direct prompting constraint:"
-      },
-      {
-        type: "code",
-        language: "text",
-        code: `Ensure the game uses a delta-time game loop independent of the display refresh rate.
-Initialize the HTML5 Canvas to handle devicePixelRatio (DPR) correctly to prevent pixel blur.
-Implement single-instance event listener bindings and export clean reset functions to prevent memory leaks during hot reload.`
       }
     ]
   },
@@ -293,14 +278,411 @@ function playJumpSound() {
   osc.start();
   osc.stop(audioCtx.currentTime + 0.15);
 }`
+      }
+    ]
+  },
+  {
+    id: "post-4",
+    slug: "ai-system-prompt-code-refactoring",
+    title: "AI Productivity: System Prompts for Code Refactoring",
+    excerpt: "Learn how to configure role-based constraints and strict syntax rules to prevent LLMs from truncating code or breaking core logic during massive refactors.",
+    category: "TIPS_AND_TRICKS",
+    author: "Vibe Dev",
+    date: "June 2, 2026",
+    readTime: "5 min read",
+    coverImage: "/Images/blog/refactor-prompt.png",
+    tags: ["Productivity", "Prompting", "Refactoring"],
+    content: [
+      {
+        type: "paragraph",
+        text: "One of the most frustrating aspects of using LLMs for code refactoring is the tendency of models to output placeholders like `// ... rest of code stays the same ...` or silently delete edge-case helper functions. To protect your code integrity, you must enforce a strict refactoring system prompt."
       },
       {
         type: "heading",
-        text: "Hour 24-48: Polish, Build, and Submit"
+        text: "The 'Strict Refactoring' System Prompt Template"
       },
       {
         type: "paragraph",
-        text: "Double-check your game on mobile devices, wrap your build into a single `.zip` file containing your assets and `index.html` at the root, and upload it directly to VibeGames.Ninja using the Creator Console. Share your submission link in the jam community to invite rating feedback!"
+        text: "Copy and paste this configuration block into your system prompt or custom instructions before initiating a refactoring query. It sets absolute parameters on output formatting and logical preservation:"
+      },
+      {
+        type: "code",
+        language: "text",
+        code: `You are an expert refactoring engine. Your goal is to improve the readability, modularity, and performance of the code provided while strictly preserving all existing behavior.
+CRITICAL INSTRUCTIONS:
+1. DO NOT use placeholder comments (e.g., '// rest of code here' or '/* unchanged code */'). Write out the file in full.
+2. DO NOT delete, alter, or ignore any existing error-handling blocks, console warnings, comments, or boundary checks unless explicitly requested.
+3. If you make modifications, explain the architectural reason for the change in a brief markdown summary at the end.`
+      },
+      {
+        type: "heading",
+        text: "Why Full File Outputs Matter"
+      },
+      {
+        type: "paragraph",
+        text: "While writing full files consumes more tokens, it prevents copy-paste synchronization errors where an AI-generated chunk conflicts with the surrounding scope. Insisting on full files forces the model to verify all imported modules and variable declarations remain valid in context."
+      }
+    ]
+  },
+  {
+    id: "post-5",
+    slug: "state-of-ai-2026-agentic-workspaces",
+    title: "State of AI 2026: The Rise of Agentic Workspaces",
+    excerpt: "An overview of how modern code editors and LLM APIs are shifting from chat completions to autonomous file editing, terminal integration, and sandboxed previews.",
+    category: "AI_UPDATES",
+    author: "Vibe Dev",
+    date: "June 5, 2026",
+    readTime: "7 min read",
+    coverImage: "/Images/blog/agentic-workspaces.png",
+    tags: ["AI Trends", "Agentic AI", "Code Editors"],
+    content: [
+      {
+        type: "paragraph",
+        text: "The landscape of AI-assisted engineering has undergone a massive paradigm shift in 2026. The era of passive chat interfaces is ending. Developers are embracing 'Agentic Workspaces'—autonomous environments where LLMs don't just recommend code, but directly modify files, execute terminal scripts, test builds, and inspect sandboxed live previews."
+      },
+      {
+        type: "heading",
+        text: "From Chatbots to Autonomous Co-Pilots"
+      },
+      {
+        type: "paragraph",
+        text: "Earlier AI coding helpers operated in isolation: you copied code out of a browser chatbox and manually pasted it into your IDE. Today, editors like Cursor, Windsurf, and custom platform integrations read your workspace state, invoke command terminals, and edit files in place. The human developer's role is shifting from code author to system architect and code reviewer."
+      },
+      {
+        type: "heading",
+        text: "The Architectural Core of Agentic Workspaces"
+      },
+      {
+        type: "list",
+        items: [
+          "File system state tracking (LLMs reading index, logs, and relative dependencies).",
+          "Sandbox build validation (executing 'npm run build' or compiler tests automatically).",
+          "Automated loop detection (detecting and self-correcting linting and type errors).",
+          "Secure execution bounds (sandboxing terminal commands to avoid directory pollution)."
+        ]
+      },
+      {
+        type: "heading",
+        text: "What This Means for Junior Devs"
+      },
+      {
+        type: "paragraph",
+        text: "As code writing becomes fully automated, the most valuable skills are reading code quickly, understanding design patterns, and debugging systems. The ability to express logical goals clearly in natural language—supported by concrete technical constraints—is the core programming capability of 2026."
+      }
+    ]
+  },
+  {
+    id: "post-6",
+    slug: "llm-level-design-procedural",
+    title: "LLMs for Level Design: Procedural Generation Prompts",
+    excerpt: "How to prompt AI models to output structured JSON representations of levels, obstacle layouts, and enemy spawn coordinates that load cleanly into game engines.",
+    category: "TIPS_AND_TRICKS",
+    author: "Vibe Dev",
+    date: "June 10, 2026",
+    readTime: "5 min read",
+    coverImage: "/Images/blog/level-design-json.png",
+    tags: ["Level Design", "Procedural", "JSON"],
+    content: [
+      {
+        type: "paragraph",
+        text: "Generating game stages procedurally often leads to repetitive layouts. By combining your game's parser with structured JSON output from an LLM, you can create highly creative level design generators. Here is how to prompt AI to generate valid, play-tested game map configurations."
+      },
+      {
+        type: "heading",
+        text: "1. Define the Map Schema"
+      },
+      {
+        type: "paragraph",
+        text: "Before prompting the AI, define a strict, compact JSON schema for your map tiles. This keeps parsing simple and prevents the model from generating random, unsupported object keys:"
+      },
+      {
+        type: "code",
+        language: "json",
+        code: `{
+  "gridWidth": 16,
+  "gridHeight": 9,
+  "tiles": [0,0,1,1,0,0], // 0: empty, 1: block, 2: hazard
+  "entities": [
+    { "type": "player_start", "x": 1, "y": 2 },
+    { "type": "enemy_patrol", "x": 8, "y": 5, "range": 3 },
+    { "type": "goal", "x": 14, "y": 2 }
+  ]
+}`
+      },
+      {
+        type: "heading",
+        text: "2. The Structured Prompt Hook"
+      },
+      {
+        type: "paragraph",
+        text: "Use this system instruction to ensure the AI always outputs parseable JSON, keeps the level beatable, and avoids markdown wrapping comments:"
+      },
+      {
+        type: "code",
+        language: "text",
+        code: `You are a professional game level designer. Generate a map layout strictly adhering to the JSON schema provided.
+CRITICAL RULES:
+1. Return ONLY the raw JSON string inside a markdown code block. Do NOT write conversational explanations.
+2. Ensure there is always a valid, unblocked path from the player_start to the goal tile.
+3. Balance the map: do not group more than 3 hazards next to each other.`
+      }
+    ]
+  },
+  {
+    id: "post-7",
+    slug: "web-audio-synth-effects-ai",
+    title: "Web Audio Synths: Simple Synth Designs for AI Code",
+    excerpt: "A developer's cheatsheet for prompting AI coding models to generate laser sounds, coin collections, explosions, and retro background music loops.",
+    category: "TIPS_AND_TRICKS",
+    author: "Vibe Dev",
+    date: "June 15, 2026",
+    readTime: "5 min read",
+    coverImage: "/Images/blog/audio-synth.png",
+    tags: ["Web Audio", "Synth", "Game Audio"],
+    content: [
+      {
+        type: "paragraph",
+        text: "Finding, converting, and uploading `.mp3` or `.wav` assets for your browser games is slow. Using the Web Audio API, your game can generate authentic 8-bit sound effects directly via browser code. Here are the core formulas to feed your AI builder to generate classic synth audio effects."
+      },
+      {
+        type: "heading",
+        text: "1. The Retro Coin Collect Sound"
+      },
+      {
+        type: "paragraph",
+        text: "Classic retro coins use two quick frequencies: a base note followed instantly by a higher fifth. Prompt the AI to use this double-tone ramp oscillator setup:"
+      },
+      {
+        type: "code",
+        language: "javascript",
+        code: `function playCoinSound() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+  osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.08); // E5
+
+  gain.gain.setValueAtTime(0.08, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+  osc.start();
+  osc.stop(ctx.currentTime + 0.35);
+}`
+      },
+      {
+        type: "heading",
+        text: "2. The Retro Explosion / Noise Sound"
+      },
+      {
+        type: "paragraph",
+        text: "Explosions require noise. Instead of clean sine waves, generate a buffer filled with random values (white noise), feed it through a low-pass band filter, and ramp down the volume:"
+      },
+      {
+        type: "code",
+        language: "javascript",
+        code: `function playExplosionSound() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const bufferSize = ctx.sampleRate * 0.4; // 0.4 seconds
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1; // White noise
+  }
+
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.setValueAtTime(800, ctx.currentTime);
+  filter.frequency.exponentialRampToValueAtTime(10, ctx.currentTime + 0.4);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.15, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+
+  noise.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+
+  noise.start();
+  noise.stop(ctx.currentTime + 0.4);
+}`
+      }
+    ]
+  },
+  {
+    id: "post-8",
+    slug: "safely-embedding-untrusted-code-iframes",
+    title: "AI Sandbox: Safely Embedding Sandbox Code in Iframes",
+    excerpt: "Best practices for configuring the HTML5 sandbox attribute, window postMessage communication, and origin boundaries when running AI-generated scripts.",
+    category: "DEVLOGS",
+    author: "Vibe Dev",
+    date: "June 20, 2026",
+    readTime: "6 min read",
+    coverImage: "/Images/blog/sandbox-iframe.png",
+    tags: ["Security", "Iframes", "Sandboxing"],
+    content: [
+      {
+        type: "paragraph",
+        text: "Running user-submitted, AI-generated games inside your Next.js application poses severe security risks. A rogue script could access session cookies, execute cross-site scripting (XSS) actions, or compromise authentication state. The ultimate shield is a properly sandboxed HTML5 iframe."
+      },
+      {
+        type: "heading",
+        text: "1. The Secure Sandbox Attribute Set"
+      },
+      {
+        type: "paragraph",
+        text: "When embedding game frames, restrict permissions using the `sandbox` attribute. By omitting `allow-same-origin`, the embedded frame is treated as a unique origin, blocking it from accessing parent local storage or document models:"
+      },
+      {
+        type: "code",
+        language: "html",
+        code: `<iframe
+  src="/embed/game-folder"
+  sandbox="allow-scripts allow-pointer-lock"
+  scrolling="no"
+  class="w-full h-full border-none"
+  title="VibeGames Sandbox Embed"
+></iframe>`
+      },
+      {
+        type: "heading",
+        text: "2. Secure Communication via postMessage"
+      },
+      {
+        type: "paragraph",
+        text: "Since the frame and parent live on separate origins, communicate exclusively via structured postMessages. Always validate the origin and source payload structure before handling messages in your wrapper page:"
+      },
+      {
+        type: "code",
+        language: "javascript",
+        code: `// Parent Window Event Handler
+window.addEventListener("message", (event) => {
+  // 1. Verify expected structure
+  const data = event.data;
+  if (!data || data.source !== "vibegames-sdk") return;
+
+  // 2. Route payload based on message type
+  switch (data.type) {
+    case "VG_SUBMIT_SCORE":
+      savePlayerScore(data.payload.score);
+      break;
+    default:
+      console.warn("Unhandled frame action", data.type);
+  }
+});`
+      }
+    ]
+  },
+  {
+    id: "post-9",
+    slug: "prompting-ai-css-layouts-palettes",
+    title: "AI UI Design: Prompting for CSS Layouts & Palettes",
+    excerpt: "Essential prompt templates to get LLMs to design glowing cyber aesthetics, glassmorphism, responsive grids, and harmonious retro color palettes.",
+    category: "TIPS_AND_TRICKS",
+    author: "Vibe Dev",
+    date: "June 24, 2026",
+    readTime: "5 min read",
+    coverImage: "/Images/blog/css-palette.png",
+    tags: ["CSS", "Web Design", "Prompting"],
+    content: [
+      {
+        type: "paragraph",
+        text: "Getting AI to write layout CSS often results in generic, white-and-gray grids. To force the AI to design modern, high-contrast, visually stunning pages (like glassmorphism dashboards, neon cyber cards, or pixel retro buttons), you must feed it pre-defined CSS design tokens in your prompting template."
+      },
+      {
+        type: "heading",
+        text: "1. The HSL Theme Token Prompt"
+      },
+      {
+        type: "paragraph",
+        text: "AI models struggle with color hex codes, but handle HSL color systems easily. Instruct the AI to structure colors around a dark-mode HSL configuration. This allows it to generate beautiful, glowing accents naturally:"
+      },
+      {
+        type: "code",
+        language: "text",
+        code: `Structure the styling around this dark-theme CSS variable design system:
+:root {
+  --color-base: #0d0d15;       /* deep space black */
+  --color-surface: #11111d;    /* card panel background */
+  --color-primary: #ffff00;    /* neon yellow accent */
+  --color-secondary: #00ff40;  /* neon green success */
+  --color-border: #4a4a6a;     /* retro card outline */
+}
+Use these tokens for all custom components (buttons, panels, borders).`
+      },
+      {
+        type: "heading",
+        text: "2. The Glowing Arcade Card Hook"
+      },
+      {
+        type: "paragraph",
+        text: "To get the AI to generate a premium glowing border card instead of standard rounded gray panels, add this direct instruction to the prompt:"
+      },
+      {
+        type: "code",
+        language: "css",
+        code: `.arcade-card {
+  background-color: var(--color-surface);
+  border: 3px solid var(--color-border);
+  box-shadow: 4px 4px 0px var(--color-border);
+  transition: all 0.2s ease-in-out;
+}
+.arcade-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 4px 4px 0px var(--color-primary);
+  transform: translate(-2px, -2px);
+}`
+      }
+    ]
+  },
+  {
+    id: "post-10",
+    slug: "debugging-ai-spaghetti-codeblocks",
+    title: "Debugging Spaghetti: Prompting for Massive Codeblocks",
+    excerpt: "Tactical prompts and strategies to feed an LLM when it gets confused by circular references, variable scope leakage, and huge single-file scripts.",
+    category: "DEVLOGS",
+    author: "Vibe Dev",
+    date: "June 28, 2026",
+    readTime: "6 min read",
+    coverImage: "/Images/blog/spaghetti-debug.png",
+    tags: ["Debugging", "Refactoring", "Troubleshooting"],
+    content: [
+      {
+        type: "paragraph",
+        text: "As your AI-generated game grows in features, single-file scripts easily bloat to over 1000 lines. At this size, prompt memory limits degrade and the LLM begins introducing circular scope dependencies, coordinate reference errors, or duplicate loops. Here is a battle-tested strategy to debug and segment massive AI-made spaghetti codeblocks."
+      },
+      {
+        type: "heading",
+        text: "1. The 'Dependency Mapping' Prompt"
+      },
+      {
+        type: "paragraph",
+        text: "Before asking the AI to fix a bug in a massive file, force it to map the logical blocks. This aligns the context window and forces it to locate where variables are declared versus modified:"
+      },
+      {
+        type: "code",
+        language: "text",
+        code: `Read the attached file and construct a text-based map showing:
+1. Global variables and where they are declared.
+2. The core update / render loop hooks.
+3. Every custom function name, its arguments, and what global variables it reads or modifies.
+Do not modify the code yet; output the dependency map first.`
+      },
+      {
+        type: "heading",
+        text: "2. The Modularity Split Protocol"
+      },
+      {
+        type: "paragraph",
+        text: "Once the map is drawn, ask the model to split the code into separate, independent scripts. For browser games, segment files into: `input.js` (keyboard/touch), `physics.js` (movement/collision), `audio.js` (synths), and `game.js` (central loop and state controller). This modular design prevents context leakage and keeps AI prompting tight and maintainable."
       }
     ]
   }
