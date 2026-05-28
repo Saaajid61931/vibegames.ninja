@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
 import prisma from "@/lib/prisma"
 import { SITE_URL } from "@/lib/site"
+import { BLOG_POSTS } from "@/lib/blog-data"
 
 function getStaticPages(): MetadataRoute.Sitemap {
   return [
@@ -21,6 +22,12 @@ function getStaticPages(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 0.8,
+    },
+    {
+      url: `${SITE_URL}/blog`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.7,
     },
     {
       url: `${SITE_URL}/privacy`,
@@ -102,7 +109,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }))
 
-    return [...staticPages, ...gamePages, ...creatorPages, ...studioPages, ...jamPages]
+    const blogPages: MetadataRoute.Sitemap = BLOG_POSTS.map((post) => ({
+      url: `${SITE_URL}/blog/${post.slug}`,
+      lastModified: new Date(post.date),
+      changeFrequency: "monthly",
+      priority: 0.6,
+    }))
+
+    return [...staticPages, ...gamePages, ...creatorPages, ...studioPages, ...jamPages, ...blogPages]
   } catch {
     return staticPages
   }
