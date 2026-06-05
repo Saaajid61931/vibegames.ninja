@@ -79,6 +79,10 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
   // Fullscreen button animation reminder state
   const [showFullscreenHint, setShowFullscreenHint] = useState(false)
 
+  // Interactive play state inside feed
+  const [isInteractive, setIsInteractive] = useState(false)
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null)
+
   // Dynamic iframe sizing state measured via ResizeObserver
   const [frameWidth, setFrameWidth] = useState(0)
   const [frameHeight, setFrameHeight] = useState(0)
@@ -161,8 +165,10 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
   }, [])
 
   // Fullscreen hint timer: turns on after 1 minute of active slide inactivity
+  // Also reset inline feed game interaction on active slide change
   useEffect(() => {
     setShowFullscreenHint(false)
+    setIsInteractive(false)
     const timer = setTimeout(() => {
       setShowFullscreenHint(true)
     }, 60000) // 1 minute (60,000 ms)
@@ -427,6 +433,36 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
     }
   }
 
+  // Touch gesture handlers to detect clicks vs scrolls
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0]
+    if (touch) {
+      touchStartRef.current = {
+        x: touch.clientX,
+        y: touch.clientY,
+        time: Date.now()
+      }
+    }
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const start = touchStartRef.current
+    if (!start) return
+    touchStartRef.current = null
+
+    const touch = e.changedTouches[0]
+    if (touch) {
+      const dx = Math.abs(touch.clientX - start.x)
+      const dy = Math.abs(touch.clientY - start.y)
+      const dt = Date.now() - start.time
+
+      // If it's a tap (moved less than 10px and duration less than 250ms)
+      if (dx < 10 && dy < 10 && dt < 250) {
+        setIsInteractive(true)
+      }
+    }
+  }
+
   // Measured width and height fallbacks
   const width = frameWidth || (typeof window !== "undefined" ? window.innerWidth : 360)
   const height = frameHeight || (typeof window !== "undefined" ? window.innerHeight - 135 : 480)
@@ -492,7 +528,7 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
                       src={game.gameUrl}
                       title={game.title}
                       className={`border-0 transition-all duration-300 ${
-                        isFullscreen ? "pointer-events-auto" : "pointer-events-none"
+                        isInteractive || isFullscreen ? "pointer-events-auto" : "pointer-events-none"
                       }`}
                       sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-forms"
                       allow="fullscreen; gamepad; accelerometer; gyroscope"
@@ -513,6 +549,14 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
                         }
                       }
                     />
+                    {!isInteractive && (
+                      <div
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                        onClick={() => setIsInteractive(true)}
+                        className="absolute inset-0 bg-transparent z-20 pointer-events-auto cursor-pointer"
+                      />
+                    )}
                   </div>
                 ) : (
                   <div className="w-full h-full relative flex items-center justify-center bg-[#11111d]">
