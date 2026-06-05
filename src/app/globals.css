@@ -517,3 +517,13 @@ textarea,
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .hidden-mobile-landscape {
+    display: none !important;
+  }
+  .block-mobile-landscape {
+    display: block !important;
+  }
+}
+

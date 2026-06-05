@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -110,7 +110,7 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
   useEffect(() => {
     if (games.length > 0) {
       setFeedGames(shuffleArray(games))
-      if (games.length < 15) {
+      if (games.length < 20) {
         setHasMore(false)
       }
     }
@@ -144,11 +144,30 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
     return () => clearTimeout(timer)
   }, [activeIndex])
 
-  // Fullscreen change listener to toggle pointer-events
+  // Fullscreen change listener to toggle pointer-events and orientation lock
   useEffect(() => {
-    const handleFullscreenChange = () => {
+    const handleFullscreenChange = async () => {
       const isCurrentlyFullscreen = !!document.fullscreenElement
       setIsFullscreen(isCurrentlyFullscreen)
+
+      if (isCurrentlyFullscreen) {
+        try {
+          const game = feedGames[activeIndex]
+          if (game && game.mobileOrientation === "LANDSCAPE" && screen.orientation && (screen.orientation as any).lock) {
+            await (screen.orientation as any).lock("landscape")
+          }
+        } catch (e) {
+          console.warn("Screen orientation lock failed:", e)
+        }
+      } else {
+        try {
+          if (screen.orientation && (screen.orientation as any).unlock) {
+            (screen.orientation as any).unlock()
+          }
+        } catch (e) {
+          console.warn("Screen orientation unlock failed:", e)
+        }
+      }
     }
 
     document.addEventListener("fullscreenchange", handleFullscreenChange)
@@ -162,7 +181,7 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
       document.removeEventListener("mozfullscreenchange", handleFullscreenChange)
       document.removeEventListener("MSFullscreenChange", handleFullscreenChange)
     }
-  }, [])
+  }, [activeIndex, feedGames])
 
   // Fullscreen hint timer: turns on after 1 minute of active slide inactivity
   // Also reset inline feed game interaction on active slide change
@@ -268,35 +287,56 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
 
   // Load next page function
   const loadNextPage = useCallback(async () => {
-    if (isLoadingMore || !hasMore || feedGames.length >= 45) return
+    if (isLoadingMore) return
     setIsLoadingMore(true)
     const nextPage = page + 1
     try {
-      const res = await fetch(`/api/games?mobile=true&limit=15&page=${nextPage}&sort=popular`)
+      // If all database games are finished or we only have a small local set, we reload and randomize
+      if (!hasMore || games.length < 20) {
+        const reshuffled = shuffleArray(games)
+        setFeedGames((prev) => [...prev, ...reshuffled])
+        if (games.length < 20) {
+          setHasMore(false)
+        } else {
+          setPage(1)
+          setHasMore(true)
+        }
+        setIsLoadingMore(false)
+        return
+      }
+
+      const res = await fetch(`/api/games?mobile=true&limit=20&page=${nextPage}&sort=popular`)
       if (res.ok) {
         const data = await res.json()
         if (data.data && data.data.length > 0) {
           const newGames = shuffleArray(data.data)
           setFeedGames((prev) => [...prev, ...newGames])
           setPage(nextPage)
-          setHasMore(data.hasMore && nextPage < 3) // Cap total games at 45
+          setHasMore(data.hasMore)
         } else {
-          setHasMore(false)
+          // If no more games returned from database, loop and reshuffle
+          const reshuffled = shuffleArray(games)
+          setFeedGames((prev) => [...prev, ...reshuffled])
+          setPage(1)
+          setHasMore(true)
         }
       } else {
-        setHasMore(false)
+        // Fallback on error
+        const reshuffled = shuffleArray(games)
+        setFeedGames((prev) => [...prev, ...reshuffled])
       }
     } catch (e) {
       console.error("Error loading next page:", e)
-      setHasMore(false)
+      const reshuffled = shuffleArray(games)
+      setFeedGames((prev) => [...prev, ...reshuffled])
     } finally {
       setIsLoadingMore(false)
     }
-  }, [page, hasMore, isLoadingMore, feedGames.length])
+  }, [page, hasMore, isLoadingMore, games])
 
-  // Trigger loading next page when close to end of feed
+  // Trigger loading next page when close to end of feed (5 items buffer)
   useEffect(() => {
-    if (activeIndex >= feedGames.length - 3 && feedGames.length > 0 && feedGames.length < 45) {
+    if (activeIndex >= feedGames.length - 5 && feedGames.length > 0) {
       void loadNextPage()
     }
   }, [activeIndex, feedGames.length, loadNextPage])
@@ -412,19 +452,19 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
     }
   }
 
-  // Directly Fullscreen the active Iframe
+  // Directly Fullscreen the wrapper container of the active Iframe
   const toggleFullscreen = (index: number) => {
     const activeId = feedGames[index]?.id
     if (!activeId) return
-    const iframe = document.getElementById(`iframe-${activeId}`)
-    if (iframe) {
+    const container = document.getElementById(`frame-container-${activeId}`)
+    if (container) {
       try {
-        if (iframe.requestFullscreen) {
-          void iframe.requestFullscreen()
-        } else if ((iframe as any).webkitRequestFullscreen) {
-          void (iframe as any).webkitRequestFullscreen()
-        } else if ((iframe as any).msRequestFullscreen) {
-          void (iframe as any).msRequestFullscreen()
+        if (container.requestFullscreen) {
+          void container.requestFullscreen()
+        } else if ((container as any).webkitRequestFullscreen) {
+          void (container as any).webkitRequestFullscreen()
+        } else if ((container as any).msRequestFullscreen) {
+          void (container as any).msRequestFullscreen()
         }
       } catch (error) {
         console.error("Fullscreen request failed:", error)
@@ -492,8 +532,12 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
 
           // Check if rotation to landscape is needed on a portrait mobile screen
           const rotateLandscape = height > width && game.mobileOrientation === "LANDSCAPE"
-          const logicalHeight = Math.min(width, height / 1.777)
-          const logicalWidth = logicalHeight * 1.777
+          const logicalHeight = isFullscreen
+            ? (rotateLandscape ? width : height)
+            : Math.min(width, height / 1.777)
+          const logicalWidth = isFullscreen
+            ? (rotateLandscape ? height : width)
+            : logicalHeight * 1.777
 
           // Virtualized empty slide spacer to protect mobile memory
           if (!shouldRender) {
@@ -513,12 +557,13 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
               key={`${game.id}-${index}`}
               data-index={index}
               data-slide
-              className="w-full h-full snap-start snap-always flex flex-col bg-[#0d0d15] relative shrink-0 overflow-hidden"
+              className="w-full h-full snap-start snap-always flex flex-col landscape:flex-row bg-[#0d0d15] relative shrink-0 overflow-hidden"
               style={{ height: "100%" }}
             >
               {/* Game Frame Area */}
               <div
                 ref={isActive ? gameFrameRef : null}
+                id={`frame-container-${game.id}`}
                 className="flex-1 w-full bg-black relative flex items-center justify-center overflow-hidden"
               >
                 {isActive ? (
@@ -556,6 +601,21 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
                         onClick={() => setIsInteractive(true)}
                         className="absolute inset-0 bg-transparent z-20 pointer-events-auto cursor-pointer"
                       />
+                    )}
+                    {isFullscreen && (
+                      <button
+                        onClick={() => {
+                          if (document.exitFullscreen) {
+                            void document.exitFullscreen()
+                          } else if ((document as any).webkitExitFullscreen) {
+                            void (document as any).webkitExitFullscreen()
+                          }
+                        }}
+                        className="absolute top-4 right-4 z-30 bg-black/60 hover:bg-black/80 border border-white/20 text-white/80 hover:text-white rounded-full w-8 h-8 flex items-center justify-center font-pixel text-xs transition-all pointer-events-auto shadow-md"
+                        title="Exit Fullscreen"
+                      >
+                        ✕
+                      </button>
                     )}
                   </div>
                 ) : (
@@ -596,10 +656,10 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
                 </div>
               </div>
 
-              {/* Bottom Navigation & Controls (Never Overlaps Iframe) */}
-              <div className="h-[135px] w-full bg-[#0d0d15] border-t-2 border-[#20263a] flex flex-col justify-between p-3 shrink-0 z-10 select-none">
-                {/* 5 square colored buttons row */}
-                <div className="flex items-center justify-between gap-3 px-1">
+              {/* Bottom/Side Navigation & Controls (Never Overlaps Iframe) */}
+              <div className="h-[135px] landscape:h-full w-full landscape:w-[80px] bg-[#0d0d15] border-t-2 landscape:border-t-0 landscape:border-l-2 border-[#20263a] flex flex-col justify-between p-3 landscape:p-2 shrink-0 z-10 select-none">
+                {/* 5 square colored buttons row/column */}
+                <div className="flex landscape:flex-col items-center justify-between landscape:justify-center gap-3 landscape:gap-2 px-1">
                   
                   {/* Button 1: Like */}
                   <button
@@ -683,7 +743,9 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
                 </div>
 
                 {/* Download Code Button */}
-                <DownloadCodeButton game={game} variant="feed" />
+                <div className="w-full landscape:hidden">
+                  <DownloadCodeButton game={game} variant="feed" />
+                </div>
 
               </div>
             </div>

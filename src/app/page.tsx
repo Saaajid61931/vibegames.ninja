@@ -76,7 +76,7 @@ export default async function HomePage() {
   return (
     <>
       {/* Desktop Homepage View */}
-      <div className="hidden md:flex flex-col min-h-screen bg-[#0d0d15]">
+      <div className="hidden md:flex flex-col min-h-screen bg-[#0d0d15] hidden-mobile-landscape">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
         <Header prefetchLinks={false} />
@@ -186,7 +186,7 @@ export default async function HomePage() {
       </div>
 
       {/* Mobile Reels snap scrolling feed */}
-      <div className="block md:hidden h-[100dvh] w-full bg-[#0d0d15] overflow-hidden">
+      <div className="block md:hidden h-[100dvh] w-full bg-[#0d0d15] overflow-hidden block-mobile-landscape">
         <MobileReelsFeed games={allMobileGames} />
       </div>
     </>
