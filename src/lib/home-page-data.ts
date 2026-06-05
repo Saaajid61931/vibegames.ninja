@@ -6,6 +6,22 @@ import { countUniqueCreators } from "@/lib/home-stats"
 import { logServerError } from "@/lib/server-log"
 import { CATEGORIES } from "@/lib/utils"
 
+const mobileReelsGameSelect = {
+  id: true,
+  slug: true,
+  title: true,
+  description: true,
+  gameUrl: true,
+  thumbnail: true,
+  category: true,
+  plays: true,
+  likes: true,
+  supportsMobile: true,
+  mobileOrientation: true,
+  aiTool: true,
+  aiModel: true,
+} as const
+
 const homeGameCardSelect = {
   id: true,
   slug: true,
@@ -18,6 +34,9 @@ const homeGameCardSelect = {
   createdAt: true,
   publishedAt: true,
   supportsMobile: true,
+  mobileOrientation: true,
+  gameUrl: true,
+  description: true,
   hasLevelEditor: true,
   aiTool: true,
   aiModel: true,
@@ -104,6 +123,22 @@ const getMobileGames = unstable_cache(async () => {
     take: 4,
   })
 }, ["home-mobile-games"], { revalidate: 60, tags: ["games"] })
+
+const getAllMobileGames = unstable_cache(async () => {
+  if (!isPrismaDatasourceConfigured()) {
+    return []
+  }
+
+  return prisma.game.findMany({
+    where: {
+      status: "PUBLISHED",
+      supportsMobile: true,
+    },
+    select: mobileReelsGameSelect,
+    orderBy: getDiscoveryOrderBy("popular"),
+    take: 15,
+  })
+}, ["home-all-mobile-games"], { revalidate: 60, tags: ["games"] })
 
 const getEditorGames = unstable_cache(async () => {
   if (!isPrismaDatasourceConfigured()) {
@@ -346,6 +381,7 @@ export async function getHomePageData() {
       gameOfTheMonth: null,
       games: [],
       mobileGames: [],
+      allMobileGames: [],
       editorGames: [],
       justLaunchedGames: [],
       needsFeedbackGames: [],
@@ -363,6 +399,7 @@ export async function getHomePageData() {
     statsResult,
     gameOfTheMonthResult,
     mobileGamesResult,
+    allMobileGamesResult,
     editorGamesResult,
     justLaunchedGamesResult,
     needsFeedbackGamesResult,
@@ -373,6 +410,7 @@ export async function getHomePageData() {
     getStats(),
     getGameOfTheMonth(),
     getMobileGames(),
+    getAllMobileGames(),
     getEditorGames(),
     getJustLaunchedGames(),
     getNeedsFeedbackGames(),
@@ -405,6 +443,7 @@ export async function getHomePageData() {
     null as Awaited<ReturnType<typeof getGameOfTheMonth>>
   )
   const mobileGames = getSettledValue("mobileGames", mobileGamesResult, [] as Awaited<ReturnType<typeof getMobileGames>>)
+  const allMobileGames = getSettledValue("allMobileGames", allMobileGamesResult, [] as Awaited<ReturnType<typeof getAllMobileGames>>)
   const editorGames = getSettledValue("editorGames", editorGamesResult, [] as Awaited<ReturnType<typeof getEditorGames>>)
   const justLaunchedGames = getSettledValue(
     "justLaunchedGames",
@@ -432,6 +471,7 @@ export async function getHomePageData() {
     gameOfTheMonth,
     games: decorateGameCards(games),
     mobileGames: decorateGameCards(mobileGames),
+    allMobileGames: allMobileGames,
     editorGames: decorateGameCards(editorGames),
     justLaunchedGames: decorateGameCards(justLaunchedGames),
     needsFeedbackGames: decorateGameCards(needsFeedbackGames),

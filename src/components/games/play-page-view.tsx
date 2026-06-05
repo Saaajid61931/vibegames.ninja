@@ -19,7 +19,8 @@ import { PlayTracker } from "@/components/games/play-tracker"
 import { PlayableGameSection } from "@/components/games/playable-game-section"
 import { ReportGameButton } from "@/components/games/report-game-button"
 import { ShareButton } from "@/components/games/share-button"
-import { StructuredFeedbackPanel } from "@/components/games/structured-feedback-panel"
+import { DownloadCodeButton } from "@/components/games/download-code-button"
+import { DeleteGameButton } from "@/components/games/delete-game-button"
 import { Footer } from "@/components/layout/footer"
 import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
@@ -30,9 +31,10 @@ interface PlayPageViewProps {
   data: PlayPageData
   selectedLevelId?: string
   userId?: string | null
+  userRole?: string | null
 }
 
-export function PlayPageView({ data, selectedLevelId, userId }: PlayPageViewProps) {
+export function PlayPageView({ data, selectedLevelId, userId, userRole }: PlayPageViewProps) {
   const {
     game,
     category,
@@ -119,6 +121,10 @@ export function PlayPageView({ data, selectedLevelId, userId }: PlayPageViewProp
                     initialLiked={isLiked}
                   />
                   <ShareButton gameId={game.id} title={game.title} />
+                  <DownloadCodeButton game={game} variant="standard" />
+                  {userRole === "ADMIN" && (
+                    <DeleteGameButton gameId={game.id} gameTitle={game.title} />
+                  )}
                   <ReportGameButton gameId={game.id} gameTitle={game.title} />
                 </div>
               </div>
@@ -232,14 +238,6 @@ export function PlayPageView({ data, selectedLevelId, userId }: PlayPageViewProp
                 isAuthenticated={isAuthenticated}
               />
 
-              <StructuredFeedbackPanel
-                gameId={game.id}
-                slug={game.slug}
-                initialSummary={feedbackSummary}
-                initialUserFeedback={userStructuredFeedback}
-                recentComments={recentFeedbackComments}
-                isAuthenticated={isAuthenticated}
-              />
 
               {selectedLevel ? (
                 <div className="space-y-2 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">

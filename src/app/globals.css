@@ -509,3 +509,11 @@ textarea,
    PAGE TRANSITION LOADER
    ============================================ */
 /* Loader styles removed - moved to component */
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

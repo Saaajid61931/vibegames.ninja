@@ -14,6 +14,7 @@ import {
 } from "@/components/home/home-static-sections"
 import { getHomePageData } from "@/lib/home-page-data"
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site"
+import { MobileReelsFeed } from "@/components/home/mobile-reels-feed"
 
 export const revalidate = 60
 
@@ -48,6 +49,7 @@ export default async function HomePage() {
     updatedThisWeekGames,
     builtWithToolsGames,
     categoryLinks,
+    allMobileGames,
   } = await getHomePageData()
 
   const websiteJsonLd = {
@@ -72,113 +74,121 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0d0d15]">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
-      <Header prefetchLinks={false} />
+    <>
+      {/* Desktop Homepage View */}
+      <div className="hidden md:flex flex-col min-h-screen bg-[#0d0d15]">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
+        <Header prefetchLinks={false} />
 
-      <main className="flex-1">
-        <HomeHeroSection stats={stats} />
-        <HomeCategoryBar />
-        <ActiveJamBanner />
-        <RecentlyPlayedDeferred
-          games={[...games, ...mobileGames, ...editorGames]}
-          animateThumbnailSlides={false}
-        />
-
-        {gameOfTheMonth?.game ? (
-          <GameOfTheDay
-            game={gameOfTheMonth.game}
-            monthlyStars={gameOfTheMonth.monthlyStars}
-            monthlyRatings={gameOfTheMonth.monthlyRatings}
-          />
-        ) : null}
-
-        <HomeGameLane
-          eyebrow="TOP GAMES"
-          title="FEATURED ARCADE"
-          actionHref="/games"
-          actionLabel="VIEW ALL"
-          games={games}
-          animateThumbnailSlides={false}
-        />
-
-        <HomeFeatureGrid />
-        <HomeCommunityCta />
-
-        {justLaunchedGames.length > 0 ? (
-          <HomeGameLane
-            eyebrow="AUTOMATIC DISCOVERY"
-            title="JUST LAUNCHED"
-            actionHref="/games?sort=new"
-            actionLabel="SEE NEW GAMES"
-            games={justLaunchedGames}
-            sectionClassName="bg-[#11111d]"
+        <main className="flex-1">
+          <HomeHeroSection stats={stats} />
+          <HomeCategoryBar />
+          <ActiveJamBanner />
+          <RecentlyPlayedDeferred
+            games={[...games, ...mobileGames, ...editorGames]}
             animateThumbnailSlides={false}
           />
-        ) : null}
 
-        {needsFeedbackGames.length > 0 ? (
-          <HomeGameLane
-            eyebrow="CREATOR SUPPORT"
-            title="NEEDS FEEDBACK"
-            actionHref="/upload"
-            actionLabel="UPLOAD YOUR BUILD"
-            games={needsFeedbackGames}
-            animateThumbnailSlides={false}
-          />
-        ) : null}
+          {gameOfTheMonth?.game ? (
+            <GameOfTheDay
+              game={gameOfTheMonth.game}
+              monthlyStars={gameOfTheMonth.monthlyStars}
+              monthlyRatings={gameOfTheMonth.monthlyRatings}
+            />
+          ) : null}
 
-        {updatedThisWeekGames.length > 0 ? (
           <HomeGameLane
-            eyebrow="ACTIVE CREATORS"
-            title="UPDATED THIS WEEK"
-            actionHref="/creator"
-            actionLabel="OPEN DASHBOARD"
-            games={updatedThisWeekGames}
-            sectionClassName="bg-[#11111d]"
-            animateThumbnailSlides={false}
-          />
-        ) : null}
-
-        {builtWithToolsGames.length > 0 ? (
-          <HomeGameLane
-            eyebrow="AI HOBBYIST ENERGY"
-            title="BUILT WITH GPT, CLAUDE, OR CURSOR"
+            eyebrow="TOP GAMES"
+            title="FEATURED ARCADE"
             actionHref="/games"
-            actionLabel="BROWSE MORE"
-            games={builtWithToolsGames}
+            actionLabel="VIEW ALL"
+            games={games}
             animateThumbnailSlides={false}
           />
-        ) : null}
 
-        <HomeDiscoveryShortcuts categoryLinks={categoryLinks} />
+          <HomeFeatureGrid />
+          <HomeCommunityCta />
 
-        {mobileGames.length > 0 ? (
-          <HomeGameLane
-            eyebrow="MOBILE COLLECTION"
-            title="QUICK PLAYS FOR PHONE SCREENS"
-            actionHref="/games?mobile=true"
-            actionLabel="SEE MOBILE GAMES"
-            games={mobileGames}
-            animateThumbnailSlides={false}
-          />
-        ) : null}
+          {justLaunchedGames.length > 0 ? (
+            <HomeGameLane
+              eyebrow="AUTOMATIC DISCOVERY"
+              title="JUST LAUNCHED"
+              actionHref="/games?sort=new"
+              actionLabel="SEE NEW GAMES"
+              games={justLaunchedGames}
+              sectionClassName="bg-[#11111d]"
+              animateThumbnailSlides={false}
+            />
+          ) : null}
 
-        {editorGames.length > 0 ? (
-          <HomeGameLane
-            eyebrow="REMIX-FRIENDLY"
-            title="GAMES WITH LEVEL EDITORS"
-            actionHref="/games?editor=true"
-            actionLabel="BROWSE EDITOR GAMES"
-            games={editorGames}
-            sectionClassName="bg-[#11111d]"
-            animateThumbnailSlides={false}
-          />
-        ) : null}
-      </main>
+          {needsFeedbackGames.length > 0 ? (
+            <HomeGameLane
+              eyebrow="CREATOR SUPPORT"
+              title="NEEDS FEEDBACK"
+              actionHref="/upload"
+              actionLabel="UPLOAD YOUR BUILD"
+              games={needsFeedbackGames}
+              animateThumbnailSlides={false}
+            />
+          ) : null}
 
-      <Footer prefetchLinks={false} />
-    </div>
+          {updatedThisWeekGames.length > 0 ? (
+            <HomeGameLane
+              eyebrow="ACTIVE CREATORS"
+              title="UPDATED THIS WEEK"
+              actionHref="/creator"
+              actionLabel="OPEN DASHBOARD"
+              games={updatedThisWeekGames}
+              sectionClassName="bg-[#11111d]"
+              animateThumbnailSlides={false}
+            />
+          ) : null}
+
+          {builtWithToolsGames.length > 0 ? (
+            <HomeGameLane
+              eyebrow="AI HOBBYIST ENERGY"
+              title="BUILT WITH GPT, CLAUDE, OR CURSOR"
+              actionHref="/games"
+              actionLabel="BROWSE MORE"
+              games={builtWithToolsGames}
+              animateThumbnailSlides={false}
+            />
+          ) : null}
+
+          <HomeDiscoveryShortcuts categoryLinks={categoryLinks} />
+
+          {mobileGames.length > 0 ? (
+            <HomeGameLane
+              eyebrow="MOBILE COLLECTION"
+              title="QUICK PLAYS FOR PHONE SCREENS"
+              actionHref="/games?mobile=true"
+              actionLabel="SEE MOBILE GAMES"
+              games={mobileGames}
+              animateThumbnailSlides={false}
+            />
+          ) : null}
+
+          {editorGames.length > 0 ? (
+            <HomeGameLane
+              eyebrow="REMIX-FRIENDLY"
+              title="GAMES WITH LEVEL EDITORS"
+              actionHref="/games?editor=true"
+              actionLabel="BROWSE EDITOR GAMES"
+              games={editorGames}
+              sectionClassName="bg-[#11111d]"
+              animateThumbnailSlides={false}
+            />
+          ) : null}
+        </main>
+
+        <Footer prefetchLinks={false} />
+      </div>
+
+      {/* Mobile Reels snap scrolling feed */}
+      <div className="block md:hidden h-[100dvh] w-full bg-[#0d0d15] overflow-hidden">
+        <MobileReelsFeed games={allMobileGames} />
+      </div>
+    </>
   )
 }

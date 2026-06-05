@@ -6,6 +6,38 @@ import { createRateLimitResponse, enforceRateLimit, RATE_LIMIT_POLICIES } from "
 import { logServerError } from "@/lib/server-log"
 import { commentSchema } from "@/lib/validations"
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: gameId } = await params
+    const comments = await prisma.comment.findMany({
+      where: { gameId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            image: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 80,
+    })
+
+    return NextResponse.json({ comments })
+  } catch (error) {
+    logServerError("Fetch comments error", error, {
+      route: "/api/games/[id]/comments",
+      method: "GET",
+    })
+    return NextResponse.json({ error: "SYSTEM_ERROR" }, { status: 500 })
+  }
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

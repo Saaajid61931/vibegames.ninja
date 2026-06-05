@@ -1,8 +1,18 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Check, Copy, Facebook, Loader2, MessageCircle, Share2 } from "lucide-react"
+import { Check, Copy, Loader2, Share2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+
+import React from "react"
+
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  )
+}
 
 interface ShareButtonProps {
   gameId: string
@@ -12,7 +22,7 @@ interface ShareButtonProps {
 type ShareTarget = {
   label: string
   href: string
-  icon: typeof Share2
+  icon: React.ComponentType<{ className?: string }>
 }
 
 export function ShareButton({ gameId, title }: ShareButtonProps) {
@@ -23,22 +33,12 @@ export function ShareButton({ gameId, title }: ShareButtonProps) {
   const canUseNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function"
   const canCopyLink = typeof navigator !== "undefined" && typeof navigator.clipboard?.writeText === "function"
   const encodedUrl = encodeURIComponent(shareUrl)
-  const encodedTitle = encodeURIComponent(`Play ${title} on VibeGames.Ninja`)
+  const encodedTitle = encodeURIComponent(`Play ${title} on VibeGames.Ninja @VibeGamesNinja`)
   const shareTargets = useMemo<ShareTarget[]>(() => [
     {
       label: "X",
       href: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
-      icon: Share2,
-    },
-    {
-      label: "Reddit",
-      href: `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`,
-      icon: MessageCircle,
-    },
-    {
-      label: "Facebook",
-      href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
-      icon: Facebook,
+      icon: XIcon,
     },
   ], [encodedTitle, encodedUrl])
 
@@ -82,24 +82,6 @@ export function ShareButton({ gameId, title }: ShareButtonProps) {
     }
   }
 
-  const handleCopyLink = async () => {
-    if (sharing || !shareUrl || !canCopyLink) {
-      return
-    }
-
-    setSharing(true)
-
-    try {
-      await navigator.clipboard.writeText(shareUrl)
-      trackShare()
-      markFeedback("copied")
-    } catch (error) {
-      console.error("Copy failed:", error)
-    } finally {
-      setSharing(false)
-    }
-  }
-
   const primaryLabel = shareFeedback === "shared"
     ? "[SHARED]"
     : shareFeedback === "copied"
@@ -129,20 +111,6 @@ export function ShareButton({ gameId, title }: ShareButtonProps) {
         )}
         {primaryLabel}
       </Button>
-
-      {canUseNativeShare && canCopyLink ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="min-w-[108px] flex-1 gap-2 font-arcade sm:flex-none"
-          onClick={handleCopyLink}
-          disabled={sharing}
-        >
-          <Copy className="h-4 w-4" />
-          [COPY LINK]
-        </Button>
-      ) : null}
 
       {shareTargets.map((target) => {
         const Icon = target.icon

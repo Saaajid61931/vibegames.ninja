@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function PlayPage({ params, searchParams }: PageProps) {
   const { slug } = await params
   const { level: selectedLevelId } = await searchParams
-  let session: { user?: { id?: string | null } } | null = null
+  let session: { user?: { id?: string | null; role?: string | null } } | null = null
 
   try {
     session = await auth()
@@ -60,6 +60,7 @@ export default async function PlayPage({ params, searchParams }: PageProps) {
       data={data}
       selectedLevelId={selectedLevelId}
       userId={session?.user?.id ?? null}
+      userRole={session?.user?.role ?? null}
     />
   )
 }

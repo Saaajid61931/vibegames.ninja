@@ -418,7 +418,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Game not found" }, { status: 404 })
     }
 
-    if (game.creatorId !== session.user.id) {
+    if (game.creatorId !== session.user.id && session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Not authorized to delete this game" }, { status: 403 })
     }
 
