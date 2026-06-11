@@ -532,12 +532,8 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
 
           // Check if rotation to landscape is needed on a portrait mobile screen
           const rotateLandscape = height > width && game.mobileOrientation === "LANDSCAPE"
-          const logicalHeight = isFullscreen
-            ? (rotateLandscape ? width : height)
-            : Math.min(width, height / 1.777)
-          const logicalWidth = isFullscreen
-            ? (rotateLandscape ? height : width)
-            : logicalHeight * 1.777
+          const logicalHeight = rotateLandscape ? width : height
+          const logicalWidth = rotateLandscape ? height : width
 
           // Virtualized empty slide spacer to protect mobile memory
           if (!shouldRender) {
