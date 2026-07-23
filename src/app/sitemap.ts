@@ -18,6 +18,12 @@ function getStaticPages(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: `${SITE_URL}/feed`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    {
       url: `${SITE_URL}/jams`,
       lastModified: new Date(),
       changeFrequency: "daily",

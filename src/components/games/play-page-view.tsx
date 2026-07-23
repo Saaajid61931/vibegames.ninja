@@ -21,6 +21,8 @@ import { ReportGameButton } from "@/components/games/report-game-button"
 import { ShareButton } from "@/components/games/share-button"
 import { DownloadCodeButton } from "@/components/games/download-code-button"
 import { DeleteGameButton } from "@/components/games/delete-game-button"
+import { PlaytestReportBadge } from "@/components/games/playtest-report-badge"
+import { ShareKitModal } from "@/components/games/share-kit-modal"
 import { Footer } from "@/components/layout/footer"
 import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
@@ -121,6 +123,8 @@ export function PlayPageView({ data, selectedLevelId, userId, userRole }: PlayPa
                     initialLiked={isLiked}
                   />
                   <ShareButton gameId={game.id} title={game.title} />
+                  <ShareKitModal gameId={game.id} gameSlug={game.slug} gameTitle={game.title} />
+                  <PlaytestReportBadge gameId={game.id} userRole={userRole} />
                   <DownloadCodeButton game={game} variant="standard" />
                   {userRole === "ADMIN" && (
                     <DeleteGameButton gameId={game.id} gameTitle={game.title} />

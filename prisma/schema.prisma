@@ -71,6 +71,7 @@ model User {
   jamVotes       GameJamVote[]
   createdJams    GameJam[]
   builderProjects BuilderProject[]
+  challenges     GameChallenge[]
 }
 
 model UsernameRedirect {
@@ -180,6 +181,11 @@ model Game {
   reports      Report[]
   featuredDays FeaturedGame[]
   jamEntries   GameJamEntry[]
+  capsules     GameCapsule[]
+  parentRemixes RemixEdge[] @relation("ParentRemixes")
+  childRemixes  RemixEdge[] @relation("ChildRemixes")
+  playSessions PlaySession[]
+  challenges   GameChallenge[]
 
   @@index([status, publishedAt])
   @@index([status, plays])
@@ -542,4 +548,122 @@ model GameJamVote {
   @@unique([entryId, userId])
   @@index([entryId])
   @@index([userId])
+}
+
+// --------------------------------------------------------
+// VibeGames Platform Primitives: Capsules, Lineage & QA
+// --------------------------------------------------------
+
+enum RemixPermission {
+  ALLOW_ALL
+  ATTRIBUTION_REQUIRED
+  APPROVAL_REQUIRED
+  DISABLED
+}
+
+enum PlaytestStatus {
+  PENDING
+  RUNNING
+  PASSED
+  WARNINGS
+  FAILED
+}
+
+model GameCapsule {
+  id              String          @id @default(cuid())
+  slug            String          @unique
+  gameId          String
+  game            Game            @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  version         String          // e.g. "1.0.0"
+  buildArtifact   String          // R2 URL
+  entryPoint      String          @default("index.html")
+  remixPermission RemixPermission @default(ATTRIBUTION_REQUIRED)
+  
+  // Provenance & Metadata
+  gameDna         Json?           // Structured Game DNA
+  manifest        Json            // Controls, dimensions, compatibility
+  aiPromptUsed    String?
+  aiModelUsed     String?
+  aiToolUsed      String?
+
+  // Lineage Graph
+  parentCapsuleId String?
+  parentCapsule   GameCapsule?    @relation("RemixLineage", fields: [parentCapsuleId], references: [id], onDelete: SetNull)
+  childCapsules   GameCapsule[]   @relation("RemixLineage")
+
+  // Quality & Safety
+  playtestReport  PlaytestReport?
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([gameId, version])
+  @@index([slug])
+  @@index([parentCapsuleId])
+}
+
+model RemixEdge {
+  id              String      @id @default(cuid())
+  parentGameId    String
+  parentGame      Game        @relation("ParentRemixes", fields: [parentGameId], references: [id], onDelete: Cascade)
+  childGameId     String
+  childGame       Game        @relation("ChildRemixes", fields: [childGameId], references: [id], onDelete: Cascade)
+  diffSummary     String?
+  promptRequest   String?
+  createdAt       DateTime    @default(now())
+
+  @@unique([parentGameId, childGameId])
+  @@index([parentGameId])
+  @@index([childGameId])
+}
+
+model PlaytestReport {
+  id               String         @id @default(cuid())
+  capsuleId        String         @unique
+  capsule          GameCapsule    @relation(fields: [capsuleId], references: [id], onDelete: Cascade)
+  status           PlaytestStatus @default(PENDING)
+  score            Int            @default(0) // 0-100 quality/playability score
+  
+  bootSuccess      Boolean        @default(false)
+  hasJsErrors      Boolean        @default(false)
+  mobileCompatible Boolean        @default(false)
+  controlsVerified Boolean        @default(false)
+  
+  logs             Json           @default("[]")
+  diagnostics      Json           @default("{}")
+  testedAt         DateTime       @default(now())
+
+  @@index([status])
+}
+
+model PlaySession {
+  id                 String   @id @default(cuid())
+  gameId             String
+  game               Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId             String?
+  sessionId          String   // Anonymous browser session UUID
+  durationSeconds    Int      @default(0)
+  hasInteracted      Boolean  @default(false)
+  isMeaningful       Boolean  @default(false) // Duration >= 30s + user interaction
+  completedObjective  Boolean  @default(false)
+  deviceType         String   @default("DESKTOP")
+  referrer           String?
+  createdAt          DateTime @default(now())
+
+  @@index([gameId, isMeaningful, createdAt])
+  @@index([sessionId])
+}
+
+model GameChallenge {
+  id            String   @id @default(cuid())
+  code          String   @unique // e.g. "BEAT-4280"
+  gameId        String
+  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  creatorId     String
+  creatorUser   User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  targetScore   Int
+  playerCount   Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  @@index([code])
 }

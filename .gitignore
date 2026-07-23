@@ -37,6 +37,13 @@ yarn-error.log*
 .pnpm-debug.log*
 dev.log
 start.log
+dev-server*.log
+.npm-cache/
+.localappdata/
+.playwright-cli/
+.opencode/
+scratch_check*.ts
+output/
 nul
 
 # env files (can opt-in for committing if needed)

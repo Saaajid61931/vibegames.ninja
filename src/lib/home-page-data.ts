@@ -20,6 +20,15 @@ const mobileReelsGameSelect = {
   mobileOrientation: true,
   aiTool: true,
   aiModel: true,
+  hasLevelEditor: true,
+  seekingFeedback: true,
+  latestUpdateNote: true,
+  studioProfile: {
+    select: { id: true, handle: true, displayName: true, image: true },
+  },
+  creator: {
+    select: { id: true, name: true, username: true, image: true },
+  },
 } as const
 
 const homeGameCardSelect = {

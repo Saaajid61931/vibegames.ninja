@@ -16,6 +16,8 @@ import {
   validateR2Config,
 } from "@/lib/storage"
 import type { GhostIntegrationReport, LevelEditorIntegrationReport } from "@/lib/storage"
+import { createGameCapsule } from "@/lib/capsule"
+import { runAgenticPlaytest } from "@/lib/playtest-agent"
 
 const JAM_UPLOAD_ERROR_PREFIX = "JAM_UPLOAD:"
 
@@ -364,6 +366,31 @@ export async function POST(request: NextRequest) {
 
         return createdGame
       })
+
+      // Create initial versioned GameCapsule v1.0.0 and trigger automated Agentic Playtest
+      try {
+        await createGameCapsule({
+          gameId: game.id,
+          slug: game.slug,
+          version: "1.0.0",
+          buildArtifact: nextUploadResult.gameUrl,
+          manifest: {
+            title: game.title,
+            description: game.description,
+            supportsMobile: game.supportsMobile,
+            mobileOrientation: game.mobileOrientation,
+            category: game.category,
+            tags: game.tags ? game.tags.split(",") : [],
+            aiTool: game.aiTool,
+            aiModel: game.aiModel,
+          },
+          aiToolUsed: game.aiTool || undefined,
+          aiModelUsed: game.aiModel || undefined,
+        })
+        await runAgenticPlaytest(game.id)
+      } catch (capsuleError) {
+        logServerError("Capsule creation or playtest failed during upload", capsuleError, { gameId: game.id })
+      }
     } catch (dbError) {
       await deleteGameAssetsFromR2(gameId).catch(() => undefined)
       throw dbError

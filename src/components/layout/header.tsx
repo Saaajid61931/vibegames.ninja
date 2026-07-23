@@ -36,6 +36,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
 
   const navigation = [
     { name: "PLAY", href: "/games" },
+    { name: "FEED", href: "/feed" },
     { name: "JAMS", href: "/jams" },
     { name: "BLOG", href: "/blog" },
     ...(session?.user ? [{ name: "FAVES", href: "/favorites" }] : []),
