@@ -10,6 +10,7 @@ import {
   Smartphone,
 } from "lucide-react"
 import { CommentsSection } from "@/components/games/comments-section"
+import { CompactFeedbackPanel } from "@/components/games/compact-feedback-panel"
 import { CommunityLevels } from "@/components/games/community-levels"
 import { GameRating } from "@/components/games/game-rating"
 import { LevelRating } from "@/components/games/level-rating"
@@ -39,7 +40,6 @@ export function PlayPageView({ data, selectedLevelId, userId, userRole }: PlayPa
     game,
     category,
     creatorProfileHref,
-    feedbackSummary,
     followersCount,
     creatorGamesCount,
     isFollowing,
@@ -47,14 +47,12 @@ export function PlayPageView({ data, selectedLevelId, userId, userRole }: PlayPa
     primaryJam,
     primaryJamAction,
     primaryJamStatus,
-    recentFeedbackComments,
     relatedGames,
     selectedLevel,
     tagList,
     mobileSupportText,
     mobileTagLabel,
     userGameRating,
-    userStructuredFeedback,
     gameJsonLd,
     breadcrumbJsonLd,
     canAutoCaptureThumbnails,
@@ -238,6 +236,11 @@ export function PlayPageView({ data, selectedLevelId, userId, userRole }: PlayPa
                 isAuthenticated={isAuthenticated}
               />
 
+              <CompactFeedbackPanel
+                gameId={game.id}
+                slug={game.slug}
+                isAuthenticated={isAuthenticated}
+              />
 
               {selectedLevel ? (
                 <div className="space-y-2 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">

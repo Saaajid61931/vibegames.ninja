@@ -116,9 +116,18 @@ export function HomeGameBackdrop({
           ) : null}
         </div>
 
-        <div className="absolute inset-0 z-20 bg-[linear-gradient(180deg,rgba(9,11,18,0.88)_0%,rgba(9,11,18,0.48)_12%,rgba(9,11,18,0.12)_28%,rgba(9,11,18,0.08)_38%,rgba(9,11,18,0.28)_47%,rgba(9,11,18,0.68)_58%,rgba(9,11,18,0.94)_68%,#090b12_76%,#090b12_100%)]" />
+        <div className="absolute inset-0 z-20 bg-black/55" />
+        <div className="absolute inset-0 z-[25] bg-[linear-gradient(180deg,rgba(9,11,18,0.5)_0%,rgba(9,11,18,0.16)_14%,transparent_27%)]" />
         <div
-          className="absolute inset-0 z-30 opacity-30"
+          className="absolute inset-x-0 bottom-0 z-[26]"
+          style={{
+            top: "calc(env(safe-area-inset-top) + 5rem + 100vw - 13rem)",
+            background:
+              "linear-gradient(to bottom, transparent 0, rgba(9,11,18,0.08) 2rem, rgba(9,11,18,0.42) 6rem, rgba(9,11,18,0.82) 10rem, #090b12 13rem, #090b12 100%)",
+          }}
+        />
+        <div
+          className="absolute inset-0 z-30 opacity-15"
           style={{
             backgroundImage:
               "linear-gradient(rgba(129,140,248,0.13) 1px, transparent 1px), linear-gradient(90deg, rgba(129,140,248,0.13) 1px, transparent 1px)",
@@ -161,9 +170,8 @@ export function HomeGameBackdrop({
         <div className="absolute inset-0 z-10 bg-[radial-gradient(circle_at_18%_18%,rgba(0,209,255,0.2),transparent_34%),radial-gradient(circle_at_82%_74%,rgba(244,63,94,0.18),transparent_36%),#090b12]" />
       )}
 
-      <div className="absolute inset-0 z-20 bg-[linear-gradient(90deg,rgba(7,9,15,0.93)_0%,rgba(7,9,15,0.76)_36%,rgba(7,9,15,0.22)_68%,rgba(7,9,15,0.36)_100%)]" />
-      <div className="absolute inset-0 z-20 bg-[linear-gradient(180deg,rgba(7,9,15,0.42)_0%,rgba(7,9,15,0.12)_42%,rgba(7,9,15,0.9)_100%)]" />
-      <div className="pixel-bg absolute inset-0 z-30 opacity-25" />
+      <div className="absolute inset-0 z-20 bg-black/55" />
+      <div className="pixel-bg absolute inset-0 z-30 opacity-15" />
       <div className="absolute inset-x-0 top-0 z-30 h-1 bg-[linear-gradient(90deg,#00d1ff_0_25%,#6366f1_25%_50%,#facc15_50%_75%,#f43f5e_75%)]" />
     </div>
   )

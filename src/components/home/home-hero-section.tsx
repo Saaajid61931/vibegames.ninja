@@ -38,10 +38,10 @@ export function HomeHeroSection({ stats, heroGames }: HomeHeroSectionProps) {
     <section className="relative isolate min-h-[680px] overflow-hidden border-b-2 border-[#4a4a6a] bg-[#090b12] sm:border-b-4 lg:min-h-[720px]">
       <HomeGameBackdrop games={heroGames} variant="desktop" />
 
-      <div className="relative z-40 container mx-auto flex min-h-[680px] items-center px-6 py-14 lg:min-h-[720px] lg:px-8 lg:py-16">
-        <div className="w-full">
-          <div className="max-w-[52rem]">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <div className="relative z-40 container mx-auto flex min-h-[680px] items-center justify-center px-6 py-14 lg:min-h-[720px] lg:px-8 lg:py-16">
+        <div className="w-full max-w-[68rem] text-center">
+          <div className="mx-auto">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
               <div className="inline-flex items-center gap-2 border border-[#657089]/70 bg-[#080a11]/58 px-3 py-2 backdrop-blur-md">
                 <span
                   className="h-2 w-2 bg-[#00d1ff] shadow-[0_0_14px_#00d1ff]"
@@ -56,7 +56,7 @@ export function HomeHeroSection({ stats, heroGames }: HomeHeroSectionProps) {
               </span>
             </div>
 
-            <p className="mt-8 flex items-center gap-3 font-pixel text-[9px] text-[#00d1ff]">
+            <p className="mt-8 flex items-center justify-center gap-3 font-pixel text-[9px] text-[#00d1ff]">
               <span
                 className="h-px w-8 bg-[#00d1ff]/75"
                 aria-hidden="true"
@@ -66,25 +66,25 @@ export function HomeHeroSection({ stats, heroGames }: HomeHeroSectionProps) {
 
             <h1 className="mt-5">
               <span
-                className="block whitespace-nowrap text-[clamp(3.35rem,5.2vw,5.25rem)] font-bold leading-[0.96] tracking-[0.01em] text-white drop-shadow-[0_5px_24px_rgba(0,0,0,0.85)]"
+                className="block whitespace-nowrap text-[clamp(3.35rem,5.2vw,5.25rem)] font-bold leading-[0.96] tracking-[0.01em] text-white"
                 style={{ fontFamily: "var(--font-pixel), monospace" }}
               >
                 PLAY. BUILD.
               </span>
               <span
-                className="mt-3 block text-[clamp(3.35rem,5.2vw,5.25rem)] font-bold leading-[0.96] tracking-[0.01em] text-[#facc15] drop-shadow-[5px_5px_0_#f43f5e]"
+                className="mt-3 block text-[clamp(3.35rem,5.2vw,5.25rem)] font-bold leading-[0.96] tracking-[0.01em] text-[#facc15]"
                 style={{ fontFamily: "var(--font-pixel), monospace" }}
               >
                 INSPIRE.
               </span>
             </h1>
 
-            <p className="mt-7 max-w-[42rem] font-arcade text-lg leading-relaxed text-[#d4d9e5] drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)] lg:text-xl">
+            <p className="mx-auto mt-7 max-w-[42rem] font-arcade text-lg leading-relaxed text-[#d4d9e5] lg:text-xl">
               Discover games made with AI, see what other creators are trying,
               and turn your own spark into something people can play.
             </p>
 
-            <div className="mt-8 flex max-w-xl flex-col gap-3 sm:flex-row">
+            <div className="mx-auto mt-8 flex max-w-xl flex-col justify-center gap-3 sm:flex-row">
               <Link
                 href="/games"
                 prefetch={false}
@@ -120,7 +120,7 @@ export function HomeHeroSection({ stats, heroGames }: HomeHeroSectionProps) {
             </p>
 
             <div
-              className="mt-9 grid max-w-[42rem] grid-cols-3 border-l border-t border-[#596176]/70 bg-[#080a11]/52 backdrop-blur-md"
+              className="mx-auto mt-9 grid max-w-[42rem] grid-cols-3 border-l border-t border-[#596176]/70 bg-[#080a11]/52 backdrop-blur-md"
               aria-label="VibeGames community totals"
             >
               {communityMetrics.map((metric) => {

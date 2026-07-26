@@ -163,14 +163,18 @@ export const ratingSchema = z.object({
 
 export const structuredFeedbackSchema = z
   .object({
-    fun: z.boolean().default(false),
-    confusing: z.boolean().default(false),
-    tooHard: z.boolean().default(false),
-    buggy: z.boolean().default(false),
-    comment: z.string().trim().max(280, 'Feedback note must be 280 characters or less').optional().default(''),
-  })
-  .refine((value) => value.fun || value.confusing || value.tooHard || value.buggy || value.comment.length > 0, {
-    message: 'Pick at least one signal or leave a short note.',
+    kind: z.enum(["BUG", "IDEA"]),
+    comment: z
+      .string()
+      .trim()
+      .min(5, "Please add a little more detail")
+      .max(500, "Feedback must be 500 characters or less"),
+    context: z
+      .object({
+        userAgent: z.string().trim().max(300).optional(),
+        viewport: z.string().trim().max(30).optional(),
+      })
+      .optional(),
   })
 
 export const ghostRunSchema = z.object({

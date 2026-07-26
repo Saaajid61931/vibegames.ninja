@@ -1,11 +1,30 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { summarizeFeedback } from "@/lib/creator-magnet"
-import { buildStructuredFeedbackNotificationMessage, shouldNotifyStructuredFeedback } from "@/lib/structured-feedback-notification"
 import prisma from "@/lib/prisma"
-import { createRateLimitResponse, enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/rate-limit"
+import {
+  createRateLimitResponse,
+  enforceRateLimit,
+  RATE_LIMIT_POLICIES,
+} from "@/lib/rate-limit"
 import { logServerError } from "@/lib/server-log"
 import { structuredFeedbackSchema } from "@/lib/validations"
+
+const CREATOR_FEEDBACK_REASONS = ["BUG", "IDEA"] as const
+const CONTEXT_SEPARATOR = "\n\n---\n"
+
+function buildDescription(
+  comment: string,
+  context?: { userAgent?: string; viewport?: string }
+) {
+  const details = [
+    context?.viewport ? `Screen: ${context.viewport}` : null,
+    context?.userAgent ? `Browser: ${context.userAgent}` : null,
+  ].filter(Boolean)
+
+  return details.length > 0
+    ? `${comment}${CONTEXT_SEPARATOR}${details.join("\n")}`
+    : comment
+}
 
 export async function GET(
   _request: NextRequest,
@@ -15,64 +34,27 @@ export async function GET(
     const session = await auth()
     const { id: gameId } = await params
 
-    const game = await prisma.game.findUnique({
-      where: { id: gameId },
-      select: { id: true, status: true },
-    })
+    const latestFeedback = session?.user?.id
+      ? await prisma.report.findFirst({
+          where: {
+            gameId,
+            reporterId: session.user.id,
+            reason: { in: [...CREATOR_FEEDBACK_REASONS] },
+          },
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            reason: true,
+            description: true,
+            status: true,
+            createdAt: true,
+          },
+        })
+      : null
 
-    if (!game || game.status !== "PUBLISHED") {
-      return NextResponse.json({ error: "GAME_NOT_FOUND" }, { status: 404 })
-    }
-
-    const [feedbackItems, userFeedback] = await Promise.all([
-      prisma.gameFeedback.findMany({
-        where: { gameId },
-        orderBy: { createdAt: "desc" },
-        take: 100,
-        select: {
-          fun: true,
-          confusing: true,
-          tooHard: true,
-          buggy: true,
-          comment: true,
-          createdAt: true,
-        },
-      }),
-      session?.user?.id
-        ? prisma.gameFeedback.findUnique({
-            where: {
-              userId_gameId: {
-                userId: session.user.id,
-                gameId,
-              },
-            },
-            select: {
-              fun: true,
-              confusing: true,
-              tooHard: true,
-              buggy: true,
-              comment: true,
-            },
-          })
-        : Promise.resolve(null),
-    ])
-
-    const summary = summarizeFeedback(feedbackItems)
-    const recentComments = feedbackItems
-      .filter((item) => item.comment)
-      .slice(0, 3)
-      .map((item) => ({
-        comment: item.comment,
-        createdAt: item.createdAt,
-      }))
-
-    return NextResponse.json({
-      summary,
-      recentComments,
-      userFeedback,
-    })
+    return NextResponse.json({ latestFeedback })
   } catch (error) {
-    logServerError("Get structured feedback error", error, {
+    logServerError("Get player feedback error", error, {
       route: "/api/games/[id]/feedback",
       method: "GET",
     })
@@ -87,7 +69,10 @@ export async function POST(
   try {
     const session = await auth()
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "AUTHENTICATION_REQUIRED" }, { status: 401 })
+      return NextResponse.json(
+        { error: "AUTHENTICATION_REQUIRED" },
+        { status: 401 }
+      )
     }
 
     const rateLimit = enforceRateLimit({
@@ -98,106 +83,85 @@ export async function POST(
     })
 
     if (!rateLimit.allowed) {
-      return createRateLimitResponse(rateLimit, "You are sending feedback too quickly. Please wait a moment and try again.")
+      return createRateLimitResponse(
+        rateLimit,
+        "You are sending feedback too quickly. Please wait a moment."
+      )
     }
 
     const { id: gameId } = await params
-    const body = await request.json().catch(() => null)
-    const parsed = structuredFeedbackSchema.safeParse(body)
+    const parsed = structuredFeedbackSchema.safeParse(
+      await request.json().catch(() => null)
+    )
 
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid feedback" }, { status: 400 })
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message || "Invalid feedback" },
+        { status: 400 }
+      )
     }
 
     const game = await prisma.game.findUnique({
       where: { id: gameId },
-      select: { id: true, status: true, title: true, slug: true, creatorId: true },
+      select: {
+        id: true,
+        status: true,
+        title: true,
+        slug: true,
+        creatorId: true,
+      },
     })
 
     if (!game || game.status !== "PUBLISHED") {
       return NextResponse.json({ error: "GAME_NOT_FOUND" }, { status: 404 })
     }
 
-    const existingFeedback = await prisma.gameFeedback.findUnique({
-      where: {
-        userId_gameId: {
-          userId: session.user.id,
-          gameId,
-        },
-      },
-      select: { id: true },
-    })
-
-    const feedback = await prisma.gameFeedback.upsert({
-      where: {
-        userId_gameId: {
-          userId: session.user.id,
-          gameId,
-        },
-      },
-      update: {
-        ...parsed.data,
-        comment: parsed.data.comment || null,
-      },
-      create: {
-        userId: session.user.id,
+    const feedback = await prisma.report.create({
+      data: {
         gameId,
-        ...parsed.data,
-        comment: parsed.data.comment || null,
+        reporterId: session.user.id,
+        reason: parsed.data.kind,
+        description: buildDescription(
+          parsed.data.comment,
+          parsed.data.context
+        ),
       },
       select: {
-        fun: true,
-        confusing: true,
-        tooHard: true,
-        buggy: true,
-        comment: true,
+        id: true,
+        reason: true,
+        status: true,
+        createdAt: true,
       },
     })
 
-    if (
-      shouldNotifyStructuredFeedback({
-        existingFeedback: Boolean(existingFeedback),
-        creatorId: game.creatorId,
-        actorId: session.user.id,
-      })
-    ) {
+    if (game.creatorId !== session.user.id) {
       const actor = session.user.username || session.user.name || "A player"
-      const message = buildStructuredFeedbackNotificationMessage({
-        gameTitle: game.title,
-        actorLabel: actor,
-        feedback,
-      })
+      const feedbackLabel =
+        parsed.data.kind === "BUG" ? "bug report" : "game idea"
 
       await prisma.notification.create({
         data: {
           userId: game.creatorId,
-          title: "New structured feedback",
-          message,
+          title:
+            parsed.data.kind === "BUG"
+              ? "New bug report"
+              : "New game idea",
+          message: `${actor} sent a ${feedbackLabel} for ${game.title}.`,
           type: "GAME_FEEDBACK",
-          link: `/play/${game.slug}`,
+          link: "/creator#feedback-inbox",
         },
       })
     }
 
-    const summary = summarizeFeedback(
-      await prisma.gameFeedback.findMany({
-        where: { gameId },
-        take: 100,
-        select: {
-          fun: true,
-          confusing: true,
-          tooHard: true,
-          buggy: true,
-        },
-      })
-    )
-
     return NextResponse.json({
       feedback,
-      summary,
+      message:
+        parsed.data.kind === "BUG"
+          ? "Bug report sent to the creator."
+          : "Idea sent to the creator.",
     })
   } catch (error) {
-    logServerError("Create structured feedback error", error, {
+    logServerError("Create player feedback error", error, {
       route: "/api/games/[id]/feedback",
       method: "POST",
     })

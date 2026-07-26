@@ -52,7 +52,10 @@ async function getAdminData() {
       orderBy: { createdAt: "asc" },
     }),
     prisma.report.findMany({
-      where: { status: "PENDING" },
+      where: {
+        status: "PENDING",
+        reason: { notIn: ["BUG", "IDEA"] },
+      },
       include: {
         game: { select: { id: true, title: true, slug: true } },
       },

@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2 } from "lucide-react"
+import { Loader2, MessageSquarePlus } from "lucide-react"
 import { DownloadCodeButton } from "@/components/games/download-code-button"
 import { MobileHomeIntroSlide } from "@/components/home/mobile-home-intro-slide"
 import type { HomeBackdropGame } from "@/components/home/home-game-backdrop"
@@ -763,15 +763,16 @@ export function MobileReelsFeed({
                     </svg>
                   </button>
 
-                  {/* Button 5: Explore Page */}
+                  {/* Button 5: Player Feedback */}
                   <button
-                    onClick={() => router.push("/games")}
-                    className="w-12 h-12 flex flex-col items-center justify-center rounded border-2 bg-transparent border-[#4a4a6a] text-[#8b93a6] hover:border-white hover:text-white transition-all"
+                    onClick={() =>
+                      router.push(`/play/${game.slug}#feedback`)
+                    }
+                    className="w-12 h-12 flex flex-col items-center justify-center rounded border-2 bg-transparent border-[#4a4a6a] text-[#8b93a6] hover:border-[#00d1ff] hover:text-[#00d1ff] transition-all"
+                    aria-label={`Send feedback for ${game.title}`}
+                    title="Send feedback"
                   >
-                    <svg className="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2.5">
-                      <circle cx="12" cy="12" r="10" />
-                      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-                    </svg>
+                    <MessageSquarePlus className="h-5 w-5" />
                   </button>
                 </div>
 

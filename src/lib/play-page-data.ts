@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { cache } from "react"
-import { summarizeFeedback } from "@/lib/creator-magnet"
 import { getDiscoveryOrderBy } from "@/lib/discovery"
 import { isRenderableImageSrc } from "@/lib/image-src"
 import { getJamAction, getLiveJamStatus, pickPrimaryJam } from "@/lib/jams"
@@ -72,18 +71,6 @@ const getGame = cache(async (slug: string) => {
         },
         orderBy: { createdAt: "desc" },
         take: 80,
-      },
-      feedback: {
-        select: {
-          fun: true,
-          confusing: true,
-          tooHard: true,
-          buggy: true,
-          comment: true,
-          createdAt: true,
-        },
-        orderBy: { createdAt: "desc" },
-        take: 100,
       },
       jamEntries: {
         orderBy: { submittedAt: "desc" },
@@ -222,7 +209,6 @@ export async function getPlayPageData(
     isLikedResult,
     userGameRatingResult,
     selectedLevelResult,
-    userStructuredFeedbackResult,
   ] = await Promise.allSettled([
     getRelatedGames(game.category, game.id),
     isStudioPublished
@@ -297,23 +283,6 @@ export async function getPlayPageData(
           },
         })
       : Promise.resolve(null),
-    userId
-      ? prisma.gameFeedback.findUnique({
-          where: {
-            userId_gameId: {
-              userId,
-              gameId: game.id,
-            },
-          },
-          select: {
-            fun: true,
-            confusing: true,
-            tooHard: true,
-            buggy: true,
-            comment: true,
-          },
-        })
-      : Promise.resolve(null),
   ])
 
   const getSettledValue = <T,>(label: string, result: PromiseSettledResult<T>, fallback: T) => {
@@ -365,18 +334,6 @@ export async function getPlayPageData(
       >
     >
   )
-  const userStructuredFeedback = getSettledValue(
-    "userStructuredFeedback",
-    userStructuredFeedbackResult,
-    null as {
-      fun: boolean
-      confusing: boolean
-      tooHard: boolean
-      buggy: boolean
-      comment: string | null
-    } | null
-  )
-
   const creatorProfileHref = game.studioProfile
     ? `/studio/${game.studioProfile.handle}`
     : (game.creator.username ? `/creator/${game.creator.username}` : "/creator")
@@ -397,20 +354,11 @@ export async function getPlayPageData(
     .map((tag) => tag.trim())
     .filter(Boolean)
   const shareUrl = `${SITE_URL}/play/${game.slug}`
-  const feedbackSummary = summarizeFeedback(game.feedback)
   const primaryJam = pickPrimaryJam(game.jamEntries)
   const primaryJamStatus = primaryJam ? getLiveJamStatus(primaryJam) : null
   const primaryJamAction = primaryJam
     ? getJamAction(primaryJam, { surface: "play", isAuthenticated: Boolean(userId) })
     : null
-  const recentFeedbackComments = game.feedback
-    .filter((item) => item.comment)
-    .slice(0, 3)
-    .map((item) => ({
-      comment: item.comment,
-      createdAt: item.createdAt,
-    }))
-
   const gameJsonLd = {
     "@context": "https://schema.org",
     "@type": "VideoGame",
@@ -479,7 +427,6 @@ export async function getPlayPageData(
     isLiked,
     userGameRating,
     selectedLevel,
-    userStructuredFeedback,
     creatorProfileHref,
     category,
     mobileOrientationLabel,
@@ -487,11 +434,9 @@ export async function getPlayPageData(
     mobileSupportText,
     tagList,
     shareUrl,
-    feedbackSummary,
     primaryJam,
     primaryJamStatus,
     primaryJamAction,
-    recentFeedbackComments,
     gameJsonLd,
     breadcrumbJsonLd,
     canAutoCaptureThumbnails: userId === game.creator.id,
