@@ -1,11 +1,6 @@
 import Link from "next/link"
-import { Gamepad2, Heart, Lightbulb, Sparkles, Upload, Zap } from "lucide-react"
+import { Gamepad2, Heart, Lightbulb, Sparkles, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { HomePageData } from "@/lib/home-page-data"
-
-type HomeCategoryBarProps = {
-  categoryLinks: HomePageData["categoryLinks"]
-}
 
 export function HomeCategoryBar() {
   return (
@@ -192,54 +187,6 @@ export function HomeCommunityCta() {
               </Link>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-export function HomeDiscoveryShortcuts({ categoryLinks }: HomeCategoryBarProps) {
-  return (
-    <section className="border-b-2 border-[#4a4a6a] bg-[#11111d] py-14 sm:border-b-4 sm:py-20">
-      <div className="container mx-auto px-4">
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <div className="mb-2 flex items-center gap-2">
-              <Zap className="h-5 w-5 text-[#00d1ff]" />
-              <span className="font-pixel text-[10px] text-[#00d1ff]">DISCOVERY SHORTCUTS</span>
-            </div>
-            <h2 className="font-pixel text-xl text-white sm:text-2xl md:text-3xl">
-              CHOOSE HOW YOU WANT TO PLAY
-            </h2>
-          </div>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-3">
-          <Link href="/games?mobile=true" prefetch={false} className="group border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 transition-all hover:-translate-y-1 hover:border-[#22c55e]">
-            <p className="font-pixel text-[10px] text-[#22c55e]">PLAY ANYWHERE</p>
-            <h3 className="mt-2 font-pixel text-sm text-white">MOBILE-FRIENDLY GAMES</h3>
-            <p className="mt-3 font-arcade text-sm text-[#8b93a6]">Touch-ready games for shorter sessions and smaller screens.</p>
-          </Link>
-          <Link href="/games?editor=true" prefetch={false} className="group border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 transition-all hover:-translate-y-1 hover:border-[#ffff00]">
-            <p className="font-pixel text-[10px] text-[#ffff00]">MAKE IT YOURS</p>
-            <h3 className="mt-2 font-pixel text-sm text-white">LEVEL EDITOR PICKS</h3>
-            <p className="mt-3 font-arcade text-sm text-[#8b93a6]">Play games with tools for remixing levels and ideas.</p>
-          </Link>
-          <Link href="/jams" prefetch={false} className="group border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 transition-all hover:-translate-y-1 hover:border-[#ff0040]">
-            <p className="font-pixel text-[10px] text-[#ff0040]">BUILD TOGETHER</p>
-            <h3 className="mt-2 font-pixel text-sm text-white">COMMUNITY GAME JAMS</h3>
-            <p className="mt-3 font-arcade text-sm text-[#8b93a6]">Create around a shared theme and see what other builders make.</p>
-          </Link>
-        </div>
-
-        <div className="mt-6 flex flex-wrap gap-3">
-          {categoryLinks.map((category) => (
-            <Link key={category.value} href={category.href} prefetch={false}>
-              <Button variant="outline" size="sm" className="rounded-full border-[#4a4a6a] text-[#c9d1ff] hover:border-[#ffff00] hover:text-[#ffff00]">
-                {category.label}
-              </Button>
-            </Link>
-          ))}
         </div>
       </div>
     </section>

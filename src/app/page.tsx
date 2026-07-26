@@ -9,7 +9,6 @@ import { HomeHeroSection } from "@/components/home/home-hero-section"
 import {
   HomeCategoryBar,
   HomeCommunityCta,
-  HomeDiscoveryShortcuts,
   HomeFeatureGrid,
 } from "@/components/home/home-static-sections"
 import { getHomePageData } from "@/lib/home-page-data"
@@ -46,11 +45,6 @@ export default async function HomePage() {
     games,
     mobileGames,
     editorGames,
-    justLaunchedGames,
-    needsFeedbackGames,
-    updatedThisWeekGames,
-    builtWithToolsGames,
-    categoryLinks,
     allMobileGames,
     heroGames,
   } = await getHomePageData()
@@ -113,77 +107,6 @@ export default async function HomePage() {
 
           <HomeFeatureGrid />
           <HomeCommunityCta />
-
-          {justLaunchedGames.length > 0 ? (
-            <HomeGameLane
-              eyebrow="AUTOMATIC DISCOVERY"
-              title="JUST LAUNCHED"
-              actionHref="/games?sort=new"
-              actionLabel="SEE NEW GAMES"
-              games={justLaunchedGames}
-              sectionClassName="bg-[#11111d]"
-              animateThumbnailSlides={false}
-            />
-          ) : null}
-
-          {needsFeedbackGames.length > 0 ? (
-            <HomeGameLane
-              eyebrow="CREATOR SUPPORT"
-              title="NEEDS FEEDBACK"
-              actionHref="/upload"
-              actionLabel="UPLOAD YOUR BUILD"
-              games={needsFeedbackGames}
-              animateThumbnailSlides={false}
-            />
-          ) : null}
-
-          {updatedThisWeekGames.length > 0 ? (
-            <HomeGameLane
-              eyebrow="ACTIVE CREATORS"
-              title="UPDATED THIS WEEK"
-              actionHref="/creator"
-              actionLabel="OPEN DASHBOARD"
-              games={updatedThisWeekGames}
-              sectionClassName="bg-[#11111d]"
-              animateThumbnailSlides={false}
-            />
-          ) : null}
-
-          {builtWithToolsGames.length > 0 ? (
-            <HomeGameLane
-              eyebrow="AI HOBBYIST ENERGY"
-              title="BUILT WITH GPT, CLAUDE, OR CURSOR"
-              actionHref="/games"
-              actionLabel="BROWSE MORE"
-              games={builtWithToolsGames}
-              animateThumbnailSlides={false}
-            />
-          ) : null}
-
-          <HomeDiscoveryShortcuts categoryLinks={categoryLinks} />
-
-          {mobileGames.length > 0 ? (
-            <HomeGameLane
-              eyebrow="MOBILE COLLECTION"
-              title="QUICK PLAYS FOR PHONE SCREENS"
-              actionHref="/games?mobile=true"
-              actionLabel="SEE MOBILE GAMES"
-              games={mobileGames}
-              animateThumbnailSlides={false}
-            />
-          ) : null}
-
-          {editorGames.length > 0 ? (
-            <HomeGameLane
-              eyebrow="REMIX-FRIENDLY"
-              title="GAMES WITH LEVEL EDITORS"
-              actionHref="/games?editor=true"
-              actionLabel="BROWSE EDITOR GAMES"
-              games={editorGames}
-              sectionClassName="bg-[#11111d]"
-              animateThumbnailSlides={false}
-            />
-          ) : null}
         </main>
 
         <Footer prefetchLinks={false} />
