@@ -1,73 +1,163 @@
 import Link from "next/link"
-import { Gamepad2, Sparkles } from "lucide-react"
+import { ArrowUpRight, Gamepad2, Play, UsersRound } from "lucide-react"
+import { HomeGameBackdrop } from "@/components/home/home-game-backdrop"
 import { Button } from "@/components/ui/button"
 import type { HomePageData } from "@/lib/home-page-data"
 
 type HomeHeroSectionProps = {
   stats: HomePageData["stats"]
+  heroGames: HomePageData["heroGames"]
 }
 
-export function HomeHeroSection({ stats }: HomeHeroSectionProps) {
+const communityMetrics = [
+  {
+    key: "games",
+    label: "GAMES",
+    detail: "READY TO PLAY",
+    icon: Gamepad2,
+    color: "#facc15",
+  },
+  {
+    key: "creators",
+    label: "CREATORS",
+    detail: "BUILDING IN PUBLIC",
+    icon: UsersRound,
+    color: "#00d1ff",
+  },
+  {
+    key: "plays",
+    label: "PLAYS",
+    detail: "AND COUNTING",
+    icon: Play,
+    color: "#f43f5e",
+  },
+] as const
+
+export function HomeHeroSection({ stats, heroGames }: HomeHeroSectionProps) {
   return (
-    <section className="relative overflow-hidden border-b-2 sm:border-b-4 border-[#4a4a6a]">
-      <div className="absolute inset-0 pixel-bg" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0080ff]/10 via-transparent to-[#ff0040]/10" />
+    <section className="relative isolate min-h-[680px] overflow-hidden border-b-2 border-[#4a4a6a] bg-[#090b12] sm:border-b-4 lg:min-h-[720px]">
+      <HomeGameBackdrop games={heroGames} variant="desktop" />
 
-      <div className="relative container mx-auto px-4 py-14 sm:py-20 md:py-32">
-        <div className="max-w-5xl mx-auto text-center">
-          <h1 className="mb-8">
-            <span
-              className="block text-[clamp(1.6rem,8.5vw,2.3rem)] sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-3 sm:mb-4 leading-[1.05]"
-              style={{ fontFamily: "var(--font-pixel), monospace" }}
-            >
-              EXPLORE
-            </span>
-            <span
-              className="block text-[clamp(1.6rem,8.5vw,2.3rem)] sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#ffff00] leading-[1.05] drop-shadow-[3px_3px_0_#ff0040] sm:drop-shadow-[4px_4px_0_#ff0040]"
-              style={{ fontFamily: "var(--font-pixel), monospace" }}
-            >
-              CREATIVITY
-            </span>
-          </h1>
-
-          <p className="mx-auto mb-8 max-w-2xl font-arcade text-base text-[#aab6d0] sm:mb-12 sm:text-xl md:text-2xl">
-            Discover browser games, upload your own builds, and publish the ones that hit.
-            VibeGames is built for creator-friendly sharing.
-          </p>
-
-          <div className="mx-auto flex max-w-md flex-col gap-4 sm:max-w-none sm:flex-row sm:justify-center">
-            <Link href="/games" prefetch={false} className="block sm:inline-block">
-              <Button variant="arcade" size="xl" className="w-full gap-3">
-                <Gamepad2 className="h-5 w-5" />
-                START EXPLORING
-              </Button>
-            </Link>
-            <Link href="/upload" prefetch={false} className="block sm:inline-block">
-              <Button variant="outline" size="xl" className="w-full gap-3">
-                <Sparkles className="h-5 w-5" />
-                START UPLOADING
-              </Button>
-            </Link>
-          </div>
-
-          <div className="mx-auto mt-12 grid max-w-3xl grid-cols-3 gap-2 border-t-2 border-[#4a4a6a] pt-6 sm:mt-16 sm:gap-4 sm:border-t-4 sm:pt-8">
-            <div className="bg-[#1a1a2e] border-2 border-[#0080ff] p-2.5 text-center sm:p-4">
-              <div className="mb-1 font-pixel text-[9px] text-[#0080ff] sm:text-[10px]">GAMES</div>
-              <div className="font-pixel text-base font-bold text-white sm:text-2xl md:text-3xl">
-                {stats.games.toString().padStart(6, "0")}
+      <div className="relative z-40 container mx-auto flex min-h-[680px] items-center px-6 py-14 lg:min-h-[720px] lg:px-8 lg:py-16">
+        <div className="w-full">
+          <div className="max-w-[52rem]">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <div className="inline-flex items-center gap-2 border border-[#657089]/70 bg-[#080a11]/58 px-3 py-2 backdrop-blur-md">
+                <span
+                  className="h-2 w-2 bg-[#00d1ff] shadow-[0_0_14px_#00d1ff]"
+                  aria-hidden="true"
+                />
+                <span className="font-pixel text-[8px] text-[#dce4f5]">
+                  LIVE COMMUNITY ARCADE
+                </span>
               </div>
+              <span className="font-pixel text-[7px] text-[#aeb7ca]">
+                YESTERDAY&apos;S TOP 10 / ROTATING NOW
+              </span>
             </div>
-            <div className="bg-[#1a1a2e] border-2 border-[#ff0040] p-2.5 text-center sm:p-4">
-              <div className="mb-1 font-pixel text-[9px] text-[#ff0040] sm:text-[10px]">CREATORS</div>
-              <div className="font-pixel text-base font-bold text-white sm:text-2xl md:text-3xl">
-                {stats.creators.toString().padStart(6, "0")}
-              </div>
+
+            <p className="mt-8 flex items-center gap-3 font-pixel text-[9px] text-[#00d1ff]">
+              <span
+                className="h-px w-8 bg-[#00d1ff]/75"
+                aria-hidden="true"
+              />
+              THE COMMUNITY FOR AI GAMES
+            </p>
+
+            <h1 className="mt-5">
+              <span
+                className="block whitespace-nowrap text-[clamp(3.35rem,5.2vw,5.25rem)] font-bold leading-[0.96] tracking-[0.01em] text-white drop-shadow-[0_5px_24px_rgba(0,0,0,0.85)]"
+                style={{ fontFamily: "var(--font-pixel), monospace" }}
+              >
+                PLAY. BUILD.
+              </span>
+              <span
+                className="mt-3 block text-[clamp(3.35rem,5.2vw,5.25rem)] font-bold leading-[0.96] tracking-[0.01em] text-[#facc15] drop-shadow-[5px_5px_0_#f43f5e]"
+                style={{ fontFamily: "var(--font-pixel), monospace" }}
+              >
+                INSPIRE.
+              </span>
+            </h1>
+
+            <p className="mt-7 max-w-[42rem] font-arcade text-lg leading-relaxed text-[#d4d9e5] drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)] lg:text-xl">
+              Discover games made with AI, see what other creators are trying,
+              and turn your own spark into something people can play.
+            </p>
+
+            <div className="mt-8 flex max-w-xl flex-col gap-3 sm:flex-row">
+              <Link
+                href="/games"
+                prefetch={false}
+                className="block sm:inline-block"
+              >
+                <Button
+                  variant="arcade"
+                  size="xl"
+                  className="w-full gap-3 sm:min-w-48"
+                >
+                  <Gamepad2 className="h-5 w-5" />
+                  PLAY GAMES
+                </Button>
+              </Link>
+              <Link
+                href="/upload"
+                prefetch={false}
+                className="block sm:inline-block"
+              >
+                <Button
+                  variant="outline"
+                  size="xl"
+                  className="w-full gap-3 border-[#69738a] bg-[#080a11]/65 backdrop-blur-md sm:min-w-48"
+                >
+                  BUILD A GAME
+                  <ArrowUpRight className="h-5 w-5" />
+                </Button>
+              </Link>
             </div>
-            <div className="bg-[#1a1a2e] border-2 border-[#ffff00] p-2.5 text-center sm:p-4">
-              <div className="mb-1 font-pixel text-[9px] text-[#ffff00] sm:text-[10px]">PLAYS</div>
-              <div className="font-pixel text-base font-bold text-white sm:text-2xl md:text-3xl">
-                {(stats.plays % 1000000).toString().padStart(6, "0")}
-              </div>
+
+            <p className="mt-5 font-arcade text-sm text-[#9fa8bb]">
+              No installs. Just ideas becoming playable.
+            </p>
+
+            <div
+              className="mt-9 grid max-w-[42rem] grid-cols-3 border-l border-t border-[#596176]/70 bg-[#080a11]/52 backdrop-blur-md"
+              aria-label="VibeGames community totals"
+            >
+              {communityMetrics.map((metric) => {
+                const Icon = metric.icon
+
+                return (
+                  <div
+                    key={metric.key}
+                    className="relative min-h-24 border-b border-r border-[#596176]/70 px-4 py-4 xl:px-5"
+                  >
+                    <span
+                      className="absolute inset-x-0 top-0 h-0.5"
+                      style={{ backgroundColor: metric.color }}
+                      aria-hidden="true"
+                    />
+                    <div className="flex items-center gap-2">
+                      <Icon
+                        className="h-4 w-4"
+                        style={{ color: metric.color }}
+                        aria-hidden="true"
+                      />
+                      <span
+                        className="font-pixel text-[7px]"
+                        style={{ color: metric.color }}
+                      >
+                        {metric.label}
+                      </span>
+                    </div>
+                    <p className="mt-3 font-pixel text-[clamp(1rem,1.8vw,1.45rem)] leading-none text-white">
+                      {stats[metric.key].toLocaleString("en-US")}
+                    </p>
+                    <p className="mt-2 font-pixel text-[6px] text-[#8f99ad]">
+                      {metric.detail}
+                    </p>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>

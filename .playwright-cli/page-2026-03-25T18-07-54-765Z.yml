@@ -1,0 +1,122 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2035]:
+    - banner [ref=e2036]:
+      - generic [ref=e2038]: NEW GAMES DAILY • AI ARCADE • GAME JAMS • BUILD • PLAY • GET INSPIRED • NEW GAMES DAILY • AI ARCADE • GAME JAMS • BUILD • PLAY • GET INSPIRED •
+      - generic [ref=e2041]:
+        - link "VIBEGAMES.NINJA" [ref=e2042] [cursor=pointer]:
+          - /url: /
+          - img [ref=e2043]:
+            - generic [ref=e2045]:
+              - generic [ref=e2069]: A
+              - generic [ref=e2072]: B
+          - generic [ref=e2082]: VIBEGAMES.NINJA
+        - navigation [ref=e2083]:
+          - link "PLAY" [ref=e2084] [cursor=pointer]:
+            - /url: /games
+          - link "JAMS" [ref=e2085] [cursor=pointer]:
+            - /url: /jams
+          - link "UPLOAD" [ref=e2086] [cursor=pointer]:
+            - /url: /upload
+          - link "CREATOR" [ref=e2087] [cursor=pointer]:
+            - /url: /creator
+        - generic [ref=e2089]:
+          - link "Sign in" [ref=e2090] [cursor=pointer]:
+            - /url: /login
+            - button "Sign in" [ref=e2091]
+          - link "Get Started" [ref=e2092] [cursor=pointer]:
+            - /url: /register
+            - button "Get Started" [ref=e2093]
+    - main [ref=e2094]:
+      - generic [ref=e2095]:
+        - generic [ref=e2096]:
+          - generic [ref=e2097]:
+            - img [ref=e2098]
+            - heading "GAME JAMS" [level=1] [ref=e2104]
+            - img [ref=e2105]
+          - paragraph [ref=e2111]: Build an AI game around a theme. Compete with the community. Vote on your favorites.
+        - generic [ref=e2113]:
+          - generic [ref=e2114]:
+            - img [ref=e2115]
+            - heading "PAST JAMS" [level=2] [ref=e2121]
+            - generic [ref=e2122]: (1)
+          - 'link "AI Arcade Challenge #1 banner AI Arcade Challenge #1 COMPLETED THEME: One-Shot Game Welcome to the very first AI Arcade Challenge! This jam is the ultimate test of your vibe coding skills and prompt engineering. The theme is One-Shot Game. Your mission is simple but brutal: generate a complete, playable mini-game using exactly one single prompt to an AI. No follow-up prompts to fix bugs, no back-and-forth iteration, and absolutely no manual code tweaking. You have to visualize the mechanics, the aesthetics, and the logic all at once, and distill it into a master prompt. Let''s see who can conjure the best game on the very first try! Mar 16, 2026 - Mar 19, 2026 1 entry" [ref=e2124] [cursor=pointer]':
+            - /url: /jams/ai-arcade-challenge-1
+            - generic [ref=e2125]:
+              - 'img "AI Arcade Challenge #1 banner" [ref=e2127]'
+              - generic [ref=e2128]:
+                - generic [ref=e2129]:
+                  - 'heading "AI Arcade Challenge #1" [level=3] [ref=e2130]'
+                  - generic [ref=e2131]:
+                    - img [ref=e2132]
+                    - text: COMPLETED
+                - paragraph [ref=e2138]: "THEME: One-Shot Game"
+                - paragraph [ref=e2139]: "Welcome to the very first AI Arcade Challenge! This jam is the ultimate test of your vibe coding skills and prompt engineering. The theme is One-Shot Game. Your mission is simple but brutal: generate a complete, playable mini-game using exactly one single prompt to an AI. No follow-up prompts to fix bugs, no back-and-forth iteration, and absolutely no manual code tweaking. You have to visualize the mechanics, the aesthetics, and the logic all at once, and distill it into a master prompt. Let's see who can conjure the best game on the very first try!"
+                - generic [ref=e2140]:
+                  - generic [ref=e2141]:
+                    - img [ref=e2142]
+                    - text: Mar 16, 2026 - Mar 19, 2026
+                  - generic [ref=e2144]:
+                    - img [ref=e2145]
+                    - text: 1 entry
+    - contentinfo [ref=e2150]:
+      - generic [ref=e2151]:
+        - generic [ref=e2152]:
+          - generic [ref=e2153]:
+            - link "VIBEGAMES" [ref=e2154] [cursor=pointer]:
+              - /url: /
+              - img [ref=e2155]:
+                - generic [ref=e2157]:
+                  - generic [ref=e2181]: A
+                  - generic [ref=e2184]: B
+              - generic [ref=e2194]: VIBEGAMES
+            - paragraph [ref=e2195]: A community for AI-made games. Build, play, and get inspired.
+            - generic [ref=e2196]:
+              - link "VibeGames on GitHub" [ref=e2197] [cursor=pointer]:
+                - /url: https://github.com/Saaajid61931/vibegames.ninja
+                - img [ref=e2198]
+              - link "VibeGames on Twitter" [ref=e2201] [cursor=pointer]:
+                - /url: https://twitter.com/vibegamesai
+                - img [ref=e2202]
+          - generic [ref=e2204]:
+            - heading "Platform" [level=3] [ref=e2205]
+            - list [ref=e2206]:
+              - listitem [ref=e2207]:
+                - link "Browse Games" [ref=e2208] [cursor=pointer]:
+                  - /url: /games
+              - listitem [ref=e2209]:
+                - link "Mobile Games" [ref=e2210] [cursor=pointer]:
+                  - /url: /games?mobile=true
+              - listitem [ref=e2211]:
+                - link "Upload Game" [ref=e2212] [cursor=pointer]:
+                  - /url: /upload
+          - generic [ref=e2213]:
+            - heading "Resources" [level=3] [ref=e2214]
+            - list [ref=e2215]:
+              - listitem [ref=e2216]:
+                - link "Creator Dashboard" [ref=e2217] [cursor=pointer]:
+                  - /url: /creator
+              - listitem [ref=e2218]:
+                - link "Popular Games" [ref=e2219] [cursor=pointer]:
+                  - /url: /games?sort=popular
+              - listitem [ref=e2220]:
+                - link "Level Editor Games" [ref=e2221] [cursor=pointer]:
+                  - /url: /games?editor=true
+              - listitem [ref=e2222]:
+                - link "Active Jams" [ref=e2223] [cursor=pointer]:
+                  - /url: /jams
+          - generic [ref=e2224]:
+            - heading "Legal" [level=3] [ref=e2225]
+            - list [ref=e2226]:
+              - listitem [ref=e2227]:
+                - link "Terms of Service" [ref=e2228] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=e2229]:
+                - link "Privacy Policy" [ref=e2230] [cursor=pointer]:
+                  - /url: /privacy
+        - generic [ref=e2231]:
+          - paragraph [ref=e2232]: Copyright 2026 VibeGames.Ninja. All rights reserved.
+          - generic [ref=e2233]:
+            - generic [ref=e2234]: Made with
+            - img [ref=e2235]
+            - generic [ref=e2237]: and AI
+  - alert [ref=e758]: Game Jams | VibeGames.Ninja | VibeGames.Ninja

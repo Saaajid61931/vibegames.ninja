@@ -1,0 +1,34 @@
+- generic [active] [ref=f4e1]:
+  - generic [ref=f4e3]:
+    - link "VIBEGAMES" [ref=f4e4] [cursor=pointer]:
+      - /url: /
+      - img [ref=f4e5]:
+        - generic [ref=f4e7]:
+          - generic [ref=f4e32]: A
+          - generic [ref=f4e35]: B
+    - generic [ref=f4e46]:
+      - generic [ref=f4e47]:
+        - heading "CREATE AN ACCOUNT" [level=3] [ref=f4e48]
+        - paragraph [ref=f4e49]: START PUBLISHING GAMES IN THE ARCADE
+      - generic [ref=f4e50]:
+        - generic [ref=f4e51]:
+          - generic [ref=f4e52]:
+            - text: Full Name
+            - textbox "John Doe" [ref=f4e54]
+          - generic [ref=f4e55]:
+            - text: Username
+            - textbox "johndoe" [ref=f4e57]
+          - generic [ref=f4e58]:
+            - text: Email
+            - textbox "you@example.com" [ref=f4e60]
+          - generic [ref=f4e61]:
+            - text: Password
+            - generic [ref=f4e62]:
+              - textbox "Min 8 characters" [ref=f4e63]
+              - button [ref=f4e64]
+          - button "Create account" [ref=f4e68] [cursor=pointer]
+        - paragraph [ref=f4e71]:
+          - text: Already have an account?
+          - link "Sign in" [ref=f4e72] [cursor=pointer]:
+            - /url: /login
+  - alert [ref=f4e73]

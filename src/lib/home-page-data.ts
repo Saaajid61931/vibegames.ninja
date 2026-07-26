@@ -4,6 +4,7 @@ import { getDiscoveryOrderBy } from "@/lib/discovery"
 import { pickPrimaryJam, toPrimaryJamBadge } from "@/lib/jams"
 import { countUniqueCreators } from "@/lib/home-stats"
 import { logServerError } from "@/lib/server-log"
+import { startOfUtcDay } from "@/lib/game-analytics"
 import { CATEGORIES } from "@/lib/utils"
 
 const mobileReelsGameSelect = {
@@ -20,6 +21,12 @@ const mobileReelsGameSelect = {
   mobileOrientation: true,
   aiTool: true,
   aiModel: true,
+} as const
+
+const homeHeroGameSelect = {
+  id: true,
+  title: true,
+  thumbnail: true,
 } as const
 
 const homeGameCardSelect = {
@@ -139,6 +146,38 @@ const getAllMobileGames = unstable_cache(async () => {
     take: 20,
   })
 }, ["home-all-mobile-games"], { revalidate: 60, tags: ["games"] })
+
+const getPreviousDayTopHeroGames = unstable_cache(async () => {
+  if (!isPrismaDatasourceConfigured()) {
+    return []
+  }
+
+  const todayStart = startOfUtcDay(new Date())
+  const previousDayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000)
+
+  const analytics = await prisma.gameAnalytics.findMany({
+    where: {
+      date: previousDayStart,
+      plays: { gt: 0 },
+      game: {
+        status: "PUBLISHED",
+        thumbnail: { not: null },
+      },
+    },
+    select: {
+      game: {
+        select: homeHeroGameSelect,
+      },
+    },
+    orderBy: [{ plays: "desc" }, { gameId: "asc" }],
+    take: 20,
+  })
+
+  return analytics
+    .map((entry) => entry.game)
+    .filter((game) => Boolean(game.thumbnail?.trim()))
+    .slice(0, 10)
+}, ["home-previous-day-top-hero-games-v1"], { revalidate: 60, tags: ["games"] })
 
 const getEditorGames = unstable_cache(async () => {
   if (!isPrismaDatasourceConfigured()) {
@@ -382,6 +421,7 @@ export async function getHomePageData() {
       games: [],
       mobileGames: [],
       allMobileGames: [],
+      heroGames: [],
       editorGames: [],
       justLaunchedGames: [],
       needsFeedbackGames: [],
@@ -400,6 +440,7 @@ export async function getHomePageData() {
     gameOfTheMonthResult,
     mobileGamesResult,
     allMobileGamesResult,
+    heroGamesResult,
     editorGamesResult,
     justLaunchedGamesResult,
     needsFeedbackGamesResult,
@@ -411,6 +452,7 @@ export async function getHomePageData() {
     getGameOfTheMonth(),
     getMobileGames(),
     getAllMobileGames(),
+    getPreviousDayTopHeroGames(),
     getEditorGames(),
     getJustLaunchedGames(),
     getNeedsFeedbackGames(),
@@ -444,6 +486,11 @@ export async function getHomePageData() {
   )
   const mobileGames = getSettledValue("mobileGames", mobileGamesResult, [] as Awaited<ReturnType<typeof getMobileGames>>)
   const allMobileGames = getSettledValue("allMobileGames", allMobileGamesResult, [] as Awaited<ReturnType<typeof getAllMobileGames>>)
+  const heroGames = getSettledValue(
+    "heroGames",
+    heroGamesResult,
+    [] as Awaited<ReturnType<typeof getPreviousDayTopHeroGames>>
+  )
   const editorGames = getSettledValue("editorGames", editorGamesResult, [] as Awaited<ReturnType<typeof getEditorGames>>)
   const justLaunchedGames = getSettledValue(
     "justLaunchedGames",
@@ -472,6 +519,7 @@ export async function getHomePageData() {
     games: decorateGameCards(games),
     mobileGames: decorateGameCards(mobileGames),
     allMobileGames: allMobileGames,
+    heroGames,
     editorGames: decorateGameCards(editorGames),
     justLaunchedGames: decorateGameCards(justLaunchedGames),
     needsFeedbackGames: decorateGameCards(needsFeedbackGames),

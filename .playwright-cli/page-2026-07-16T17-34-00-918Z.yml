@@ -1,0 +1,72 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - generic: AI ARCADE FEED
+    - generic [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - iframe [ref=e9]:
+            - generic [ref=f1e1]:
+              - generic: LUNGE
+              - generic [ref=f1e4]:
+                - heading "Beast of Blackwood" [level=1] [ref=f1e5]
+                - paragraph [ref=f1e6]:
+                  - text: The forest belongs to you.
+                  - strong [ref=f1e7]: Drag
+                  - text: to prowl through the shadows.
+                  - strong [ref=f1e8]: Double-tap
+                  - text: to lunge at prey. Avoid the Lantern Light of the hunters. Strike from the dark to feed.
+                - button "Awaken" [ref=f1e9] [cursor=pointer]
+                - generic [ref=f1e10]: "HIGH SCORE: 0"
+          - generic:
+            - generic: OTHER
+            - heading "Blackdragon" [level=3]
+            - paragraph: A shadowy forest hunt where a relentless beast stalks prey, lunges from cover, and survives by keeping clear of the hunters' lanterns.
+        - generic [ref=e11]:
+          - generic [ref=e12]:
+            - button "0" [ref=e13]
+            - button [active] [ref=e17]
+            - button [ref=e20]
+            - button [ref=e27]
+            - button [ref=e30]
+          - button "DOWNLOAD SOURCE CODE ($1)" [ref=e35]
+      - generic [ref=e39]:
+        - generic [ref=e40]:
+          - img "Shepherd's Meadow" [ref=e42]
+          - generic:
+            - generic: OTHER
+            - heading "Shepherd's Meadow" [level=3]
+            - paragraph: A pastoral herding game where you guide a sheepdog across the meadow, protect the flock, and keep predators from breaking through.
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - button "0" [ref=e45]
+            - button [ref=e49]
+            - button [ref=e52]
+            - button [ref=e59]
+            - button [ref=e62]
+          - button "DOWNLOAD SOURCE CODE ($1)" [ref=e67]
+      - generic [ref=e71]:
+        - generic [ref=e72]:
+          - img "Parchment Paladin" [ref=e74]
+          - generic:
+            - generic: OTHER
+            - heading "Parchment Paladin" [level=3]
+            - paragraph: A mounted lance-runner where you charge across a parchment battlefield and spear incoming foes with well-aimed strikes.
+        - generic [ref=e75]:
+          - generic [ref=e76]:
+            - button "0" [ref=e77]
+            - button [ref=e81]
+            - button [ref=e84]
+            - button [ref=e91]
+            - button [ref=e94]
+          - button "DOWNLOAD SOURCE CODE ($1)" [ref=e99]
+    - generic [ref=e122]:
+      - generic [ref=e123]:
+        - generic [ref=e124]: COMMENTS (0)
+        - button "[X] CLOSE" [ref=e128]
+      - generic [ref=e130]:
+        - generic [ref=e131]: NO_COMMENTS_FOUND
+        - generic [ref=e132]: Be the first to comment!
+      - generic [ref=e134]:
+        - paragraph [ref=e135]: YOU MUST BE LOGGED IN TO COMMENT
+        - button "LOGIN_TO_ACCOUNT" [ref=e136] [cursor=pointer]
+  - alert [ref=e5]

@@ -1,0 +1,8 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e783]
+  - generic [ref=e1710]:
+    - img [ref=e1712]:
+      - generic [ref=e1714]:
+        - generic [ref=e1738]: A
+        - generic [ref=e1741]: B
+    - paragraph [ref=e1755]: LOADING GAME...

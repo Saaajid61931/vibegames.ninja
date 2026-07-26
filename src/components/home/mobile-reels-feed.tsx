@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Loader2 } from "lucide-react"
 import { DownloadCodeButton } from "@/components/games/download-code-button"
+import { MobileHomeIntroSlide } from "@/components/home/mobile-home-intro-slide"
+import type { HomeBackdropGame } from "@/components/home/home-game-backdrop"
+import type { HomePageData } from "@/lib/home-page-data"
 
 interface FeedGame {
   id: string
@@ -33,6 +36,8 @@ interface FeedGame {
 
 interface MobileReelsFeedProps {
   games: FeedGame[]
+  backgroundGames: HomeBackdropGame[]
+  stats: HomePageData["stats"]
 }
 
 interface CommentItem {
@@ -57,15 +62,21 @@ const shuffleArray = (array: FeedGame[]) => {
   return arr
 }
 
-export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
+export function MobileReelsFeed({
+  games,
+  backgroundGames,
+  stats,
+}: MobileReelsFeedProps) {
   const router = useRouter()
   const { data: session } = useSession()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const firstGameSlideRef = useRef<HTMLDivElement>(null)
   const gameFrameRef = useRef<HTMLDivElement>(null)
 
   // Endless scrolling randomized feed state
   const [feedGames, setFeedGames] = useState<FeedGame[]>([])
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [activeIndex, setActiveIndex] = useState(-1)
+  const [isIntroVisible, setIsIntroVisible] = useState(true)
   const [showMeta, setShowMeta] = useState(true)
 
   // Pagination states
@@ -263,11 +274,15 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const index = Number(entry.target.getAttribute("data-index"))
-            if (!isNaN(index)) {
-              setActiveIndex(index)
-            }
+          const index = Number(entry.target.getAttribute("data-index"))
+          if (isNaN(index)) return
+
+          if (index === -1) {
+            setIsIntroVisible(entry.intersectionRatio >= 0.5)
+          }
+
+          if (entry.intersectionRatio >= 0.5) {
+            setActiveIndex(index)
           }
         })
       },
@@ -336,7 +351,7 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
 
   // Trigger loading next page when close to end of feed (5 items buffer)
   useEffect(() => {
-    if (activeIndex >= feedGames.length - 5 && feedGames.length > 0) {
+    if (activeIndex >= 0 && activeIndex >= feedGames.length - 5 && feedGames.length > 0) {
       void loadNextPage()
     }
   }, [activeIndex, feedGames.length, loadNextPage])
@@ -503,6 +518,19 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
     }
   }
 
+  const scrollToFirstGame = () => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const targetTop = firstGameSlideRef.current?.offsetTop ?? container.clientHeight
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+
+    container.scrollTo({
+      top: targetTop,
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+    })
+  }
+
   // Measured width and height fallbacks
   const width = frameWidth || (typeof window !== "undefined" ? window.innerWidth : 360)
   const height = frameHeight || (typeof window !== "undefined" ? window.innerHeight - 135 : 480)
@@ -510,19 +538,27 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
   return (
     <div className="relative w-full h-[100dvh] flex flex-col bg-[#0d0d15] text-white overflow-hidden">
       {/* Top Banner overlay */}
-      <div className="absolute top-0 left-0 right-0 z-20 pointer-events-none p-4 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent">
-        <div className="flex items-center gap-2">
-          <span className="font-pixel text-[11px] text-[#ffff00] bg-[#1a1a2e] border border-[#ffff00] px-2 py-0.5 shadow-[2px_2px_0_#ff0040]">
-            AI ARCADE FEED
-          </span>
+      {activeIndex >= 0 && !isIntroVisible ? (
+        <div className="absolute top-0 left-0 right-0 z-20 pointer-events-none p-4 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent">
+          <div className="flex items-center gap-2">
+            <span className="font-pixel text-[11px] text-[#ffff00] bg-[#1a1a2e] border border-[#ffff00] px-2 py-0.5 shadow-[2px_2px_0_#ff0040]">
+              AI ARCADE FEED
+            </span>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {/* Snap Scroll Reels container */}
       <div
         ref={scrollContainerRef}
         className="flex-1 w-full overflow-y-scroll snap-y snap-mandatory scrollbar-none flex flex-col"
       >
+        <MobileHomeIntroSlide
+          backgroundGames={backgroundGames}
+          stats={stats}
+          onStart={scrollToFirstGame}
+        />
+
         {feedGames.map((game, index) => {
           const isActive = index === activeIndex
           const shouldRender = Math.abs(index - activeIndex) <= 2
@@ -550,6 +586,7 @@ export function MobileReelsFeed({ games }: MobileReelsFeedProps) {
 
           return (
             <div
+              ref={index === 0 ? firstGameSlideRef : undefined}
               key={`${game.id}-${index}`}
               data-index={index}
               data-slide

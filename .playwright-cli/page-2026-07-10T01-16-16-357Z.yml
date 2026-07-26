@@ -1,0 +1,481 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e50]: AI Games | VibeGames.Ninja
+  - generic [ref=e875]:
+    - banner [ref=e876]:
+      - generic [ref=e877]: NEW GAMES DAILY • AI ARCADE • GAME JAMS • BUILD • PLAY • GET INSPIRED • NEW GAMES DAILY • AI ARCADE • GAME JAMS • BUILD • PLAY • GET INSPIRED •
+      - generic [ref=e881]:
+        - link "VIBEGAMES.NINJA" [ref=e882] [cursor=pointer]:
+          - /url: /
+          - img [ref=e883]:
+            - generic [ref=e885]:
+              - generic [ref=e909]: A
+              - generic [ref=e912]: B
+        - navigation [ref=e923]:
+          - link "PLAY" [ref=e924] [cursor=pointer]:
+            - /url: /games
+          - link "JAMS" [ref=e925] [cursor=pointer]:
+            - /url: /jams
+          - link "BLOG" [ref=e926] [cursor=pointer]:
+            - /url: /blog
+          - link "UPLOAD" [ref=e927] [cursor=pointer]:
+            - /url: /upload
+          - link "CREATOR" [ref=e928] [cursor=pointer]:
+            - /url: /creator
+        - generic [ref=e930]:
+          - link [ref=e931] [cursor=pointer]:
+            - /url: /login
+            - button "Sign in" [ref=e932]
+          - link [ref=e933] [cursor=pointer]:
+            - /url: /register
+            - button "Get Started" [ref=e934]
+    - main [ref=e935]:
+      - generic [ref=e936]:
+        - link "BACK TO ARCADE" [ref=e937] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e940]:
+          - generic [ref=e945]:
+            - generic [ref=e946]: GAME SELECT
+            - heading "ARCADE FLOOR" [level=1] [ref=e947]
+          - generic [ref=e948]:
+            - generic [ref=e949]:
+              - generic [ref=e950]: GAMES
+              - text: "023"
+            - generic [ref=e951]:
+              - generic [ref=e952]: CREDITS
+              - text: INF
+        - generic [ref=e953]:
+          - textbox "SEARCH ARCADE..." [ref=e958]
+          - generic [ref=e959]:
+            - generic [ref=e960]:
+              - generic [ref=e961]: FILTERS
+              - generic [ref=e963]: Showing everything
+            - generic [ref=e964]:
+              - button "TRENDING" [ref=e965] [cursor=pointer]
+              - button "NEW" [ref=e966] [cursor=pointer]
+              - button "POPULAR" [ref=e967] [cursor=pointer]
+              - button "TOP" [ref=e968] [cursor=pointer]
+              - button "MOBILE" [ref=e969] [cursor=pointer]
+              - button "EDITOR" [ref=e972] [cursor=pointer]
+          - generic [ref=e976]:
+            - generic [ref=e977]:
+              - generic [ref=e978]: SELECT CATEGORY
+              - generic [ref=e979]: Top picks first
+            - generic [ref=e980]:
+              - button "ALL GAMES" [ref=e981] [cursor=pointer]
+              - button "ACTION" [ref=e982] [cursor=pointer]
+              - button "PUZZLE" [ref=e983] [cursor=pointer]
+              - button "ARCADE" [ref=e984] [cursor=pointer]
+              - button "ADVENTURE" [ref=e985] [cursor=pointer]
+              - button "RPG" [ref=e986] [cursor=pointer]
+            - button "SHOW ALL CATEGORIES" [ref=e987] [cursor=pointer]
+        - paragraph [ref=e989]: 23 of 23 games shown
+        - generic [ref=e990]:
+          - 'link "Bit Butcher PLAY NOW Action Mobile Bit Butcher Model: Gemini 3.1 Pro sajidofaspire 162 2 4 months ago" [ref=e991] [cursor=pointer]':
+            - /url: /play/bit-butcher
+            - generic [ref=e992]:
+              - img "Bit Butcher" [ref=e993]
+              - generic [ref=e1000]: PLAY NOW
+            - generic [ref=e1002]:
+              - generic [ref=e1003]:
+                - generic [ref=e1004]: Action
+                - generic [ref=e1005]: Mobile
+              - heading "Bit Butcher" [level=3] [ref=e1008]
+              - paragraph [ref=e1009]: "Model: Gemini 3.1 Pro"
+              - link "sajidofaspire" [ref=e1014]
+              - generic [ref=e1016]:
+                - generic [ref=e1017]: "162"
+                - generic [ref=e1020]: "2"
+            - generic [ref=e1023]: 4 months ago
+          - 'link "Spiderman Noir PLAY NOW Other Mobile AI Arcade Challenge #1 Spiderman Noir Model: Gemini 3.1 admin 113 1 3 months ago" [ref=e1024] [cursor=pointer]':
+            - /url: /play/spiderman-noir
+            - generic [ref=e1025]:
+              - img "Spiderman Noir" [ref=e1026]
+              - generic [ref=e1033]: PLAY NOW
+            - generic [ref=e1035]:
+              - generic [ref=e1036]:
+                - generic [ref=e1037]: Other
+                - generic [ref=e1038]: Mobile
+                - 'generic "AI Arcade Challenge #1" [ref=e1041]'
+              - heading "Spiderman Noir" [level=3] [ref=e1049]
+              - paragraph [ref=e1050]: "Model: Gemini 3.1"
+              - link "admin" [ref=e1055]
+              - generic [ref=e1057]:
+                - generic [ref=e1058]: "113"
+                - generic [ref=e1061]: "1"
+            - generic [ref=e1064]: 3 months ago
+          - link "Shepherd's Meadow PLAY NOW Other Mobile Shepherd's Meadow democreator 56 0 4 months ago" [ref=e1065] [cursor=pointer]:
+            - /url: /play/shepherds-meadow
+            - generic [ref=e1066]:
+              - img "Shepherd's Meadow" [ref=e1067]
+              - generic [ref=e1074]: PLAY NOW
+            - generic [ref=e1076]:
+              - generic [ref=e1077]:
+                - generic [ref=e1078]: Other
+                - generic [ref=e1079]: Mobile
+              - heading "Shepherd's Meadow" [level=3] [ref=e1082]
+              - link "democreator" [ref=e1087]
+              - generic [ref=e1089]:
+                - generic [ref=e1090]: "56"
+                - generic [ref=e1093]: "0"
+            - generic [ref=e1096]: 4 months ago
+          - link "Car Chase One-Shot by Gemini 3.5 Pro PLAY NOW Other Mobile Car Chase One-Shot by Gemini 3.5 Pro admin 26 0 1 month ago" [ref=e1097] [cursor=pointer]:
+            - /url: /play/car-chase-one-shot-by-gemini-35-pro
+            - generic [ref=e1098]:
+              - img "Car Chase One-Shot by Gemini 3.5 Pro" [ref=e1099]
+              - generic [ref=e1106]: PLAY NOW
+            - generic [ref=e1108]:
+              - generic [ref=e1109]:
+                - generic [ref=e1110]: Other
+                - generic [ref=e1111]: Mobile
+              - heading "Car Chase One-Shot by Gemini 3.5 Pro" [level=3] [ref=e1114]
+              - link "admin" [ref=e1119]
+              - generic [ref=e1121]:
+                - generic [ref=e1122]: "26"
+                - generic [ref=e1125]: "0"
+            - generic [ref=e1128]: 1 month ago
+          - link "Thumbzilla PLAY NOW Other Mobile Thumbzilla democreator 18 0 4 months ago" [ref=e1129] [cursor=pointer]:
+            - /url: /play/thumbzilla
+            - generic [ref=e1130]:
+              - img "Thumbzilla" [ref=e1131]
+              - generic [ref=e1138]: PLAY NOW
+            - generic [ref=e1140]:
+              - generic [ref=e1141]:
+                - generic [ref=e1142]: Other
+                - generic [ref=e1143]: Mobile
+              - heading "Thumbzilla" [level=3] [ref=e1146]
+              - link "democreator" [ref=e1151]
+              - generic [ref=e1153]:
+                - generic [ref=e1154]: "18"
+                - generic [ref=e1157]: "0"
+            - generic [ref=e1160]: 4 months ago
+          - 'link "Silhouette Spider PLAY NOW Action Mobile Silhouette Spider Model: gpt-5.4 democreator 14 0 4 months ago" [ref=e1161] [cursor=pointer]':
+            - /url: /play/silhouette-spider
+            - generic [ref=e1162]:
+              - img "Silhouette Spider" [ref=e1163]
+              - generic [ref=e1164]: PLAY NOW
+            - generic [ref=e1166]:
+              - generic [ref=e1167]:
+                - generic [ref=e1168]: Action
+                - generic [ref=e1169]: Mobile
+              - heading "Silhouette Spider" [level=3] [ref=e1172]
+              - paragraph [ref=e1173]: "Model: gpt-5.4"
+              - link "democreator" [ref=e1178]
+              - generic [ref=e1180]:
+                - generic [ref=e1181]: "14"
+                - generic [ref=e1184]: "0"
+            - generic [ref=e1187]: 4 months ago
+          - 'link "Isometric Car Drift PLAY NOW Other Mobile Isometric Car Drift Model: other admin 9 0 3 months ago" [ref=e1188] [cursor=pointer]':
+            - /url: /play/isometric-car-drift
+            - generic [ref=e1189]:
+              - img "Isometric Car Drift" [ref=e1190]
+              - generic [ref=e1197]: PLAY NOW
+            - generic [ref=e1199]:
+              - generic [ref=e1200]:
+                - generic [ref=e1201]: Other
+                - generic [ref=e1202]: Mobile
+              - heading "Isometric Car Drift" [level=3] [ref=e1205]
+              - paragraph [ref=e1206]: "Model: other"
+              - link "admin" [ref=e1211]
+              - generic [ref=e1213]:
+                - generic [ref=e1214]: "9"
+                - generic [ref=e1217]: "0"
+            - generic [ref=e1220]: 3 months ago
+          - 'link "Car Chase Three-Shot by Gemini 3.5 Pro PLAY NOW Other Mobile Car Chase Three-Shot by Gemini 3.5 Pro Model: Gemini 3.5 Pro admin 6 0 1 month ago" [ref=e1221] [cursor=pointer]':
+            - /url: /play/car-chase-three-shot-by-gemini-35-pro
+            - generic [ref=e1222]:
+              - img "Car Chase Three-Shot by Gemini 3.5 Pro" [ref=e1223]
+              - generic [ref=e1230]: PLAY NOW
+            - generic [ref=e1232]:
+              - generic [ref=e1233]:
+                - generic [ref=e1234]: Other
+                - generic [ref=e1235]: Mobile
+              - heading "Car Chase Three-Shot by Gemini 3.5 Pro" [level=3] [ref=e1238]
+              - paragraph [ref=e1239]: "Model: Gemini 3.5 Pro"
+              - link "admin" [ref=e1244]
+              - generic [ref=e1246]:
+                - generic [ref=e1247]: "6"
+                - generic [ref=e1250]: "0"
+            - generic [ref=e1253]: 1 month ago
+          - link "Terracotta Strike PLAY NOW Other Mobile Terracotta Strike democreator 6 0 4 months ago" [ref=e1254] [cursor=pointer]:
+            - /url: /play/terracotta-strike
+            - generic [ref=e1255]:
+              - img "Terracotta Strike" [ref=e1256]
+              - generic [ref=e1257]: PLAY NOW
+            - generic [ref=e1259]:
+              - generic [ref=e1260]:
+                - generic [ref=e1261]: Other
+                - generic [ref=e1262]: Mobile
+              - heading "Terracotta Strike" [level=3] [ref=e1265]
+              - link "democreator" [ref=e1270]
+              - generic [ref=e1272]:
+                - generic [ref=e1273]: "6"
+                - generic [ref=e1276]: "0"
+            - generic [ref=e1279]: 4 months ago
+          - link "Beast of Blackwood PLAY NOW Other Mobile Beast of Blackwood democreator 6 0 4 months ago" [ref=e1280] [cursor=pointer]:
+            - /url: /play/beast-of-blackwood
+            - generic [ref=e1281]:
+              - img "Beast of Blackwood" [ref=e1282]
+              - generic [ref=e1289]: PLAY NOW
+            - generic [ref=e1291]:
+              - generic [ref=e1292]:
+                - generic [ref=e1293]: Other
+                - generic [ref=e1294]: Mobile
+              - heading "Beast of Blackwood" [level=3] [ref=e1297]
+              - link "democreator" [ref=e1302]
+              - generic [ref=e1304]:
+                - generic [ref=e1305]: "6"
+                - generic [ref=e1308]: "0"
+            - generic [ref=e1311]: 4 months ago
+          - link "Amber Ascendant PLAY NOW Other Mobile Amber Ascendant democreator 5 0 4 months ago" [ref=e1312] [cursor=pointer]:
+            - /url: /play/amber-ascendant
+            - generic [ref=e1313]:
+              - img "Amber Ascendant" [ref=e1314]
+              - generic [ref=e1315]: PLAY NOW
+            - generic [ref=e1317]:
+              - generic [ref=e1318]:
+                - generic [ref=e1319]: Other
+                - generic [ref=e1320]: Mobile
+              - heading "Amber Ascendant" [level=3] [ref=e1323]
+              - link "democreator" [ref=e1328]
+              - generic [ref=e1330]:
+                - generic [ref=e1331]: "5"
+                - generic [ref=e1334]: "0"
+            - generic [ref=e1337]: 4 months ago
+          - link "TENSION_MESH PLAY NOW Other Mobile TENSION_MESH democreator 4 0 4 months ago" [ref=e1338] [cursor=pointer]:
+            - /url: /play/tension_mesh
+            - generic [ref=e1339]:
+              - img "TENSION_MESH" [ref=e1340]
+              - generic [ref=e1341]: PLAY NOW
+            - generic [ref=e1343]:
+              - generic [ref=e1344]:
+                - generic [ref=e1345]: Other
+                - generic [ref=e1346]: Mobile
+              - heading "TENSION_MESH" [level=3] [ref=e1349]
+              - link "democreator" [ref=e1354]
+              - generic [ref=e1356]:
+                - generic [ref=e1357]: "4"
+                - generic [ref=e1360]: "0"
+            - generic [ref=e1363]: 4 months ago
+          - link "Monastic Echo PLAY NOW Other Mobile Monastic Echo democreator 4 0 4 months ago" [ref=e1364] [cursor=pointer]:
+            - /url: /play/monastic-echo
+            - generic [ref=e1365]:
+              - img "Monastic Echo" [ref=e1366]
+              - generic [ref=e1367]: PLAY NOW
+            - generic [ref=e1369]:
+              - generic [ref=e1370]:
+                - generic [ref=e1371]: Other
+                - generic [ref=e1372]: Mobile
+              - heading "Monastic Echo" [level=3] [ref=e1375]
+              - link "democreator" [ref=e1380]
+              - generic [ref=e1382]:
+                - generic [ref=e1383]: "4"
+                - generic [ref=e1386]: "0"
+            - generic [ref=e1389]: 4 months ago
+          - 'link "Recoil PLAY NOW Action Mobile Recoil Model: gpt-5.4 democreator 3 0 4 months ago" [ref=e1390] [cursor=pointer]':
+            - /url: /play/recoil
+            - generic [ref=e1391]:
+              - img "Recoil" [ref=e1392]
+              - generic [ref=e1399]: PLAY NOW
+            - generic [ref=e1401]:
+              - generic [ref=e1402]:
+                - generic [ref=e1403]: Action
+                - generic [ref=e1404]: Mobile
+              - heading "Recoil" [level=3] [ref=e1407]
+              - paragraph [ref=e1408]: "Model: gpt-5.4"
+              - link "democreator" [ref=e1413]
+              - generic [ref=e1415]:
+                - generic [ref=e1416]: "3"
+                - generic [ref=e1419]: "0"
+            - generic [ref=e1422]: 4 months ago
+          - link "Tangled Tapestry PLAY NOW Other Mobile Tangled Tapestry democreator 3 0 4 months ago" [ref=e1423] [cursor=pointer]:
+            - /url: /play/tangled-tapestry
+            - generic [ref=e1424]:
+              - img "Tangled Tapestry" [ref=e1425]
+              - generic [ref=e1426]: PLAY NOW
+            - generic [ref=e1428]:
+              - generic [ref=e1429]:
+                - generic [ref=e1430]: Other
+                - generic [ref=e1431]: Mobile
+              - heading "Tangled Tapestry" [level=3] [ref=e1434]
+              - link "democreator" [ref=e1439]
+              - generic [ref=e1441]:
+                - generic [ref=e1442]: "3"
+                - generic [ref=e1445]: "0"
+            - generic [ref=e1448]: 4 months ago
+          - link "Ronin's Canvas PLAY NOW Other Mobile Ronin's Canvas democreator 3 0 4 months ago" [ref=e1449] [cursor=pointer]:
+            - /url: /play/ronins-canvas
+            - generic [ref=e1450]:
+              - img "Ronin's Canvas" [ref=e1451]
+              - generic [ref=e1452]: PLAY NOW
+            - generic [ref=e1454]:
+              - generic [ref=e1455]:
+                - generic [ref=e1456]: Other
+                - generic [ref=e1457]: Mobile
+              - heading "Ronin's Canvas" [level=3] [ref=e1460]
+              - link "democreator" [ref=e1465]
+              - generic [ref=e1467]:
+                - generic [ref=e1468]: "3"
+                - generic [ref=e1471]: "0"
+            - generic [ref=e1474]: 4 months ago
+          - link "Ricochet Butcher PLAY NOW Other Mobile Ricochet Butcher democreator 3 0 4 months ago" [ref=e1475] [cursor=pointer]:
+            - /url: /play/ricochet-butcher
+            - generic [ref=e1476]:
+              - img "Ricochet Butcher" [ref=e1477]
+              - generic [ref=e1478]: PLAY NOW
+            - generic [ref=e1480]:
+              - generic [ref=e1481]:
+                - generic [ref=e1482]: Other
+                - generic [ref=e1483]: Mobile
+              - heading "Ricochet Butcher" [level=3] [ref=e1486]
+              - link "democreator" [ref=e1491]
+              - generic [ref=e1493]:
+                - generic [ref=e1494]: "3"
+                - generic [ref=e1497]: "0"
+            - generic [ref=e1500]: 4 months ago
+          - link "Parchment Paladin PLAY NOW Other Mobile Parchment Paladin democreator 3 0 4 months ago" [ref=e1501] [cursor=pointer]:
+            - /url: /play/parchment-paladin
+            - generic [ref=e1502]:
+              - img "Parchment Paladin" [ref=e1503]
+              - generic [ref=e1504]: PLAY NOW
+            - generic [ref=e1506]:
+              - generic [ref=e1507]:
+                - generic [ref=e1508]: Other
+                - generic [ref=e1509]: Mobile
+              - heading "Parchment Paladin" [level=3] [ref=e1512]
+              - link "democreator" [ref=e1517]
+              - generic [ref=e1519]:
+                - generic [ref=e1520]: "3"
+                - generic [ref=e1523]: "0"
+            - generic [ref=e1526]: 4 months ago
+          - link "Brush & Blade PLAY NOW Other Mobile Brush & Blade democreator 3 0 4 months ago" [ref=e1527] [cursor=pointer]:
+            - /url: /play/brush-blade
+            - generic [ref=e1528]:
+              - img "Brush & Blade" [ref=e1529]
+              - generic [ref=e1530]: PLAY NOW
+            - generic [ref=e1532]:
+              - generic [ref=e1533]:
+                - generic [ref=e1534]: Other
+                - generic [ref=e1535]: Mobile
+              - heading "Brush & Blade" [level=3] [ref=e1538]
+              - link "democreator" [ref=e1543]
+              - generic [ref=e1545]:
+                - generic [ref=e1546]: "3"
+                - generic [ref=e1549]: "0"
+            - generic [ref=e1552]: 4 months ago
+          - link "Blackdragon PLAY NOW Other Mobile Blackdragon democreator 3 0 4 months ago" [ref=e1553] [cursor=pointer]:
+            - /url: /play/blackdragon
+            - generic [ref=e1554]:
+              - img "Blackdragon" [ref=e1555]
+              - generic [ref=e1556]: PLAY NOW
+            - generic [ref=e1558]:
+              - generic [ref=e1559]:
+                - generic [ref=e1560]: Other
+                - generic [ref=e1561]: Mobile
+              - heading "Blackdragon" [level=3] [ref=e1564]
+              - link "democreator" [ref=e1569]
+              - generic [ref=e1571]:
+                - generic [ref=e1572]: "3"
+                - generic [ref=e1575]: "0"
+            - generic [ref=e1578]: 4 months ago
+          - link "Aether Swing PLAY NOW Other Mobile Aether Swing democreator 3 0 4 months ago" [ref=e1579] [cursor=pointer]:
+            - /url: /play/aether-swing
+            - generic [ref=e1580]:
+              - img "Aether Swing" [ref=e1581]
+              - generic [ref=e1582]: PLAY NOW
+            - generic [ref=e1584]:
+              - generic [ref=e1585]:
+                - generic [ref=e1586]: Other
+                - generic [ref=e1587]: Mobile
+              - heading "Aether Swing" [level=3] [ref=e1590]
+              - link "democreator" [ref=e1595]
+              - generic [ref=e1597]:
+                - generic [ref=e1598]: "3"
+                - generic [ref=e1601]: "0"
+            - generic [ref=e1604]: 4 months ago
+          - link "Tectonic Leap PLAY NOW Other Mobile Tectonic Leap democreator 2 0 4 months ago" [ref=e1605] [cursor=pointer]:
+            - /url: /play/tectonic-leap
+            - generic [ref=e1606]:
+              - img "Tectonic Leap" [ref=e1607]
+              - generic [ref=e1608]: PLAY NOW
+            - generic [ref=e1610]:
+              - generic [ref=e1611]:
+                - generic [ref=e1612]: Other
+                - generic [ref=e1613]: Mobile
+              - heading "Tectonic Leap" [level=3] [ref=e1616]
+              - link "democreator" [ref=e1621]
+              - generic [ref=e1623]:
+                - generic [ref=e1624]: "2"
+                - generic [ref=e1627]: "0"
+            - generic [ref=e1630]: 4 months ago
+          - link "Aether Sigh PLAY NOW Other Mobile Aether Sigh democreator 2 0 4 months ago" [ref=e1631] [cursor=pointer]:
+            - /url: /play/aether-sigh
+            - generic [ref=e1632]:
+              - img "Aether Sigh" [ref=e1633]
+              - generic [ref=e1634]: PLAY NOW
+            - generic [ref=e1636]:
+              - generic [ref=e1637]:
+                - generic [ref=e1638]: Other
+                - generic [ref=e1639]: Mobile
+              - heading "Aether Sigh" [level=3] [ref=e1642]
+              - link "democreator" [ref=e1647]
+              - generic [ref=e1649]:
+                - generic [ref=e1650]: "2"
+                - generic [ref=e1653]: "0"
+            - generic [ref=e1656]: 4 months ago
+    - contentinfo [ref=e1657]:
+      - generic [ref=e1658]:
+        - generic [ref=e1659]:
+          - generic [ref=e1660]:
+            - link "VIBEGAMES" [ref=e1661] [cursor=pointer]:
+              - /url: /
+              - img [ref=e1662]:
+                - generic [ref=e1664]:
+                  - generic [ref=e1688]: A
+                  - generic [ref=e1691]: B
+            - paragraph [ref=e1702]: A community for AI-made games. Build, play, and get inspired.
+            - generic [ref=e1703]:
+              - link "VibeGames on GitHub" [ref=e1704] [cursor=pointer]:
+                - /url: https://github.com/Saaajid61931/vibegames.ninja
+              - link "VibeGames on Twitter" [ref=e1708] [cursor=pointer]:
+                - /url: https://twitter.com/vibegamesai
+          - generic [ref=e1711]:
+            - heading "Platform" [level=3] [ref=e1712]
+            - list [ref=e1713]:
+              - listitem [ref=e1714]:
+                - link "Browse Games" [ref=e1715] [cursor=pointer]:
+                  - /url: /games
+              - listitem [ref=e1716]:
+                - link "Mobile Games" [ref=e1717] [cursor=pointer]:
+                  - /url: /games?mobile=true
+              - listitem [ref=e1718]:
+                - link "Upload Game" [ref=e1719] [cursor=pointer]:
+                  - /url: /upload
+          - generic [ref=e1720]:
+            - heading "Resources" [level=3] [ref=e1721]
+            - list [ref=e1722]:
+              - listitem [ref=e1723]:
+                - link "Creator Dashboard" [ref=e1724] [cursor=pointer]:
+                  - /url: /creator
+              - listitem [ref=e1725]:
+                - link "Popular Games" [ref=e1726] [cursor=pointer]:
+                  - /url: /games?sort=popular
+              - listitem [ref=e1727]:
+                - link "Level Editor Games" [ref=e1728] [cursor=pointer]:
+                  - /url: /games?editor=true
+              - listitem [ref=e1729]:
+                - link "Active Jams" [ref=e1730] [cursor=pointer]:
+                  - /url: /jams
+          - generic [ref=e1731]:
+            - heading "Legal" [level=3] [ref=e1732]
+            - list [ref=e1733]:
+              - listitem [ref=e1734]:
+                - link "Terms of Service" [ref=e1735] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=e1736]:
+                - link "Privacy Policy" [ref=e1737] [cursor=pointer]:
+                  - /url: /privacy
+        - generic [ref=e1738]:
+          - paragraph [ref=e1739]: Copyright 2026 VibeGames.Ninja. All rights reserved.
+          - generic [ref=e1740]:
+            - generic [ref=e1741]: Made with
+            - generic [ref=e1744]: and AI

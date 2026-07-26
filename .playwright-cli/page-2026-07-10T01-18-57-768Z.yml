@@ -1,0 +1,33 @@
+- generic [active] [ref=f3e1]:
+  - alert [ref=f3e874]: Sign In | VibeGames.Ninja
+  - generic [ref=f3e1273]:
+    - link "VIBEGAMES" [ref=f3e1274] [cursor=pointer]:
+      - /url: /
+      - img [ref=f3e1275]:
+        - generic [ref=f3e1277]:
+          - generic [ref=f3e1301]: A
+          - generic [ref=f3e1304]: B
+    - generic [ref=f3e1315]:
+      - generic [ref=f3e1316]:
+        - heading "WELCOME BACK" [level=3] [ref=f3e1317]
+        - paragraph [ref=f3e1318]: SIGN IN TO YOUR ACCOUNT TO CONTINUE
+      - generic [ref=f3e1319]:
+        - generic [ref=f3e1320]:
+          - generic [ref=f3e1321]:
+            - text: Email
+            - textbox "you@example.com" [ref=f3e1323]
+          - generic [ref=f3e1324]:
+            - generic [ref=f3e1325]:
+              - generic [ref=f3e1326]: Password
+              - link "Forgot password?" [ref=f3e1327] [cursor=pointer]:
+                - /url: /forgot-password
+            - generic [ref=f3e1328]:
+              - textbox "Enter your password" [ref=f3e1329]
+              - button [ref=f3e1330]
+          - button "Sign in" [ref=f3e1334] [cursor=pointer]
+        - generic [ref=f3e1337]: Or continue with
+        - button "Google" [ref=f3e1343] [cursor=pointer]
+        - paragraph [ref=f3e1344]:
+          - text: Don't have an account?
+          - link "Sign up" [ref=f3e1345] [cursor=pointer]:
+            - /url: /register

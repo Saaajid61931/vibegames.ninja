@@ -77,6 +77,47 @@ textarea,
   background-size: 8px 8px;
 }
 
+@keyframes homeBackdropReveal {
+  from {
+    opacity: 0;
+    transform: scale(1.07);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+.home-game-backdrop-image {
+  animation: homeBackdropReveal 1.1s ease-out both;
+}
+
+@keyframes homeBackdropAmbientReveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.4;
+  }
+}
+
+.home-game-backdrop-ambient-image {
+  animation: homeBackdropAmbientReveal 1.4s ease-out both;
+}
+
+@keyframes homeAccentWashReveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.82;
+  }
+}
+
+.home-game-accent-glow {
+  animation: homeAccentWashReveal 1.4s ease-out both;
+}
+
 /* Pixel Font - headings and badges only */
 .font-pixel {
   font-family: var(--font-pixel), monospace;

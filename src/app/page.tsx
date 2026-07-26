@@ -13,27 +13,29 @@ import {
   HomeFeatureGrid,
 } from "@/components/home/home-static-sections"
 import { getHomePageData } from "@/lib/home-page-data"
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site"
+import { SITE_NAME, SITE_URL } from "@/lib/site"
 import { MobileReelsFeed } from "@/components/home/mobile-reels-feed"
 
 export const revalidate = 60
 
+const homepageDescription = "Discover and play games made with AI, get inspired by creators, and build something of your own with the VibeGames Ninja community."
+
 export const metadata: Metadata = {
-  title: "AI Arcade - Build, Play & Get Inspired",
-  description: "A community for AI-made games. Build with AI, play amazing creations, and get inspired by other creators.",
+  title: "Play AI Games, Get Inspired & Build",
+  description: homepageDescription,
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: `${SITE_NAME} - AI Arcade`,
-    description: SITE_DESCRIPTION,
+    title: `${SITE_NAME} - Play AI Games Made by the Community`,
+    description: homepageDescription,
     url: SITE_URL,
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} - AI Arcade`,
-    description: SITE_DESCRIPTION,
+    title: `${SITE_NAME} - Play AI Games Made by the Community`,
+    description: homepageDescription,
   },
 }
 
@@ -50,6 +52,7 @@ export default async function HomePage() {
     builtWithToolsGames,
     categoryLinks,
     allMobileGames,
+    heroGames,
   } = await getHomePageData()
 
   const websiteJsonLd = {
@@ -57,7 +60,7 @@ export default async function HomePage() {
     "@type": "WebSite",
     name: SITE_NAME,
     url: SITE_URL,
-    description: SITE_DESCRIPTION,
+    description: homepageDescription,
     potentialAction: {
       "@type": "SearchAction",
       target: `${SITE_URL}/games?q={search_term_string}`,
@@ -82,7 +85,7 @@ export default async function HomePage() {
         <Header prefetchLinks={false} />
 
         <main className="flex-1">
-          <HomeHeroSection stats={stats} />
+          <HomeHeroSection stats={stats} heroGames={heroGames} />
           <HomeCategoryBar />
           <ActiveJamBanner />
           <RecentlyPlayedDeferred
@@ -101,6 +104,7 @@ export default async function HomePage() {
           <HomeGameLane
             eyebrow="TOP GAMES"
             title="FEATURED ARCADE"
+            description="Start with games the community is playing and sharing right now."
             actionHref="/games"
             actionLabel="VIEW ALL"
             games={games}
@@ -187,7 +191,11 @@ export default async function HomePage() {
 
       {/* Mobile Reels snap scrolling feed */}
       <div className="block md:hidden h-[100dvh] w-full bg-[#0d0d15] overflow-hidden block-mobile-landscape">
-        <MobileReelsFeed games={allMobileGames} />
+        <MobileReelsFeed
+          games={allMobileGames}
+          backgroundGames={heroGames}
+          stats={stats}
+        />
       </div>
     </>
   )

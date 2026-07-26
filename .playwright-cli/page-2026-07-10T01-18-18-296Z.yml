@@ -1,0 +1,225 @@
+- generic [active] [ref=f3e1]:
+  - alert [ref=f3e874]
+  - generic [ref=f3e890]:
+    - banner [ref=f3e891]:
+      - generic [ref=f3e892]: NEW GAMES DAILY • AI ARCADE • GAME JAMS • BUILD • PLAY • GET INSPIRED • NEW GAMES DAILY • AI ARCADE • GAME JAMS • BUILD • PLAY • GET INSPIRED •
+      - generic [ref=f3e896]:
+        - link "VIBEGAMES.NINJA" [ref=f3e897] [cursor=pointer]:
+          - /url: /
+          - img [ref=f3e898]:
+            - generic [ref=f3e900]:
+              - generic [ref=f3e925]: A
+              - generic [ref=f3e928]: B
+        - navigation [ref=f3e939]:
+          - link "PLAY" [ref=f3e940] [cursor=pointer]:
+            - /url: /games
+          - link "JAMS" [ref=f3e941] [cursor=pointer]:
+            - /url: /jams
+          - link "BLOG" [ref=f3e942] [cursor=pointer]:
+            - /url: /blog
+          - link "UPLOAD" [ref=f3e943] [cursor=pointer]:
+            - /url: /upload
+          - link "CREATOR" [ref=f3e944] [cursor=pointer]:
+            - /url: /creator
+        - generic [ref=f3e946]:
+          - link [ref=f3e947] [cursor=pointer]:
+            - /url: /login
+            - button "Sign in" [ref=f3e948]
+          - link [ref=f3e949] [cursor=pointer]:
+            - /url: /register
+            - button "Get Started" [ref=f3e950]
+    - main [ref=f3e951]:
+      - generic [ref=f3e952]:
+        - link "BACK TO ARCADE" [ref=f3e953] [cursor=pointer]:
+          - /url: /games
+        - generic [ref=f3e956]:
+          - generic [ref=f3e957]:
+            - generic [ref=f3e959]:
+              - generic [ref=f3e960]:
+                - generic [ref=f3e961]: "RUNTIME: bit_butcher.exe"
+                - generic [ref=f3e967]: FULLSCREEN ONLY
+              - generic [ref=f3e968]: Launch in fullscreen to play.
+              - generic [ref=f3e969]:
+                - paragraph [ref=f3e974]: LOADING CARTRIDGE...
+                - generic [ref=f3e976]:
+                  - generic [ref=f3e977]:
+                    - paragraph [ref=f3e978]: PRESS START
+                    - heading "Play Bit Butcher in fullscreen" [level=3] [ref=f3e979]
+                    - paragraph [ref=f3e980]: Games on VibeGames launch only in fullscreen.
+                  - button "PLAY IN FULLSCREEN" [ref=f3e981] [cursor=pointer]
+                - iframe [ref=f3e984]:
+                  - generic [ref=f4e2]:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic: WAVE 1
+                          - generic: SCORE 0
+                        - generic: COMBO x1.0
+                      - generic:
+                        - generic: "KILLS: 0"
+                        - generic: "MODE: NORMAL"
+                    - generic [ref=f4e4]:
+                      - heading "BIT BUTCHER" [level=1] [ref=f4e5]: BITBUTCHER
+                      - paragraph [ref=f4e6]: "HOLD & DRAG to move and aim your slash.RELEASE to execute.Gore merges into power-ups: Heal, Bomb, Shield, Magnet, Speed, Multi-Slash, Frenzy.Boss waves every 5th wave!Press M to toggle SFX."
+                      - button "SLAUGHTER" [ref=f4e7] [cursor=pointer]
+            - generic [ref=f3e985]:
+              - heading "Bit Butcher" [level=1] [ref=f3e986]
+              - generic [ref=f3e987]:
+                - button "[SAVE_FAV] 2" [ref=f3e988] [cursor=pointer]:
+                  - text: "[SAVE_FAV]"
+                  - generic [ref=f3e991]: "2"
+                - generic [ref=f3e992]:
+                  - button "[SHARE]" [ref=f3e993] [cursor=pointer]
+                  - link "Share on X" [ref=f3e1000] [cursor=pointer]:
+                    - /url: https://twitter.com/intent/tweet?text=Play%20Bit%20Butcher%20on%20VibeGames.Ninja%20%40VibeGamesNinja&url=https%3A%2F%2Fwww.vibegames.ninja%2Fplay%2Fbit-butcher
+                - button "[DOWNLOAD]" [ref=f3e1003] [cursor=pointer]
+                - button "[REPORT]" [ref=f3e1007] [cursor=pointer]
+            - generic [ref=f3e1010]:
+              - generic [ref=f3e1011]: "[ACTION]"
+              - generic [ref=f3e1012]: "[AI_GENERATED]"
+              - generic [ref=f3e1013]: "[MODEL:GEMINI 3.1 PRO]"
+              - generic [ref=f3e1014]: "[MOBILE_READY]"
+              - generic [ref=f3e1015]: "#RETRO"
+              - generic [ref=f3e1016]: "#BIT STYLE"
+              - generic [ref=f3e1017]: "#FUN"
+            - generic [ref=f3e1018]:
+              - generic [ref=f3e1019]: 163 PLAYS
+              - generic [ref=f3e1023]: 2 LIKES
+              - generic [ref=f3e1027]: 2 COMMENTS
+              - generic [ref=f3e1031]: UPLOADED 4 MONTHS AGO
+              - generic [ref=f3e1036]: MOBILE SUPPORTED
+              - generic [ref=f3e1040]: MODEL GEMINI 3.1 PRO
+          - complementary [ref=f3e1045]:
+            - generic [ref=f3e1046]:
+              - generic [ref=f3e1047]:
+                - generic [ref=f3e1048]: PUBLISHED_BY
+                - generic [ref=f3e1049]:
+                  - generic [ref=f3e1053]:
+                    - heading "Sajid Ahmed" [level=4] [ref=f3e1054]
+                    - paragraph [ref=f3e1055]: "@sajidofaspire"
+                  - generic [ref=f3e1056]:
+                    - generic [ref=f3e1057]: 0 FOLLOWERS
+                    - generic [ref=f3e1063]: 1 GAMES
+                  - generic [ref=f3e1065]:
+                    - button "Follow" [ref=f3e1066] [cursor=pointer]
+                    - generic [ref=f3e1070]: 0 followers
+                  - link [ref=f3e1071] [cursor=pointer]:
+                    - /url: /creator/sajidofaspire
+                    - button "[VIEW_PROFILE]" [ref=f3e1072]
+              - generic [ref=f3e1076]:
+                - generic [ref=f3e1077]: MORE [ACTION]
+                - generic [ref=f3e1082]:
+                  - link [ref=f3e1083] [cursor=pointer]:
+                    - /url: /play/silhouette-spider
+                    - img "Silhouette Spider" [ref=f3e1085]
+                    - generic [ref=f3e1086]:
+                      - heading "Silhouette Spider" [level=5] [ref=f3e1087]
+                      - paragraph [ref=f3e1088]: 14 PLAYS
+                  - link [ref=f3e1089] [cursor=pointer]:
+                    - /url: /play/recoil
+                    - img "Recoil" [ref=f3e1091]
+                    - generic [ref=f3e1092]:
+                      - heading "Recoil" [level=5] [ref=f3e1093]
+                      - paragraph [ref=f3e1094]: 3 PLAYS
+              - generic [ref=f3e1095]:
+                - generic [ref=f3e1096]: EMBED_CODE
+                - generic [ref=f3e1102]:
+                  - paragraph [ref=f3e1103]: "Add this game to your website or newsletter to drive more plays back to your page:"
+                  - code [ref=f3e1104]: <iframe src="https://vibegames.ninja/embed/bit-butcher" width="800" height="600" allow="fullscreen" allowfullscreen></iframe>
+          - generic [ref=f3e1105]:
+            - generic [ref=f3e1106]:
+              - paragraph [ref=f3e1107]: RATE THIS GAME
+              - generic [ref=f3e1108]:
+                - generic [ref=f3e1109]:
+                  - button "Rate 1 stars" [ref=f3e1110]
+                  - button "Rate 2 stars" [ref=f3e1113]
+                  - button "Rate 3 stars" [ref=f3e1116]
+                  - button "Rate 4 stars" [ref=f3e1119]
+                  - button "Rate 5 stars" [ref=f3e1122]
+                - generic [ref=f3e1125]: 5.0 / 5 (1)
+            - generic [ref=f3e1126]:
+              - heading "$ cat README.md" [level=3] [ref=f3e1128]
+              - generic [ref=f3e1129]:
+                - paragraph [ref=f3e1130]: Action packed vampire survivor-like game but with a butcher in bit style
+                - generic [ref=f3e1131]:
+                  - heading "CONTROLS:" [level=4] [ref=f3e1132]
+                  - paragraph [ref=f3e1133]: tap, hold and release to slash
+            - generic [ref=f3e1134]:
+              - generic [ref=f3e1135]: COMMENTS [2]
+              - generic [ref=f3e1139]:
+                - generic [ref=f3e1140]:
+                  - textbox "Log in to write a comment" [ref=f3e1141]
+                  - generic [ref=f3e1142]:
+                    - generic [ref=f3e1143]: 0/1000
+                    - button "POST COMMENT" [disabled]
+                - generic [ref=f3e1146]:
+                  - generic [ref=f3e1147]: DC
+                  - generic [ref=f3e1149]:
+                    - generic [ref=f3e1150]:
+                      - generic [ref=f3e1151]: "@democreator"
+                      - generic [ref=f3e1152]: 4 months ago
+                    - paragraph [ref=f3e1153]: Nice
+                    - button "REPLY" [ref=f3e1155]
+                    - generic [ref=f3e1164]:
+                      - generic [ref=f3e1165]:
+                        - generic [ref=f3e1166]: "@sajidofaspire"
+                        - generic [ref=f3e1167]: 4 months ago
+                      - paragraph [ref=f3e1168]: Thanks 😁
+                      - button "REPLY" [ref=f3e1170]
+    - contentinfo [ref=f3e1174]:
+      - generic [ref=f3e1175]:
+        - generic [ref=f3e1176]:
+          - generic [ref=f3e1177]:
+            - link "VIBEGAMES" [ref=f3e1178] [cursor=pointer]:
+              - /url: /
+              - img [ref=f3e1179]:
+                - generic [ref=f3e1181]:
+                  - generic [ref=f3e1206]: A
+                  - generic [ref=f3e1209]: B
+            - paragraph [ref=f3e1220]: A community for AI-made games. Build, play, and get inspired.
+            - generic [ref=f3e1221]:
+              - link "VibeGames on GitHub" [ref=f3e1222] [cursor=pointer]:
+                - /url: https://github.com/Saaajid61931/vibegames.ninja
+              - link "VibeGames on Twitter" [ref=f3e1226] [cursor=pointer]:
+                - /url: https://twitter.com/vibegamesai
+          - generic [ref=f3e1229]:
+            - heading "Platform" [level=3] [ref=f3e1230]
+            - list [ref=f3e1231]:
+              - listitem [ref=f3e1232]:
+                - link "Browse Games" [ref=f3e1233] [cursor=pointer]:
+                  - /url: /games
+              - listitem [ref=f3e1234]:
+                - link "Mobile Games" [ref=f3e1235] [cursor=pointer]:
+                  - /url: /games?mobile=true
+              - listitem [ref=f3e1236]:
+                - link "Upload Game" [ref=f3e1237] [cursor=pointer]:
+                  - /url: /upload
+          - generic [ref=f3e1238]:
+            - heading "Resources" [level=3] [ref=f3e1239]
+            - list [ref=f3e1240]:
+              - listitem [ref=f3e1241]:
+                - link "Creator Dashboard" [ref=f3e1242] [cursor=pointer]:
+                  - /url: /creator
+              - listitem [ref=f3e1243]:
+                - link "Popular Games" [ref=f3e1244] [cursor=pointer]:
+                  - /url: /games?sort=popular
+              - listitem [ref=f3e1245]:
+                - link "Level Editor Games" [ref=f3e1246] [cursor=pointer]:
+                  - /url: /games?editor=true
+              - listitem [ref=f3e1247]:
+                - link "Active Jams" [ref=f3e1248] [cursor=pointer]:
+                  - /url: /jams
+          - generic [ref=f3e1249]:
+            - heading "Legal" [level=3] [ref=f3e1250]
+            - list [ref=f3e1251]:
+              - listitem [ref=f3e1252]:
+                - link "Terms of Service" [ref=f3e1253] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=f3e1254]:
+                - link "Privacy Policy" [ref=f3e1255] [cursor=pointer]:
+                  - /url: /privacy
+        - generic [ref=f3e1256]:
+          - paragraph [ref=f3e1257]: Copyright 2026 VibeGames.Ninja. All rights reserved.
+          - generic [ref=f3e1258]:
+            - generic [ref=f3e1259]: Made with
+            - generic [ref=f3e1262]: and AI

@@ -1,0 +1,102 @@
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js
+1 info using npm@11.6.2
+2 info using node@v24.13.0
+3 silly config load:file:C:\Program Files\nodejs\node_modules\npm\npmrc
+4 silly config load:file:A:\vibegames.ai\.npmrc
+5 silly config load:file:C:\Users\sajid\.npmrc
+6 silly config load:file:C:\Users\sajid\AppData\Roaming\npm\etc\npmrc
+7 verbose title npm exec playwright-cli --help
+8 verbose argv "exec" "--yes" "--package" "@playwright/cli" "--" "playwright-cli" "--help"
+9 verbose logfile logs-max:10 dir:A:\vibegames.ai\.npm-cache\_logs\2026-04-24T00_31_55_978Z-
+10 verbose logfile A:\vibegames.ai\.npm-cache\_logs\2026-04-24T00_31_55_978Z-debug-0.log
+11 silly logfile start cleaning logs, removing 1 files
+12 silly packumentCache heap:4496293888 maxSize:1124073472 maxEntrySize:562036736
+13 silly logfile done cleaning log files
+14 http fetch GET 200 https://registry.npmjs.org/npm 234ms
+15 http fetch GET 200 https://registry.npmjs.org/@playwright%2fcli 131ms (cache updated)
+16 silly packumentCache heap:4496293888 maxSize:1124073472 maxEntrySize:562036736
+17 silly idealTree buildDeps
+18 silly fetch manifest @playwright/cli@0.1.8
+19 silly packumentCache full:https://registry.npmjs.org/@playwright%2fcli cache-miss
+20 http fetch GET 200 https://registry.npmjs.org/@playwright%2fcli 623ms (cache updated)
+21 silly packumentCache full:https://registry.npmjs.org/@playwright%2fcli set size:undefined disposed:false
+22 silly placeDep ROOT @playwright/cli@0.1.8 REPLACE for:  want: 0.1.8
+23 silly fetch manifest playwright@1.60.0-alpha-2026-04-14
+24 silly packumentCache full:https://registry.npmjs.org/playwright cache-miss
+25 http fetch GET 200 https://registry.npmjs.org/playwright 752ms (cache updated)
+26 silly packumentCache full:https://registry.npmjs.org/playwright set size:undefined disposed:false
+27 silly placeDep ROOT playwright@1.60.0-alpha-2026-04-14 OK for: @playwright/cli@0.1.8 want: 1.60.0-alpha-2026-04-14
+28 silly fetch manifest playwright-core@1.60.0-alpha-2026-04-14
+29 silly packumentCache full:https://registry.npmjs.org/playwright-core cache-miss
+30 silly fetch manifest fsevents@2.3.2
+31 silly packumentCache full:https://registry.npmjs.org/fsevents cache-miss
+32 http fetch GET 200 https://registry.npmjs.org/fsevents 59ms (cache revalidated)
+33 silly packumentCache full:https://registry.npmjs.org/fsevents set size:182472 disposed:false
+34 http fetch GET 200 https://registry.npmjs.org/playwright-core 831ms (cache updated)
+35 silly packumentCache full:https://registry.npmjs.org/playwright-core set size:undefined disposed:false
+36 silly placeDep ROOT fsevents@2.3.2 OK for: playwright@1.60.0-alpha-2026-04-14 want: 2.3.2
+37 silly placeDep ROOT playwright-core@1.60.0-alpha-2026-04-14 OK for: playwright@1.60.0-alpha-2026-04-14 want: 1.60.0-alpha-2026-04-14
+38 silly reify mark retired [
+38 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\@playwright\\cli',
+38 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright-cli',
+38 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright-cli.cmd',
+38 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright-cli.ps1'
+38 silly reify ]
+39 silly reify mark retired [
+39 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\minimist'
+39 silly reify ]
+40 silly reify mark retired [
+40 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\playwright',
+40 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright',
+40 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright.cmd',
+40 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright.ps1'
+40 silly reify ]
+41 silly reify mark retired [
+41 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\playwright-core',
+41 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright-core',
+41 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright-core.cmd',
+41 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright-core.ps1'
+41 silly reify ]
+42 silly reify moves {
+42 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\@playwright\\cli': 'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\@playwright\\.cli-uh8mSkm4',
+42 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright-cli': 'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\.playwright-cli-nGpaMVln',
+42 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright-cli.cmd': 'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\.playwright-cli.cmd-Ym5a9QKp',
+42 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright-cli.ps1': 'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\.playwright-cli.ps1-F2y8xWCQ',
+42 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\minimist': 'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.minimist-tANnQmve',
+42 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\playwright': 'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.playwright-lx1qRnrH',
+42 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright': 'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\.playwright-JCr5LYbL',
+42 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright.cmd': 'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\.playwright.cmd-nQmVX54z',
+42 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright.ps1': 'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\.playwright.ps1-Q96NWIAr',
+42 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\playwright-core': 'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.playwright-core-CtCk8miz',
+42 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright-core': 'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\.playwright-core-glbFcwRh',
+42 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright-core.cmd': 'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\.playwright-core.cmd-Zz7utOS2',
+42 silly reify   'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\playwright-core.ps1': 'A:\\vibegames.ai\\.npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\.bin\\.playwright-core.ps1-nt0xgGXC'
+42 silly reify }
+43 silly audit bulk request {
+43 silly audit   '@playwright/cli': [ '0.1.8' ],
+43 silly audit   playwright: [ '1.60.0-alpha-2026-04-14' ],
+43 silly audit   fsevents: [ '2.3.2' ],
+43 silly audit   'playwright-core': [ '1.60.0-alpha-2026-04-14' ]
+43 silly audit }
+44 http cache playwright-core@https://registry.npmjs.org/playwright-core/-/playwright-core-1.60.0-alpha-2026-04-14.tgz 0ms (cache hit)
+45 http cache playwright@https://registry.npmjs.org/playwright/-/playwright-1.60.0-alpha-2026-04-14.tgz 0ms (cache hit)
+46 http cache @playwright/cli@https://registry.npmjs.org/@playwright/cli/-/cli-0.1.8.tgz 0ms (cache hit)
+47 silly tarball no local data for playwright-core@https://registry.npmjs.org/playwright-core/-/playwright-core-1.60.0-alpha-2026-04-14.tgz. Extracting by manifest.
+48 silly tarball no local data for playwright@https://registry.npmjs.org/playwright/-/playwright-1.60.0-alpha-2026-04-14.tgz. Extracting by manifest.
+49 silly tarball no local data for @playwright/cli@https://registry.npmjs.org/@playwright/cli/-/cli-0.1.8.tgz. Extracting by manifest.
+50 http fetch GET 200 https://registry.npmjs.org/playwright/-/playwright-1.60.0-alpha-2026-04-14.tgz 215ms (cache miss)
+51 http fetch GET 200 https://registry.npmjs.org/playwright-core/-/playwright-core-1.60.0-alpha-2026-04-14.tgz 255ms (cache miss)
+52 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 356ms
+53 silly audit report {}
+54 http fetch GET 200 https://registry.npmjs.org/@playwright/cli/-/cli-0.1.8.tgz 518ms (cache miss)
+55 verbose cwd A:\vibegames.ai
+56 verbose os Windows_NT 10.0.26200
+57 verbose node v24.13.0
+58 verbose npm  v11.6.2
+59 notice
+59 notice New minor version of npm available! 11.6.2 -> 11.13.0
+59 notice Changelog: https://github.com/npm/cli/releases/tag/v11.13.0
+59 notice To update run: npm install -g npm@11.13.0
+59 notice  { force: true, Symbol(proc-log.meta): true }
+60 verbose exit 0
+61 info ok

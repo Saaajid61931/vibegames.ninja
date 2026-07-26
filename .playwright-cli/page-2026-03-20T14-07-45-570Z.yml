@@ -1,0 +1,547 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]: NEW GAMES DAILY • AI ARCADE • GAME JAMS • BUILD • PLAY • GET INSPIRED • NEW GAMES DAILY • AI ARCADE • GAME JAMS • BUILD • PLAY • GET INSPIRED •
+      - generic [ref=e8]:
+        - link "VIBEGAMES.NINJA" [ref=e9] [cursor=pointer]:
+          - /url: /
+          - img [ref=e10]:
+            - generic [ref=e12]:
+              - generic [ref=e37]: A
+              - generic [ref=e40]: B
+          - generic [ref=e50]: VIBEGAMES.NINJA
+        - navigation [ref=e51]:
+          - link "PLAY" [ref=e52] [cursor=pointer]:
+            - /url: /games
+          - link "JAMS" [ref=e53] [cursor=pointer]:
+            - /url: /jams
+          - link "CREATE" [ref=e54] [cursor=pointer]:
+            - /url: /create
+          - link "CREATOR" [ref=e55] [cursor=pointer]:
+            - /url: /creator
+        - generic [ref=e57]:
+          - link "Sign in" [ref=e725] [cursor=pointer]:
+            - /url: /login
+            - button "Sign in" [ref=e726]
+          - link "Get Started" [ref=e727] [cursor=pointer]:
+            - /url: /register
+            - button "Get Started" [ref=e728]
+    - main [ref=e58]:
+      - generic [ref=e63]:
+        - heading "EXPLORE CREATIVITY" [level=1] [ref=e64]:
+          - generic [ref=e65]: EXPLORE
+          - generic [ref=e66]: CREATIVITY
+        - paragraph [ref=e67]: Prompt game templates, play them instantly, and publish the ones that hit. VibeGames is built for browser-native vibecoding.
+        - generic [ref=e68]:
+          - link "START EXPLORING" [ref=e69] [cursor=pointer]:
+            - /url: /games
+            - button "START EXPLORING" [ref=e70]:
+              - img [ref=e71]
+              - text: START EXPLORING
+          - link "START BUILDING" [ref=e73] [cursor=pointer]:
+            - /url: /create
+            - button "START BUILDING" [ref=e74]:
+              - img [ref=e75]
+              - text: START BUILDING
+        - generic [ref=e78]:
+          - generic [ref=e79]:
+            - generic [ref=e80]: GAMES
+            - generic [ref=e81]: "000020"
+          - generic [ref=e82]:
+            - generic [ref=e83]: CREATORS
+            - generic [ref=e84]: "000003"
+          - generic [ref=e85]:
+            - generic [ref=e86]: PLAYS
+            - generic [ref=e87]: "000204"
+      - generic [ref=e90]:
+        - link "ALL GAMES" [ref=e91] [cursor=pointer]:
+          - /url: /games
+          - button "ALL GAMES" [ref=e92]
+        - link "ACTION" [ref=e93] [cursor=pointer]:
+          - /url: /games?category=action
+          - button "ACTION" [ref=e94]
+        - link "PUZZLE" [ref=e95] [cursor=pointer]:
+          - /url: /games?category=puzzle
+          - button "PUZZLE" [ref=e96]
+        - link "RPG" [ref=e97] [cursor=pointer]:
+          - /url: /games?category=rpg
+          - button "RPG" [ref=e98]
+        - link "ADVENTURE" [ref=e99] [cursor=pointer]:
+          - /url: /games?category=adventure
+          - button "ADVENTURE" [ref=e100]
+        - link "ARCADE" [ref=e101] [cursor=pointer]:
+          - /url: /games?category=arcade
+          - button "ARCADE" [ref=e102]
+      - generic [ref=e105]:
+        - 'link "Open AI Arcade Challenge #1 jam page" [ref=e106] [cursor=pointer]':
+          - /url: /jams/ai-arcade-challenge-1
+          - 'img "AI Arcade Challenge #1" [ref=e107]'
+        - generic [ref=e109]:
+          - generic [ref=e110]:
+            - generic [ref=e111]:
+              - img [ref=e112]
+              - generic [ref=e115]: VOTING OPEN
+            - generic [ref=e116]:
+              - 'link "AI Arcade Challenge #1" [ref=e117] [cursor=pointer]':
+                - /url: /jams/ai-arcade-challenge-1
+                - 'heading "AI Arcade Challenge #1" [level=3] [ref=e118]'
+              - paragraph [ref=e119]: "THEME: One-Shot Game"
+            - generic [ref=e120]:
+              - generic [ref=e121]:
+                - img [ref=e122]
+                - text: 1 entry
+              - generic [ref=e128]: Vote until Mar 21
+          - generic [ref=e129]:
+            - link "Vote Now" [ref=e130] [cursor=pointer]:
+              - /url: /jams/ai-arcade-challenge-1
+              - text: Vote Now
+              - img [ref=e131]
+            - link "Open Jam" [ref=e133] [cursor=pointer]:
+              - /url: /jams/ai-arcade-challenge-1
+      - generic [ref=e135]:
+        - generic [ref=e136]:
+          - generic [ref=e137]:
+            - img [ref=e138]
+            - generic [ref=e140]: MARCH
+          - heading "GAME OF THE MONTH" [level=2] [ref=e141]
+        - generic [ref=e147]:
+          - link "Bit Butcher ACTION" [ref=e148] [cursor=pointer]:
+            - /url: /play/bit-butcher
+            - img "Bit Butcher" [ref=e729]
+            - img [ref=e158]
+            - generic [ref=e160]: ACTION
+          - generic [ref=e161]:
+            - generic [ref=e162]:
+              - link "Bit Butcher" [ref=e163] [cursor=pointer]:
+                - /url: /play/bit-butcher
+                - heading "Bit Butcher" [level=3] [ref=e164]
+              - generic [ref=e165]:
+                - generic [ref=e166]: by
+                - link "sajidofaspire" [ref=e167] [cursor=pointer]
+              - paragraph [ref=e168]: Action packed vampire survivor-like game but with a butcher in bit style
+              - generic [ref=e169]:
+                - generic [ref=e170]:
+                  - img [ref=e171]
+                  - generic [ref=e174]: "153"
+                  - generic [ref=e175]: plays
+                - generic [ref=e176]:
+                  - img [ref=e177]
+                  - generic [ref=e179]: "5.0"
+                  - generic [ref=e180]: (1)
+                - generic [ref=e181]: Built with Gemini 3.1 Pro
+            - link "PLAY NOW" [ref=e183] [cursor=pointer]:
+              - /url: /play/bit-butcher
+              - button "PLAY NOW" [ref=e184]:
+                - img [ref=e185]
+                - text: PLAY NOW
+      - generic [ref=e188]:
+        - generic [ref=e189]:
+          - generic [ref=e190]:
+            - text: TOP GAMES
+            - heading "FEATURED ARCADE" [level=2] [ref=e191]
+          - link "VIEW ALL" [ref=e192] [cursor=pointer]:
+            - /url: /games
+            - button "VIEW ALL" [ref=e193]:
+              - text: VIEW ALL
+              - img [ref=e194]
+        - generic [ref=e196]:
+          - 'link "Bit Butcher PLAY NOW Action Mobile Bit Butcher Model: Gemini 3.1 Pro sajidofaspire 153 2 1 month ago" [ref=e197] [cursor=pointer]':
+            - /url: /play/bit-butcher
+            - generic [ref=e198]:
+              - img "Bit Butcher" [ref=e730]
+              - generic [ref=e207]: PLAY NOW
+            - generic [ref=e208]:
+              - generic [ref=e209]:
+                - generic [ref=e210]: Action
+                - generic [ref=e211]:
+                  - img [ref=e212]
+                  - text: Mobile
+              - heading "Bit Butcher" [level=3] [ref=e214]
+              - paragraph [ref=e215]: "Model: Gemini 3.1 Pro"
+              - generic [ref=e216]:
+                - img [ref=e217]
+                - link "sajidofaspire" [ref=e220]
+              - generic [ref=e222]:
+                - generic [ref=e223]:
+                  - img [ref=e224]
+                  - text: "153"
+                - generic [ref=e226]:
+                  - img [ref=e227]
+                  - text: "2"
+            - generic [ref=e229]: 1 month ago
+          - link "Thumbzilla PLAY NOW Other Mobile Thumbzilla democreator 12 0 1 week ago" [ref=e230] [cursor=pointer]:
+            - /url: /play/thumbzilla
+            - generic [ref=e231]:
+              - img "Thumbzilla" [ref=e731]
+              - generic [ref=e240]: PLAY NOW
+            - generic [ref=e241]:
+              - generic [ref=e242]:
+                - generic [ref=e243]: Other
+                - generic [ref=e244]:
+                  - img [ref=e245]
+                  - text: Mobile
+              - heading "Thumbzilla" [level=3] [ref=e247]
+              - generic [ref=e248]:
+                - img [ref=e249]
+                - link "democreator" [ref=e252]
+              - generic [ref=e254]:
+                - generic [ref=e255]:
+                  - img [ref=e256]
+                  - text: "12"
+                - generic [ref=e258]:
+                  - img [ref=e259]
+                  - text: "0"
+            - generic [ref=e261]: 1 week ago
+          - 'link "Silhouette Spider PLAY NOW Action Mobile Silhouette Spider Model: gpt-5.4 democreator 11 0 1 week ago" [ref=e262] [cursor=pointer]':
+            - /url: /play/silhouette-spider
+            - generic [ref=e263]:
+              - img "Silhouette Spider" [ref=e264]
+              - generic [ref=e266]: PLAY NOW
+            - generic [ref=e267]:
+              - generic [ref=e268]:
+                - generic [ref=e269]: Action
+                - generic [ref=e270]:
+                  - img [ref=e271]
+                  - text: Mobile
+              - heading "Silhouette Spider" [level=3] [ref=e273]
+              - paragraph [ref=e274]: "Model: gpt-5.4"
+              - generic [ref=e275]:
+                - img [ref=e276]
+                - link "democreator" [ref=e279]
+              - generic [ref=e281]:
+                - generic [ref=e282]:
+                  - img [ref=e283]
+                  - text: "11"
+                - generic [ref=e285]:
+                  - img [ref=e286]
+                  - text: "0"
+            - generic [ref=e288]: 1 week ago
+          - 'link "PLAY NOW Other Mobile AI Arcade Challenge #1 Spiderman Noir Model: Gemini 3.1 admin 4 1 4 days ago" [ref=e289] [cursor=pointer]':
+            - /url: /play/spiderman-noir
+            - generic [ref=e290]:
+              - img [ref=e292]
+              - generic [ref=e295]: PLAY NOW
+            - generic [ref=e296]:
+              - generic [ref=e297]:
+                - generic [ref=e298]: Other
+                - generic [ref=e299]:
+                  - img [ref=e300]
+                  - text: Mobile
+                - 'generic "AI Arcade Challenge #1" [ref=e302]':
+                  - img [ref=e303]
+                  - generic [ref=e309]: "AI Arcade Challenge #1"
+              - heading "Spiderman Noir" [level=3] [ref=e310]
+              - paragraph [ref=e311]: "Model: Gemini 3.1"
+              - generic [ref=e312]:
+                - img [ref=e313]
+                - link "admin" [ref=e316]
+              - generic [ref=e318]:
+                - generic [ref=e319]:
+                  - img [ref=e320]
+                  - text: "4"
+                - generic [ref=e322]:
+                  - img [ref=e323]
+                  - text: "1"
+            - generic [ref=e325]: 4 days ago
+          - 'link "Recoil PLAY NOW Action Mobile Recoil Model: gpt-5.4 democreator 3 0 1 week ago" [ref=e326] [cursor=pointer]':
+            - /url: /play/recoil
+            - generic [ref=e327]:
+              - img "Recoil" [ref=e732]
+              - generic [ref=e336]: PLAY NOW
+            - generic [ref=e337]:
+              - generic [ref=e338]:
+                - generic [ref=e339]: Action
+                - generic [ref=e340]:
+                  - img [ref=e341]
+                  - text: Mobile
+              - heading "Recoil" [level=3] [ref=e343]
+              - paragraph [ref=e344]: "Model: gpt-5.4"
+              - generic [ref=e345]:
+                - img [ref=e346]
+                - link "democreator" [ref=e349]
+              - generic [ref=e351]:
+                - generic [ref=e352]:
+                  - img [ref=e353]
+                  - text: "3"
+                - generic [ref=e355]:
+                  - img [ref=e356]
+                  - text: "0"
+            - generic [ref=e358]: 1 week ago
+          - link "Shepherd's Meadow PLAY NOW Other Mobile Shepherd's Meadow democreator 3 0 1 week ago" [ref=e359] [cursor=pointer]:
+            - /url: /play/shepherds-meadow
+            - generic [ref=e360]:
+              - img "Shepherd's Meadow" [ref=e733]
+              - generic [ref=e369]: PLAY NOW
+            - generic [ref=e370]:
+              - generic [ref=e371]:
+                - generic [ref=e372]: Other
+                - generic [ref=e373]:
+                  - img [ref=e374]
+                  - text: Mobile
+              - heading "Shepherd's Meadow" [level=3] [ref=e376]
+              - generic [ref=e377]:
+                - img [ref=e378]
+                - link "democreator" [ref=e381]
+              - generic [ref=e383]:
+                - generic [ref=e384]:
+                  - img [ref=e385]
+                  - text: "3"
+                - generic [ref=e387]:
+                  - img [ref=e388]
+                  - text: "0"
+            - generic [ref=e390]: 1 week ago
+      - generic [ref=e392]:
+        - generic [ref=e393]:
+          - generic [ref=e394]:
+            - img [ref=e395]
+            - generic [ref=e397]: POWER UPS
+          - heading "WHY PLAY HERE?" [level=2] [ref=e398]
+        - generic [ref=e399]:
+          - generic [ref=e400]:
+            - img [ref=e402]
+            - heading "EXPLORE IDEAS" [level=3] [ref=e404]
+            - paragraph [ref=e405]: Discover games made by creative people worldwide
+          - generic [ref=e406]:
+            - img [ref=e408]
+            - heading "NO SKILLS NEEDED" [level=3] [ref=e411]
+            - paragraph [ref=e412]: Build with AI. No coding required
+          - generic [ref=e413]:
+            - img [ref=e415]
+            - heading "SHARE & INSPIRE" [level=3] [ref=e417]
+            - paragraph [ref=e418]: Comment, share, and build community levels
+          - generic [ref=e419]:
+            - img [ref=e421]
+            - heading "ZERO BARRIERS" [level=3] [ref=e427]
+            - paragraph [ref=e428]: Free forever. Everyone is a creator
+      - generic [ref=e436]:
+        - generic [ref=e437]:
+          - img [ref=e438]
+          - heading "JOIN THE COMMUNITY" [level=2] [ref=e440]
+          - img [ref=e441]
+        - generic [ref=e443]:
+          - paragraph [ref=e444]: Share your creativity with the world
+          - paragraph [ref=e445]: Get inspired by other creators
+          - paragraph [ref=e446]: Connect and collaborate
+        - generic [ref=e447]:
+          - link "START CREATING" [ref=e448] [cursor=pointer]:
+            - /url: /register
+            - button "START CREATING" [ref=e449]:
+              - img [ref=e450]
+              - text: START CREATING
+          - link "BROWSE GAMES" [ref=e453] [cursor=pointer]:
+            - /url: /games
+            - button "BROWSE GAMES" [ref=e454]:
+              - img [ref=e455]
+              - text: BROWSE GAMES
+      - generic [ref=e458]:
+        - generic [ref=e460]:
+          - generic [ref=e461]:
+            - img [ref=e462]
+            - generic [ref=e464]: DISCOVERY SHORTCUTS
+          - heading "FIND YOUR NEXT RABBIT HOLE" [level=2] [ref=e465]
+        - generic [ref=e466]:
+          - link "PLAY ANYWHERE MOBILE-FRIENDLY GAMES Short sessions, touch controls, and games that feel good on the go." [ref=e467] [cursor=pointer]:
+            - /url: /games?mobile=true
+            - paragraph [ref=e468]: PLAY ANYWHERE
+            - heading "MOBILE-FRIENDLY GAMES" [level=3] [ref=e469]
+            - paragraph [ref=e470]: Short sessions, touch controls, and games that feel good on the go.
+          - link "MAKE IT YOURS LEVEL EDITOR PICKS Play, remix, and publish community levels to keep games alive longer." [ref=e471] [cursor=pointer]:
+            - /url: /games?editor=true
+            - paragraph [ref=e472]: MAKE IT YOURS
+            - heading "LEVEL EDITOR PICKS" [level=3] [ref=e473]
+            - paragraph [ref=e474]: Play, remix, and publish community levels to keep games alive longer.
+          - link "COMMUNITY EVENTS JOIN A GAME JAM Compete, get discovered, and ride the momentum of deadline-driven launches." [ref=e475] [cursor=pointer]:
+            - /url: /jams
+            - paragraph [ref=e476]: COMMUNITY EVENTS
+            - heading "JOIN A GAME JAM" [level=3] [ref=e477]
+            - paragraph [ref=e478]: Compete, get discovered, and ride the momentum of deadline-driven launches.
+        - generic [ref=e479]:
+          - link "Action" [ref=e480] [cursor=pointer]:
+            - /url: /games?category=action
+            - button "Action" [ref=e481]
+          - link "Puzzle" [ref=e482] [cursor=pointer]:
+            - /url: /games?category=puzzle
+            - button "Puzzle" [ref=e483]
+          - link "Arcade" [ref=e484] [cursor=pointer]:
+            - /url: /games?category=arcade
+            - button "Arcade" [ref=e485]
+          - link "Strategy" [ref=e486] [cursor=pointer]:
+            - /url: /games?category=strategy
+            - button "Strategy" [ref=e487]
+          - link "Adventure" [ref=e488] [cursor=pointer]:
+            - /url: /games?category=adventure
+            - button "Adventure" [ref=e489]
+          - link "Racing" [ref=e490] [cursor=pointer]:
+            - /url: /games?category=racing
+            - button "Racing" [ref=e491]
+      - generic [ref=e493]:
+        - generic [ref=e494]:
+          - generic [ref=e495]:
+            - text: MOBILE COLLECTION
+            - heading "QUICK PLAYS FOR PHONE SCREENS" [level=2] [ref=e496]
+          - link "SEE MOBILE GAMES" [ref=e497] [cursor=pointer]:
+            - /url: /games?mobile=true
+            - button "SEE MOBILE GAMES" [ref=e498]:
+              - text: SEE MOBILE GAMES
+              - img [ref=e499]
+        - generic [ref=e501]:
+          - 'link "Bit Butcher PLAY NOW Action Mobile Bit Butcher Model: Gemini 3.1 Pro sajidofaspire 153 2 1 month ago" [ref=e502] [cursor=pointer]':
+            - /url: /play/bit-butcher
+            - generic [ref=e503]:
+              - img "Bit Butcher" [ref=e734]
+              - generic [ref=e512]: PLAY NOW
+            - generic [ref=e513]:
+              - generic [ref=e514]:
+                - generic [ref=e515]: Action
+                - generic [ref=e516]:
+                  - img [ref=e517]
+                  - text: Mobile
+              - heading "Bit Butcher" [level=3] [ref=e519]
+              - paragraph [ref=e520]: "Model: Gemini 3.1 Pro"
+              - generic [ref=e521]:
+                - img [ref=e522]
+                - link "sajidofaspire" [ref=e525]
+              - generic [ref=e527]:
+                - generic [ref=e528]:
+                  - img [ref=e529]
+                  - text: "153"
+                - generic [ref=e531]:
+                  - img [ref=e532]
+                  - text: "2"
+            - generic [ref=e534]: 1 month ago
+          - 'link "PLAY NOW Other Mobile AI Arcade Challenge #1 Spiderman Noir Model: Gemini 3.1 admin 4 1 4 days ago" [ref=e535] [cursor=pointer]':
+            - /url: /play/spiderman-noir
+            - generic [ref=e536]:
+              - img [ref=e538]
+              - generic [ref=e541]: PLAY NOW
+            - generic [ref=e542]:
+              - generic [ref=e543]:
+                - generic [ref=e544]: Other
+                - generic [ref=e545]:
+                  - img [ref=e546]
+                  - text: Mobile
+                - 'generic "AI Arcade Challenge #1" [ref=e548]':
+                  - img [ref=e549]
+                  - generic [ref=e555]: "AI Arcade Challenge #1"
+              - heading "Spiderman Noir" [level=3] [ref=e556]
+              - paragraph [ref=e557]: "Model: Gemini 3.1"
+              - generic [ref=e558]:
+                - img [ref=e559]
+                - link "admin" [ref=e562]
+              - generic [ref=e564]:
+                - generic [ref=e565]:
+                  - img [ref=e566]
+                  - text: "4"
+                - generic [ref=e568]:
+                  - img [ref=e569]
+                  - text: "1"
+            - generic [ref=e571]: 4 days ago
+          - link "Thumbzilla PLAY NOW Other Mobile Thumbzilla democreator 12 0 1 week ago" [ref=e572] [cursor=pointer]:
+            - /url: /play/thumbzilla
+            - generic [ref=e573]:
+              - img "Thumbzilla" [ref=e735]
+              - generic [ref=e582]: PLAY NOW
+            - generic [ref=e583]:
+              - generic [ref=e584]:
+                - generic [ref=e585]: Other
+                - generic [ref=e586]:
+                  - img [ref=e587]
+                  - text: Mobile
+              - heading "Thumbzilla" [level=3] [ref=e589]
+              - generic [ref=e590]:
+                - img [ref=e591]
+                - link "democreator" [ref=e594]
+              - generic [ref=e596]:
+                - generic [ref=e597]:
+                  - img [ref=e598]
+                  - text: "12"
+                - generic [ref=e600]:
+                  - img [ref=e601]
+                  - text: "0"
+            - generic [ref=e603]: 1 week ago
+          - 'link "Silhouette Spider PLAY NOW Action Mobile Silhouette Spider Model: gpt-5.4 democreator 11 0 1 week ago" [ref=e604] [cursor=pointer]':
+            - /url: /play/silhouette-spider
+            - generic [ref=e605]:
+              - img "Silhouette Spider" [ref=e606]
+              - generic [ref=e608]: PLAY NOW
+            - generic [ref=e609]:
+              - generic [ref=e610]:
+                - generic [ref=e611]: Action
+                - generic [ref=e612]:
+                  - img [ref=e613]
+                  - text: Mobile
+              - heading "Silhouette Spider" [level=3] [ref=e615]
+              - paragraph [ref=e616]: "Model: gpt-5.4"
+              - generic [ref=e617]:
+                - img [ref=e618]
+                - link "democreator" [ref=e621]
+              - generic [ref=e623]:
+                - generic [ref=e624]:
+                  - img [ref=e625]
+                  - text: "11"
+                - generic [ref=e627]:
+                  - img [ref=e628]
+                  - text: "0"
+            - generic [ref=e630]: 1 week ago
+    - contentinfo [ref=e631]:
+      - generic [ref=e632]:
+        - generic [ref=e633]:
+          - generic [ref=e634]:
+            - link "VIBEGAMES" [ref=e635] [cursor=pointer]:
+              - /url: /
+              - img [ref=e636]:
+                - generic [ref=e638]:
+                  - generic [ref=e663]: A
+                  - generic [ref=e666]: B
+              - generic [ref=e676]: VIBEGAMES
+            - paragraph [ref=e677]: A community for AI-made games. Build, play, and get inspired.
+            - generic [ref=e678]:
+              - link "VibeGames on GitHub" [ref=e679] [cursor=pointer]:
+                - /url: https://github.com/Saaajid61931/vibegames.ninja
+                - img [ref=e680]
+              - link "VibeGames on Twitter" [ref=e683] [cursor=pointer]:
+                - /url: https://twitter.com/vibegamesai
+                - img [ref=e684]
+          - generic [ref=e686]:
+            - heading "Platform" [level=3] [ref=e687]
+            - list [ref=e688]:
+              - listitem [ref=e689]:
+                - link "Browse Games" [ref=e690] [cursor=pointer]:
+                  - /url: /games
+              - listitem [ref=e691]:
+                - link "Mobile Games" [ref=e692] [cursor=pointer]:
+                  - /url: /games?mobile=true
+              - listitem [ref=e693]:
+                - link "Upload Game" [ref=e694] [cursor=pointer]:
+                  - /url: /upload
+          - generic [ref=e695]:
+            - heading "Resources" [level=3] [ref=e696]
+            - list [ref=e697]:
+              - listitem [ref=e698]:
+                - link "Creator Dashboard" [ref=e699] [cursor=pointer]:
+                  - /url: /creator
+              - listitem [ref=e700]:
+                - link "Popular Games" [ref=e701] [cursor=pointer]:
+                  - /url: /games?sort=popular
+              - listitem [ref=e702]:
+                - link "Level Editor Games" [ref=e703] [cursor=pointer]:
+                  - /url: /games?editor=true
+              - listitem [ref=e704]:
+                - link "Active Jams" [ref=e705] [cursor=pointer]:
+                  - /url: /jams
+          - generic [ref=e706]:
+            - heading "Legal" [level=3] [ref=e707]
+            - list [ref=e708]:
+              - listitem [ref=e709]:
+                - link "Terms of Service" [ref=e710] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=e711]:
+                - link "Privacy Policy" [ref=e712] [cursor=pointer]:
+                  - /url: /privacy
+        - generic [ref=e713]:
+          - paragraph [ref=e714]: © 2026 VibeGames.Ninja. All rights reserved.
+          - generic [ref=e715]:
+            - generic [ref=e716]: Made with
+            - img [ref=e717]
+            - generic [ref=e719]: and AI
+  - alert [ref=e720]

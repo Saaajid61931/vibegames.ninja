@@ -1,0 +1,2 @@
+[  209259ms] [WARNING] Allow attribute will take precedence over 'allowfullscreen'. @ https://www.vibegames.ninja/_next/static/chunks/87037a5848f6727d.js:0
+[  245510ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://www.vibegames.ninja/login?callbackUrl=%2Fplay%2Fbit-butcher:0

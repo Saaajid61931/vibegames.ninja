@@ -1,0 +1,8 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e3]:
+    - img [ref=f5e5]:
+      - generic [ref=f5e7]:
+        - generic [ref=f5e32]: A
+        - generic [ref=f5e35]: B
+    - paragraph [ref=f5e49]: SHARPENING SHURIKEN...
+  - alert [ref=f5e50]

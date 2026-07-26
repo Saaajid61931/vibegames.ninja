@@ -1,0 +1,2 @@
+[ 3479656ms] [WARNING] Allow attribute will take precedence over 'allowfullscreen'. @ https://www.vibegames.ninja/_next/static/chunks/87037a5848f6727d.js:0
+[ 3484262ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://www.vibegames.ninja/api/games/411c38cd-4580-4ff7-996d-df2f7bf62535/play:0

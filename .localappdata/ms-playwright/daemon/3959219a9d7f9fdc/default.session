@@ -1,0 +1,10 @@
+{
+  "name": "default",
+  "version": "1.59.0-alpha-1771104257000",
+  "timestamp": 1773939172074,
+  "socketPath": "\\\\.\\pipe\\3959219a9d7f9fdc-default.sock",
+  "cli": {
+    "headed": true
+  },
+  "userDataDirPrefix": "A:\\vibegames.ai\\.localappdata\\ms-playwright\\daemon\\3959219a9d7f9fdc\\ud-default"
+}
