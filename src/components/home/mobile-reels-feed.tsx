@@ -520,15 +520,26 @@ export function MobileReelsFeed({
 
   const scrollToFirstGame = () => {
     const container = scrollContainerRef.current
-    if (!container) return
+    const firstGame = firstGameSlideRef.current
+    if (!container || !firstGame) return
 
-    const targetTop = firstGameSlideRef.current?.offsetTop ?? container.clientHeight
+    const targetTop = firstGame.offsetTop
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
     container.scrollTo({
       top: targetTop,
       behavior: prefersReducedMotion ? "auto" : "smooth",
     })
+
+    // Some mobile Safari versions can ignore a smooth scroll on a nested
+    // snap container. Fall back to an immediate scroll if it did not start.
+    if (!prefersReducedMotion) {
+      window.setTimeout(() => {
+        if (Math.abs(container.scrollTop - targetTop) > 2) {
+          container.scrollTo({ top: targetTop, behavior: "auto" })
+        }
+      }, 500)
+    }
   }
 
   // Measured width and height fallbacks
@@ -551,7 +562,8 @@ export function MobileReelsFeed({
       {/* Snap Scroll Reels container */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 w-full overflow-y-scroll snap-y snap-mandatory scrollbar-none flex flex-col"
+        className="min-h-0 flex-1 w-full overflow-y-scroll overscroll-y-contain touch-pan-y snap-y snap-mandatory scrollbar-none flex flex-col"
+        style={{ WebkitOverflowScrolling: "touch" }}
       >
         <MobileHomeIntroSlide
           backgroundGames={backgroundGames}
