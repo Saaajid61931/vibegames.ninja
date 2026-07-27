@@ -255,9 +255,10 @@ export function MobileHomeIntroSlide({
             className="mt-2.5 font-pixel leading-none tracking-[0.02em] text-white drop-shadow-[0_3px_14px_rgba(0,0,0,0.95)]"
             style={{ fontSize: "clamp(1.55rem, min(8.6vw, 4.9vh), 2.5rem)" }}
           >
-            PLAY. BUILD.
+            <span className="block">PLAY</span>
+            <span className="mt-1 block">BUILD</span>
             <span className="mt-1 block text-[#facc15] drop-shadow-[3px_3px_0_#f43f5e]">
-              INSPIRE.
+              INSPIRE
             </span>
           </h1>
 

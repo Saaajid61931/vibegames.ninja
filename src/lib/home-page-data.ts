@@ -173,11 +173,37 @@ const getPreviousDayTopHeroGames = unstable_cache(async () => {
     take: 20,
   })
 
-  return analytics
+  const previousDayGames = analytics
     .map((entry) => entry.game)
     .filter((game) => Boolean(game.thumbnail?.trim()))
+
+  if (previousDayGames.length >= 10) {
+    return previousDayGames.slice(0, 10)
+  }
+
+  const fallbackGames = await prisma.game.findMany({
+    where: {
+      status: "PUBLISHED",
+      thumbnail: { not: null },
+    },
+    select: homeHeroGameSelect,
+    orderBy: getDiscoveryOrderBy("popular"),
+    take: 20,
+  })
+
+  const seenGameIds = new Set<string>()
+
+  return [...previousDayGames, ...fallbackGames]
+    .filter((game) => {
+      if (!game.thumbnail?.trim() || seenGameIds.has(game.id)) {
+        return false
+      }
+
+      seenGameIds.add(game.id)
+      return true
+    })
     .slice(0, 10)
-}, ["home-previous-day-top-hero-games-v1"], { revalidate: 60, tags: ["games"] })
+}, ["home-previous-day-top-hero-games-v2"], { revalidate: 60, tags: ["games"] })
 
 const getEditorGames = unstable_cache(async () => {
   if (!isPrismaDatasourceConfigured()) {
