@@ -16,26 +16,24 @@ export const metadata = {
 }
 
 async function getAnalyticsData(userId: string) {
-  const [totals, games] = await Promise.all([
-    prisma.game.aggregate({
-      where: { creatorId: userId },
-      _sum: { impressions: true, plays: true, likes: true },
-      _count: true,
-    }),
-    prisma.game.findMany({
-      where: { creatorId: userId },
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        status: true,
-        impressions: true,
-        plays: true,
-        likes: true,
-      },
-      orderBy: [{ impressions: "desc" }, { plays: "desc" }],
-    }),
-  ])
+  const totals = await prisma.game.aggregate({
+    where: { creatorId: userId },
+    _sum: { impressions: true, plays: true, likes: true },
+    _count: true,
+  })
+  const games = await prisma.game.findMany({
+    where: { creatorId: userId },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      status: true,
+      impressions: true,
+      plays: true,
+      likes: true,
+    },
+    orderBy: [{ impressions: "desc" }, { plays: "desc" }],
+  })
 
   return {
     summary: {

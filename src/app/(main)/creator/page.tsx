@@ -33,8 +33,9 @@ export const metadata = {
 }
 
 async function getCreatorData(userId: string) {
-  const [games, feedback, totals] = await Promise.all([
-    prisma.game.findMany({
+  // Vercel's database pool is configured for one connection, so creator data
+  // must be loaded sequentially instead of competing for that connection.
+  const games = await prisma.game.findMany({
       where: { creatorId: userId },
       select: {
         id: true,
@@ -49,8 +50,8 @@ async function getCreatorData(userId: string) {
         updatedAt: true,
       },
       orderBy: { updatedAt: "desc" },
-    }),
-    prisma.report.findMany({
+    })
+  const feedback = await prisma.report.findMany({
       where: {
         reason: { in: ["BUG", "IDEA"] },
         game: { creatorId: userId },
@@ -68,12 +69,11 @@ async function getCreatorData(userId: string) {
           select: { id: true, slug: true, title: true },
         },
       },
-    }),
-    prisma.game.aggregate({
-      where: { creatorId: userId },
-      _sum: { impressions: true, plays: true, likes: true },
-    }),
-  ])
+    })
+  const totals = await prisma.game.aggregate({
+    where: { creatorId: userId },
+    _sum: { impressions: true, plays: true, likes: true },
+  })
 
   const countsByGame = new Map<string, { bugs: number; ideas: number }>()
 

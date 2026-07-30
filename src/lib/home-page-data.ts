@@ -293,7 +293,7 @@ const getBuiltWithToolsGames = unstable_cache(async () => {
   })
 }, ["home-built-with-tools-games"], { revalidate: 60, tags: ["games"] })
 
-async function getStats() {
+const getStats = unstable_cache(async () => {
   if (!isPrismaDatasourceConfigured()) {
     return {
       games: 0,
@@ -302,12 +302,18 @@ async function getStats() {
     }
   }
 
-  const [gamesCount, creatorUsers, studioProfiles, totalPlays] = await Promise.all([
-    prisma.game.count({ where: { status: "PUBLISHED" } }),
-    prisma.user.findMany({ where: { role: { in: ["CREATOR", "ADMIN"] } }, select: { id: true } }),
-    prisma.studioProfile.findMany({ select: { ownerId: true } }),
-    prisma.game.aggregate({ _sum: { plays: true } }),
-  ])
+  // Production uses a single pooled database connection. Keep these queries
+  // sequential so the pool cannot time out while the homepage is revalidating.
+  const gamesCount = await prisma.game.count({ where: { status: "PUBLISHED" } })
+  const creatorUsers = await prisma.user.findMany({
+    where: { role: { in: ["CREATOR", "ADMIN"] } },
+    select: { id: true },
+  })
+  const studioProfiles = await prisma.studioProfile.findMany({
+    select: { ownerId: true },
+  })
+  const totalPlays = await prisma.game.aggregate({ _sum: { plays: true } })
+
   return {
     games: gamesCount,
     creators: countUniqueCreators(
@@ -316,7 +322,7 @@ async function getStats() {
     ),
     plays: totalPlays._sum.plays || 0,
   }
-}
+}, ["home-stats-v2"], { revalidate: 60, tags: ["games"] })
 
 const getGameOfTheMonth = unstable_cache(async () => {
   if (!isPrismaDatasourceConfigured()) {
@@ -435,6 +441,23 @@ export const HOME_FEATURES = [
   { icon: "Trophy", title: "ZERO BARRIERS", desc: "Free forever. Everyone is a creator", color: "#00ff40" },
 ] as const
 
+async function getHomeDataValue<T>(
+  label: string,
+  load: () => Promise<T>,
+  fallback: T,
+) {
+  try {
+    return await load()
+  } catch (error) {
+    logServerError("Home page data query failed", error, {
+      route: "app/home",
+      query: label,
+    })
+
+    return fallback
+  }
+}
+
 export async function getHomePageData() {
   if (!isPrismaDatasourceConfigured()) {
     return {
@@ -460,82 +483,62 @@ export async function getHomePageData() {
     }
   }
 
-  const [
-    gamesResult,
-    statsResult,
-    gameOfTheMonthResult,
-    mobileGamesResult,
-    allMobileGamesResult,
-    heroGamesResult,
-    editorGamesResult,
-    justLaunchedGamesResult,
-    needsFeedbackGamesResult,
-    updatedThisWeekGamesResult,
-    builtWithToolsGamesResult,
-  ] = await Promise.allSettled([
-    getFeaturedGames(),
-    getStats(),
-    getGameOfTheMonth(),
-    getMobileGames(),
-    getAllMobileGames(),
-    getPreviousDayTopHeroGames(),
-    getEditorGames(),
-    getJustLaunchedGames(),
-    getNeedsFeedbackGames(),
-    getUpdatedThisWeekGames(),
-    getBuiltWithToolsGames(),
-  ])
-
-  const getSettledValue = <T,>(label: string, result: PromiseSettledResult<T>, fallback: T) => {
-    if (result.status === "fulfilled") {
-      return result.value
-    }
-
-    logServerError("Home page data query failed", result.reason, {
-      route: "app/home",
-      query: label,
-    })
-
-    return fallback
-  }
-
-  const games = getSettledValue("featuredGames", gamesResult, [] as Awaited<ReturnType<typeof getFeaturedGames>>)
-  const stats = getSettledValue("stats", statsResult, {
+  // These loaders intentionally run one at a time. The production pool has a
+  // single connection, and parallel revalidation previously replaced real
+  // metrics and games with empty fallbacks after P2024 pool timeouts.
+  const stats = await getHomeDataValue("stats", getStats, {
     games: 0,
     creators: 0,
     plays: 0,
   })
-  const gameOfTheMonth = getSettledValue(
+  const games = await getHomeDataValue(
+    "featuredGames",
+    getFeaturedGames,
+    [] as Awaited<ReturnType<typeof getFeaturedGames>>,
+  )
+  const allMobileGames = await getHomeDataValue(
+    "allMobileGames",
+    getAllMobileGames,
+    [] as Awaited<ReturnType<typeof getAllMobileGames>>,
+  )
+  const mobileGames = await getHomeDataValue(
+    "mobileGames",
+    getMobileGames,
+    [] as Awaited<ReturnType<typeof getMobileGames>>,
+  )
+  const heroGames = await getHomeDataValue(
+    "heroGames",
+    getPreviousDayTopHeroGames,
+    [] as Awaited<ReturnType<typeof getPreviousDayTopHeroGames>>,
+  )
+  const editorGames = await getHomeDataValue(
+    "editorGames",
+    getEditorGames,
+    [] as Awaited<ReturnType<typeof getEditorGames>>,
+  )
+  const gameOfTheMonth = await getHomeDataValue(
     "gameOfTheMonth",
-    gameOfTheMonthResult,
+    getGameOfTheMonth,
     null as Awaited<ReturnType<typeof getGameOfTheMonth>>
   )
-  const mobileGames = getSettledValue("mobileGames", mobileGamesResult, [] as Awaited<ReturnType<typeof getMobileGames>>)
-  const allMobileGames = getSettledValue("allMobileGames", allMobileGamesResult, [] as Awaited<ReturnType<typeof getAllMobileGames>>)
-  const heroGames = getSettledValue(
-    "heroGames",
-    heroGamesResult,
-    [] as Awaited<ReturnType<typeof getPreviousDayTopHeroGames>>
-  )
-  const editorGames = getSettledValue("editorGames", editorGamesResult, [] as Awaited<ReturnType<typeof getEditorGames>>)
-  const justLaunchedGames = getSettledValue(
+  const justLaunchedGames = await getHomeDataValue(
     "justLaunchedGames",
-    justLaunchedGamesResult,
+    getJustLaunchedGames,
     [] as Awaited<ReturnType<typeof getJustLaunchedGames>>
   )
-  const needsFeedbackGames = getSettledValue(
+  const needsFeedbackGames = await getHomeDataValue(
     "needsFeedbackGames",
-    needsFeedbackGamesResult,
+    getNeedsFeedbackGames,
     [] as Awaited<ReturnType<typeof getNeedsFeedbackGames>>
   )
-  const updatedThisWeekGames = getSettledValue(
+  const updatedThisWeekGames = await getHomeDataValue(
     "updatedThisWeekGames",
-    updatedThisWeekGamesResult,
+    getUpdatedThisWeekGames,
     [] as Awaited<ReturnType<typeof getUpdatedThisWeekGames>>
   )
-  const builtWithToolsGames = getSettledValue(
+  const builtWithToolsGames = await getHomeDataValue(
     "builtWithToolsGames",
-    builtWithToolsGamesResult,
+    getBuiltWithToolsGames,
     [] as Awaited<ReturnType<typeof getBuiltWithToolsGames>>
   )
 
