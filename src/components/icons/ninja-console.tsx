@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useId, useState } from "react"
+import { useEffect, useState } from "react"
 
 interface NinjaConsoleProps {
   className?: string
@@ -10,9 +10,6 @@ interface NinjaConsoleProps {
 export function NinjaConsole({ className = "h-6 w-6", animated = true }: NinjaConsoleProps) {
   const [mode, setMode] = useState<"happy" | "attack" | "surprised">("happy")
   const [isBlinking, setIsBlinking] = useState(false)
-  const iconId = useId().replace(/:/g, "")
-  const bodyGradientId = `${iconId}-body-gradient`
-  const glowFilterId = `${iconId}-glow-filter`
   const primaryColor = "var(--color-primary)"
   const primaryHoverColor = "var(--color-primary-hover)"
 
@@ -53,17 +50,6 @@ export function NinjaConsole({ className = "h-6 w-6", animated = true }: NinjaCo
       aria-hidden="true"
       focusable="false"
     >
-      <defs>
-        <linearGradient id={bodyGradientId} x1="0" y1="2" x2="0" y2="22" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#2a3146" />
-          <stop offset="1" stopColor="#1a1f31" />
-        </linearGradient>
-        <filter id={glowFilterId} x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="0.45" result="blur" />
-          <feComposite in="SourceGraphic" in2="blur" operator="over" />
-        </filter>
-      </defs>
-
       <ellipse cx="12" cy="22.3" rx="4" ry="0.9" fill="#040611" opacity="0.55" />
 
       <g>
@@ -78,7 +64,7 @@ export function NinjaConsole({ className = "h-6 w-6", animated = true }: NinjaCo
         )}
 
         {/* Main body */}
-        <rect x="4.5" y="2.2" width="15" height="18.6" rx="2.2" fill={bodyGradientId ? `url(#${bodyGradientId})` : "#1a1f31"} stroke="#252d46" strokeWidth="0.6" />
+        <rect x="4.5" y="2.2" width="15" height="18.6" rx="2.2" fill="#1a1f31" stroke="#252d46" strokeWidth="0.6" />
         <rect x="8.7" y="3.05" width="6.6" height="0.55" rx="0.27" fill="#0a0f1d" opacity="0.85" />
 
         {/* Headband */}
@@ -116,7 +102,7 @@ export function NinjaConsole({ className = "h-6 w-6", animated = true }: NinjaCo
         <path d="M6.25 6.1 L15.6 6.1 L8.8 11.45 L6.25 11.45 Z" fill="#ffffff" opacity="0.05" />
 
         {/* Expressions */}
-        <g filter={`url(#${glowFilterId})`} transform="translate(0 -0.85)">
+        <g transform="translate(0 -0.85)">
           {blinking ? (
             <>
               <path d="M8.1 8.6 Q8.9 7.85 9.7 8.6" stroke={eyeColor} strokeWidth="0.65" strokeLinecap="round" fill="none" />

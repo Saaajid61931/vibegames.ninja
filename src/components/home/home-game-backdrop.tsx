@@ -70,27 +70,7 @@ export function HomeGameBackdrop({
         className="pointer-events-none absolute inset-0 overflow-hidden"
         aria-hidden="true"
       >
-        {previousGame ? (
-          <img
-            key={`mobile-ambient-previous-${previousGame.id}`}
-            src={previousGame.thumbnail}
-            alt=""
-            draggable={false}
-            className="absolute inset-0 z-0 h-full w-full scale-125 object-cover opacity-40 blur-[44px] saturate-[1.45]"
-          />
-        ) : null}
-
-        {currentGame ? (
-          <img
-            key={`mobile-ambient-current-${currentGame.id}`}
-            src={currentGame.thumbnail}
-            alt=""
-            draggable={false}
-            className="home-game-backdrop-ambient-image absolute inset-0 z-0 h-full w-full scale-125 object-cover blur-[44px] saturate-[1.45]"
-          />
-        ) : (
-          <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,209,255,0.2),transparent_34%),radial-gradient(circle_at_80%_68%,rgba(244,63,94,0.2),transparent_38%),#090b12]" />
-        )}
+        <div className="absolute inset-0 z-0 bg-[#090b12]" />
 
         <div className="absolute inset-x-0 top-[calc(env(safe-area-inset-top)+5rem)] z-10 h-[100vw] overflow-hidden">
           {previousGame ? (
@@ -117,26 +97,12 @@ export function HomeGameBackdrop({
         </div>
 
         <div className="absolute inset-0 z-20 bg-black/55" />
-        <div className="absolute inset-0 z-[25] bg-[linear-gradient(180deg,rgba(9,11,18,0.5)_0%,rgba(9,11,18,0.16)_14%,transparent_27%)]" />
         <div
-          className="absolute inset-x-0 bottom-0 z-[26]"
+          className="absolute inset-x-0 bottom-0 z-[26] border-t border-[#303047] bg-[#090b12]"
           style={{
-            top: "calc(env(safe-area-inset-top) + 5rem + 100vw - 13rem)",
-            background:
-              "linear-gradient(to bottom, transparent 0, rgba(9,11,18,0.08) 2rem, rgba(9,11,18,0.42) 6rem, rgba(9,11,18,0.82) 10rem, #090b12 13rem, #090b12 100%)",
+            top: "calc(env(safe-area-inset-top) + 5rem + 100vw - 2rem)",
           }}
         />
-        <div
-          className="absolute inset-0 z-30 opacity-15"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(129,140,248,0.13) 1px, transparent 1px), linear-gradient(90deg, rgba(129,140,248,0.13) 1px, transparent 1px)",
-            backgroundSize: "24px 24px",
-            maskImage:
-              "linear-gradient(to bottom, transparent 5%, rgba(0,0,0,0.62) 28%, rgba(0,0,0,0.5) 76%, transparent 100%)",
-          }}
-        />
-        <div className="absolute inset-x-0 top-0 z-40 h-1 bg-[linear-gradient(90deg,#00d1ff_0_25%,#6366f1_25%_50%,#facc15_50%_75%,#f43f5e_75%)]" />
       </div>
     )
   }
@@ -167,12 +133,10 @@ export function HomeGameBackdrop({
           className="home-game-backdrop-image absolute inset-0 z-10 h-full w-full object-cover object-center saturate-[1.12] contrast-[1.06]"
         />
       ) : (
-        <div className="absolute inset-0 z-10 bg-[radial-gradient(circle_at_18%_18%,rgba(0,209,255,0.2),transparent_34%),radial-gradient(circle_at_82%_74%,rgba(244,63,94,0.18),transparent_36%),#090b12]" />
+        <div className="absolute inset-0 z-10 bg-[#090b12]" />
       )}
 
       <div className="absolute inset-0 z-20 bg-black/55" />
-      <div className="pixel-bg absolute inset-0 z-30 opacity-15" />
-      <div className="absolute inset-x-0 top-0 z-30 h-1 bg-[linear-gradient(90deg,#00d1ff_0_25%,#6366f1_25%_50%,#facc15_50%_75%,#f43f5e_75%)]" />
     </div>
   )
 }

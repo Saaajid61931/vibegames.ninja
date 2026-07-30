@@ -20,7 +20,7 @@ export default function SkeuoGamePage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#111] flex flex-col items-center py-8 px-4 font-sans text-white" style={{ backgroundImage: 'radial-gradient(circle at center, #2a2a2a 0%, #000 100%)' }}>
+        <div className="flex min-h-screen flex-col items-center bg-[#111] px-4 py-8 font-sans text-white">
 
             <div className="w-full max-w-5xl mb-6">
                 <Link href="/skeuo" className="skeuo-button inline-flex items-center gap-2 px-4 py-2 text-sm text-[#333]">
@@ -33,18 +33,14 @@ export default function SkeuoGamePage() {
 
                 {/* Marquee (Top Sign) */}
                 <div className="w-[90%] h-24 sm:h-32 mb-8 rounded-lg overflow-hidden border-8 border-[#333] shadow-[inset_0_0_20px_rgba(0,0,0,1)] relative flex items-center justify-center bg-black">
-                    {/* Backlight effect */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-[#ff0040]/20 via-[#ff0040]/40 to-[#ff0040]/20 blur-md"></div>
-                    <h1 className="text-4xl sm:text-6xl font-black text-white italic tracking-tighter mix-blend-screen drop-shadow-[0_0_15px_#ff0040] z-10" style={{ fontFamily: "impact, sans-serif" }}>
+                    <div className="absolute inset-y-0 left-0 w-2 bg-[#ff0040]" aria-hidden="true" />
+                    <h1 className="z-10 text-4xl font-black italic tracking-tighter text-white sm:text-6xl" style={{ fontFamily: "impact, sans-serif" }}>
                         NEON LOOP
                     </h1>
                 </div>
 
                 {/* Screen Bezel (The angled plastic around the screen) */}
                 <div className="w-full max-w-3xl skeuo-plastic-dark p-6 sm:p-12 rounded-2xl shadow-[inset_0_20px_40px_rgba(0,0,0,0.8)] border-b-8 border-[#1a1a1a] relative">
-
-                    {/* Glare effect on the bezel */}
-                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent pointer-events-none rounded-2xl z-20"></div>
 
                     {/* The Actual Screen */}
                     <div className="w-full aspect-video skeuo-screen rounded-lg border-4 border-black relative z-10 group flex items-center justify-center">
@@ -59,21 +55,16 @@ export default function SkeuoGamePage() {
                         ) : (
                             <div className="text-center animate-pulse">
                                 {coinsInserted > 0 ? (
-                                    <div className="text-2xl text-[#00ffcc] font-mono tracking-widest font-bold drop-shadow-[0_0_8px_#00ffcc] cursor-pointer" onClick={handleStart}>
+                                    <div className="cursor-pointer font-mono text-2xl font-bold tracking-widest text-[#00ffcc]" onClick={handleStart}>
                                         PRESS START
                                     </div>
                                 ) : (
-                                    <div className="text-2xl text-[#ff0040] font-mono tracking-widest font-bold drop-shadow-[0_0_8px_#ff0040]">
+                                    <div className="font-mono text-2xl font-bold tracking-widest text-[#ff0040]">
                                         INSERT COIN
                                     </div>
                                 )}
                             </div>
                         )}
-
-                        {/* Screen Glare (Glass Reflection) OVER the iframe */}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 pointer-events-none z-30"></div>
-
-                        {/* Scanlines inside the screen are handled by .skeuo-screen::before in globals.css */}
 
                         {/* Embedded Screen Controls (Volume/Focus/Brightness knobs) */}
                         <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex gap-4 opacity-0 group-hover:opacity-100 transition-opacity z-40">
@@ -88,15 +79,14 @@ export default function SkeuoGamePage() {
                 </div>
 
                 {/* Control Panel (The slanted part where buttons are) */}
-                <div className="w-[105%] sm:w-[110%] mt-4 bg-gradient-to-b from-[#222] to-[#111] p-6 sm:p-8 rounded-lg shadow-[0_15px_30px_rgba(0,0,0,0.9)] border-t-4 border-[#444] border-b-8 border-black relative overflow-hidden -mx-8 flex justify-between items-end">
+                <div className="relative -mx-8 mt-4 flex w-[105%] items-end justify-between overflow-hidden rounded-lg border-t-4 border-b-8 border-[#444] border-b-black bg-[#1a1a1a] p-6 shadow-[0_15px_30px_rgba(0,0,0,0.9)] sm:w-[110%] sm:p-8">
 
-                    {/* Control Panel Artwork Background */}
-                    <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #ff0040, #ff0040 10px, transparent 10px, transparent 20px)' }}></div>
+                    <div className="pointer-events-none absolute inset-y-0 left-0 w-2 bg-[#ff0040]" aria-hidden="true" />
 
                     {/* Left Controls (Joystick Area Placeholder) */}
                     <div className="flex gap-4 relative z-10 p-4 skeuo-metal rounded-xl border-4 border-gray-600 bg-gray-400">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-500 to-red-800 shadow-[inset_-5px_-5px_15px_rgba(0,0,0,0.5),_5px_15px_20px_rgba(0,0,0,0.8)] border border-red-400 relative flex items-center justify-center cursor-pointer hover:-translate-y-1 hover:shadow-[5px_20px_25px_rgba(0,0,0,0.8)] transition-all">
-                            <div className="absolute w-2 h-8 bg-gradient-to-b from-gray-400 to-gray-800 bottom-[-30px] shadow-lg"></div>
+                        <div className="relative flex h-20 w-20 cursor-pointer items-center justify-center rounded-full border border-red-400 bg-red-700 shadow-[5px_15px_20px_rgba(0,0,0,0.8)] transition-all hover:-translate-y-1 hover:shadow-[5px_20px_25px_rgba(0,0,0,0.8)]">
+                            <div className="absolute bottom-[-30px] h-8 w-2 bg-gray-600 shadow-lg"></div>
                         </div>
                     </div>
 
@@ -117,7 +107,7 @@ export default function SkeuoGamePage() {
                         </div>
 
                         {/* Coins Display */}
-                        <div className="skeuo-mechanical-counter text-[#ff0000] text-3xl px-3 py-1 rounded shadow-[0_0_10px_rgba(255,0,0,0.2)]">
+                        <div className="skeuo-mechanical-counter rounded px-3 py-1 text-3xl text-[#ff0000]">
                             {coinsInserted.toString().padStart(2, '0')}
                         </div>
                     </div>

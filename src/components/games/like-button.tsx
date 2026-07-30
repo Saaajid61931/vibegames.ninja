@@ -64,13 +64,18 @@ export function LikeButton({ gameId, slug, initialLikes, initialLiked }: LikeBut
       type="button"
       variant={liked ? "default" : "outline"}
       size="sm"
-      className="gap-2 font-arcade flex-1 sm:flex-none min-w-[108px]"
+      className="min-w-24 flex-1 gap-2 rounded-lg sm:flex-none"
       onClick={handleLike}
       disabled={loading || status === "loading"}
+      aria-pressed={liked}
     >
-      {loading || status === "loading" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Heart className="h-4 w-4" />}
-      {liked ? "[SAVED]" : "[SAVE_FAV]"}
-      <span className="text-[10px]">{formatNumber(likes)}</span>
+      {loading || status === "loading" ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
+      )}
+      {liked ? "Liked" : "Like"}
+      <span className="text-xs opacity-75">{formatNumber(likes)}</span>
     </Button>
   )
 }

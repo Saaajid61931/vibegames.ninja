@@ -6,6 +6,7 @@ type GameJamClient = Pick<typeof prisma, "gameJam">
 type DailyGameAnalyticsMetricValue = number | { increment: number }
 
 type DailyGameAnalyticsCreateValues = {
+  impressions?: number
   plays?: number
   uniquePlayers?: number
   avgSessionTime?: number
@@ -16,6 +17,7 @@ type DailyGameAnalyticsCreateValues = {
 }
 
 type DailyGameAnalyticsUpdateValues = {
+  impressions?: DailyGameAnalyticsMetricValue
   plays?: DailyGameAnalyticsMetricValue
   uniquePlayers?: DailyGameAnalyticsMetricValue
   avgSessionTime?: number

@@ -167,7 +167,7 @@ export function DownloadCodeButton({ game, variant = "standard", className }: Do
 
       {/* Pay to Download Slide-up Drawer / Modal */}
       {downloadDrawerOpen && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex flex-col justify-end md:justify-center md:items-center p-0 md:p-4">
+        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/85 p-0 md:items-center md:justify-center md:p-4">
           <div className="absolute inset-0" onClick={() => setDownloadDrawerOpen(false)} />
           
           <div className="w-full md:max-w-md bg-[#1a1a2e] border-t-4 md:border-4 border-[#ff0040] p-5 flex flex-col gap-4 shadow-2xl relative animate-slide-up md:animate-zoom-in">
@@ -192,7 +192,7 @@ export function DownloadCodeButton({ game, variant = "standard", className }: Do
             {paymentStep === "form" && (
               <form onSubmit={handlePaymentSubmit} className="space-y-4 font-arcade text-xs">
                 <p className="text-center text-[#a5aec4] leading-relaxed">
-                  Pay <span className="text-[#ffff00] font-bold font-pixel">$1.00 USD</span> to download the full HTML/React code package of <span className="text-white font-bold">"{game.title}"</span>. 
+                  Pay <span className="text-[#ffff00] font-bold font-pixel">$1.00 USD</span> to download the full HTML/React code package of <span className="text-white font-bold">&quot;{game.title}&quot;</span>.
                 </p>
 
                 <div className="space-y-2 text-left">

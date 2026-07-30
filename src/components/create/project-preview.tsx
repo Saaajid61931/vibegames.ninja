@@ -72,33 +72,8 @@ export function ProjectPreview({
         </div>
       </div>
 
-      {/* Game preview with CRT/scanline effect */}
+      {/* Game preview */}
       <div className="relative flex-1 bg-black overflow-hidden">
-        {/* CRT scanline overlay */}
-        <div
-          className="pointer-events-none absolute inset-0 z-10"
-          style={{
-            background:
-              "repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 3px)",
-          }}
-        />
-        {/* CRT vignette */}
-        <div
-          className="pointer-events-none absolute inset-0 z-10"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.5) 100%)",
-          }}
-        />
-        {/* CRT subtle color tint on edges */}
-        <div
-          className="pointer-events-none absolute inset-0 z-10 opacity-[0.04]"
-          style={{
-            background:
-              "linear-gradient(90deg, rgba(0,128,255,0.4) 0%, transparent 5%, transparent 95%, rgba(255,0,64,0.4) 100%)",
-          }}
-        />
-
         <GamePlayer
           key={`${projectId}-${revisionId}-${previewNonce}`}
           ref={playerRef}
@@ -113,9 +88,6 @@ export function ProjectPreview({
         />
       </div>
 
-      {/* Bottom glow line */}
-      <div className="h-[4px] bg-gradient-to-r from-transparent via-[#0080ff]/40 to-transparent shadow-[0_0_10px_rgba(0,128,255,0.4)]" />
     </div>
   )
 }
-

@@ -42,13 +42,8 @@ export function LoadingScreen({
     >
       <div className="flex flex-col items-center gap-6">
         {/* Mascot */}
-        <div className="relative">
+        <div>
           <NinjaConsole className="h-24 w-24 sm:h-28 sm:w-28" animated />
-          {/* Glow under mascot */}
-          <div
-            className="absolute -bottom-3 left-1/2 -translate-x-1/2 h-3 w-16 rounded-full blur-md"
-            style={{ background: "var(--color-primary)", opacity: 0.25 }}
-          />
         </div>
 
         {/* Loading bar */}

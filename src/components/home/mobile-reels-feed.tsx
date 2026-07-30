@@ -52,6 +52,21 @@ interface CommentItem {
   }
 }
 
+type LockableScreenOrientation = ScreenOrientation & {
+  lock?: (orientation: "landscape") => Promise<void>
+  unlock?: () => void
+}
+
+type VendorFullscreenElement = HTMLElement & {
+  webkitRequestFullscreen?: () => Promise<void> | void
+  msRequestFullscreen?: () => Promise<void> | void
+}
+
+type VendorFullscreenDocument = Document & {
+  webkitExitFullscreen?: () => Promise<void> | void
+  msExitFullscreen?: () => Promise<void> | void
+}
+
 // Fisher-Yates Shuffle algorithm
 const shuffleArray = (array: FeedGame[]) => {
   const arr = [...array]
@@ -164,17 +179,17 @@ export function MobileReelsFeed({
       if (isCurrentlyFullscreen) {
         try {
           const game = feedGames[activeIndex]
-          if (game && game.mobileOrientation === "LANDSCAPE" && screen.orientation && (screen.orientation as any).lock) {
-            await (screen.orientation as any).lock("landscape")
+          const orientation = screen.orientation as LockableScreenOrientation
+          if (game && game.mobileOrientation === "LANDSCAPE" && orientation.lock) {
+            await orientation.lock("landscape")
           }
         } catch (e) {
           console.warn("Screen orientation lock failed:", e)
         }
       } else {
         try {
-          if (screen.orientation && (screen.orientation as any).unlock) {
-            (screen.orientation as any).unlock()
-          }
+          const orientation = screen.orientation as LockableScreenOrientation
+          orientation.unlock?.()
         } catch (e) {
           console.warn("Screen orientation unlock failed:", e)
         }
@@ -365,7 +380,7 @@ export function MobileReelsFeed({
   }
 
   // Handle Like Action
-  const handleLike = async (gameId: string, slug: string) => {
+  const handleLike = async (gameId: string) => {
     if (!session?.user?.id) {
       router.push(`/login?callbackUrl=${encodeURIComponent("/")}`)
       return
@@ -474,12 +489,13 @@ export function MobileReelsFeed({
     const container = document.getElementById(`frame-container-${activeId}`)
     if (container) {
       try {
-        if (container.requestFullscreen) {
-          void container.requestFullscreen()
-        } else if ((container as any).webkitRequestFullscreen) {
-          void (container as any).webkitRequestFullscreen()
-        } else if ((container as any).msRequestFullscreen) {
-          void (container as any).msRequestFullscreen()
+        const fullscreenContainer = container as VendorFullscreenElement
+        if (fullscreenContainer.requestFullscreen) {
+          void fullscreenContainer.requestFullscreen()
+        } else if (fullscreenContainer.webkitRequestFullscreen) {
+          void fullscreenContainer.webkitRequestFullscreen()
+        } else if (fullscreenContainer.msRequestFullscreen) {
+          void fullscreenContainer.msRequestFullscreen()
         }
       } catch (error) {
         console.error("Fullscreen request failed:", error)
@@ -550,7 +566,7 @@ export function MobileReelsFeed({
     <div className="relative w-full h-[100dvh] flex flex-col bg-[#0d0d15] text-white overflow-hidden">
       {/* Top Banner overlay */}
       {activeIndex >= 0 && !isIntroVisible ? (
-        <div className="absolute top-0 left-0 right-0 z-20 pointer-events-none p-4 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent">
+        <div className="pointer-events-none absolute left-0 right-0 top-0 z-20 flex items-center justify-between border-b border-[#303047] bg-black/85 p-4">
           <div className="flex items-center gap-2">
             <span className="font-pixel text-[11px] text-[#ffff00] bg-[#1a1a2e] border border-[#ffff00] px-2 py-0.5 shadow-[2px_2px_0_#ff0040]">
               AI ARCADE FEED
@@ -650,10 +666,13 @@ export function MobileReelsFeed({
                     {isFullscreen && (
                       <button
                         onClick={() => {
-                          if (document.exitFullscreen) {
-                            void document.exitFullscreen()
-                          } else if ((document as any).webkitExitFullscreen) {
-                            void (document as any).webkitExitFullscreen()
+                          const fullscreenDocument = document as VendorFullscreenDocument
+                          if (fullscreenDocument.exitFullscreen) {
+                            void fullscreenDocument.exitFullscreen()
+                          } else if (fullscreenDocument.webkitExitFullscreen) {
+                            void fullscreenDocument.webkitExitFullscreen()
+                          } else if (fullscreenDocument.msExitFullscreen) {
+                            void fullscreenDocument.msExitFullscreen()
                           }
                         }}
                         className="absolute top-4 right-4 z-30 bg-black/60 hover:bg-black/80 border border-white/20 text-white/80 hover:text-white rounded-full w-8 h-8 flex items-center justify-center font-pixel text-xs transition-all pointer-events-auto shadow-md"
@@ -685,7 +704,7 @@ export function MobileReelsFeed({
 
                 {/* Left Side Game Meta Tag Details (Fades out after 5 seconds on active slide) */}
                 <div
-                  className={`absolute bottom-4 left-4 z-10 flex flex-col gap-1 pointer-events-none max-w-[70%] bg-black/50 p-2 rounded backdrop-blur-xs transition-opacity duration-1000 ${
+                  className={`pointer-events-none absolute bottom-4 left-4 z-10 flex max-w-[70%] flex-col gap-1 rounded bg-black/80 p-2 transition-opacity duration-1000 ${
                     isActive && showMeta ? "opacity-100" : "opacity-0"
                   }`}
                 >
@@ -708,7 +727,7 @@ export function MobileReelsFeed({
                   
                   {/* Button 1: Like */}
                   <button
-                    onClick={() => handleLike(game.id, game.slug)}
+                    onClick={() => handleLike(game.id)}
                     disabled={likesLoading[game.id]}
                     className={`w-12 h-12 flex flex-col items-center justify-center rounded border-2 transition-all ${
                       gameLikes.liked
@@ -766,7 +785,7 @@ export function MobileReelsFeed({
                     onClick={() => toggleFullscreen(index)}
                     className={`w-12 h-12 flex flex-col items-center justify-center rounded border-2 bg-transparent transition-all ${
                       isActive && showFullscreenHint
-                        ? "border-[#ffff00] text-[#ffff00] bg-[#ffff00]/10 scale-110 shadow-[0_0_15px_rgba(255,255,0,0.8)] animate-pulse"
+                        ? "border-[#ffff00] text-[#ffff00] bg-[#ffff00]/10 scale-110 animate-pulse"
                         : "border-[#4a4a6a] text-[#8b93a6] hover:border-[#8d6e63] hover:text-[#8d6e63]"
                     }`}
                   >
@@ -808,7 +827,7 @@ export function MobileReelsFeed({
 
       {/* Dynamic Comments Bottom Drawer */}
       {commentsOpen && commentsGameId && (
-        <div className="absolute inset-0 z-40 bg-black/60 backdrop-blur-xs flex flex-col justify-end">
+        <div className="absolute inset-0 z-40 flex flex-col justify-end bg-black/85">
           <div className="flex-1" onClick={() => setCommentsOpen(false)} />
           
           <div className="h-[65%] w-full bg-[#1a1a2e] border-t-4 border-[#0080ff] flex flex-col shadow-2xl relative animate-slide-up">

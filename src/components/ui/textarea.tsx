@@ -26,7 +26,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             "border-[3px] border-[var(--color-border-strong)]",
             "text-base placeholder:text-[var(--color-text-tertiary)]",
             "focus:border-[var(--color-arcade-yellow)] focus:outline-none",
-            "focus:shadow-[0_0_10px_rgba(250,204,21,0.3)]",
+            "focus:shadow-none",
           ],
           className
         )}

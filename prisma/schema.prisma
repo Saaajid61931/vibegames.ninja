@@ -146,6 +146,7 @@ model Game {
   seekingFeedback Boolean @default(false)
   latestUpdateNote String?
 
+  impressions Int   @default(0)
   plays       Int   @default(0)
   likes       Int   @default(0)
   shares      Int   @default(0)
@@ -182,6 +183,7 @@ model Game {
   jamEntries   GameJamEntry[]
 
   @@index([status, publishedAt])
+  @@index([status, impressions])
   @@index([status, plays])
   @@index([status, likes])
   @@index([status, category])
@@ -273,6 +275,7 @@ model GameAnalytics {
   gameId         String
   game           Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
   date           DateTime @default(now())
+  impressions    Int      @default(0)
   plays          Int      @default(0)
   uniquePlayers  Int      @default(0)
   avgSessionTime Float    @default(0)

@@ -30,8 +30,6 @@ export function ScratchGenerator({
   return (
     <div className="relative flex flex-1 flex-col items-center justify-center p-6 overflow-hidden">
       <div className="absolute inset-0 pixel-bg opacity-10" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0080ff]/5 via-transparent to-[#ff0040]/5" />
-
       <div className="relative w-full max-w-2xl space-y-10">
         {/* Hero */}
         <div className="text-center">
@@ -59,7 +57,7 @@ export function ScratchGenerator({
         </div>
 
         {/* Prompt input */}
-        <div className="relative border-4 border-[#4a4a6a] bg-[#1a1a2e] shadow-[8px_8px_0_#000] transition-all focus-within:border-[#0080ff] focus-within:shadow-[8px_8px_0_#0080ff]/20">
+        <div className="relative border-4 border-[#4a4a6a] bg-[#1a1a2e] shadow-[8px_8px_0_#000] transition-all focus-within:border-[#0080ff]">
           <textarea
             value={prompt}
             onChange={(event) => onPromptChange(event.target.value)}

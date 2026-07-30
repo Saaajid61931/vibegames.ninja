@@ -30,7 +30,7 @@ export function CreatePageClient({ session }: CreatePageClientProps) {
         <div className="absolute inset-0 pixel-bg opacity-20" />
         <div className="relative text-center">
           <Loader2 className="mx-auto h-10 w-10 animate-spin text-[#0080ff]" />
-          <p className="mt-4 font-pixel text-sm tracking-widest text-[#0080ff] drop-shadow-[0_0_8px_rgba(0,128,255,0.4)]">
+          <p className="mt-4 font-pixel text-sm tracking-widest text-[#0080ff]">
             LOADING ARCADE BUILDER...
           </p>
         </div>
@@ -44,8 +44,6 @@ export function CreatePageClient({ session }: CreatePageClientProps) {
       {/*  TOP BAR - Retro arcade header               */}
       {/* ============================================ */}
       <header className="relative z-20 flex h-14 shrink-0 items-center justify-between border-b-2 border-[#4a4a6a] bg-[#0d1420] px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0080ff]/10 via-transparent to-[#ff0040]/10" />
-        
         {/* Left: Logo */}
         <div className="relative flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">

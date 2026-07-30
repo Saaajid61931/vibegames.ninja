@@ -208,7 +208,7 @@ export function PageTransitionLoader() {
       aria-hidden={!isActive}
     >
       <div
-        className="h-[3px] bg-[var(--color-primary)] shadow-[0_0_10px_var(--color-primary)]"
+        className="h-[3px] bg-[var(--color-primary)]"
         style={{
           width: `${progress}%`,
           transition: progress === 100 ? "width 100ms ease-out" : "width 100ms linear"

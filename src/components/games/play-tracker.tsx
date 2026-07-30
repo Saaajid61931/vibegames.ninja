@@ -9,6 +9,7 @@ interface PlayTrackerProps {
 
 export function PlayTracker({ gameId, levelId }: PlayTrackerProps) {
   const startedAtRef = useRef<number>(0)
+  const hasStartedRef = useRef(false)
   const shouldReportSessionRef = useRef(false)
   const hasReportedSessionRef = useRef(false)
 
@@ -18,26 +19,13 @@ export function PlayTracker({ gameId, levelId }: PlayTrackerProps) {
       params.set("levelId", levelId)
     }
 
-    const endpoint = params.size > 0
+    const playEndpoint = params.size > 0
       ? `/api/games/${gameId}/play?${params.toString()}`
       : `/api/games/${gameId}/play`
+    const impressionEndpoint = `/api/games/${gameId}/impression`
     const sessionEndpoint = `/api/games/${gameId}/session`
 
-    try {
-      const raw = window.localStorage.getItem("vg-recently-played")
-      const parsed = raw ? JSON.parse(raw) : []
-      const entries = Array.isArray(parsed) ? parsed : []
-      const nextEntries = [
-        { gameId, playedAt: new Date().toISOString() },
-        ...entries.filter((entry) => entry && typeof entry.gameId === "string" && entry.gameId !== gameId),
-      ].slice(0, 12)
-      window.localStorage.setItem("vg-recently-played", JSON.stringify(nextEntries))
-      window.dispatchEvent(new Event("vg-recently-played-change"))
-    } catch {
-      // Ignore storage issues.
-    }
-
-    startedAtRef.current = Date.now()
+    hasStartedRef.current = false
     shouldReportSessionRef.current = false
     hasReportedSessionRef.current = false
 
@@ -63,9 +51,41 @@ export function PlayTracker({ gameId, levelId }: PlayTrackerProps) {
       }).catch(() => undefined)
     }
 
-    const trackPlay = async () => {
+    const saveRecentlyPlayed = () => {
       try {
-        const res = await fetch(endpoint, {
+        const raw = window.localStorage.getItem("vg-recently-played")
+        const parsed = raw ? JSON.parse(raw) : []
+        const entries = Array.isArray(parsed) ? parsed : []
+        const nextEntries = [
+          { gameId, playedAt: new Date().toISOString() },
+          ...entries.filter(
+            (entry) =>
+              entry &&
+              typeof entry.gameId === "string" &&
+              entry.gameId !== gameId
+          ),
+        ].slice(0, 12)
+        window.localStorage.setItem(
+          "vg-recently-played",
+          JSON.stringify(nextEntries)
+        )
+        window.dispatchEvent(new Event("vg-recently-played-change"))
+      } catch {
+        // Recent-play history is a convenience only.
+      }
+    }
+
+    const trackPlay = async () => {
+      if (hasStartedRef.current) {
+        return
+      }
+
+      hasStartedRef.current = true
+      startedAtRef.current = Date.now()
+      saveRecentlyPlayed()
+
+      try {
+        const res = await fetch(playEndpoint, {
           method: "POST",
           cache: "no-store",
         })
@@ -76,15 +96,32 @@ export function PlayTracker({ gameId, levelId }: PlayTrackerProps) {
       }
     }
 
+    const trackImpression = async () => {
+      try {
+        await fetch(impressionEndpoint, {
+          method: "POST",
+          cache: "no-store",
+        })
+      } catch (error) {
+        console.error("Failed to track impression", error)
+      }
+    }
+
     const handlePageHide = () => {
       reportSession()
     }
 
+    const handlePlayStart = () => {
+      void trackPlay()
+    }
+
     window.addEventListener("pagehide", handlePageHide)
-    void trackPlay()
+    window.addEventListener("vg-game-play-start", handlePlayStart)
+    void trackImpression()
 
     return () => {
       window.removeEventListener("pagehide", handlePageHide)
+      window.removeEventListener("vg-game-play-start", handlePlayStart)
       reportSession()
     }
   }, [gameId, levelId])

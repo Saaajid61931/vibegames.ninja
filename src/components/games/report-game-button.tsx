@@ -82,29 +82,29 @@ export function ReportGameButton({ gameId, gameTitle }: ReportGameButtonProps) {
         type="button"
         variant="ghost"
         size="sm"
-        className="gap-2 text-[#8b93a6] hover:text-white font-arcade flex-1 sm:flex-none min-w-[108px]"
+        className="h-auto gap-2 px-0 py-1 text-xs text-[var(--color-text-tertiary)] hover:bg-transparent hover:text-white"
         onClick={() => setOpen(true)}
       >
         <Flag className="h-4 w-4" />
-        [REPORT]
+        Report unsafe content
       </Button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-6">
-          <div className="w-full max-w-lg border-2 border-[#4a4a6a] bg-[#0d0d15] shadow-2xl">
-            <div className="flex items-center justify-between border-b-2 border-[#4a4a6a] bg-[#1a1a2e] px-4 py-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 px-4 py-6">
+          <div className="vg-panel w-full max-w-lg shadow-2xl" role="dialog" aria-modal="true" aria-labelledby={`${descriptionId}-title`}>
+            <div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-4">
               <div>
-                <p className="font-arcade text-xs text-[#ffff00]">REPORT GAME</p>
-                <h2 className="font-arcade text-sm text-white mt-1">{gameTitle}</h2>
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#facc15]">Safety report</p>
+                <h2 id={`${descriptionId}-title`} className="mt-1 text-lg font-semibold text-white">Report {gameTitle}</h2>
               </div>
               <Button type="button" variant="ghost" size="icon" onClick={close} aria-label="Close report dialog">
                 <X className="h-4 w-4" />
               </Button>
             </div>
 
-            <div className="space-y-4 p-4">
+            <div className="space-y-4 p-5">
               <div className="space-y-2">
-                <Label htmlFor={`${descriptionId}-reason`} className="font-arcade text-xs text-[#8b93a6]">
+                <Label htmlFor={`${descriptionId}-reason`}>
                   Reason
                 </Label>
                 <Select value={reason} onValueChange={setReason}>
@@ -122,7 +122,7 @@ export function ReportGameButton({ gameId, gameTitle }: ReportGameButtonProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor={descriptionId} className="font-arcade text-xs text-[#8b93a6]">
+                <Label htmlFor={descriptionId}>
                   Details (optional)
                 </Label>
                 <Textarea
@@ -131,14 +131,14 @@ export function ReportGameButton({ gameId, gameTitle }: ReportGameButtonProps) {
                   onChange={(event) => setDescription(event.target.value)}
                   maxLength={500}
                   placeholder="Tell us what happened so we can review faster..."
-                  className="min-h-[140px] font-arcade text-sm"
+                  className="min-h-32 text-sm"
                   disabled={submitting || Boolean(success)}
                 />
-                <p className="text-right font-arcade text-[10px] text-[#8b93a6]">{description.length}/500</p>
+                <p className="text-right text-xs text-[var(--color-text-tertiary)]">{description.length}/500</p>
               </div>
 
-              {error && <p className="font-arcade text-xs text-[#ff6b6b]">{error}</p>}
-              {success && <p className="font-arcade text-xs text-[#00ff40]">{success}</p>}
+              {error && <p className="text-sm text-[#ff8aa8]">{error}</p>}
+              {success && <p className="text-sm text-[#6ee7a0]">{success}</p>}
 
               <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <Button type="button" variant="outline" onClick={close}>

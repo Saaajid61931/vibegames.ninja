@@ -172,7 +172,7 @@ export async function ActiveJamBanner() {
                 </div>
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+            <div className="absolute inset-0 bg-black/15 opacity-0 transition-opacity group-hover:opacity-100" />
           </Link>
 
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">

@@ -42,9 +42,9 @@ export function HomeHeroSection({ stats, heroGames }: HomeHeroSectionProps) {
         <div className="w-full max-w-[68rem] text-center">
           <div className="mx-auto">
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-              <div className="inline-flex items-center gap-2 border border-[#657089]/70 bg-[#080a11]/58 px-3 py-2 backdrop-blur-md">
+              <div className="inline-flex items-center gap-2 border border-[#657089] bg-[#080a11] px-3 py-2">
                 <span
-                  className="h-2 w-2 bg-[#00d1ff] shadow-[0_0_14px_#00d1ff]"
+                  className="h-2 w-2 bg-[#00d1ff]"
                   aria-hidden="true"
                 />
                 <span className="font-pixel text-[8px] text-[#dce4f5]">
@@ -58,7 +58,7 @@ export function HomeHeroSection({ stats, heroGames }: HomeHeroSectionProps) {
 
             <p className="mt-8 flex items-center justify-center gap-3 font-pixel text-[9px] text-[#00d1ff]">
               <span
-                className="h-px w-8 bg-[#00d1ff]/75"
+                className="h-2 w-2 bg-[#00d1ff]"
                 aria-hidden="true"
               />
               THE COMMUNITY FOR AI GAMES
@@ -107,7 +107,7 @@ export function HomeHeroSection({ stats, heroGames }: HomeHeroSectionProps) {
                 <Button
                   variant="outline"
                   size="xl"
-                  className="w-full gap-3 border-[#69738a] bg-[#080a11]/65 backdrop-blur-md sm:min-w-48"
+                  className="w-full gap-3 border-[#69738a] bg-[#080a11] sm:min-w-48"
                 >
                   BUILD A GAME
                   <ArrowUpRight className="h-5 w-5" />
@@ -120,7 +120,7 @@ export function HomeHeroSection({ stats, heroGames }: HomeHeroSectionProps) {
             </p>
 
             <div
-              className="mx-auto mt-9 grid max-w-[42rem] grid-cols-3 border-l border-t border-[#596176]/70 bg-[#080a11]/52 backdrop-blur-md"
+              className="mx-auto mt-9 grid max-w-[42rem] grid-cols-3 border-l border-t border-[#596176]/70 bg-[#080a11]"
               aria-label="VibeGames community totals"
             >
               {communityMetrics.map((metric) => {

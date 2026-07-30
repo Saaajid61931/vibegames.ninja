@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { 
@@ -14,11 +14,11 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { BLOG_POSTS, BlogPost } from "@/lib/blog-data";
+import { BLOG_POSTS } from "@/lib/blog-data";
 
 export default function BlogPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,29 +32,22 @@ export default function BlogPage() {
   ];
 
   // Filter posts based on category and search query
-  const filteredPosts = useMemo(() => {
-    return BLOG_POSTS.filter((post) => {
-      const matchesCategory = activeCategory === "ALL" || post.category === activeCategory;
-      const matchesSearch = 
-        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-      return matchesCategory && matchesSearch;
-    });
-  }, [activeCategory, searchQuery]);
+  const filteredPosts = BLOG_POSTS.filter((post) => {
+    const matchesCategory = activeCategory === "ALL" || post.category === activeCategory;
+    const matchesSearch =
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesCategory && matchesSearch;
+  });
 
   // Find the featured post (latest post, for example post-1)
-  const featuredPost = useMemo(() => {
-    return BLOG_POSTS.find(post => post.id === "post-1") || BLOG_POSTS[0];
-  }, []);
+  const featuredPost = BLOG_POSTS.find(post => post.id === "post-1") || BLOG_POSTS[0];
 
   // Filter out featured post from the grid if we are showing all
-  const gridPosts = useMemo(() => {
-    if (activeCategory === "ALL" && !searchQuery) {
-      return filteredPosts.filter(post => post.id !== featuredPost.id);
-    }
-    return filteredPosts;
-  }, [filteredPosts, activeCategory, searchQuery, featuredPost]);
+  const gridPosts = activeCategory === "ALL" && !searchQuery
+    ? filteredPosts.filter(post => post.id !== featuredPost.id)
+    : filteredPosts;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0d0d15] text-white">

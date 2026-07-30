@@ -184,29 +184,29 @@ export function CommentsSection({
     const author = comment.user.username || comment.user.name || "user"
 
     return (
-      <div key={comment.id} className={depth > 0 ? "ml-4 border-l border-[#2e3446] pl-4 sm:ml-6" : ""}>
-        <div className="flex gap-3 pb-4 border-b border-[#222] last:border-b-0">
-          <Avatar className="h-8 w-8 border border-[#4a4a6a]">
+      <div key={comment.id} className={depth > 0 ? "ml-4 border-l border-[var(--color-border)] pl-4 sm:ml-6" : ""}>
+        <div className="flex gap-3 border-b border-[var(--color-border)] pb-4 last:border-b-0">
+          <Avatar className="h-9 w-9 border border-[var(--color-border-strong)]">
             <AvatarImage src={comment.user.image || undefined} />
-            <AvatarFallback className="text-xs bg-[#1a1a2e] text-[#4a4a6a]">
+            <AvatarFallback className="bg-[var(--color-surface-2)] text-xs text-[var(--color-text-secondary)]">
               {getInitials(comment.user.name || comment.user.username || "U")}
             </AvatarFallback>
           </Avatar>
 
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-1">
-              <span className="font-arcade text-sm text-[#ffff00] break-all">@{author}</span>
-              <span className="text-xs text-[#4a4a6a] font-arcade">
+              <span className="break-all text-sm font-medium text-white">@{author}</span>
+              <span className="text-xs text-[var(--color-text-tertiary)]">
                 {timeAgo(new Date(comment.createdAt))}
               </span>
             </div>
 
-            <p className="text-[#e5e5e5] text-sm leading-relaxed font-arcade whitespace-pre-wrap">{comment.content}</p>
+            <p className="whitespace-pre-wrap text-sm leading-6 text-[var(--color-text-secondary)]">{comment.content}</p>
 
             <div className="mt-2 flex items-center gap-2">
               <button
                 type="button"
-                className="inline-flex items-center gap-1 text-[11px] font-arcade text-[#4a4a6a] hover:text-[#ffff00] transition-colors"
+                className="inline-flex items-center gap-1 text-xs text-[var(--color-text-tertiary)] transition-colors hover:text-[var(--color-arcade-cyan)]"
                 onClick={() => {
                   if (!ensureAuthenticated()) {
                     return
@@ -218,12 +218,12 @@ export function CommentsSection({
                 }}
               >
                 <CornerDownRight className="h-3 w-3" />
-                REPLY
+                Reply
               </button>
             </div>
 
             {isReplyingHere && (
-              <form onSubmit={handleReplySubmit} className="mt-3 space-y-2 rounded-md border border-[#2e3446] bg-[#111626] p-3">
+              <form onSubmit={handleReplySubmit} className="mt-3 space-y-2 rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
                 <Textarea
                   value={replyContent}
                   onChange={(event) => {
@@ -234,38 +234,37 @@ export function CommentsSection({
                   }}
                   maxLength={1000}
                   placeholder={`Reply to @${author}...`}
-                  className="min-h-[80px] font-arcade"
+                  className="min-h-20"
                   disabled={replyLoading}
                 />
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <span className="text-[10px] text-[#4a4a6a] font-arcade">{replyContent.length}/1000</span>
+                  <span className="text-xs text-[var(--color-text-tertiary)]">{replyContent.length}/1000</span>
                   <div className="flex gap-2 sm:justify-end">
                     <Button
                       type="button"
                       size="sm"
                       variant="outline"
-                      className="font-arcade"
                       onClick={() => {
                         setReplyingTo(null)
                         setReplyContent("")
                         setReplyError("")
                       }}
                     >
-                      CANCEL
+                      Cancel
                     </Button>
-                    <Button type="submit" size="sm" className="font-arcade" disabled={replyLoading || replyContent.trim().length === 0}>
+                    <Button type="submit" size="sm" disabled={replyLoading || replyContent.trim().length === 0}>
                       {replyLoading ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          REPLYING...
+                          Replying...
                         </>
                       ) : (
-                        "POST REPLY"
+                        "Post reply"
                       )}
                     </Button>
                   </div>
                 </div>
-                {replyError && <p className="text-xs text-[#ff0040] font-arcade">{replyError}</p>}
+                {replyError && <p className="text-xs text-[#ff8aa8]">{replyError}</p>}
               </form>
             )}
 
@@ -281,13 +280,22 @@ export function CommentsSection({
   }
 
   return (
-    <div className="border-2 border-[#4a4a6a]">
-      <div className="border-b-2 border-[#4a4a6a] px-4 py-3 flex items-center gap-2 bg-[#1a1a2e]">
-        <MessageCircle className="h-4 w-4 text-[#ffff00]" />
-        <span className="font-arcade text-sm">COMMENTS [{commentsCount}]</span>
+    <section id="comments" className="vg-panel scroll-mt-24" aria-labelledby="comments-title">
+      <div className="border-b border-[var(--color-border)] px-5 py-5 sm:px-6">
+        <span className="vg-kicker text-[#a78bfa]">
+          <MessageCircle className="h-4 w-4" />
+          Community
+        </span>
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <h2 id="comments-title" className="text-xl font-semibold text-white">Comments</h2>
+          <span className="vg-chip">{commentsCount}</span>
+        </div>
+        <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+          Join the public conversation about this game.
+        </p>
       </div>
 
-      <div className="p-3 sm:p-4 bg-[#0d0d15] space-y-4">
+      <div className="space-y-5 p-4 sm:p-6">
         <form onSubmit={handleSubmit} className="space-y-2">
           <Textarea
             value={content}
@@ -298,29 +306,28 @@ export function CommentsSection({
               }
             }}
             maxLength={1000}
-            placeholder={session?.user ? "Share your feedback..." : "Log in to write a comment"}
-            className="font-arcade min-h-[90px]"
+            placeholder={session?.user ? "Write a comment..." : "Sign in to write a comment"}
+            className="min-h-24"
             disabled={loading}
           />
           <div className="flex items-center justify-between gap-3">
-            <span className="text-xs text-[#4a4a6a] font-arcade">{content.length}/1000</span>
+            <span className="text-xs text-[var(--color-text-tertiary)]">{content.length}/1000</span>
             <Button
               type="submit"
               size="sm"
-              className="font-arcade"
               disabled={loading || content.trim().length === 0}
             >
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  POSTING...
+                  Posting...
                 </>
               ) : (
-                "POST COMMENT"
+                "Post comment"
               )}
             </Button>
           </div>
-          {error && <p className="text-xs text-[#ff0040] font-arcade">{error}</p>}
+          {error && <p className="text-sm text-[#ff8aa8]">{error}</p>}
         </form>
 
         {threadedComments.length > 0 ? (
@@ -328,11 +335,11 @@ export function CommentsSection({
             {threadedComments.map((comment) => renderComment(comment))}
           </div>
         ) : (
-          <p className="text-[#4a4a6a] text-center py-8 font-arcade">
-            NO_COMMENTS_FOUND. Be the first to comment.
+          <p className="py-10 text-center text-sm text-[var(--color-text-tertiary)]">
+            No comments yet. Start the conversation.
           </p>
         )}
       </div>
-    </div>
+    </section>
   )
 }

@@ -115,7 +115,7 @@ export function GameOfTheDay({ game, monthlyStars, monthlyRatings }: GameOfTheDa
               </div>
               {/* Category badge */}
               <div className="absolute top-4 left-4 z-10">
-                <span className="px-3 py-1 bg-[#0d0d15]/80 border border-[#ffff00] text-[#ffff00] text-[10px] font-pixel backdrop-blur-sm">
+                <span className="border border-[#ffff00] bg-[#0d0d15] px-3 py-1 font-pixel text-[10px] text-[#ffff00]">
                   {game.category}
                 </span>
               </div>

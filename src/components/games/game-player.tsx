@@ -371,6 +371,9 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
 
     try {
       await wrapperRef.current.requestFullscreen()
+      if (mode === "play") {
+        window.dispatchEvent(new Event("vg-game-play-start"))
+      }
 
       if (requiredOrientation) {
         try {
@@ -386,7 +389,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
       setFullscreenError(message)
       throw new Error(message)
     }
-  }, [requiredOrientation])
+  }, [mode, requiredOrientation])
 
   const wait = useCallback((ms: number) => {
     return new Promise<void>((resolve) => {
@@ -654,36 +657,32 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
   }), [launchFullscreen, runAutoThumbnailCapture])
 
   return (
-    <div ref={wrapperRef} className={`relative overflow-hidden ${isFullscreen ? "bg-black" : "border-2 border-[#4a4a6a] bg-[#1a1a2e]"}`}>
+    <div ref={wrapperRef} className={`relative overflow-hidden ${isFullscreen ? "bg-black" : "rounded-2xl border border-[var(--color-border-strong)] bg-[var(--color-surface-2)] shadow-[0_20px_60px_rgba(0,0,0,0.24)]"}`}>
       {!isFullscreen && (
-        <div className="border-b-2 border-[#4a4a6a] bg-[#0d0d15] px-3 sm:px-4 py-2 flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-3 border-b border-[var(--color-border)] bg-[#0d0d15]/90 px-4 py-3">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="flex gap-1.5">
-              <div className="h-3 w-3 bg-[#ff0040]" />
-              <div className="h-3 w-3 bg-[#ffa500]" />
-              <div className="h-3 w-3 bg-[#ffff00]" />
-            </div>
-            <span className="font-arcade text-xs text-[#4a4a6a] ml-2 truncate">RUNTIME: {runtimeLabel}</span>
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-[#22c55e]" />
+            <span className="truncate text-xs text-[var(--color-text-secondary)]">{runtimeLabel}</span>
           </div>
-          <span className="font-arcade text-[10px] text-[#8b93a6] shrink-0">
+          <span className="shrink-0 text-xs text-[var(--color-text-tertiary)]">
             {isAutoCapturing
-              ? "AUTO CAPTURE"
+              ? "Capturing screenshots"
               : mode === "preview"
-                ? "PREVIEW MODE"
+                ? "Preview"
                 : mode === "play"
-                  ? "FULLSCREEN ONLY"
-                  : "EDITOR MODE"}
+                  ? "Ready to play"
+                  : "Editor"}
           </span>
         </div>
       )}
 
       {!isFullscreen && mode === "play" && (
-        <div className="px-3 py-2 text-[11px] text-[#8b93a6] border-b border-[#2e3446] bg-[#0d0d15]">
+        <div className="border-b border-[var(--color-border)] bg-[#0d0d15]/80 px-4 py-2 text-xs text-[var(--color-text-tertiary)]">
           {isAutoCapturing
             ? "Share this browser tab when prompted and keep playing while screenshots are captured."
             : requiredOrientation
               ? `Mobile mode: ${getMobileOrientationLabel(requiredOrientation)}.`
-              : "Launch in fullscreen to play."}
+              : "The game opens in fullscreen so controls and sound work as intended."}
         </div>
       )}
 
@@ -691,40 +690,39 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
             <div className="text-center">
-              <Loader2 className="h-8 w-8 text-[#ffff00] animate-spin mx-auto mb-2" />
-              <p className="font-arcade text-xs text-[#ffff00]">LOADING CARTRIDGE...</p>
+              <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-[var(--color-primary-hover)]" />
+              <p className="text-sm text-white">Loading game...</p>
             </div>
           </div>
         )}
 
         {showPlayOverlay && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/75 p-4">
-            <div className="max-w-md text-center space-y-4">
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/80 p-4">
+            <div className="max-w-md space-y-5 text-center">
               <div className="space-y-2">
-                <p className="font-arcade text-[10px] text-[#8b93a6]">PRESS START</p>
-                <h3 className="font-arcade text-sm sm:text-base text-white">Play {title} in fullscreen</h3>
-                <p className="font-arcade text-[11px] sm:text-xs text-[#8b93a6]">
+                <span className="vg-kicker justify-center text-[#facc15]">Ready when you are</span>
+                <h3 className="text-xl font-semibold text-white sm:text-2xl">Play {title}</h3>
+                <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
                   {requiredOrientation
-                    ? `This mobile experience is ${getMobileOrientationLabel(requiredOrientation).toLowerCase()}.`
-                    : "Games on VibeGames launch only in fullscreen."}
+                    ? `This game is designed for ${getMobileOrientationLabel(requiredOrientation).toLowerCase()}.`
+                    : "Open the game in fullscreen for the best experience."}
                 </p>
               </div>
 
               <Button
                 type="button"
-                variant="arcade"
                 size="lg"
-                className="gap-2"
+                className="gap-2 rounded-xl px-8"
                 onClick={() => {
                   void launchFullscreen()
                 }}
               >
                 <Play className="h-4 w-4" />
-                PLAY IN FULLSCREEN
+                Play game
               </Button>
 
               {fullscreenError && (
-                <p className="font-arcade text-[11px] text-[#ff8b8b]">{fullscreenError}</p>
+                <p className="text-sm text-[#ff9ab1]">{fullscreenError}</p>
               )}
             </div>
           </div>

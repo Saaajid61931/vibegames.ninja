@@ -2,8 +2,9 @@ import Link from "next/link"
 import {
   ArrowRight,
   ChevronLeft,
-  Clock,
+  Clock3,
   Cpu,
+  Edit3,
   Heart,
   MessageCircle,
   Play,
@@ -12,20 +13,20 @@ import {
 import { CommentsSection } from "@/components/games/comments-section"
 import { CompactFeedbackPanel } from "@/components/games/compact-feedback-panel"
 import { CommunityLevels } from "@/components/games/community-levels"
-import { GameRating } from "@/components/games/game-rating"
-import { LevelRating } from "@/components/games/level-rating"
 import { LikeButton } from "@/components/games/like-button"
 import { PlayPageSidebar } from "@/components/games/play-page-sidebar"
 import { PlayTracker } from "@/components/games/play-tracker"
 import { PlayableGameSection } from "@/components/games/playable-game-section"
 import { ReportGameButton } from "@/components/games/report-game-button"
 import { ShareButton } from "@/components/games/share-button"
-import { DownloadCodeButton } from "@/components/games/download-code-button"
 import { DeleteGameButton } from "@/components/games/delete-game-button"
 import { Footer } from "@/components/layout/footer"
 import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
-import { getJamPanelMessage, getJamPanelStyles, type PlayPageData } from "@/lib/play-page-data"
+import {
+  getJamPanelMessage,
+  type PlayPageData,
+} from "@/lib/play-page-data"
 import { formatNumber, timeAgo } from "@/lib/utils"
 
 interface PlayPageViewProps {
@@ -35,7 +36,12 @@ interface PlayPageViewProps {
   userRole?: string | null
 }
 
-export function PlayPageView({ data, selectedLevelId, userId, userRole }: PlayPageViewProps) {
+export function PlayPageView({
+  data,
+  selectedLevelId,
+  userId,
+  userRole,
+}: PlayPageViewProps) {
   const {
     game,
     category,
@@ -52,50 +58,99 @@ export function PlayPageView({ data, selectedLevelId, userId, userRole }: PlayPa
     tagList,
     mobileSupportText,
     mobileTagLabel,
-    userGameRating,
     gameJsonLd,
     breadcrumbJsonLd,
     canAutoCaptureThumbnails,
   } = data
   const isAuthenticated = Boolean(userId)
-
-  const sidebar = (
-    <PlayPageSidebar
-      game={game}
-      category={category}
-      creatorProfileHref={creatorProfileHref}
-      creatorGamesCount={creatorGamesCount}
-      followersCount={followersCount}
-      initialFollowing={isFollowing}
-      relatedGames={relatedGames}
-    />
-  )
+  const isOwner = userId === game.creator.id
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0d0d15]">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(gameJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+    <div className="vg-shell flex min-h-screen flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(gameJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <Header />
 
-      <main className="flex-1">
-        <div className="container mx-auto px-4 py-4 sm:py-6">
+      <main id="main-content" className="flex-1">
+        <div className="container mx-auto max-w-7xl px-4 py-5 sm:py-8">
           <Link
             href="/games"
-            className="mb-4 inline-flex items-center gap-2 font-arcade text-xs text-[#8b93a6] transition-colors hover:text-[#ffff00] sm:mb-6 sm:text-sm"
+            className="mb-5 inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)] transition-colors hover:text-white"
           >
             <ChevronLeft className="h-4 w-4" />
-            BACK TO ARCADE
+            Browse all games
           </Link>
 
-          <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-3">
-            <div className="space-y-6 lg:col-span-2">
-              <PlayTracker gameId={game.id} levelId={selectedLevel?.id ?? null} />
+          <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <span className="vg-chip border-[#facc15]/35 text-[#facc15]">
+                  {category?.label || "Game"}
+                </span>
+                {game.supportsMobile ? (
+                  <span className="vg-chip border-[#22c55e]/35 text-[#6ee7a0]">
+                    <Smartphone className="h-3.5 w-3.5" />
+                    {mobileTagLabel.replaceAll("_", " ")}
+                  </span>
+                ) : null}
+                {game.isAIGenerated ? (
+                  <span className="vg-chip">Made with AI</span>
+                ) : null}
+                {tagList.slice(0, 3).map((tag) => (
+                  <span key={tag.trim()} className="vg-chip">
+                    #{tag.trim()}
+                  </span>
+                ))}
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                {game.title}
+              </h1>
+              <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+                Created by{" "}
+                <Link
+                  href={creatorProfileHref}
+                  className="font-medium text-white hover:text-[var(--color-arcade-cyan)]"
+                >
+                  {game.studioProfile?.displayName ||
+                    game.creator.name ||
+                    game.creator.username ||
+                    "Anonymous creator"}
+                </Link>
+                <span aria-hidden="true"> · </span>
+                {timeAgo(new Date(game.createdAt))}
+              </p>
+            </div>
+
+            {isOwner ? (
+              <Button asChild variant="outline" size="sm" className="gap-2 self-start">
+                <Link href={`/creator/games/${game.id}/edit`}>
+                  <Edit3 className="h-4 w-4" />
+                  Edit game
+                </Link>
+              </Button>
+            ) : null}
+          </div>
+
+          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_19rem] xl:grid-cols-[minmax(0,1fr)_21rem]">
+            <div className="min-w-0 space-y-6">
+              <PlayTracker
+                gameId={game.id}
+                levelId={selectedLevel?.id ?? null}
+              />
 
               <PlayableGameSection
                 gameId={game.id}
                 title={game.title}
                 gameUrl={game.gameUrl}
-                runtimeLabel={`${game.title.toLowerCase().replace(/\s+/g, "_")}.exe`}
+                runtimeLabel={`${game.title
+                  .toLowerCase()
+                  .replace(/\s+/g, "_")}.exe`}
                 supportsMobile={game.supportsMobile}
                 mobileOrientation={game.mobileOrientation}
                 levelData={selectedLevel?.data}
@@ -107,11 +162,35 @@ export function PlayPageView({ data, selectedLevelId, userId, userRole }: PlayPa
                 canAutoCaptureThumbnails={canAutoCaptureThumbnails}
               />
 
-              <div className="flex flex-wrap items-center gap-4">
-                <h1 className="flex-1 font-arcade text-xl font-bold text-white sm:text-2xl md:text-3xl">
-                  {game.title}
-                </h1>
-                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+              <section
+                aria-label="Game actions and activity"
+                className="vg-panel flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[var(--color-text-secondary)]">
+                  <span className="inline-flex items-center gap-2">
+                    <Play className="h-4 w-4 text-[#facc15]" />
+                    <strong className="font-semibold text-white">
+                      {formatNumber(game.plays)}
+                    </strong>{" "}
+                    plays
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <Heart className="h-4 w-4 text-[#ff3d6e]" />
+                    <strong className="font-semibold text-white">
+                      {formatNumber(game.likes)}
+                    </strong>{" "}
+                    likes
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4 text-[#20d8ff]" />
+                    <strong className="font-semibold text-white">
+                      {game._count.comments}
+                    </strong>{" "}
+                    comments
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
                   <LikeButton
                     gameId={game.id}
                     slug={game.slug}
@@ -119,122 +198,104 @@ export function PlayPageView({ data, selectedLevelId, userId, userRole }: PlayPa
                     initialLiked={isLiked}
                   />
                   <ShareButton gameId={game.id} title={game.title} />
-                  <DownloadCodeButton game={game} variant="standard" />
-                  {userRole === "ADMIN" && (
-                    <DeleteGameButton gameId={game.id} gameTitle={game.title} />
-                  )}
-                  <ReportGameButton gameId={game.id} gameTitle={game.title} />
                 </div>
-              </div>
+              </section>
 
               {primaryJam ? (
-                <div className={`border-2 bg-[#1a1a2e] p-4 ${getJamPanelStyles(primaryJamStatus || "COMPLETED").border}`}>
+                <section className="vg-panel border-[#facc15]/30 p-5">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <span
-                        className={`inline-flex items-center rounded border px-2 py-1 font-arcade text-[10px] ${getJamPanelStyles(primaryJamStatus || "COMPLETED").badge}`}
-                      >
-                        {primaryJamStatus}
+                      <span className="vg-kicker text-[#facc15]">
+                        {primaryJamStatus === "ACTIVE"
+                          ? "Live game jam"
+                          : "Game jam entry"}
                       </span>
-                      <h2 className="mt-3 font-arcade text-sm text-white">{primaryJam.title}</h2>
-                      <p className="mt-1 font-arcade text-xs text-[#8b93a6]">
-                        {primaryJam.theme ? `Theme: ${primaryJam.theme}. ` : ""}
+                      <h2 className="mt-3 text-lg font-semibold text-white">
+                        {primaryJam.title}
+                      </h2>
+                      <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">
+                        {primaryJam.theme
+                          ? `Theme: ${primaryJam.theme}. `
+                          : ""}
                         {getJamPanelMessage(primaryJam)}
                       </p>
                     </div>
-                    <Button asChild variant="arcade">
-                      <Link href={primaryJamAction?.href || `/jams/${primaryJam.slug}`}>
-                        {primaryJamAction?.label || "Visit Jam"}
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                    <Button asChild variant="outline" className="gap-2">
+                      <Link
+                        href={
+                          primaryJamAction?.href ||
+                          `/jams/${primaryJam.slug}`
+                        }
+                      >
+                        {primaryJamAction?.label || "View jam"}
+                        <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>
                   </div>
-                </div>
+                </section>
               ) : null}
 
-              <div className="flex flex-wrap gap-2 font-arcade text-xs">
-                <span className="bg-[#ffff00] px-2 py-1 font-bold text-[#0d0d15]">
-                  [{category?.label.toUpperCase() || "GAME"}]
-                </span>
-                {game.isAIGenerated ? (
-                  <span className="border border-[#ffff00] px-2 py-1 text-[#ffff00]">
-                    [AI_GENERATED]
-                  </span>
-                ) : null}
-                {game.aiTool ? (
-                  <span className="border border-[#5e6882] px-2 py-1 text-[#a5aec4]">
-                    [TOOL:{game.aiTool.toUpperCase()}]
-                  </span>
-                ) : null}
-                {game.aiModel ? (
-                  <span className="border border-[#5e6882] px-2 py-1 text-[#a5aec4]">
-                    [MODEL:{game.aiModel.toUpperCase()}]
-                  </span>
-                ) : null}
-                <span
-                  className={`border px-2 py-1 ${game.supportsMobile ? "border-[#22c55e] text-[#22c55e]" : "border-[#5e6882] text-[#a5aec4]"}`}
-                >
-                  [{mobileTagLabel}]
-                </span>
-                {game.hasLevelEditor ? (
-                  <span className="border border-[#ffff00] px-2 py-1 text-[#ffff00]">
-                    [LEVEL_EDITOR]
-                  </span>
-                ) : null}
-                {game.hasGhostSharing ? (
-                  <span className="border border-[#00d1ff] px-2 py-1 text-[#00d1ff]">
-                    [GHOST_RACES]
-                  </span>
-                ) : null}
-                {tagList.map((tag) => (
-                  <span key={tag.trim()} className="border border-[#5e6882] px-2 py-1 text-[#a5aec4]">
-                    #{tag.trim().toUpperCase()}
-                  </span>
-                ))}
-              </div>
+              <section className="vg-panel p-5 sm:p-6" aria-labelledby="about-game">
+                <span className="vg-kicker">About this game</span>
+                <h2 id="about-game" className="mt-3 text-xl font-semibold text-white">
+                  What to expect
+                </h2>
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-[var(--color-text-secondary)] sm:text-base">
+                  {game.description}
+                </p>
 
-              <div className="flex flex-wrap gap-4 border-y-2 border-[#222] py-4 font-arcade text-xs text-[#8b93a6] sm:gap-6 sm:text-sm">
-                <div className="flex items-center gap-2">
-                  <Play className="h-4 w-4 text-[#ffff00]" />
-                  <span>{formatNumber(game.plays)} PLAYS</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Heart className="h-4 w-4 text-[#ff0040]" />
-                  <span>{formatNumber(game.likes)} LIKES</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4" />
-                  <span>{game._count.comments} COMMENTS</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  <span>UPLOADED {timeAgo(new Date(game.createdAt)).toUpperCase()}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Smartphone className={`h-4 w-4 ${game.supportsMobile ? "text-[#22c55e]" : "text-[#8b93a6]"}`} />
-                  <span>{mobileSupportText}</span>
-                </div>
-                {game.aiModel ? (
-                  <div className="flex items-center gap-2">
-                    <Cpu className="h-4 w-4 text-[#ffff00]" />
-                    <span>MODEL {game.aiModel.toUpperCase()}</span>
+                {game.instructions ? (
+                  <div className="mt-6 rounded-xl border border-[var(--color-border)] bg-black/15 p-4">
+                    <h3 className="text-sm font-semibold text-white">
+                      How to play
+                    </h3>
+                    <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[var(--color-text-secondary)]">
+                      {game.instructions}
+                    </p>
                   </div>
                 ) : null}
-              </div>
-            </div>
 
-            <aside className="self-start lg:sticky lg:top-24">
-              {sidebar}
-            </aside>
+                {game.latestUpdateNote ? (
+                  <div className="mt-4 rounded-xl border border-[#20d8ff]/25 bg-[#20d8ff]/5 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-[#7ee7ff]">
+                      Latest update
+                    </p>
+                    <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+                      {game.latestUpdateNote}
+                    </p>
+                  </div>
+                ) : null}
 
-            <div className="space-y-6 lg:col-span-2">
-              <GameRating
-                gameId={game.id}
-                initialAverage={game.avgRating}
-                initialCount={game.ratingCount}
-                initialUserScore={userGameRating?.score ?? null}
-                isAuthenticated={isAuthenticated}
-              />
+                <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 border-t border-[var(--color-border)] pt-4 text-xs text-[var(--color-text-tertiary)]">
+                  <span className="inline-flex items-center gap-2">
+                    <Clock3 className="h-3.5 w-3.5" />
+                    Uploaded {timeAgo(new Date(game.createdAt))}
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <Smartphone className="h-3.5 w-3.5" />
+                    {mobileSupportText}
+                  </span>
+                  {game.aiModel ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Cpu className="h-3.5 w-3.5" />
+                      Built with {game.aiModel}
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <ReportGameButton
+                    gameId={game.id}
+                    gameTitle={game.title}
+                  />
+                  {userRole === "ADMIN" ? (
+                    <DeleteGameButton
+                      gameId={game.id}
+                      gameTitle={game.title}
+                    />
+                  ) : null}
+                </div>
+              </section>
 
               <CompactFeedbackPanel
                 gameId={game.id}
@@ -243,55 +304,40 @@ export function PlayPageView({ data, selectedLevelId, userId, userRole }: PlayPa
               />
 
               {selectedLevel ? (
-                <div className="space-y-2 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
-                  <p className="font-arcade text-xs text-[#ffff00]">CURRENT LEVEL</p>
-                  <h3 className="font-arcade text-sm text-white">{selectedLevel.name}</h3>
+                <section className="vg-panel p-5">
+                  <span className="vg-kicker text-[#facc15]">
+                    Current community level
+                  </span>
+                  <h2 className="mt-3 text-lg font-semibold text-white">
+                    {selectedLevel.name}
+                  </h2>
                   {selectedLevel.description ? (
-                    <p className="font-arcade text-xs text-[#a5aec4]">{selectedLevel.description}</p>
+                    <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+                      {selectedLevel.description}
+                    </p>
                   ) : null}
-                  <p className="font-arcade text-[10px] text-[#8b93a6]">
-                    by {selectedLevel.creator.username || selectedLevel.creator.name || "anonymous"}
+                  <p className="mt-2 text-xs text-[var(--color-text-tertiary)]">
+                    Made by{" "}
+                    {selectedLevel.creator.username ||
+                      selectedLevel.creator.name ||
+                      "anonymous"}
                   </p>
-
                   {userId === selectedLevel.creator.id ? (
-                    <Button asChild variant="arcade-outline" size="sm" className="mt-2">
-                      <Link href={`/play/${game.slug}/editor?level=${selectedLevel.id}`}>EDIT THIS LEVEL</Link>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="mt-4"
+                    >
+                      <Link
+                        href={`/play/${game.slug}/editor?level=${selectedLevel.id}`}
+                      >
+                        Edit this level
+                      </Link>
                     </Button>
                   ) : null}
-                </div>
+                </section>
               ) : null}
-
-              {selectedLevel ? (
-                <LevelRating
-                  levelId={selectedLevel.id}
-                  initialAverage={selectedLevel.avgRating}
-                  initialCount={selectedLevel.ratingCount}
-                  initialUserScore={selectedLevel.ratings?.[0]?.score ?? null}
-                  isAuthenticated={isAuthenticated}
-                />
-              ) : null}
-
-              <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
-                <div className="border-b-2 border-[#4a4a6a] px-4 py-2">
-                  <h3 className="font-arcade text-sm text-[#ffff00]">$ cat README.md</h3>
-                </div>
-                <div className="p-4">
-                  <p className="whitespace-pre-wrap font-arcade text-sm text-[#e5e5e5]">{game.description}</p>
-                  {game.latestUpdateNote ? (
-                    <div className="mt-4 border border-[#2e3446] bg-[#0d0d15] p-3">
-                      <p className="font-arcade text-[11px] text-[#00d1ff]">RECENT UPDATE</p>
-                      <p className="mt-2 font-arcade text-xs text-white">{game.latestUpdateNote}</p>
-                    </div>
-                  ) : null}
-
-                  {game.instructions ? (
-                    <div className="mt-6 border-t border-[#222] pt-6">
-                      <h4 className="mb-2 font-arcade text-sm font-bold text-[#ffff00]">CONTROLS:</h4>
-                      <p className="whitespace-pre-wrap font-arcade text-sm text-[#a5aec4]">{game.instructions}</p>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
 
               {game.hasLevelEditor ? (
                 <CommunityLevels
@@ -309,6 +355,18 @@ export function PlayPageView({ data, selectedLevelId, userId, userRole }: PlayPa
                 initialCommentsCount={game._count.comments}
               />
             </div>
+
+            <aside className="self-start lg:sticky lg:top-24">
+              <PlayPageSidebar
+                game={game}
+                category={category}
+                creatorProfileHref={creatorProfileHref}
+                creatorGamesCount={creatorGamesCount}
+                followersCount={followersCount}
+                initialFollowing={isFollowing}
+                relatedGames={relatedGames}
+              />
+            </aside>
           </div>
         </div>
       </main>

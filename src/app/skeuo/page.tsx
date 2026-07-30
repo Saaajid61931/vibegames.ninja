@@ -24,7 +24,7 @@ export default function SkeuoHomePage() {
                     {/* Header Row (Marquee) */}
                     <header className="flex flex-col sm:flex-row items-center justify-between mb-8 pb-6 border-b-4 border-[#3b230d] gap-4">
                         <div className="flex items-center gap-4 skeuo-plastic-dark p-3 rounded-lg">
-                            <Gamepad2 className="w-10 h-10 text-[#ffff00] drop-shadow-[0_0_8px_rgba(255,255,0,0.8)]" />
+                            <Gamepad2 className="h-10 w-10 text-[#ffff00]" />
                             <div>
                                 <h1 className="text-3xl font-black tracking-widest text-[#e6e6e6] skeuo-engraved-text font-serif leading-none">
                                     VIBEGAMES
@@ -46,11 +46,11 @@ export default function SkeuoHomePage() {
                     {/* Main "Screen" Area (Hero) */}
                     <section className="skeuo-screen rounded-xl border-8 border-[#1a1a1a] p-8 sm:p-12 mb-10 min-h-[400px] flex flex-col justify-center items-center text-center relative">
                         <div className="absolute top-4 left-4 flex gap-2">
-                            <div className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_#ff0000]"></div>
-                            <div className="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_10px_#00ff00]"></div>
+                            <div className="h-3 w-3 rounded-full border border-red-300 bg-red-500"></div>
+                            <div className="h-3 w-3 rounded-full border border-green-300 bg-green-500"></div>
                         </div>
 
-                        <h2 className="text-5xl sm:text-7xl font-bold text-white mb-6 drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]" style={{ fontFamily: "monospace", textShadow: "0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(0,128,255,0.8)" }}>
+                        <h2 className="mb-6 text-5xl font-bold text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] sm:text-7xl" style={{ fontFamily: "monospace" }}>
                             EXPLORE CREATIVITY
                         </h2>
                         <p className="text-xl text-[#00ffcc] font-mono max-w-2xl mb-10 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
@@ -58,7 +58,7 @@ export default function SkeuoHomePage() {
                         </p>
 
                         <div className="flex gap-6">
-                            <button className="px-8 py-4 bg-transparent border-4 border-[#ffff00] text-[#ffff00] font-bold font-mono text-xl uppercase hover:bg-[#ffff00] hover:text-black transition-colors shadow-[0_0_15px_rgba(255,255,0,0.5)]">
+                            <button className="border-4 border-[#ffff00] bg-transparent px-8 py-4 font-mono text-xl font-bold uppercase text-[#ffff00] transition-colors hover:bg-[#ffff00] hover:text-black">
                                 Start Exploring
                             </button>
                         </div>
@@ -91,7 +91,7 @@ export default function SkeuoHomePage() {
                         <div className="flex items-center gap-3 mb-6">
                             <Zap className="text-[#d6d6d6]" />
                             <h3 className="text-xl font-bold skeuo-embossed-text uppercase tracking-widest">Select Mode</h3>
-                            <div className="h-1 flex-1 bg-gradient-to-r from-[#d6d6d6] to-transparent opacity-50 ml-4"></div>
+                            <div className="ml-4 h-px flex-1 bg-[#d6d6d6]/50"></div>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
                             {['Action', 'Puzzle', 'RPG', 'Adventure', 'Arcade', 'Racing'].map(cat => (
@@ -107,7 +107,7 @@ export default function SkeuoHomePage() {
                         <div className="flex items-center gap-3 mb-6">
                             <Trophy className="text-[#d6d6d6]" />
                             <h3 className="text-xl font-bold skeuo-embossed-text uppercase tracking-widest">Featured Cartridges</h3>
-                            <div className="h-1 flex-1 bg-gradient-to-r from-[#d6d6d6] to-transparent opacity-50 ml-4"></div>
+                            <div className="ml-4 h-px flex-1 bg-[#d6d6d6]/50"></div>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -122,7 +122,6 @@ export default function SkeuoHomePage() {
                                                 className="h-32 mb-3 rounded-sm border-b-4 flex items-center justify-center relative overflow-hidden"
                                                 style={{ backgroundColor: `${game.color}22`, borderColor: game.color }}
                                             >
-                                                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent"></div>
                                                 <h4 className="text-2xl font-black italic text-gray-800 tracking-tighter mix-blend-multiply" style={{ textShadow: `2px 2px 0 ${game.color}66` }}>
                                                     {game.title}
                                                 </h4>

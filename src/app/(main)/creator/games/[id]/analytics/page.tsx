@@ -1,17 +1,17 @@
-import { redirect, notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { ChevronLeft, Play, Heart, Eye, TrendingUp, Calendar, Gamepad2, BarChart3 } from "lucide-react"
+import { ArrowLeft, Edit3, Eye, Heart, Play } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import prisma from "@/lib/prisma"
-import { formatNumber, timeAgo } from "@/lib/utils"
+import { formatNumber } from "@/lib/utils"
 
 export const metadata = {
   title: "Game Analytics",
-  description: "Analytics and performance data for your game on VibeGames.",
+  description: "See impressions, plays, and likes for one game.",
 }
 
 interface PageProps {
@@ -34,13 +34,9 @@ export default async function GameAnalyticsPage({ params }: PageProps) {
       title: true,
       slug: true,
       thumbnail: true,
+      impressions: true,
       plays: true,
       likes: true,
-      shares: true,
-      avgRating: true,
-      ratingCount: true,
-      createdAt: true,
-      publishedAt: true,
       creatorId: true,
     },
   })
@@ -53,177 +49,150 @@ export default async function GameAnalyticsPage({ params }: PageProps) {
     redirect("/creator")
   }
 
-  const analytics = await prisma.gameAnalytics.findMany({
-    where: { gameId: id },
-    orderBy: { date: "desc" },
-    take: 30,
-  })
+  const hasComparableImpressionData =
+    game.impressions > 0 && game.impressions >= game.plays
+  const playRate = hasComparableImpressionData
+    ? (game.plays / game.impressions) * 100
+    : null
+  const likeRate =
+    game.plays > 0 ? Math.min(100, (game.likes / game.plays) * 100) : 0
 
-  const avgSessionTime = analytics.length
-    ? analytics.reduce((sum, a) => sum + a.avgSessionTime, 0) / analytics.length
-    : 0
+  const metrics = [
+    {
+      label: "Impressions",
+      value: game.impressions,
+      description: "People who opened this game page",
+      icon: Eye,
+      color: "#20d8ff",
+    },
+    {
+      label: "Plays",
+      value: game.plays,
+      description: "People who actually pressed Play",
+      icon: Play,
+      color: "#facc15",
+    },
+    {
+      label: "Likes",
+      value: game.likes,
+      description: "Players who liked this game",
+      icon: Heart,
+      color: "#ff3d6e",
+    },
+  ] as const
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+    <div className="vg-shell flex min-h-screen flex-col">
       <Header />
 
-      <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
+      <main id="main-content" className="container mx-auto max-w-5xl flex-1 px-4 py-6 sm:py-10">
         <Link
-          href="/creator"
-          className="inline-flex items-center gap-2 text-[#4a4a6a] hover:text-[#ffff00] mb-6 transition-colors font-arcade text-sm"
+          href="/creator/analytics"
+          className="mb-5 inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)] transition-colors hover:text-white"
         >
-          <ChevronLeft className="h-4 w-4" />
-          BACK TO DASHBOARD
+          <ArrowLeft className="h-4 w-4" />
+          Back to all analytics
         </Link>
 
-        <div className="mb-8">
-          <div className="flex items-start gap-4">
-            {game.thumbnail && (
+        <section className="vg-panel overflow-hidden">
+          <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:p-8">
+            {game.thumbnail ? (
               <Image
                 src={game.thumbnail}
-                alt={`Thumbnail for ${game.title}`}
-                width={80}
-                height={48}
-                className="w-20 h-12 object-cover border border-[#4a4a6a] hidden sm:block"
+                alt={"Thumbnail for " + game.title}
+                width={224}
+                height={126}
+                className="aspect-video w-full border-2 border-[var(--color-border-strong)] object-cover sm:w-56"
               />
-            )}
-            <div>
-              <h1 className="text-xl sm:text-2xl font-semibold text-white flex items-center gap-3 font-arcade">
-                <BarChart3 className="h-6 w-6 text-[#ffff00]" />
+            ) : null}
+            <div className="min-w-0 flex-1">
+              <span className="vg-kicker">Game analytics</span>
+              <h1 className="mt-4 truncate text-3xl font-bold tracking-tight text-white">
                 {game.title}
               </h1>
-              <p className="text-[#4a4a6a] mt-1 font-arcade text-sm">
-                Analytics & Performance
+              <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+                A simple view of discovery, plays, and player appreciation.
               </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button asChild variant="outline" size="sm">
+                  <Link href={"/play/" + game.slug}>View game</Link>
+                </Button>
+                <Button asChild variant="ghost" size="sm" className="gap-2">
+                  <Link href={"/creator/games/" + game.id + "/edit"}>
+                    <Edit3 className="h-4 w-4" />
+                    Edit game
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Main Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
-          <Card className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Play className="h-4 w-4 text-[#0080ff]" />
-                <span className="text-xs text-[#4a4a6a] font-arcade">TOTAL PLAYS</span>
+        <section className="mt-6 grid gap-4 md:grid-cols-3" aria-label="Game totals">
+          {metrics.map((metric) => {
+            const Icon = metric.icon
+            return (
+              <div
+                key={metric.label}
+                className="vg-metric p-5"
+                style={{ "--metric-color": metric.color } as React.CSSProperties}
+              >
+                <div className="relative z-10 flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-[var(--color-text-secondary)]">
+                      {metric.label}
+                    </p>
+                    <p className="mt-3 text-3xl font-bold text-white">
+                      {formatNumber(metric.value)}
+                    </p>
+                    <p className="mt-2 text-xs leading-5 text-[var(--color-text-tertiary)]">
+                      {metric.description}
+                    </p>
+                  </div>
+                  <span
+                    className="grid h-10 w-10 shrink-0 place-items-center border-2 bg-[var(--color-base)]"
+                    style={{ borderColor: metric.color, color: metric.color }}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </span>
+                </div>
               </div>
-              <p className="text-2xl sm:text-3xl font-bold text-white font-arcade">
-                {formatNumber(game.plays)}
+            )
+          })}
+        </section>
+
+        <section className="vg-panel mt-6 p-6 sm:p-8" aria-labelledby="game-funnel-title">
+          <span className="vg-kicker text-[#facc15]">At a glance</span>
+          <h2 id="game-funnel-title" className="mt-3 text-2xl font-semibold text-white">
+            From discovery to appreciation
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">
+            Use this simple path to decide what needs attention. More impressions means discovery is working. More plays means the game page earns the click. More likes means the experience connected.
+          </p>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <div className="border border-[var(--color-border-strong)] bg-[var(--color-base)] p-4">
+              <p className="text-sm text-[var(--color-text-secondary)]">Impressions that became plays</p>
+              <p className="mt-2 text-3xl font-bold text-white">
+                {playRate === null ? "New" : `${playRate.toFixed(0)}%`}
               </p>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="border border-[var(--color-border-strong)] bg-[var(--color-base)] p-4">
+              <p className="text-sm text-[var(--color-text-secondary)]">Players who left a like</p>
+              <p className="mt-2 text-3xl font-bold text-white">{likeRate.toFixed(0)}%</p>
+            </div>
+          </div>
 
-          <Card className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Heart className="h-4 w-4 text-[#ff0040]" />
-                <span className="text-xs text-[#4a4a6a] font-arcade">TOTAL LIKES</span>
-              </div>
-              <p className="text-2xl sm:text-3xl font-bold text-white font-arcade">
-                {formatNumber(game.likes)}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="h-4 w-4 text-[#00ff40]" />
-                <span className="text-xs text-[#4a4a6a] font-arcade">SHARES</span>
-              </div>
-              <p className="text-2xl sm:text-3xl font-bold text-white font-arcade">
-                {formatNumber(game.shares)}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Eye className="h-4 w-4 text-[#ffff00]" />
-                <span className="text-xs text-[#4a4a6a] font-arcade">AVG SESSION</span>
-              </div>
-              <p className="text-2xl sm:text-3xl font-bold text-white font-arcade">
-                {avgSessionTime.toFixed(1)}m
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Game Info */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <Card className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
-            <CardHeader>
-              <CardTitle className="font-arcade text-sm text-[#ffff00]">GAME INFO</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-[#4a4a6a] font-arcade text-sm">Created</span>
-                <span className="text-white font-arcade text-sm">
-                  {timeAgo(new Date(game.createdAt))}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[#4a4a6a] font-arcade text-sm">Published</span>
-                <span className="text-white font-arcade text-sm">
-                  {game.publishedAt ? timeAgo(new Date(game.publishedAt)) : "Not published"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[#4a4a6a] font-arcade text-sm">Rating</span>
-                <span className="text-white font-arcade">
-                  {game.avgRating.toFixed(1)} ({game.ratingCount} reviews)
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Analytics */}
-        <Card className="border-2 border-[#4a4a6a] bg-[#1a1a2e]">
-          <CardHeader>
-            <CardTitle className="font-arcade text-sm text-[#ffff00] flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              RECENT ACTIVITY (LAST 30 DAYS)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {analytics.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm font-arcade">
-                  <thead>
-                    <tr className="text-[#4a4a6a] border-b border-[#4a4a6a]">
-                      <th className="text-left py-2 px-2">Date</th>
-                      <th className="text-right py-2 px-2">Plays</th>
-                      <th className="text-right py-2 px-2">Unique</th>
-                      <th className="text-right py-2 px-2">Avg Time</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {analytics.map((a) => (
-                      <tr key={a.id} className="border-b border-[#222] text-white">
-                        <td className="py-2 px-2">
-                          {new Date(a.date).toLocaleDateString()}
-                        </td>
-                        <td className="text-right py-2 px-2">{a.plays}</td>
-                        <td className="text-right py-2 px-2">{a.uniquePlayers}</td>
-                        <td className="text-right py-2 px-2">{a.avgSessionTime.toFixed(1)}m</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <Gamepad2 className="h-12 w-12 text-[#4a4a6a] mx-auto mb-4" />
-                <p className="text-[#4a4a6a] font-arcade">No analytics data yet</p>
-                <p className="text-[#4a4a6a] font-arcade text-xs mt-2">
-                  Data will appear as players interact with your game
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          <div className="mt-5 border-l-4 border-[#20d8ff] bg-[var(--color-surface-2)] p-4 text-sm leading-6 text-[var(--color-text-secondary)]">
+            {!hasComparableImpressionData
+              ? "Impression tracking started recently, so older plays are not included in the comparison yet. Use the three totals while new data builds up."
+              : playRate !== null && playRate < 20
+                ? "Try a clearer thumbnail, title, or description so more visitors choose to play."
+                : likeRate < 5
+                  ? "Players are starting the game. Focus next on the opening experience and controls."
+                  : "The game is converting attention into plays and likes. Keep building on what works."}
+          </div>
+        </section>
       </main>
 
       <Footer />
