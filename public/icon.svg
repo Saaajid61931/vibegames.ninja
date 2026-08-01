@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">VibeGames.Ninja</title>
+  <desc id="desc">A neon game console mascot wearing a ninja headband.</desc>
+  <rect width="512" height="512" rx="112" fill="#0d0d15"/>
+  <rect x="116" y="58" width="280" height="396" rx="48" fill="#1a1f31" stroke="#252d46" stroke-width="12"/>
+  <rect x="116" y="86" width="280" height="42" fill="#00ff88"/>
+  <rect x="116" y="125" width="280" height="12" fill="#20d8ff"/>
+  <path d="M112 106 44 78l54 54Z" fill="#00ff88"/>
+  <path d="m112 122-58 52 68-34Z" fill="#20d8ff"/>
+  <rect x="144" y="150" width="224" height="116" rx="18" fill="#080b12" stroke="#131a2b" stroke-width="8"/>
+  <path d="M150 168h168l-116 90H150Z" fill="#00ff88" opacity=".08"/>
+  <path d="M182 207q18-30 38 0M292 207q18-30 38 0" fill="none" stroke="#00ff88" stroke-width="14" stroke-linecap="round"/>
+  <path d="M116 212q140 34 280 0v80q-140 34-280 0Z" fill="#05060a"/>
+  <path d="M162 334 138 366h42l16-32m106 0 16 32h42l-24-32" fill="#252d46"/>
+  <path d="m206 332 18 18-18 18-18-18Zm0 7-7 11 7 11 7-11Z" fill="#20d8ff"/>
+  <circle cx="314" cy="350" r="18" fill="#ff0055"/>
+  <circle cx="278" cy="386" r="18" fill="#aa00ff"/>
+  <text x="314" y="357" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="700" fill="#fff">A</text>
+  <text x="278" y="393" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="700" fill="#fff">B</text>
+</svg>
