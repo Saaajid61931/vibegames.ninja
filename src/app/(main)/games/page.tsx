@@ -53,11 +53,20 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
       url: `${SITE_URL}${canonical}`,
       type: "website",
       siteName: SITE_NAME,
+      images: [
+        {
+          url: "/opengraph-image",
+          width: 1200,
+          height: 630,
+          alt: `${title} | ${SITE_NAME}`,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: ["/opengraph-image"],
     },
   }
 }

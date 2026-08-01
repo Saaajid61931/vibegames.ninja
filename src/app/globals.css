@@ -441,6 +441,27 @@ html {
   background: var(--color-base);
 }
 
+/* Crisp arcade panels used by the play experience. */
+.vg-play-panel {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #4a4a6a;
+  border-radius: 0;
+  background: #1a1a2e;
+  box-shadow: 4px 4px 0 #080a11;
+}
+
+.vg-play-hero {
+  border-block: 2px solid #4a4a6a;
+  background: #11111d;
+}
+
+@media (max-width: 640px) {
+  .vg-play-panel {
+    box-shadow: 3px 3px 0 #080a11;
+  }
+}
+
 .vg-kicker {
   display: inline-flex;
   align-items: center;

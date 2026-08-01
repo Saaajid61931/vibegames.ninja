@@ -490,9 +490,9 @@ export function PlayableGameSection({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {canAutoCaptureThumbnails && (
-        <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
+        <div className="order-2 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
@@ -540,7 +540,7 @@ export function PlayableGameSection({
       )}
 
       {hasGhostSharing && (
-        <div className="border-2 border-[#4a4a6a] bg-[#11111d] p-4 sm:p-5">
+        <div className="order-3 border-2 border-[#4a4a6a] bg-[#11111d] p-4 sm:p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
@@ -659,52 +659,54 @@ export function PlayableGameSection({
         </div>
       )}
 
-      <GamePlayer
-        ref={playerRef}
-        title={title}
-        gameUrl={gameUrl}
-        runtimeLabel={runtimeLabel}
-        supportsMobile={supportsMobile}
-        mobileOrientation={mobileOrientation}
-        levelData={levelData}
-        levelName={levelName}
-        levelDescription={levelDescription}
-        ghostToLoad={selectedGhost}
-        onSaveGhostRun={(payload) => {
-          void saveGhostRun(payload)
-        }}
-        onGhostDiagnostic={(event) => {
-          if (event.type === "VG_GHOST_READY") {
-            setGhostRuntimeStatus((current) => ({ ...current, ready: true }))
-            return
-          }
+      <div className="order-1">
+        <GamePlayer
+          ref={playerRef}
+          title={title}
+          gameUrl={gameUrl}
+          runtimeLabel={runtimeLabel}
+          supportsMobile={supportsMobile}
+          mobileOrientation={mobileOrientation}
+          levelData={levelData}
+          levelName={levelName}
+          levelDescription={levelDescription}
+          ghostToLoad={selectedGhost}
+          onSaveGhostRun={(payload) => {
+            void saveGhostRun(payload)
+          }}
+          onGhostDiagnostic={(event) => {
+            if (event.type === "VG_GHOST_READY") {
+              setGhostRuntimeStatus((current) => ({ ...current, ready: true }))
+              return
+            }
 
-          if (event.type === "VG_GHOST_HOOK_BOUND" && event.payload?.hook === "onLoadGhost") {
-            setGhostRuntimeStatus((current) => ({ ...current, loadHookBound: true }))
-            return
-          }
+            if (event.type === "VG_GHOST_HOOK_BOUND" && event.payload?.hook === "onLoadGhost") {
+              setGhostRuntimeStatus((current) => ({ ...current, loadHookBound: true }))
+              return
+            }
 
-          if (event.type === "VG_GHOST_LOAD_RECEIVED") {
-            const handlerCount = typeof event.payload?.handlerCount === "number" ? event.payload.handlerCount : 0
-            setGhostRuntimeStatus((current) => ({
-              ...current,
-              loadHookBound: current.loadHookBound || handlerCount > 0,
-              loadReceived: true,
-            }))
-          }
-        }}
-        onAutoThumbnailCaptureProgress={({ captured }) => {
-          setCaptureState("capturing")
-          setCapturedCount(captured)
-        }}
-        onAutoThumbnailCaptureComplete={(images) => {
-          void saveCapturedSlides(images)
-        }}
-        onAutoThumbnailCaptureError={(message) => {
-          setCaptureState("error")
-          setCaptureMessage(message)
-        }}
-      />
+            if (event.type === "VG_GHOST_LOAD_RECEIVED") {
+              const handlerCount = typeof event.payload?.handlerCount === "number" ? event.payload.handlerCount : 0
+              setGhostRuntimeStatus((current) => ({
+                ...current,
+                loadHookBound: current.loadHookBound || handlerCount > 0,
+                loadReceived: true,
+              }))
+            }
+          }}
+          onAutoThumbnailCaptureProgress={({ captured }) => {
+            setCaptureState("capturing")
+            setCapturedCount(captured)
+          }}
+          onAutoThumbnailCaptureComplete={(images) => {
+            void saveCapturedSlides(images)
+          }}
+          onAutoThumbnailCaptureError={(message) => {
+            setCaptureState("error")
+            setCaptureMessage(message)
+          }}
+        />
+      </div>
     </div>
   )
 }

@@ -41,9 +41,9 @@ export const metadata: Metadata = {
     url: SITE_URL,
     images: [
       {
-        url: "/icon.svg",
-        width: 512,
-        height: 512,
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
         alt: `${SITE_NAME} - AI Arcade`,
       },
     ],
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${SITE_NAME} - AI Arcade`,
     description: SITE_DESCRIPTION,
-    images: ["/icon.svg"],
+    images: ["/opengraph-image"],
   },
   alternates: {
     canonical: "/",

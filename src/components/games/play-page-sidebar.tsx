@@ -34,8 +34,8 @@ export function PlayPageSidebar({
 
   return (
     <div className="space-y-4">
-      <section className="vg-panel p-5" aria-labelledby="game-creator">
-        <span className="vg-kicker">Created by</span>
+      <section className="vg-play-panel p-4 sm:p-5" aria-labelledby="game-creator">
+        <span className="font-pixel text-[9px] text-[#00d1ff]">Created by</span>
         <div className="mt-4 flex items-center gap-3">
           <Avatar className="h-12 w-12 border border-[var(--color-border-strong)]">
             <AvatarImage
@@ -51,7 +51,7 @@ export function PlayPageSidebar({
           </Avatar>
 
           <div className="min-w-0 flex-1">
-            <h2 id="game-creator" className="truncate font-semibold text-white">
+            <h2 id="game-creator" className="truncate text-sm font-semibold text-white">
               {creatorName}
             </h2>
             {game.studioProfile ? (
@@ -105,11 +105,11 @@ export function PlayPageSidebar({
       </section>
 
       {relatedGames.length > 0 ? (
-        <section className="vg-panel p-4" aria-labelledby="related-games">
+        <section className="vg-play-panel p-3 sm:p-4" aria-labelledby="related-games">
           <div className="flex items-center justify-between gap-3 px-1">
             <div>
-              <span className="vg-kicker text-[#facc15]">Keep playing</span>
-              <h2 id="related-games" className="mt-2 font-semibold text-white">
+              <span className="font-pixel text-[9px] text-[#facc15]">Keep playing</span>
+              <h2 id="related-games" className="mt-2 font-pixel text-[10px] text-white">
                 More {category?.label.toLowerCase() || "games"}
               </h2>
             </div>
@@ -120,9 +120,9 @@ export function PlayPageSidebar({
               <Link
                 key={related.id}
                 href={`/play/${related.slug}`}
-                className="group flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-white/[0.04]"
+                className="group flex items-center gap-3 border-b border-[#303047] p-2 transition-colors last:border-b-0 hover:bg-white/[0.04]"
               >
-                <div className="relative flex h-12 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)]">
+                <div className="relative flex h-12 w-20 shrink-0 items-center justify-center overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface-2)]">
                   {related.thumbnail ? (
                     <GameThumbnailSlideshow
                       title={related.title}

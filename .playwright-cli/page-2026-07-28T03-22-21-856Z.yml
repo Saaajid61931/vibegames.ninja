@@ -1,0 +1,40 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - link "VIBEGAMES" [ref=e4] [cursor=pointer]:
+      - /url: /
+      - img [ref=e5]:
+        - generic [ref=e7]:
+          - generic [ref=e32]: A
+          - generic [ref=e35]: B
+      - generic [ref=e45]: VIBEGAMES
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - heading "WELCOME BACK" [level=3] [ref=e48]
+        - paragraph [ref=e49]: SIGN IN TO YOUR ACCOUNT TO CONTINUE
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - text: Email
+            - generic [ref=e53]:
+              - img
+              - textbox "you@example.com" [ref=e54]
+          - generic [ref=e55]:
+            - generic [ref=e56]:
+              - generic [ref=e57]: Password
+              - link "Forgot password?" [ref=e58] [cursor=pointer]:
+                - /url: /forgot-password
+            - generic [ref=e59]:
+              - img
+              - textbox "Enter your password" [ref=e60]
+              - button [ref=e61]:
+                - img [ref=e62]
+          - button "Sign in" [ref=e65] [cursor=pointer]:
+            - text: Sign in
+            - img [ref=e66]
+        - paragraph [ref=e68]:
+          - text: Don't have an account?
+          - link "Sign up" [ref=e69] [cursor=pointer]:
+            - /url: /register
+  - button "Open Next.js Dev Tools" [ref=e75] [cursor=pointer]:
+    - img [ref=e76]
+  - alert [ref=e79]

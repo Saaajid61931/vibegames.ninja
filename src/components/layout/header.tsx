@@ -38,7 +38,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
     { name: "PLAY", href: "/games" },
     { name: "JAMS", href: "/jams" },
     { name: "BLOG", href: "/blog" },
-    ...(session?.user ? [{ name: "FAVES", href: "/favorites" }] : []),
+    ...(session?.user ? [{ name: "FAVS", href: "/favorites" }] : []),
     { name: "UPLOAD", href: "/upload" },
     { name: "CREATOR", href: "/creator" },
   ]
