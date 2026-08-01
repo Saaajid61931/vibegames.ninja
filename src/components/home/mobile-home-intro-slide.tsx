@@ -65,6 +65,15 @@ export function MobileHomeIntroSlide({
         variant="mobile"
       />
 
+      <div
+        className="pointer-events-none absolute bottom-[-6rem] left-1/2 z-30 h-48 w-[120%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(ellipse_at_center,_rgba(32,216,255,0.58)_0%,_rgba(99,102,241,0.42)_38%,_rgba(99,102,241,0)_75%)] blur-3xl"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-30 mx-auto h-0.5 w-[58%] bg-[#20d8ff] shadow-[0_0_12px_#20d8ff,0_0_34px_#6366f1]"
+        aria-hidden="true"
+      />
+
       <header className="absolute inset-x-0 top-0 z-50 flex items-center justify-between gap-3 pb-3 pl-[max(1.5rem,env(safe-area-inset-left))] pr-[max(1.5rem,env(safe-area-inset-right))] pt-[max(1.5rem,env(safe-area-inset-top))] [@media(max-height:650px)]:pt-4">
         <div className="flex min-w-0 items-center gap-2.5">
           <NinjaConsole
