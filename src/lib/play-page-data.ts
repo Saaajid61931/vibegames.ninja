@@ -137,11 +137,13 @@ export async function generatePlayPageMetadata(slug: string): Promise<Metadata> 
     const gamePath = `/play/${game.slug}`
     const fallbackOgImage = `${SITE_URL}/icon.svg`
     const thumbnailSrc = typeof game.thumbnail === "string" ? game.thumbnail.trim() : ""
-    const ogImage = !isRenderableImageSrc(thumbnailSrc)
-      ? fallbackOgImage
-      : thumbnailSrc.startsWith("/")
-        ? new URL(thumbnailSrc, SITE_URL).toString()
-        : thumbnailSrc
+    const ogImage = thumbnailSrc.startsWith("data:image/")
+      ? `${SITE_URL}${gamePath}/opengraph-image`
+      : !isRenderableImageSrc(thumbnailSrc)
+        ? fallbackOgImage
+        : thumbnailSrc.startsWith("/")
+          ? new URL(thumbnailSrc, SITE_URL).toString()
+          : thumbnailSrc
 
     return {
       title: `${game.title} - Free AI Game`,
