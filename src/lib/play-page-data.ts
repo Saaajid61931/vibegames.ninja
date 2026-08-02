@@ -137,13 +137,10 @@ export async function generatePlayPageMetadata(slug: string): Promise<Metadata> 
     const gamePath = `/play/${game.slug}`
     const fallbackOgImage = `${SITE_URL}/opengraph-image`
     const thumbnailSrc = typeof game.thumbnail === "string" ? game.thumbnail.trim() : ""
-    const ogImage = thumbnailSrc.startsWith("data:image/")
-      ? `${SITE_URL}${gamePath}/opengraph-image`
-      : !isRenderableImageSrc(thumbnailSrc)
-        ? fallbackOgImage
-        : thumbnailSrc.startsWith("/")
-          ? new URL(thumbnailSrc, SITE_URL).toString()
-          : thumbnailSrc
+    const ogImage = isRenderableImageSrc(thumbnailSrc)
+      ? `${SITE_URL}${gamePath}/opengraph-image?v=${game.updatedAt.getTime()}`
+      : fallbackOgImage
+    const imageAlt = `${game.title} on ${SITE_NAME}`
 
     return {
       title: `${game.title} - Free AI Game`,
@@ -160,9 +157,7 @@ export async function generatePlayPageMetadata(slug: string): Promise<Metadata> 
         images: [
           {
             url: ogImage,
-            width: 1200,
-            height: 630,
-            alt: `${game.title} on ${SITE_NAME}`,
+            alt: imageAlt,
           },
         ],
       },
@@ -170,7 +165,7 @@ export async function generatePlayPageMetadata(slug: string): Promise<Metadata> 
         card: "summary_large_image",
         title: `${game.title} - Play on VibeGames.Ninja`,
         description,
-        images: [ogImage],
+        images: [{ url: ogImage, alt: imageAlt }],
       },
       keywords: game.tags
         .split(",")
