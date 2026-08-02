@@ -1,0 +1,10 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - alert [ref=e11]
+  - generic [ref=e13]:
+    - img [ref=e15]:
+      - generic [ref=e17]:
+        - generic [ref=e42]: A
+        - generic [ref=e45]: B
+    - paragraph [ref=e59]: SHARPENING SHURIKEN...

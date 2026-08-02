@@ -66,7 +66,7 @@ export function PlayPageView({
   const isOwner = userId === game.creator.id
 
   return (
-    <div className="vg-shell flex min-h-screen flex-col">
+    <div className="vg-shell flex min-h-screen flex-col bg-[#090b12]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(gameJsonLd) }}
@@ -78,18 +78,18 @@ export function PlayPageView({
       <Header />
 
       <main id="main-content" className="flex-1">
-        <div className="container mx-auto max-w-7xl px-4 py-5 sm:py-8">
+        <div className="container mx-auto max-w-7xl px-4 py-4 sm:py-8">
           <Link
             href="/games"
-            className="mb-5 inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)] transition-colors hover:text-white"
+            className="mb-4 inline-flex items-center gap-2 font-pixel text-[9px] text-[#aeb7ca] transition-colors hover:text-white sm:mb-5"
           >
             <ChevronLeft className="h-4 w-4" />
             Browse all games
           </Link>
 
-          <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="vg-play-hero mb-6 flex flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
-              <div className="mb-3 flex flex-wrap items-center gap-2">
+              <div className="mb-4 flex flex-wrap items-center gap-2">
                 <span className="vg-chip border-[#facc15]/35 text-[#facc15]">
                   {category?.label || "Game"}
                 </span>
@@ -108,10 +108,10 @@ export function PlayPageView({
                   </span>
                 ))}
               </div>
-              <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              <h1 className="max-w-4xl break-words font-pixel text-xl font-bold leading-tight text-white sm:text-3xl">
                 {game.title}
               </h1>
-              <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+              <p className="mt-3 text-sm text-[#aeb7ca]">
                 Created by{" "}
                 <Link
                   href={creatorProfileHref}
@@ -128,7 +128,7 @@ export function PlayPageView({
             </div>
 
             {isOwner ? (
-              <Button asChild variant="outline" size="sm" className="gap-2 self-start">
+              <Button asChild variant="outline" size="sm" className="w-full gap-2 sm:w-auto">
                 <Link href={`/creator/games/${game.id}/edit`}>
                   <Edit3 className="h-4 w-4" />
                   Edit game
@@ -138,7 +138,7 @@ export function PlayPageView({
           </div>
 
           <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_19rem] xl:grid-cols-[minmax(0,1fr)_21rem]">
-            <div className="min-w-0 space-y-6">
+            <div className="min-w-0 space-y-5 sm:space-y-6">
               <PlayTracker
                 gameId={game.id}
                 levelId={selectedLevel?.id ?? null}
@@ -164,7 +164,7 @@ export function PlayPageView({
 
               <section
                 aria-label="Game actions and activity"
-                className="vg-panel flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="vg-play-panel flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[var(--color-text-secondary)]">
                   <span className="inline-flex items-center gap-2">
@@ -202,7 +202,7 @@ export function PlayPageView({
               </section>
 
               {primaryJam ? (
-                <section className="vg-panel border-[#facc15]/30 p-5">
+                <section className="vg-play-panel border-[#facc15]/50 p-4 sm:p-5">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <span className="vg-kicker text-[#facc15]">
@@ -235,7 +235,7 @@ export function PlayPageView({
                 </section>
               ) : null}
 
-              <section className="vg-panel p-5 sm:p-6" aria-labelledby="about-game">
+              <section className="vg-play-panel p-4 sm:p-6" aria-labelledby="about-game">
                 <span className="vg-kicker">About this game</span>
                 <h2 id="about-game" className="mt-3 text-xl font-semibold text-white">
                   What to expect
@@ -245,7 +245,7 @@ export function PlayPageView({
                 </p>
 
                 {game.instructions ? (
-                  <div className="mt-6 rounded-xl border border-[var(--color-border)] bg-black/15 p-4">
+                  <div className="mt-6 border border-[var(--color-border)] bg-[#11111d] p-4">
                     <h3 className="text-sm font-semibold text-white">
                       How to play
                     </h3>
@@ -256,7 +256,7 @@ export function PlayPageView({
                 ) : null}
 
                 {game.latestUpdateNote ? (
-                  <div className="mt-4 rounded-xl border border-[#20d8ff]/25 bg-[#20d8ff]/5 p-4">
+                  <div className="mt-4 border border-[#20d8ff]/25 bg-[#20d8ff]/5 p-4">
                     <p className="text-xs font-semibold uppercase tracking-wider text-[#7ee7ff]">
                       Latest update
                     </p>
@@ -304,7 +304,7 @@ export function PlayPageView({
               />
 
               {selectedLevel ? (
-                <section className="vg-panel p-5">
+                <section className="vg-play-panel p-4 sm:p-5">
                   <span className="vg-kicker text-[#facc15]">
                     Current community level
                   </span>

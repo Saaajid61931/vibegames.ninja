@@ -1,0 +1,500 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e75] [cursor=pointer]:
+    - img [ref=e76]
+  - alert [ref=e79]: Creator Dashboard | VibeGames.Ninja
+  - generic [ref=e91]:
+    - banner [ref=e92]:
+      - generic [ref=e94]: NEW GAMES DAILY • AI ARCADE • GAME JAMS • BUILD • PLAY • GET INSPIRED • NEW GAMES DAILY • AI ARCADE • GAME JAMS • BUILD • PLAY • GET INSPIRED •
+      - generic [ref=e97]:
+        - link "VIBEGAMES.NINJA" [ref=e98] [cursor=pointer]:
+          - /url: /
+          - img [ref=e99]:
+            - generic [ref=e101]:
+              - generic [ref=e126]: A
+              - generic [ref=e129]: B
+          - generic [ref=e139]: VIBEGAMES.NINJA
+        - navigation [ref=e140]:
+          - link "PLAY" [ref=e141] [cursor=pointer]:
+            - /url: /games
+          - link "JAMS" [ref=e142] [cursor=pointer]:
+            - /url: /jams
+          - link "BLOG" [ref=e143] [cursor=pointer]:
+            - /url: /blog
+          - link "FAVES" [ref=e144] [cursor=pointer]:
+            - /url: /favorites
+          - link "UPLOAD" [ref=e145] [cursor=pointer]:
+            - /url: /upload
+          - link "CREATOR" [ref=e146] [cursor=pointer]:
+            - /url: /creator
+        - generic [ref=e148]:
+          - link "Upload" [ref=e149] [cursor=pointer]:
+            - /url: /upload
+            - button "Upload" [ref=e150]:
+              - img [ref=e151]
+              - generic [ref=e152]: Upload
+          - button "Notifications" [ref=e153] [cursor=pointer]:
+            - img [ref=e154]
+          - button "Demo Creator" [ref=e157] [cursor=pointer]:
+            - img [ref=e158]
+            - generic [ref=e161]: Demo Creator
+    - main [ref=e162]:
+      - generic [ref=e163]:
+        - generic [ref=e164]:
+          - generic [ref=e165]:
+            - img [ref=e166]
+            - generic [ref=e168]: CREATOR.DASHBOARD
+          - heading "DEMO CREATOR" [level=1] [ref=e169]
+          - paragraph [ref=e170]: Build games and act on useful player feedback.
+        - generic [ref=e171]:
+          - link "UPLOAD GAME" [ref=e172] [cursor=pointer]:
+            - /url: /upload
+            - img [ref=e173]
+            - text: UPLOAD GAME
+          - link "JAMS" [ref=e174] [cursor=pointer]:
+            - /url: /jams
+            - img [ref=e175]
+            - text: JAMS
+          - link "SETTINGS" [ref=e181] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e182]
+            - text: SETTINGS
+      - generic [ref=e185]:
+        - generic [ref=e186]:
+          - heading "FEEDBACK INBOX" [level=2] [ref=e187]
+          - paragraph [ref=e188]: Fix clear problems. Save useful ideas. Ignore the noise.
+          - generic [ref=e189]:
+            - button "0 OPEN BUGS" [ref=e190]:
+              - generic [ref=e191]: "0"
+              - generic [ref=e192]: OPEN BUGS
+            - button "0 NEW IDEAS" [ref=e193]:
+              - generic [ref=e194]: "0"
+              - generic [ref=e195]: NEW IDEAS
+            - button "0 RECENTLY FIXED" [ref=e196]:
+              - generic [ref=e197]: "0"
+              - generic [ref=e198]: RECENTLY FIXED
+        - generic [ref=e200]:
+          - paragraph [ref=e201]: No open bugs.
+          - paragraph [ref=e202]: New player feedback will appear here.
+      - generic [ref=e203]:
+        - generic [ref=e204]:
+          - img [ref=e205]
+          - heading "YOUR GAMES [17]" [level=2] [ref=e207]
+        - generic [ref=e208]:
+          - article [ref=e209]:
+            - img "Parchment Paladin" [ref=e211]
+            - generic [ref=e212]:
+              - generic [ref=e213]:
+                - heading "Parchment Paladin" [level=3] [ref=e214]
+                - generic [ref=e215]: PUBLISHED
+              - generic [ref=e216]:
+                - generic [ref=e217]:
+                  - img [ref=e218]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e227]:
+                  - img [ref=e228]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e230]: UPDATED 4 WEEKS AGO
+            - generic [ref=e231]:
+              - link "Open Parchment Paladin" [ref=e232] [cursor=pointer]:
+                - /url: /play/parchment-paladin
+                - img [ref=e233]
+              - link "Edit Parchment Paladin" [ref=e237] [cursor=pointer]:
+                - /url: /creator/games/a3e90b11-3818-46c3-be14-7bd916eec0f2/edit
+                - img [ref=e238]
+          - article [ref=e241]:
+            - img "Shepherd's Meadow" [ref=e243]
+            - generic [ref=e244]:
+              - generic [ref=e245]:
+                - heading "Shepherd's Meadow" [level=3] [ref=e246]
+                - generic [ref=e247]: PUBLISHED
+              - generic [ref=e248]:
+                - generic [ref=e249]:
+                  - img [ref=e250]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e259]:
+                  - img [ref=e260]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e262]: UPDATED 1 MONTH AGO
+            - generic [ref=e263]:
+              - link "Open Shepherd's Meadow" [ref=e264] [cursor=pointer]:
+                - /url: /play/shepherds-meadow
+                - img [ref=e265]
+              - link "Edit Shepherd's Meadow" [ref=e269] [cursor=pointer]:
+                - /url: /creator/games/b466c851-8433-443c-b2a3-98a2041d0186/edit
+                - img [ref=e270]
+          - article [ref=e273]:
+            - img "Ricochet Butcher" [ref=e275]
+            - generic [ref=e276]:
+              - generic [ref=e277]:
+                - heading "Ricochet Butcher" [level=3] [ref=e278]
+                - generic [ref=e279]: PUBLISHED
+              - generic [ref=e280]:
+                - generic [ref=e281]:
+                  - img [ref=e282]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e291]:
+                  - img [ref=e292]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e294]: UPDATED 1 MONTH AGO
+            - generic [ref=e295]:
+              - link "Open Ricochet Butcher" [ref=e296] [cursor=pointer]:
+                - /url: /play/ricochet-butcher
+                - img [ref=e297]
+              - link "Edit Ricochet Butcher" [ref=e301] [cursor=pointer]:
+                - /url: /creator/games/bf3b9928-541b-4006-ac12-c2b2311e02c3/edit
+                - img [ref=e302]
+          - article [ref=e305]:
+            - img "Beast of Blackwood" [ref=e307]
+            - generic [ref=e308]:
+              - generic [ref=e309]:
+                - heading "Beast of Blackwood" [level=3] [ref=e310]
+                - generic [ref=e311]: PUBLISHED
+              - generic [ref=e312]:
+                - generic [ref=e313]:
+                  - img [ref=e314]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e323]:
+                  - img [ref=e324]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e326]: UPDATED 1 MONTH AGO
+            - generic [ref=e327]:
+              - link "Open Beast of Blackwood" [ref=e328] [cursor=pointer]:
+                - /url: /play/beast-of-blackwood
+                - img [ref=e329]
+              - link "Edit Beast of Blackwood" [ref=e333] [cursor=pointer]:
+                - /url: /creator/games/52325086-3277-432e-8a0b-030757f392d6/edit
+                - img [ref=e334]
+          - article [ref=e337]:
+            - img "Thumbzilla" [ref=e339]
+            - generic [ref=e340]:
+              - generic [ref=e341]:
+                - heading "Thumbzilla" [level=3] [ref=e342]
+                - generic [ref=e343]: PUBLISHED
+              - generic [ref=e344]:
+                - generic [ref=e345]:
+                  - img [ref=e346]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e355]:
+                  - img [ref=e356]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e358]: UPDATED 1 MONTH AGO
+            - generic [ref=e359]:
+              - link "Open Thumbzilla" [ref=e360] [cursor=pointer]:
+                - /url: /play/thumbzilla
+                - img [ref=e361]
+              - link "Edit Thumbzilla" [ref=e365] [cursor=pointer]:
+                - /url: /creator/games/3ffcfc3e-9afe-40de-bd1d-180246a394d6/edit
+                - img [ref=e366]
+          - article [ref=e369]:
+            - img "Terracotta Strike" [ref=e371]
+            - generic [ref=e372]:
+              - generic [ref=e373]:
+                - heading "Terracotta Strike" [level=3] [ref=e374]
+                - generic [ref=e375]: PUBLISHED
+              - generic [ref=e376]:
+                - generic [ref=e377]:
+                  - img [ref=e378]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e387]:
+                  - img [ref=e388]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e390]: UPDATED 2 MONTHS AGO
+            - generic [ref=e391]:
+              - link "Open Terracotta Strike" [ref=e392] [cursor=pointer]:
+                - /url: /play/terracotta-strike
+                - img [ref=e393]
+              - link "Edit Terracotta Strike" [ref=e397] [cursor=pointer]:
+                - /url: /creator/games/c51a18d0-041d-4e08-8a06-6c235c246a93/edit
+                - img [ref=e398]
+          - article [ref=e401]:
+            - img "TENSION_MESH" [ref=e403]
+            - generic [ref=e404]:
+              - generic [ref=e405]:
+                - heading "TENSION_MESH" [level=3] [ref=e406]
+                - generic [ref=e407]: PUBLISHED
+              - generic [ref=e408]:
+                - generic [ref=e409]:
+                  - img [ref=e410]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e419]:
+                  - img [ref=e420]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e422]: UPDATED 3 MONTHS AGO
+            - generic [ref=e423]:
+              - link "Open TENSION_MESH" [ref=e424] [cursor=pointer]:
+                - /url: /play/tension_mesh
+                - img [ref=e425]
+              - link "Edit TENSION_MESH" [ref=e429] [cursor=pointer]:
+                - /url: /creator/games/d5b41570-a307-4fe9-af24-d79f2c1fbced/edit
+                - img [ref=e430]
+          - article [ref=e433]:
+            - img "Silhouette Spider" [ref=e435]
+            - generic [ref=e436]:
+              - generic [ref=e437]:
+                - heading "Silhouette Spider" [level=3] [ref=e438]
+                - generic [ref=e439]: PUBLISHED
+              - generic [ref=e440]:
+                - generic [ref=e441]:
+                  - img [ref=e442]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e451]:
+                  - img [ref=e452]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e454]: UPDATED 3 MONTHS AGO
+            - generic [ref=e455]:
+              - link "Open Silhouette Spider" [ref=e456] [cursor=pointer]:
+                - /url: /play/silhouette-spider
+                - img [ref=e457]
+              - link "Edit Silhouette Spider" [ref=e461] [cursor=pointer]:
+                - /url: /creator/games/e0c22487-fc47-493e-8cde-f02831317c9e/edit
+                - img [ref=e462]
+          - article [ref=e465]:
+            - img "Amber Ascendant" [ref=e467]
+            - generic [ref=e468]:
+              - generic [ref=e469]:
+                - heading "Amber Ascendant" [level=3] [ref=e470]
+                - generic [ref=e471]: PUBLISHED
+              - generic [ref=e472]:
+                - generic [ref=e473]:
+                  - img [ref=e474]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e483]:
+                  - img [ref=e484]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e486]: UPDATED 3 MONTHS AGO
+            - generic [ref=e487]:
+              - link "Open Amber Ascendant" [ref=e488] [cursor=pointer]:
+                - /url: /play/amber-ascendant
+                - img [ref=e489]
+              - link "Edit Amber Ascendant" [ref=e493] [cursor=pointer]:
+                - /url: /creator/games/95388cac-aa2a-46ff-a430-9a32224ad10b/edit
+                - img [ref=e494]
+          - article [ref=e497]:
+            - img "Tectonic Leap" [ref=e499]
+            - generic [ref=e500]:
+              - generic [ref=e501]:
+                - heading "Tectonic Leap" [level=3] [ref=e502]
+                - generic [ref=e503]: PUBLISHED
+              - generic [ref=e504]:
+                - generic [ref=e505]:
+                  - img [ref=e506]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e515]:
+                  - img [ref=e516]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e518]: UPDATED 3 MONTHS AGO
+            - generic [ref=e519]:
+              - link "Open Tectonic Leap" [ref=e520] [cursor=pointer]:
+                - /url: /play/tectonic-leap
+                - img [ref=e521]
+              - link "Edit Tectonic Leap" [ref=e525] [cursor=pointer]:
+                - /url: /creator/games/1d5992d4-a5c6-418a-8f88-832131f07d8d/edit
+                - img [ref=e526]
+          - article [ref=e529]:
+            - img "Brush & Blade" [ref=e531]
+            - generic [ref=e532]:
+              - generic [ref=e533]:
+                - heading "Brush & Blade" [level=3] [ref=e534]
+                - generic [ref=e535]: PUBLISHED
+              - generic [ref=e536]:
+                - generic [ref=e537]:
+                  - img [ref=e538]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e547]:
+                  - img [ref=e548]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e550]: UPDATED 3 MONTHS AGO
+            - generic [ref=e551]:
+              - link "Open Brush & Blade" [ref=e552] [cursor=pointer]:
+                - /url: /play/brush-blade
+                - img [ref=e553]
+              - link "Edit Brush & Blade" [ref=e557] [cursor=pointer]:
+                - /url: /creator/games/38ab464d-a859-4dcd-ac62-90b1e21ca040/edit
+                - img [ref=e558]
+          - article [ref=e561]:
+            - img "Monastic Echo" [ref=e563]
+            - generic [ref=e564]:
+              - generic [ref=e565]:
+                - heading "Monastic Echo" [level=3] [ref=e566]
+                - generic [ref=e567]: PUBLISHED
+              - generic [ref=e568]:
+                - generic [ref=e569]:
+                  - img [ref=e570]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e579]:
+                  - img [ref=e580]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e582]: UPDATED 3 MONTHS AGO
+            - generic [ref=e583]:
+              - link "Open Monastic Echo" [ref=e584] [cursor=pointer]:
+                - /url: /play/monastic-echo
+                - img [ref=e585]
+              - link "Edit Monastic Echo" [ref=e589] [cursor=pointer]:
+                - /url: /creator/games/e2c32de5-c8f2-49a0-9700-5db702e2fc70/edit
+                - img [ref=e590]
+          - article [ref=e593]:
+            - img "Aether Sigh" [ref=e595]
+            - generic [ref=e596]:
+              - generic [ref=e597]:
+                - heading "Aether Sigh" [level=3] [ref=e598]
+                - generic [ref=e599]: PUBLISHED
+              - generic [ref=e600]:
+                - generic [ref=e601]:
+                  - img [ref=e602]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e611]:
+                  - img [ref=e612]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e614]: UPDATED 3 MONTHS AGO
+            - generic [ref=e615]:
+              - link "Open Aether Sigh" [ref=e616] [cursor=pointer]:
+                - /url: /play/aether-sigh
+                - img [ref=e617]
+              - link "Edit Aether Sigh" [ref=e621] [cursor=pointer]:
+                - /url: /creator/games/0c4a661e-7b6d-4744-a3c5-e2e2e9522460/edit
+                - img [ref=e622]
+          - article [ref=e625]:
+            - img "Aether Swing" [ref=e627]
+            - generic [ref=e628]:
+              - generic [ref=e629]:
+                - heading "Aether Swing" [level=3] [ref=e630]
+                - generic [ref=e631]: PUBLISHED
+              - generic [ref=e632]:
+                - generic [ref=e633]:
+                  - img [ref=e634]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e643]:
+                  - img [ref=e644]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e646]: UPDATED 3 MONTHS AGO
+            - generic [ref=e647]:
+              - link "Open Aether Swing" [ref=e648] [cursor=pointer]:
+                - /url: /play/aether-swing
+                - img [ref=e649]
+              - link "Edit Aether Swing" [ref=e653] [cursor=pointer]:
+                - /url: /creator/games/9b712d1d-0d74-4fc0-8af1-6df133a69f74/edit
+                - img [ref=e654]
+          - article [ref=e657]:
+            - img "Ronin's Canvas" [ref=e659]
+            - generic [ref=e660]:
+              - generic [ref=e661]:
+                - heading "Ronin's Canvas" [level=3] [ref=e662]
+                - generic [ref=e663]: PUBLISHED
+              - generic [ref=e664]:
+                - generic [ref=e665]:
+                  - img [ref=e666]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e675]:
+                  - img [ref=e676]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e678]: UPDATED 3 MONTHS AGO
+            - generic [ref=e679]:
+              - link "Open Ronin's Canvas" [ref=e680] [cursor=pointer]:
+                - /url: /play/ronins-canvas
+                - img [ref=e681]
+              - link "Edit Ronin's Canvas" [ref=e685] [cursor=pointer]:
+                - /url: /creator/games/8066b268-33aa-48c5-8757-b4cfbac8754e/edit
+                - img [ref=e686]
+          - article [ref=e689]:
+            - img "Tangled Tapestry" [ref=e691]
+            - generic [ref=e692]:
+              - generic [ref=e693]:
+                - heading "Tangled Tapestry" [level=3] [ref=e694]
+                - generic [ref=e695]: PUBLISHED
+              - generic [ref=e696]:
+                - generic [ref=e697]:
+                  - img [ref=e698]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e707]:
+                  - img [ref=e708]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e710]: UPDATED 3 MONTHS AGO
+            - generic [ref=e711]:
+              - link "Open Tangled Tapestry" [ref=e712] [cursor=pointer]:
+                - /url: /play/tangled-tapestry
+                - img [ref=e713]
+              - link "Edit Tangled Tapestry" [ref=e717] [cursor=pointer]:
+                - /url: /creator/games/27b4062a-acfc-45a6-8bfd-9dd04d65869f/edit
+                - img [ref=e718]
+          - article [ref=e721]:
+            - img "Recoil" [ref=e723]
+            - generic [ref=e724]:
+              - generic [ref=e725]:
+                - heading "Recoil" [level=3] [ref=e726]
+                - generic [ref=e727]: PUBLISHED
+              - generic [ref=e728]:
+                - generic [ref=e729]:
+                  - img [ref=e730]
+                  - text: 0 OPEN BUGS
+                - generic [ref=e739]:
+                  - img [ref=e740]
+                  - text: 0 NEW IDEAS
+                - generic [ref=e742]: UPDATED 4 MONTHS AGO
+            - generic [ref=e743]:
+              - link "Open Recoil" [ref=e744] [cursor=pointer]:
+                - /url: /play/recoil
+                - img [ref=e745]
+              - link "Edit Recoil" [ref=e749] [cursor=pointer]:
+                - /url: /creator/games/a5056359-dcea-4232-ac19-9d59b909f6c4/edit
+                - img [ref=e750]
+    - contentinfo [ref=e753]:
+      - generic [ref=e754]:
+        - generic [ref=e755]:
+          - generic [ref=e756]:
+            - link "VIBEGAMES" [ref=e757] [cursor=pointer]:
+              - /url: /
+              - img [ref=e758]:
+                - generic [ref=e760]:
+                  - generic [ref=e785]: A
+                  - generic [ref=e788]: B
+              - generic [ref=e798]: VIBEGAMES
+            - paragraph [ref=e799]: A community for AI-made games. Build, play, and get inspired.
+            - generic [ref=e800]:
+              - link "VibeGames on GitHub" [ref=e801] [cursor=pointer]:
+                - /url: https://github.com/Saaajid61931/vibegames.ninja
+                - img [ref=e802]
+              - link "VibeGames on Twitter" [ref=e805] [cursor=pointer]:
+                - /url: https://twitter.com/vibegamesai
+                - img [ref=e806]
+          - generic [ref=e808]:
+            - heading "Platform" [level=3] [ref=e809]
+            - list [ref=e810]:
+              - listitem [ref=e811]:
+                - link "Browse Games" [ref=e812] [cursor=pointer]:
+                  - /url: /games
+              - listitem [ref=e813]:
+                - link "Mobile Games" [ref=e814] [cursor=pointer]:
+                  - /url: /games?mobile=true
+              - listitem [ref=e815]:
+                - link "Upload Game" [ref=e816] [cursor=pointer]:
+                  - /url: /upload
+          - generic [ref=e817]:
+            - heading "Resources" [level=3] [ref=e818]
+            - list [ref=e819]:
+              - listitem [ref=e820]:
+                - link "Creator Dashboard" [ref=e821] [cursor=pointer]:
+                  - /url: /creator
+              - listitem [ref=e822]:
+                - link "Popular Games" [ref=e823] [cursor=pointer]:
+                  - /url: /games?sort=popular
+              - listitem [ref=e824]:
+                - link "Level Editor Games" [ref=e825] [cursor=pointer]:
+                  - /url: /games?editor=true
+              - listitem [ref=e826]:
+                - link "Active Jams" [ref=e827] [cursor=pointer]:
+                  - /url: /jams
+          - generic [ref=e828]:
+            - heading "Legal" [level=3] [ref=e829]
+            - list [ref=e830]:
+              - listitem [ref=e831]:
+                - link "Terms of Service" [ref=e832] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=e833]:
+                - link "Privacy Policy" [ref=e834] [cursor=pointer]:
+                  - /url: /privacy
+        - generic [ref=e835]:
+          - paragraph [ref=e836]: Copyright 2026 VibeGames.Ninja. All rights reserved.
+          - generic [ref=e837]:
+            - generic [ref=e838]: Made with
+            - img [ref=e839]
+            - generic [ref=e841]: and AI

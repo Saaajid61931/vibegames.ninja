@@ -657,14 +657,14 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
   }), [launchFullscreen, runAutoThumbnailCapture])
 
   return (
-    <div ref={wrapperRef} className={`relative overflow-hidden ${isFullscreen ? "bg-black" : "rounded-2xl border border-[var(--color-border-strong)] bg-[var(--color-surface-2)] shadow-[0_20px_60px_rgba(0,0,0,0.24)]"}`}>
+    <div ref={wrapperRef} className={`relative overflow-hidden ${isFullscreen ? "bg-black" : "border-2 border-[#4a4a6a] bg-[#11111d] shadow-[4px_4px_0_#080a11]"}`}>
       {!isFullscreen && (
-        <div className="flex items-center justify-between gap-3 border-b border-[var(--color-border)] bg-[#0d0d15]/90 px-4 py-3">
+        <div className="flex items-center justify-between gap-3 border-b-2 border-[#4a4a6a] bg-[#1a1a2e] px-3 py-3 sm:px-4">
           <div className="flex items-center gap-2 min-w-0">
-                  <span className="h-2 w-2 shrink-0 rounded-full bg-[#22c55e]" />
-            <span className="truncate text-xs text-[var(--color-text-secondary)]">{runtimeLabel}</span>
+            <span className="h-2 w-2 shrink-0 bg-[#22c55e]" />
+            <span className="truncate font-pixel text-[8px] text-[#dce4f5]">{runtimeLabel}</span>
           </div>
-          <span className="shrink-0 text-xs text-[var(--color-text-tertiary)]">
+          <span className="shrink-0 font-pixel text-[8px] text-[#aeb7ca]">
             {isAutoCapturing
               ? "Capturing screenshots"
               : mode === "preview"
@@ -677,7 +677,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
       )}
 
       {!isFullscreen && mode === "play" && (
-        <div className="border-b border-[var(--color-border)] bg-[#0d0d15]/80 px-4 py-2 text-xs text-[var(--color-text-tertiary)]">
+        <div className="border-b border-[#4a4a6a] bg-[#11111d] px-3 py-2.5 text-[11px] leading-5 text-[#8f99ad] sm:px-4">
           {isAutoCapturing
             ? "Share this browser tab when prompted and keep playing while screenshots are captured."
             : requiredOrientation
@@ -697,12 +697,12 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
         )}
 
         {showPlayOverlay && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/80 p-4">
-            <div className="max-w-md space-y-5 text-center">
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#090b12]/90 p-4">
+            <div className="w-full max-w-md space-y-5 border-2 border-[#4a4a6a] bg-[#11111d] p-5 text-center shadow-[4px_4px_0_#080a11] sm:p-6">
               <div className="space-y-2">
-                <span className="vg-kicker justify-center text-[#facc15]">Ready when you are</span>
-                <h3 className="text-xl font-semibold text-white sm:text-2xl">Play {title}</h3>
-                <p className="text-sm leading-6 text-[var(--color-text-secondary)]">
+                <span className="font-pixel text-[9px] text-[#facc15]">Ready when you are</span>
+                <h3 className="font-pixel text-sm font-semibold leading-6 text-white sm:text-lg">Play {title}</h3>
+                <p className="text-sm leading-6 text-[#aeb7ca]">
                   {requiredOrientation
                     ? `This game is designed for ${getMobileOrientationLabel(requiredOrientation).toLowerCase()}.`
                     : "Open the game in fullscreen for the best experience."}
@@ -712,7 +712,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
               <Button
                 type="button"
                 size="lg"
-                className="gap-2 rounded-xl px-8"
+                className="w-full gap-2 px-8 sm:w-auto"
                 onClick={() => {
                   void launchFullscreen()
                 }}

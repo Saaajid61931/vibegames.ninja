@@ -96,11 +96,16 @@ export function HomeGameBackdrop({
           ) : null}
         </div>
 
-        <div className="absolute inset-0 z-20 bg-black/55" />
         <div
-          className="absolute inset-x-0 bottom-0 z-[26] border-t border-[#303047] bg-[#090b12]"
+          className="absolute left-[-1rem] right-[-1rem] z-20 h-[100vw] bg-black/55"
           style={{
-            top: "calc(env(safe-area-inset-top) + 5rem + 100vw - 2rem)",
+            top: "calc(env(safe-area-inset-top) + 5rem)",
+          }}
+        />
+        <div
+          className="absolute left-[-4px] right-[-4px] z-30 h-[16rem] bg-gradient-to-b from-transparent via-[#090b12]/80 to-[#090b12]"
+          style={{
+            top: "calc(env(safe-area-inset-top) + 5rem + 100vw - 14.5rem)",
           }}
         />
       </div>

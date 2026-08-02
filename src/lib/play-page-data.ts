@@ -135,13 +135,15 @@ export async function generatePlayPageMetadata(slug: string): Promise<Metadata> 
 
     const description = `${game.description.slice(0, 140)}${game.description.length > 140 ? "..." : ""}`
     const gamePath = `/play/${game.slug}`
-    const fallbackOgImage = `${SITE_URL}/icon.svg`
+    const fallbackOgImage = `${SITE_URL}/opengraph-image`
     const thumbnailSrc = typeof game.thumbnail === "string" ? game.thumbnail.trim() : ""
-    const ogImage = !isRenderableImageSrc(thumbnailSrc)
-      ? fallbackOgImage
-      : thumbnailSrc.startsWith("/")
-        ? new URL(thumbnailSrc, SITE_URL).toString()
-        : thumbnailSrc
+    const ogImage = thumbnailSrc.startsWith("data:image/")
+      ? `${SITE_URL}${gamePath}/opengraph-image`
+      : !isRenderableImageSrc(thumbnailSrc)
+        ? fallbackOgImage
+        : thumbnailSrc.startsWith("/")
+          ? new URL(thumbnailSrc, SITE_URL).toString()
+          : thumbnailSrc
 
     return {
       title: `${game.title} - Free AI Game`,
@@ -365,7 +367,7 @@ export async function getPlayPageData(
     name: game.title,
     description: game.description,
     url: `${SITE_URL}/play/${game.slug}`,
-    image: game.thumbnail || `${SITE_URL}/icon.svg`,
+    image: game.thumbnail || `${SITE_URL}/opengraph-image`,
     genre: category?.label || game.category,
     playMode: game.supportsMobile ? ["SinglePlayer", "CoOp"] : "SinglePlayer",
     gamePlatform: game.supportsMobile ? ["Web Browser", "Mobile Web Browser"] : "Web Browser",
