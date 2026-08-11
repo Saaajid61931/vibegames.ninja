@@ -106,7 +106,7 @@ export function JamShareButton({ title }: { title: string }) {
             href={target.href}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex h-10 min-w-10 items-center justify-center rounded-md border border-[var(--color-border)] bg-transparent px-3 text-[var(--color-text-secondary)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+            className="inline-flex h-10 min-w-10 items-center justify-center rounded-md border border-border bg-transparent px-3 text-text-secondary transition-colors hover:border-primary hover:text-primary-text"
             aria-label={`Share jam on ${target.label}`}
             title={`Share jam on ${target.label}`}
           >

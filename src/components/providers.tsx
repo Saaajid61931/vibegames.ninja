@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic"
 import { useEffect, useState } from "react"
 import { SessionProvider } from "next-auth/react"
+import { ToastProvider } from "@/components/ui/toast"
 
 const DeferredPageTransitionLoader = dynamic(
   () => import("@/components/layout/page-transition-loader").then((mod) => mod.PageTransitionLoader),
@@ -43,8 +44,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <SessionProvider>
-      {children}
-      {showPageTransitionLoader ? <DeferredPageTransitionLoader /> : null}
+      <ToastProvider>
+        {children}
+        {showPageTransitionLoader ? <DeferredPageTransitionLoader /> : null}
+      </ToastProvider>
     </SessionProvider>
   )
 }

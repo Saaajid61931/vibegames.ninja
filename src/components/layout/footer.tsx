@@ -10,18 +10,18 @@ export function Footer({ prefetchLinks = true }: FooterProps) {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="border-t border-[var(--color-border)] bg-[var(--color-surface)]">
+    <footer className="border-t border-border bg-surface">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="md:col-span-1">
             <Link href="/" prefetch={prefetchLinks ? undefined : false} className="mb-4 flex items-center gap-2">
               <NinjaConsole className="h-6 w-6" />
-              <span className="font-pixel text-xs">
-                <span className="text-[var(--color-primary)]">VIBE</span>
-                <span className="text-[var(--color-text)]">GAMES</span>
+              <span className="font-sans text-xs font-bold uppercase tracking-widest">
+                <span className="text-primary-text">VIBE</span>
+                <span className="text-text">GAMES</span>
               </span>
             </Link>
-            <p className="mb-4 text-sm text-[var(--color-text-secondary)]">
+            <p className="mb-4 text-sm text-text-secondary">
               A community for AI-made games. Build, play, and get inspired.
             </p>
             <div className="flex gap-2">
@@ -30,7 +30,7 @@ export function Footer({ prefetchLinks = true }: FooterProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="VibeGames on GitHub"
-                className="rounded-md border border-[var(--color-border)] p-2 text-[var(--color-text-secondary)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
+                className="rounded-md border border-border p-2 text-text-secondary transition-colors hover:border-border-strong hover:text-text"
               >
                 <Github className="h-4 w-4" />
               </a>
@@ -39,7 +39,7 @@ export function Footer({ prefetchLinks = true }: FooterProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="VibeGames on Twitter"
-                className="rounded-md border border-[var(--color-border)] p-2 text-[var(--color-text-secondary)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+                className="rounded-md border border-border p-2 text-text-secondary transition-colors hover:border-primary hover:text-primary-text"
               >
                 <Twitter className="h-4 w-4" />
               </a>
@@ -47,13 +47,13 @@ export function Footer({ prefetchLinks = true }: FooterProps) {
           </div>
 
           <div>
-            <h3 className="mb-4 text-sm font-semibold text-[var(--color-text)]">Platform</h3>
+            <h3 className="mb-4 text-sm font-semibold text-text">Platform</h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="/games"
                   prefetch={prefetchLinks ? undefined : false}
-                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                  className="text-sm text-text-secondary transition-colors hover:text-text"
                 >
                   Browse Games
                 </Link>
@@ -62,7 +62,7 @@ export function Footer({ prefetchLinks = true }: FooterProps) {
                 <Link
                   href="/games?mobile=true"
                   prefetch={prefetchLinks ? undefined : false}
-                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                  className="text-sm text-text-secondary transition-colors hover:text-text"
                 >
                   Mobile Games
                 </Link>
@@ -71,7 +71,7 @@ export function Footer({ prefetchLinks = true }: FooterProps) {
                 <Link
                   href="/upload"
                   prefetch={false}
-                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                  className="text-sm text-text-secondary transition-colors hover:text-text"
                 >
                   Upload Game
                 </Link>
@@ -80,13 +80,13 @@ export function Footer({ prefetchLinks = true }: FooterProps) {
           </div>
 
           <div>
-            <h3 className="mb-4 text-sm font-semibold text-[var(--color-text)]">Resources</h3>
+            <h3 className="mb-4 text-sm font-semibold text-text">Resources</h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="/creator"
                   prefetch={prefetchLinks ? undefined : false}
-                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                  className="text-sm text-text-secondary transition-colors hover:text-text"
                 >
                   Creator Dashboard
                 </Link>
@@ -95,7 +95,7 @@ export function Footer({ prefetchLinks = true }: FooterProps) {
                 <Link
                   href="/games?sort=popular"
                   prefetch={prefetchLinks ? undefined : false}
-                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                  className="text-sm text-text-secondary transition-colors hover:text-text"
                 >
                   Popular Games
                 </Link>
@@ -104,7 +104,7 @@ export function Footer({ prefetchLinks = true }: FooterProps) {
                 <Link
                   href="/games?editor=true"
                   prefetch={prefetchLinks ? undefined : false}
-                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                  className="text-sm text-text-secondary transition-colors hover:text-text"
                 >
                   Level Editor Games
                 </Link>
@@ -113,7 +113,7 @@ export function Footer({ prefetchLinks = true }: FooterProps) {
                 <Link
                   href="/jams"
                   prefetch={prefetchLinks ? undefined : false}
-                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                  className="text-sm text-text-secondary transition-colors hover:text-text"
                 >
                   Active Jams
                 </Link>
@@ -122,13 +122,13 @@ export function Footer({ prefetchLinks = true }: FooterProps) {
           </div>
 
           <div>
-            <h3 className="mb-4 text-sm font-semibold text-[var(--color-text)]">Legal</h3>
+            <h3 className="mb-4 text-sm font-semibold text-text">Legal</h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="/terms"
                   prefetch={prefetchLinks ? undefined : false}
-                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                  className="text-sm text-text-secondary transition-colors hover:text-text"
                 >
                   Terms of Service
                 </Link>
@@ -137,7 +137,7 @@ export function Footer({ prefetchLinks = true }: FooterProps) {
                 <Link
                   href="/privacy"
                   prefetch={prefetchLinks ? undefined : false}
-                  className="text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text)]"
+                  className="text-sm text-text-secondary transition-colors hover:text-text"
                 >
                   Privacy Policy
                 </Link>
@@ -146,13 +146,13 @@ export function Footer({ prefetchLinks = true }: FooterProps) {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-[var(--color-border)] pt-8 md:flex-row">
-          <p className="text-xs text-[var(--color-text-tertiary)]">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 md:flex-row">
+          <p className="text-xs text-text-tertiary">
             Copyright {currentYear} VibeGames.Ninja. All rights reserved.
           </p>
-          <div className="flex items-center gap-1.5 text-[var(--color-text-tertiary)]">
+          <div className="flex items-center gap-1.5 text-text-tertiary">
             <span className="text-xs">Made with</span>
-            <Heart className="h-3 w-3 text-[var(--color-arcade-red)]" />
+            <Heart className="h-3 w-3 text-arcade-red" />
             <span className="text-xs">and AI</span>
           </div>
         </div>

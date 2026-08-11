@@ -35,9 +35,9 @@ export function PlayPageSidebar({
   return (
     <div className="space-y-4">
       <section className="vg-play-panel p-4 sm:p-5" aria-labelledby="game-creator">
-        <span className="font-pixel text-[9px] text-[#00d1ff]">Created by</span>
+        <span className="text-kicker  text-arcade-cyan">Created by</span>
         <div className="mt-4 flex items-center gap-3">
-          <Avatar className="h-12 w-12 border border-[var(--color-border-strong)]">
+          <Avatar className="h-12 w-12 border border-border-strong">
             <AvatarImage
               src={
                 game.studioProfile?.image ||
@@ -45,7 +45,7 @@ export function PlayPageSidebar({
                 undefined
               }
             />
-            <AvatarFallback className="bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]">
+            <AvatarFallback className="bg-surface-2 text-text-secondary">
               {getInitials(creatorName)}
             </AvatarFallback>
           </Avatar>
@@ -55,11 +55,11 @@ export function PlayPageSidebar({
               {creatorName}
             </h2>
             {game.studioProfile ? (
-              <p className="truncate text-sm text-[#facc15]">
+              <p className="truncate text-sm text-arcade-yellow">
                 @{game.studioProfile.handle}
               </p>
             ) : game.creator.username ? (
-              <p className="truncate text-sm text-[#facc15]">
+              <p className="truncate text-sm text-arcade-yellow">
                 @{game.creator.username}
               </p>
             ) : null}
@@ -67,12 +67,12 @@ export function PlayPageSidebar({
         </div>
 
         {!game.studioProfile && game.creator.bio ? (
-          <p className="mt-4 text-sm leading-6 text-[var(--color-text-secondary)]">
+          <p className="mt-4 text-sm leading-6 text-text-secondary">
             {game.creator.bio}
           </p>
         ) : null}
 
-        <div className="mt-4 flex flex-wrap gap-3 text-xs text-[var(--color-text-tertiary)]">
+        <div className="mt-4 flex flex-wrap gap-3 text-xs text-text-tertiary">
           {!game.studioProfile ? (
             <span className="inline-flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5" />
@@ -108,8 +108,8 @@ export function PlayPageSidebar({
         <section className="vg-play-panel p-3 sm:p-4" aria-labelledby="related-games">
           <div className="flex items-center justify-between gap-3 px-1">
             <div>
-              <span className="font-pixel text-[9px] text-[#facc15]">Keep playing</span>
-              <h2 id="related-games" className="mt-2 font-pixel text-[10px] text-white">
+              <span className="text-kicker  text-arcade-yellow">Keep playing</span>
+              <h2 id="related-games" className="heading-pixel-sm mt-2 text-white">
                 More {category?.label.toLowerCase() || "games"}
               </h2>
             </div>
@@ -120,9 +120,9 @@ export function PlayPageSidebar({
               <Link
                 key={related.id}
                 href={`/play/${related.slug}`}
-                className="group flex items-center gap-3 border-b border-[#303047] p-2 transition-colors last:border-b-0 hover:bg-white/[0.04]"
+                className="group flex items-center gap-3 border-b border-border p-2 transition-colors last:border-b-0 hover:bg-white/[0.04]"
               >
-                <div className="relative flex h-12 w-20 shrink-0 items-center justify-center overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface-2)]">
+                <div className="relative flex h-12 w-20 shrink-0 items-center justify-center overflow-hidden border border-border bg-surface-2">
                   {related.thumbnail ? (
                     <GameThumbnailSlideshow
                       title={related.title}
@@ -133,15 +133,15 @@ export function PlayPageSidebar({
                       showIndicators={false}
                     />
                   ) : (
-                    <Play className="h-4 w-4 text-[var(--color-text-tertiary)]" />
+                    <Play className="h-4 w-4 text-text-tertiary" />
                   )}
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h3 className="truncate text-sm font-medium text-white group-hover:text-[var(--color-arcade-cyan)]">
+                  <h3 className="truncate text-sm font-medium text-white group-hover:text-arcade-cyan">
                     {related.title}
                   </h3>
-                  <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">
+                  <p className="mt-1 text-xs text-text-tertiary">
                     {formatNumber(related.plays)} plays
                   </p>
                 </div>

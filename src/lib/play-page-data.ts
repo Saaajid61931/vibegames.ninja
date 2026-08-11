@@ -13,23 +13,23 @@ export function getJamPanelStyles(status: string) {
   switch (status) {
     case "ACTIVE":
       return {
-        border: "border-[#00ff40]/30",
-        badge: "border-[#00ff40]/30 bg-[#00ff40]/10 text-[#00ff40]",
+        border: "border-arcade-green/30",
+        badge: "border-arcade-green/30 bg-arcade-green/10 text-arcade-green",
       }
     case "VOTING":
       return {
-        border: "border-[#ffff00]/30",
-        badge: "border-[#ffff00]/30 bg-[#ffff00]/10 text-[#ffff00]",
+        border: "border-arcade-yellow/30",
+        badge: "border-arcade-yellow/30 bg-arcade-yellow/10 text-arcade-yellow",
       }
     case "UPCOMING":
       return {
-        border: "border-[#00d4ff]/30",
-        badge: "border-[#00d4ff]/30 bg-[#00d4ff]/10 text-[#00d4ff]",
+        border: "border-arcade-cyan/30",
+        badge: "border-arcade-cyan/30 bg-arcade-cyan/10 text-arcade-cyan",
       }
     default:
       return {
-        border: "border-[#b0b0d0]/30",
-        badge: "border-[#b0b0d0]/30 bg-[#b0b0d0]/10 text-[#b0b0d0]",
+        border: "border-text-secondary/30",
+        badge: "border-text-secondary/30 bg-surface-2/10 text-text-secondary",
       }
   }
 }

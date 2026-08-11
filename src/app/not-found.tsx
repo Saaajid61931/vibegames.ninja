@@ -11,15 +11,15 @@ export const metadata = {
 
 export default function NotFoundPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+    <div className="min-h-screen flex flex-col bg-canvas">
       <Header />
 
       <main className="flex-1 flex items-center justify-center px-4">
         <div className="text-center max-w-md">
-          <Gamepad2 className="h-16 w-16 text-[#ffff00] mx-auto mb-6" />
+          <Gamepad2 className="h-16 w-16 text-arcade-yellow mx-auto mb-6" />
           <h1 className="font-arcade text-3xl text-white mb-3">404</h1>
-          <h2 className="font-arcade text-lg text-[#ffff00] mb-4">PAGE_NOT_FOUND</h2>
-          <p className="font-arcade text-sm text-[#4a4a6a] mb-8">
+          <h2 className="font-arcade text-lg text-arcade-yellow mb-4">PAGE_NOT_FOUND</h2>
+          <p className="font-arcade text-sm text-text-secondary mb-8">
             This page doesn&apos;t exist or has been moved.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">

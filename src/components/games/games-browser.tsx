@@ -7,6 +7,7 @@ import { ChevronLeft, Gamepad2, Loader2, Search, Smartphone, SquarePen, X } from
 import { GameCard } from "@/components/games/game-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { GameCardSkeleton } from "@/components/ui/route-skeletons"
 import { useDebounce } from "@/hooks/use-debounce"
 import { CATEGORIES } from "@/lib/utils"
 import type { GameCardData } from "@/types"
@@ -215,62 +216,62 @@ export function GamesBrowser({
     <div className="container mx-auto px-4 py-6 sm:py-8">
       <Link
         href="/"
-        className="mb-4 inline-flex items-center gap-2 font-arcade text-sm text-[#8b93a6] transition-colors hover:text-[#ffff00] sm:mb-6 sm:text-base"
+        className="mb-4 inline-flex items-center gap-2 font-arcade text-sm text-text-secondary transition-colors hover:text-arcade-yellow sm:mb-6 sm:text-base"
       >
         <ChevronLeft className="h-5 w-5" />
         BACK TO ARCADE
       </Link>
 
-      <div className="mb-6 border-b-2 border-[#4a4a6a] pb-6 sm:mb-8 sm:border-b-4 sm:pb-8">
+      <div className="mb-6 border-b-2 border-border-strong pb-6 sm:mb-8 sm:border-b-4 sm:pb-8">
         <div className="mb-4 flex items-center gap-3">
-          <div className="border-2 border-[#ffff00] bg-[#ffff00] p-2 sm:border-4">
-            <Gamepad2 className="h-5 w-5 text-[#0d0d15] sm:h-6 sm:w-6" />
+          <div className="border-2 border-arcade-yellow bg-arcade-yellow p-2 sm:border-4">
+            <Gamepad2 className="h-5 w-5 text-canvas sm:h-6 sm:w-6" />
           </div>
           <div>
-            <span className="block font-pixel text-[10px] text-[#ffff00]">GAME SELECT</span>
-            <h1 className="font-pixel text-xl font-bold text-white sm:text-2xl md:text-3xl">ARCADE FLOOR</h1>
+            <span className="text-kicker block text-arcade-yellow">Game select</span>
+            <h1 className="heading-pixel-lg text-white">Arcade floor</h1>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-          <div className="border-2 border-[#0080ff] bg-[#1a1a2e] px-3 py-2 sm:border-4 sm:px-4">
-            <span className="block font-pixel text-[10px] text-[#0080ff]">GAMES</span>
-            <span className="font-pixel text-lg text-white sm:text-xl">{total.toString().padStart(3, "0")}</span>
-          </div>
-          <div className="border-2 border-[#ff0040] bg-[#1a1a2e] px-3 py-2 sm:border-4 sm:px-4">
-            <span className="block font-pixel text-[10px] text-[#ff0040]">CREDITS</span>
-            <span className="font-pixel text-lg text-white sm:text-xl">INF</span>
+          <div className="border-2 border-arcade-blue bg-surface-2 px-3 py-2 shadow-hard-2 sm:border-3 sm:px-4">
+            <span className="text-kicker block text-arcade-blue">Games online</span>
+            <span className="heading-pixel-md text-white">{total.toString().padStart(3, "0")}</span>
           </div>
         </div>
       </div>
 
-      <div className="mb-8 space-y-6">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#8b93a6]" />
-          <Input
-            value={q}
-            onChange={(event) => setQ(event.target.value)}
-            placeholder="SEARCH ARCADE..."
-            className="pl-12 pr-12 text-base sm:text-lg"
-          />
-          {q ? (
-            <button
-              type="button"
-              aria-label="Clear search"
-              className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-[#8b93a6] transition-colors hover:bg-[#1a1a2e] hover:text-white"
-              onClick={() => setQ("")}
-            >
-              <X className="h-4 w-4" />
-            </button>
-          ) : null}
-        </div>
+      <>
+        <div className="sticky top-[4.75rem] z-30 -mx-4 mb-6 space-y-3 border-y-2 border-border-strong bg-canvas/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:space-y-6 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+          <div className="relative">
+            <label htmlFor="arcade-search" className="sr-only">Search the arcade</label>
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-text-secondary" aria-hidden="true" />
+            <Input
+              id="arcade-search"
+              type="search"
+              value={q}
+              onChange={(event) => setQ(event.target.value)}
+              placeholder="SEARCH ARCADE..."
+              className="pl-12 pr-12 text-base sm:text-lg"
+            />
+            {q ? (
+              <button
+                type="button"
+                aria-label="Clear search"
+                className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-text-secondary transition-colors hover:bg-surface-2 hover:text-white"
+                onClick={() => setQ("")}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            ) : null}
+          </div>
 
-        <div className="rounded-lg border-2 border-[#4a4a6a] bg-[#11111d] p-3 sm:p-4">
+          <div className="border-2 border-border-strong bg-surface p-3 sm:p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <span className="font-pixel text-[10px] text-[#8b93a6]">FILTERS</span>
+              <span className="text-kicker text-text-secondary">Filters</span>
               {activeFilterCount > 0 ? (
-                <span className="rounded border border-[#ffff00]/40 px-2 py-1 text-[10px] text-[#ffff00]">
+                <span className="rounded border border-arcade-yellow/40 px-2 py-1 text-xs text-arcade-yellow">
                   {activeFilterCount} active
                 </span>
               ) : null}
@@ -279,23 +280,24 @@ export function GamesBrowser({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-auto px-0 py-0 font-arcade text-xs text-[#ffff00]"
+                className="h-auto px-0 py-0 font-arcade text-xs text-arcade-yellow"
                 onClick={resetFilters}
               >
                 RESET FILTERS
               </Button>
             ) : (
-              <span className="font-arcade text-[11px] text-[#8b93a6]">Showing everything</span>
+              <span className="font-arcade text-xs text-text-secondary">Showing everything</span>
             )}
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-2 lg:flex lg:flex-wrap">
+          <div className="scrollbar-none mt-3 flex gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible">
             {SORT_OPTIONS.map((option) => (
               <Button
                 key={option.key}
                 variant={sort === option.key ? "arcade" : "arcade-outline"}
                 size="sm"
-                className="w-full justify-center lg:w-auto lg:min-w-[120px]"
+                className="min-w-[8rem] shrink-0 justify-center"
+                aria-pressed={sort === option.key}
                 onClick={() => setSort(option.key)}
               >
                 {option.label}
@@ -304,7 +306,8 @@ export function GamesBrowser({
             <Button
               variant={supportsMobile ? "arcade" : "arcade-outline"}
               size="sm"
-              className="w-full justify-center lg:w-auto lg:min-w-[120px]"
+              className="min-w-[8rem] shrink-0 justify-center"
+              aria-pressed={supportsMobile}
               onClick={() => setSupportsMobile(!supportsMobile)}
             >
               <Smartphone className="mr-2 h-4 w-4" />
@@ -313,20 +316,22 @@ export function GamesBrowser({
             <Button
               variant={editorOnly ? "arcade" : "arcade-outline"}
               size="sm"
-              className="w-full justify-center lg:w-auto lg:min-w-[120px]"
+              className="min-w-[8rem] shrink-0 justify-center"
+              aria-pressed={editorOnly}
               onClick={() => setEditorOnly(!editorOnly)}
             >
               <SquarePen className="mr-2 h-4 w-4" />
               EDITOR
             </Button>
           </div>
+          </div>
         </div>
 
-        <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-3 sm:border-4 sm:p-4">
+        <div className="mb-8 border-2 border-border-strong bg-surface-2 p-3 sm:border-4 sm:p-4">
           <div className="flex items-center justify-between gap-3">
-            <span className="block font-pixel text-[10px] text-[#8b93a6]">SELECT CATEGORY</span>
+            <span className="text-kicker block text-text-secondary">Select category</span>
             {!showAllCategories && visibleCategories.length < CATEGORY_OPTIONS.length ? (
-              <span className="font-arcade text-[11px] text-[#8b93a6]">Top picks first</span>
+              <span className="font-arcade text-xs text-text-secondary">Top picks first</span>
             ) : null}
           </div>
 
@@ -337,6 +342,7 @@ export function GamesBrowser({
                 variant={category === option.value ? "arcade" : "outline"}
                 size="sm"
                 className="w-full justify-center sm:min-w-[120px] sm:w-auto"
+                aria-pressed={category === option.value}
                 onClick={() => setCategory(option.value)}
               >
                 {option.label}
@@ -349,7 +355,7 @@ export function GamesBrowser({
               type="button"
               variant="ghost"
               size="sm"
-              className="mt-3 w-full font-arcade text-xs text-[#ffff00] sm:w-auto"
+              className="mt-3 w-full font-arcade text-xs text-arcade-yellow sm:w-auto"
               onClick={() => setShowAllCategories(true)}
             >
               SHOW ALL CATEGORIES
@@ -359,17 +365,17 @@ export function GamesBrowser({
               type="button"
               variant="ghost"
               size="sm"
-              className="mt-3 w-full font-arcade text-xs text-[#8b93a6] sm:w-auto"
+              className="mt-3 w-full font-arcade text-xs text-text-secondary sm:w-auto"
               onClick={() => setShowAllCategories(false)}
             >
               SHOW FEWER CATEGORIES
             </Button>
           ) : null}
         </div>
-      </div>
+      </>
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="font-arcade text-sm text-[#8b93a6]">
+        <p className="font-arcade text-sm text-text-secondary">
           {loading ? "Updating arcade floor..." : `${games.length} of ${total} ${total === 1 ? "game" : "games"} shown`}
         </p>
         {activeFilterLabels.length > 0 ? (
@@ -377,7 +383,7 @@ export function GamesBrowser({
             {activeFilterLabels.map((label) => (
               <span
                 key={label}
-                className="rounded border border-[#4a4a6a] bg-[#11111d] px-2 py-1 text-[11px] text-[#d5d8e6]"
+                className="rounded border border-border-strong bg-surface px-2 py-1 text-xs text-text"
               >
                 {label}
               </span>
@@ -387,8 +393,8 @@ export function GamesBrowser({
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-10 w-10 animate-spin text-[#ffff00]" />
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-label="Updating game results">
+          {Array.from({ length: 8 }, (_, index) => <GameCardSkeleton key={index} />)}
         </div>
       ) : games.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -397,11 +403,18 @@ export function GamesBrowser({
           ))}
         </div>
       ) : (
-        <div className="border-4 border-dashed border-[#4a4a6a] py-20 text-center">
-          <Gamepad2 className="mx-auto mb-4 h-16 w-16 text-[#4a4a6a]" />
-          <h3 className="mb-2 font-pixel text-xl font-bold text-[#8b93a6]">NO GAMES FOUND</h3>
-          <p className="mb-6 font-arcade text-lg text-[#8b93a6]">Try adjusting your search</p>
-          <Button variant="arcade" onClick={resetFilters}>RESET FILTERS</Button>
+        <div className="border-4 border-dashed border-border-strong py-20 text-center">
+          <Gamepad2 className="mx-auto mb-4 h-16 w-16 text-text-secondary" />
+          <h3 className="heading-pixel-md mb-2 text-text">No games found</h3>
+          <p className="mb-6 text-sm text-text-secondary">
+            {q.trim() ? `Nothing matches “${q.trim()}” yet.` : "Try a different category or clear the active filters."}
+          </p>
+          <div className="flex flex-col justify-center gap-3 sm:flex-row">
+            <Button variant="arcade" onClick={resetFilters}>Reset filters</Button>
+            <Button asChild variant="arcade-outline">
+              <Link href="/upload">Upload a game</Link>
+            </Button>
+          </div>
         </div>
       )}
 

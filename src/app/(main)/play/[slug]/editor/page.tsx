@@ -94,10 +94,10 @@ export default async function PlayEditorPage({ params, searchParams }: PageProps
       : null
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+    <div className="min-h-screen flex flex-col bg-canvas">
       <Header />
       <main className="flex-1 container mx-auto px-4 py-4 sm:py-6">
-        <Link href={`/play/${slug}`} className="inline-flex items-center gap-2 text-[#4a4a6a] hover:text-[#ffff00] mb-4 transition-colors font-arcade text-xs sm:text-sm">
+        <Link href={`/play/${slug}`} className="inline-flex items-center gap-2 text-text-secondary hover:text-arcade-yellow mb-4 transition-colors font-arcade text-xs sm:text-sm">
           <ChevronLeft className="h-4 w-4" />
           BACK TO GAME
         </Link>

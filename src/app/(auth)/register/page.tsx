@@ -85,25 +85,25 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0d0d15] px-4 py-12 text-white">
+    <div className="min-h-screen flex items-center justify-center bg-canvas px-4 py-12 text-white">
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-3 mb-8">
-          <NinjaConsole className="h-8 w-8 text-[#ffff00]" />
-          <span className="font-pixel text-sm text-white">
-            <span className="text-[var(--color-arcade-yellow)]">VIBE</span>GAMES
+          <NinjaConsole className="h-8 w-8 text-arcade-yellow" />
+          <span className="heading-pixel-sm text-white">
+            <span className="text-arcade-yellow">VIBE</span>GAMES
           </span>
         </Link>
 
         <Card variant="arcade">
           <CardHeader variant="arcade" className="text-center">
             <CardTitle className="font-arcade text-sm text-white">CREATE AN ACCOUNT</CardTitle>
-            <CardDescription className="font-arcade text-xs text-[#8b93a6]">START PUBLISHING GAMES IN THE ARCADE</CardDescription>
+            <CardDescription className="font-arcade text-xs text-text-secondary">START PUBLISHING GAMES IN THE ARCADE</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="p-3 border-2 border-[var(--color-arcade-red)] bg-[var(--color-arcade-red)]/10 text-[var(--color-arcade-red)] font-arcade text-xs text-center uppercase">
+                <div className="p-3 border-2 border-arcade-red bg-arcade-red/10 text-arcade-red font-arcade text-xs text-center uppercase">
                   {error}
                 </div>
               )}
@@ -111,7 +111,7 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <Label variant="arcade">Full Name</Label>
                 <div className="relative">
-                  <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-tertiary)]" />
+                  <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
                   <Input
                     id="name"
                     type="text"
@@ -128,7 +128,7 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <Label variant="arcade">Username</Label>
                 <div className="relative">
-                  <AtSign className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-tertiary)]" />
+                  <AtSign className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
                   <Input
                     id="username"
                     type="text"
@@ -150,7 +150,7 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <Label variant="arcade">Email</Label>
                 <div className="relative">
-                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-tertiary)]" />
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
                   <Input
                     id="email"
                     type="email"
@@ -167,7 +167,7 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <Label variant="arcade">Password</Label>
                 <div className="relative">
-                  <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-tertiary)]" />
+                  <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -182,7 +182,8 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-white"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -203,10 +204,10 @@ export default function RegisterPage() {
               <>
                 <div className="relative my-6 font-arcade">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t-2 border-[var(--color-border-strong)]" />
+                    <div className="w-full border-t-2 border-border-strong" />
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-[#0d0d15] px-2 text-[var(--color-text-secondary)] uppercase text-[10px]">
+                    <span className="bg-canvas px-2 text-text-secondary uppercase text-xs">
                       Or continue with
                     </span>
                   </div>
@@ -228,9 +229,9 @@ export default function RegisterPage() {
               </>
             )}
 
-            <p className="mt-6 text-center text-sm font-arcade text-[var(--color-text-secondary)] uppercase text-[10px]">
+            <p className="mt-6 text-center text-sm font-arcade text-text-secondary uppercase text-xs">
               Already have an account?{" "}
-              <Link href="/login" className="text-[var(--color-arcade-yellow)] hover:underline ml-1">
+              <Link href="/login" className="text-arcade-yellow hover:underline ml-1">
                 Sign in
               </Link>
             </p>

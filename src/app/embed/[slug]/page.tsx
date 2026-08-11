@@ -58,7 +58,7 @@ export default async function EmbedPage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[#0d0d15] p-3 sm:p-4">
+    <main className="min-h-screen bg-canvas p-3 sm:p-4">
       <div className="mx-auto max-w-6xl space-y-3">
         <PlayTracker gameId={game.id} />
         <GamePlayer
@@ -68,10 +68,10 @@ export default async function EmbedPage({ params }: PageProps) {
           supportsMobile={game.supportsMobile}
           mobileOrientation={game.mobileOrientation}
         />
-        <div className="flex flex-wrap items-center justify-between gap-3 border border-[#2e3446] bg-[#111626] px-3 py-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 border border-border bg-surface px-3 py-2">
           <div>
             <p className="font-arcade text-sm text-white">{game.title}</p>
-            <p className="font-arcade text-[11px] text-[#8b93a6]">Powered by VibeGames.Ninja</p>
+            <p className="font-arcade text-xs text-text-secondary">Powered by VibeGames.Ninja</p>
           </div>
           <Button asChild variant="outline" size="sm" className="gap-2">
             <Link href={`/play/${game.slug}`} target="_blank" rel="noreferrer">

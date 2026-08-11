@@ -1,26 +1,20 @@
 import { cn } from "@/lib/utils"
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "studio" | "arcade"
+  variant?: "arcade"
 }
 
-function Card({ className, variant = "studio", ...props }: CardProps) {
+function Card({ className, variant = "arcade", ...props }: CardProps) {
   return (
     <div
       className={cn(
         "relative overflow-hidden",
-        variant === "studio" && [
-          "bg-[var(--color-surface)]",
-          "border border-[var(--color-border)]",
-          "rounded-lg",
-        ],
         variant === "arcade" && [
-          "bg-[var(--color-surface)]",
-          "border-[3px] border-[var(--color-border-strong)]",
-          "shadow-[4px_4px_0_var(--color-base)]",
+          "border-3 border-border-strong bg-surface",
+          "shadow-hard-4",
           "transition-all duration-150",
-          "hover:border-[var(--color-primary)]",
-          "hover:shadow-[6px_6px_0_var(--color-primary)]",
+          "hover:border-primary",
+          "hover:[--shadow-color:var(--color-primary)] hover:shadow-hard-8",
           "hover:-translate-x-0.5 hover:-translate-y-0.5",
         ],
         className
@@ -31,20 +25,17 @@ function Card({ className, variant = "studio", ...props }: CardProps) {
 }
 
 interface CardHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "studio" | "arcade"
+  variant?: "arcade"
 }
 
-function CardHeader({ className, variant = "studio", ...props }: CardHeaderProps) {
+function CardHeader({ className, variant = "arcade", ...props }: CardHeaderProps) {
   return (
     <div
       className={cn(
         "flex flex-col space-y-1.5 p-4",
-        variant === "studio" && [
-          "border-b border-[var(--color-border)]",
-        ],
         variant === "arcade" && [
-          "border-b-[3px] border-[var(--color-border-strong)]",
-          "bg-[var(--color-surface-2)]",
+          "border-b-3 border-border-strong",
+          "bg-surface-2",
         ],
         className
       )}
@@ -57,7 +48,7 @@ function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElem
   return (
     <h3
       className={cn(
-        "text-lg font-semibold text-[var(--color-text)]",
+        "text-lg font-semibold text-text",
         className
       )}
       {...props}
@@ -69,7 +60,7 @@ function CardDescription({ className, ...props }: React.HTMLAttributes<HTMLParag
   return (
     <p
       className={cn(
-        "text-sm text-[var(--color-text-secondary)]",
+        "text-sm text-text-secondary",
         className
       )}
       {...props}
@@ -90,19 +81,16 @@ function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
 }
 
 interface CardFooterProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "studio" | "arcade"
+  variant?: "arcade"
 }
 
-function CardFooter({ className, variant = "studio", ...props }: CardFooterProps) {
+function CardFooter({ className, variant = "arcade", ...props }: CardFooterProps) {
   return (
     <div
       className={cn(
         "flex items-center p-4 pt-0",
-        variant === "studio" && [
-          "border-t border-[var(--color-border)] mt-4",
-        ],
         variant === "arcade" && [
-          "border-t-[3px] border-[var(--color-border-strong)] mt-4",
+          "mt-4 border-t-3 border-border-strong",
         ],
         className
       )}

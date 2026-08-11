@@ -176,19 +176,19 @@ export function FeaturedManager() {
   return (
     <div className="space-y-8">
       {/* Set Featured Game Form */}
-      <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-6 space-y-5">
-        <h3 className="text-sm font-bold text-white font-pixel flex items-center gap-2">
-          <Crown className="h-4 w-4 text-[#ffff00]" />
+      <div className="border-2 border-border-strong bg-surface-2 p-6 space-y-5">
+        <h3 className="heading-pixel-sm flex items-center gap-2 font-bold text-white">
+          <Crown className="h-4 w-4 text-arcade-yellow" />
           SET GAME OF THE DAY
         </h3>
 
         {/* Date picker */}
         <div>
-          <Label htmlFor="featured-date" className="text-xs text-[#4a4a6a] font-pixel mb-1.5 block">
+          <Label htmlFor="featured-date" className="mb-1.5 block text-xs text-text-secondary">
             DATE
           </Label>
           <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#4a4a6a]" />
+            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary" />
             <Input
               id="featured-date"
               type="date"
@@ -201,13 +201,13 @@ export function FeaturedManager() {
 
         {/* Game search */}
         <div>
-          <Label className="text-xs text-[#4a4a6a] font-pixel mb-1.5 block">
+          <Label className="mb-1.5 block text-xs text-text-secondary">
             GAME
           </Label>
 
           {selectedGame ? (
-            <div className="flex items-center gap-3 p-3 bg-[#0d0d15] border-2 border-[#ffff00]">
-              <div className="w-12 h-8 bg-[#1a1a2e] border border-[#4a4a6a] overflow-hidden flex-shrink-0">
+            <div className="flex items-center gap-3 p-3 bg-canvas border-2 border-arcade-yellow">
+              <div className="w-12 h-8 bg-surface-2 border border-border-strong overflow-hidden flex-shrink-0">
                 {selectedGame.thumbnail ? (
                   <Image
                     src={selectedGame.thumbnail}
@@ -218,13 +218,13 @@ export function FeaturedManager() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <Gamepad2 className="h-3 w-3 text-[#4a4a6a]" />
+                    <Gamepad2 className="h-3 w-3 text-text-secondary" />
                   </div>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-white font-pixel truncate">{selectedGame.title}</p>
-                <p className="text-xs text-[#4a4a6a] font-arcade">by {getCreatorName(selectedGame)}</p>
+                <p className="truncate text-sm font-bold text-white">{selectedGame.title}</p>
+                <p className="text-xs text-text-secondary font-arcade">by {getCreatorName(selectedGame)}</p>
               </div>
               <Button
                 variant="ghost"
@@ -233,14 +233,14 @@ export function FeaturedManager() {
                   setSelectedGame(null)
                   setSearchQuery("")
                 }}
-                className="text-[#ff0040] hover:text-white"
+                className="text-arcade-red hover:text-white"
               >
                 Change
               </Button>
             </div>
           ) : (
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#4a4a6a]" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary" />
               <Input
                 placeholder="Search published games..."
                 value={searchQuery}
@@ -248,12 +248,12 @@ export function FeaturedManager() {
                 className="pl-10"
               />
               {searching && (
-                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#4a4a6a] animate-spin" />
+                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary animate-spin" />
               )}
 
               {/* Search dropdown */}
               {searchResults.length > 0 && (
-                <div className="absolute z-50 w-full mt-1 bg-[#0d0d15] border-2 border-[#4a4a6a] max-h-64 overflow-y-auto">
+                <div className="absolute z-50 w-full mt-1 bg-canvas border-2 border-border-strong max-h-64 overflow-y-auto">
                   {searchResults.map((game) => (
                     <button
                       key={game.id}
@@ -262,9 +262,9 @@ export function FeaturedManager() {
                         setSearchQuery("")
                         setSearchResults([])
                       }}
-                      className="w-full flex items-center gap-3 p-3 hover:bg-[#1a1a2e] transition-colors text-left"
+                      className="w-full flex items-center gap-3 p-3 hover:bg-surface-2 transition-colors text-left"
                     >
-                <div className="w-10 h-7 bg-[#1a1a2e] border border-[#4a4a6a] overflow-hidden flex-shrink-0">
+                <div className="w-10 h-7 bg-surface-2 border border-border-strong overflow-hidden flex-shrink-0">
                   {game.thumbnail ? (
                     <Image
                       src={game.thumbnail}
@@ -275,13 +275,13 @@ export function FeaturedManager() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Gamepad2 className="h-3 w-3 text-[#4a4a6a]" />
+                      <Gamepad2 className="h-3 w-3 text-text-secondary" />
                           </div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-white truncate">{game.title}</p>
-                        <p className="text-xs text-[#4a4a6a]">
+                        <p className="text-xs text-text-secondary">
                           {getCreatorName(game)} &middot; {game.plays} plays
                         </p>
                       </div>
@@ -291,7 +291,7 @@ export function FeaturedManager() {
               )}
 
               {searchQuery.length >= 2 && !searching && searchResults.length === 0 && (
-                <div className="absolute z-50 w-full mt-1 bg-[#0d0d15] border-2 border-[#4a4a6a] p-4 text-center text-sm text-[#4a4a6a] font-arcade">
+                <div className="absolute z-50 w-full mt-1 bg-canvas border-2 border-border-strong p-4 text-center text-sm text-text-secondary font-arcade">
                   No published games found
                 </div>
               )}
@@ -301,7 +301,7 @@ export function FeaturedManager() {
 
         {/* Note */}
         <div>
-          <Label htmlFor="featured-note" className="text-xs text-[#4a4a6a] font-pixel mb-1.5 block">
+          <Label htmlFor="featured-note" className="mb-1.5 block text-xs text-text-secondary">
             NOTE (OPTIONAL)
           </Label>
           <Input
@@ -315,10 +315,10 @@ export function FeaturedManager() {
 
         {/* Submit */}
         {error && (
-          <p className="text-sm text-[#ff0040] font-arcade">{error}</p>
+          <p className="text-sm text-arcade-red font-arcade">{error}</p>
         )}
         {success && (
-          <div className="flex items-center gap-2 text-sm text-[#00ff40] font-arcade">
+          <div className="flex items-center gap-2 text-sm text-arcade-green font-arcade">
             <CheckCircle className="h-4 w-4" />
             {success}
           </div>
@@ -346,17 +346,17 @@ export function FeaturedManager() {
 
       {/* Current & Upcoming Schedule */}
       <div>
-        <h3 className="text-sm font-bold text-white font-pixel mb-4">
+        <h3 className="heading-pixel-sm mb-4 font-bold text-white">
           SCHEDULE
         </h3>
 
         {loading ? (
-          <div className="text-center py-8 text-[#4a4a6a]">
+          <div className="text-center py-8 text-text-secondary">
             <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
             <p className="font-arcade">Loading schedule...</p>
           </div>
         ) : schedule.length === 0 ? (
-          <div className="text-center py-8 border-2 border-dashed border-[#4a4a6a] text-[#4a4a6a] font-arcade">
+          <div className="text-center py-8 border-2 border-dashed border-border-strong text-text-secondary font-arcade">
             No upcoming featured games scheduled.
             <br />
             Auto-fallback will select the best game automatically.
@@ -366,20 +366,20 @@ export function FeaturedManager() {
             {schedule.map((item) => (
               <div
                 key={item.id}
-                className={`flex items-center gap-3 p-3 border-2 bg-[#1a1a2e] ${
-                  isToday(item.date) ? "border-[#ffff00]" : "border-[#4a4a6a]"
+                className={`flex items-center gap-3 p-3 border-2 bg-surface-2 ${
+                  isToday(item.date) ? "border-arcade-yellow" : "border-border-strong"
                 }`}
               >
                 <div className="text-center min-w-[60px]">
-                  <p className={`text-xs font-pixel ${isToday(item.date) ? "text-[#ffff00]" : "text-[#4a4a6a]"}`}>
+                  <p className={`text-xs font-bold uppercase tracking-wide ${isToday(item.date) ? "text-arcade-yellow" : "text-text-secondary"}`}>
                     {isToday(item.date) ? "TODAY" : formatDate(item.date).split(",")[0]}
                   </p>
-                  <p className="text-[10px] text-[#4a4a6a] font-pixel">
+                  <p className="text-xs text-text-secondary">
                     {formatDate(item.date).split(",").slice(1).join(",").trim()}
                   </p>
                 </div>
 
-                <div className="w-14 h-9 bg-[#0d0d15] border border-[#4a4a6a] overflow-hidden flex-shrink-0">
+                <div className="w-14 h-9 bg-canvas border border-border-strong overflow-hidden flex-shrink-0">
                   {item.game.thumbnail ? (
                     <Image
                       src={item.game.thumbnail}
@@ -390,16 +390,16 @@ export function FeaturedManager() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Gamepad2 className="h-3 w-3 text-[#4a4a6a]" />
+                      <Gamepad2 className="h-3 w-3 text-text-secondary" />
                     </div>
                   )}
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white font-pixel truncate">{item.game.title}</p>
-                  <p className="text-xs text-[#4a4a6a] font-arcade truncate">
+                  <p className="truncate text-sm font-bold text-white">{item.game.title}</p>
+                  <p className="text-xs text-text-secondary font-arcade truncate">
                     by {getCreatorName(item.game)}
-                    {item.note && <span className="text-[#ffff00]/60"> &middot; {item.note}</span>}
+                    {item.note && <span className="text-arcade-yellow/60"> &middot; {item.note}</span>}
                   </p>
                 </div>
 
@@ -408,7 +408,7 @@ export function FeaturedManager() {
                   size="sm"
                   onClick={() => handleDelete(item.id)}
                   disabled={deleting === item.id}
-                  className="text-[#ff0040] hover:text-white flex-shrink-0"
+                  className="text-arcade-red hover:text-white flex-shrink-0"
                 >
                   {deleting === item.id ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -425,19 +425,19 @@ export function FeaturedManager() {
       {/* Recent Past Picks */}
       {recentPicks.length > 0 && (
         <div>
-          <h3 className="text-sm font-bold text-[#4a4a6a] font-pixel mb-3">
+          <h3 className="heading-pixel-sm mb-3 font-bold text-text-secondary">
             RECENT PICKS (LAST 7 DAYS)
           </h3>
           <div className="space-y-1.5">
             {recentPicks.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-3 p-2.5 border border-[#4a4a6a]/50 bg-[#0d0d15]"
+                className="flex items-center gap-3 p-2.5 border border-border-strong/50 bg-canvas"
               >
-                <p className="text-[10px] text-[#4a4a6a] font-pixel min-w-[50px]">
+                <p className="min-w-[50px] text-xs text-text-secondary">
                   {formatDate(item.date).split(",")[0]}
                 </p>
-                <p className="text-xs text-[#4a4a6a] font-arcade truncate flex-1">
+                <p className="text-xs text-text-secondary font-arcade truncate flex-1">
                   {item.game.title} — by {getCreatorName(item.game)}
                 </p>
               </div>

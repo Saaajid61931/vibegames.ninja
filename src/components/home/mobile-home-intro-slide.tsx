@@ -36,19 +36,19 @@ export function MobileHomeIntroSlide({
       label: "GAMES",
       value: stats.games,
       icon: Gamepad2,
-      color: "#facc15",
+      color: "var(--color-arcade-yellow)",
     },
     {
       label: "CREATORS",
       value: stats.creators,
       icon: UsersRound,
-      color: "#00d1ff",
+      color: "var(--color-arcade-cyan)",
     },
     {
       label: "PLAYS",
       value: stats.plays,
       icon: Play,
-      color: "#f43f5e",
+      color: "var(--color-arcade-red)",
     },
   ] as const
 
@@ -57,7 +57,7 @@ export function MobileHomeIntroSlide({
       data-index="-1"
       data-slide
       aria-labelledby="mobile-home-intro-title"
-      className="relative isolate h-full w-full shrink-0 snap-start snap-always overflow-hidden bg-[#090b12] text-white"
+      className="relative isolate h-full w-full shrink-0 snap-start snap-always overflow-hidden bg-canvas text-white"
       style={{ height: "100%" }}
     >
       <HomeGameBackdrop
@@ -70,7 +70,7 @@ export function MobileHomeIntroSlide({
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-30 mx-auto h-0.5 w-[58%] bg-[#20d8ff] shadow-[0_0_12px_#20d8ff,0_0_34px_#6366f1]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-30 mx-auto h-0.5 w-[58%] bg-arcade-cyan shadow-[0_0_12px_var(--color-arcade-cyan),0_0_34px_var(--color-primary)]"
         aria-hidden="true"
       />
 
@@ -81,17 +81,11 @@ export function MobileHomeIntroSlide({
             animated
           />
           <div className="min-w-0">
-            <p
-              className="truncate font-pixel text-white"
-              style={{ fontSize: "8px" }}
-            >
-              <span className="text-[#818cf8]">VIBE</span>GAMES
-              <span className="text-[#aab2c4]">.NINJA</span>
+            <p className="text-kicker truncate text-white">
+              <span className="text-primary-hover-text">VIBE</span>GAMES
+              <span className="text-text-secondary">.NINJA</span>
             </p>
-            <p
-              className="mt-0.5 truncate font-pixel text-[#00d1ff]"
-              style={{ fontSize: "6px" }}
-            >
+            <p className="text-kicker mt-0.5 truncate text-arcade-cyan">
               COMMUNITY ARCADE
             </p>
           </div>
@@ -100,46 +94,41 @@ export function MobileHomeIntroSlide({
         <Link
           href="/upload"
           prefetch={false}
-          className="flex h-9 shrink-0 items-center gap-1 border border-[#596176] bg-[#090b12] px-2.5 font-pixel text-white transition-colors hover:border-[#facc15] hover:text-[#facc15]"
-          style={{ fontSize: "7px" }}
+          className="text-kicker flex h-9 shrink-0 items-center gap-1 border border-border-strong bg-canvas px-2.5 text-white transition-colors hover:border-arcade-yellow hover:text-arcade-yellow"
         >
           BUILD <span className="hidden min-[330px]:inline">A GAME</span>
           <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
         </Link>
       </header>
 
-      <main className="absolute inset-x-0 top-[clamp(15.5rem,39dvh,20.5rem)] z-40 px-[max(1.5rem,env(safe-area-inset-left))]">
+      <main className="absolute inset-x-0 top-[clamp(13.5rem,34dvh,18rem)] z-40 px-[max(1.5rem,env(safe-area-inset-left))]">
         <div className="mx-auto w-full max-w-sm text-center">
           <div className="inline-flex items-center gap-2">
-            <span className="h-px w-5 bg-[#00d1ff]/75" aria-hidden="true" />
-            <p
-              className="font-pixel text-[#00d1ff]"
-              style={{ fontSize: "7px" }}
-            >
+            <span className="h-px w-5 bg-arcade-cyan/75" aria-hidden="true" />
+            <p className="text-kicker text-arcade-cyan">
               THE COMMUNITY FOR AI GAMES
             </p>
-            <span className="h-px w-5 bg-[#00d1ff]/75" aria-hidden="true" />
+            <span className="h-px w-5 bg-arcade-cyan/75" aria-hidden="true" />
           </div>
 
           <h1
             id="mobile-home-intro-title"
-            className="mt-2.5 font-pixel leading-none tracking-[0.02em] text-white"
-            style={{ fontSize: "clamp(1.55rem, min(8.6vw, 4.9vh), 2.5rem)" }}
+            className="heading-pixel-xl mt-2.5 leading-none tracking-[0.02em] text-white"
           >
             <span className="block">PLAY</span>
             <span className="mt-1 block">BUILD</span>
-            <span className="mt-1 block text-[#facc15] drop-shadow-[3px_3px_0_#f43f5e]">
+            <span className="mt-1 block text-arcade-yellow drop-shadow-[4px_4px_0_var(--color-arcade-red)]">
               INSPIRE
             </span>
           </h1>
 
-          <p className="mx-auto mt-2.5 max-w-xs text-[10px] leading-[1.45] text-[#e0e4ee] min-[360px]:text-[11px] [@media(max-height:650px)]:hidden">
+          <p className="mx-auto mt-2.5 max-w-xs text-xs leading-[1.45] text-text min-[360px]:text-xs [@media(max-height:650px)]:hidden">
             Play games made with AI, discover what others are building, and
             share something that inspires what comes next.
           </p>
 
           <div
-            className="mx-auto mt-3.5 grid max-w-[21rem] grid-cols-3 border-l border-t border-[#596176]/75 bg-[#080a11] [@media(max-height:650px)]:mt-2"
+            className="mx-auto mt-3.5 grid max-w-[21rem] grid-cols-3 border-l border-t border-border-strong/75 bg-canvas [@media(max-height:650px)]:mt-2"
             aria-label="VibeGames community totals"
           >
             {communityMetrics.map((metric) => {
@@ -147,7 +136,7 @@ export function MobileHomeIntroSlide({
               return (
                 <div
                   key={metric.label}
-                  className="relative flex min-h-[3.4rem] items-center justify-center gap-2 border-b border-r border-[#596176]/75 px-2 py-1 [@media(max-height:650px)]:min-h-[3rem]"
+                  className="relative flex min-h-[3.4rem] items-center justify-center gap-2 border-b border-r border-border-strong/75 px-2 py-1 [@media(max-height:650px)]:min-h-[3rem]"
                 >
                   <span
                     className="absolute inset-x-0 top-0 h-0.5"
@@ -160,16 +149,10 @@ export function MobileHomeIntroSlide({
                     aria-hidden="true"
                   />
                   <span className="text-left">
-                    <span
-                      className="block font-pixel leading-none text-white"
-                      style={{ fontSize: "10px" }}
-                    >
+                    <span className="heading-pixel-sm block leading-none text-white">
                       {metricFormatter.format(metric.value)}
                     </span>
-                    <span
-                      className="mt-1 block font-pixel leading-none text-[#aeb7ca]"
-                      style={{ fontSize: "5.5px" }}
-                    >
+                    <span className="text-kicker mt-1 block leading-none text-text-secondary">
                       {metric.label}
                     </span>
                   </span>
@@ -183,16 +166,17 @@ export function MobileHomeIntroSlide({
       <button
         type="button"
         onClick={onStart}
-        className="group absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2 text-center [@media(max-height:650px)]:bottom-2 [@media(max-height:650px)]:gap-1"
-        aria-label="Scroll to the first game"
+        className="group absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-1.5 text-center [@media(max-height:650px)]:bottom-2 [@media(max-height:650px)]:gap-1"
       >
-        <span
-          className="font-pixel text-[#c8cedd] transition-colors group-hover:text-white"
-          style={{ fontSize: "7px" }}
-        >
+        <span className="text-kicker flex items-center gap-2 whitespace-nowrap text-arcade-yellow">
+          <span className="h-px w-5 bg-arcade-cyan/75" aria-hidden="true" />
+          ARCADE REELS
+          <span className="h-px w-5 bg-arcade-cyan/75" aria-hidden="true" />
+        </span>
+        <span className="text-kicker text-text-secondary transition-colors group-hover:text-white">
           SCROLL TO PLAY
         </span>
-        <span className="relative flex h-11 w-11 items-center justify-center rounded-full border-2 border-white bg-[#6366f1] text-white shadow-[0_4px_0_#f43f5e] transition-transform group-hover:translate-y-1 group-active:translate-y-2">
+        <span className="relative flex h-11 w-11 items-center justify-center rounded-full border-2 border-white bg-primary text-white [--shadow-color:var(--color-arcade-red)] shadow-hard-4 transition-transform group-hover:translate-y-1 group-active:translate-y-2">
           <ArrowDown
             className="h-5 w-5 animate-bounce motion-reduce:animate-none"
             aria-hidden="true"

@@ -59,12 +59,12 @@ export function LevelRating({
   }
 
   return (
-    <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] px-4 py-3">
-      <p className="font-arcade text-xs text-[#4a4a6a] mb-2">RATE THIS LEVEL</p>
+    <div className="border-2 border-border-strong bg-surface-2 px-4 py-3">
+      <p className="font-arcade text-xs text-text-secondary mb-2">RATE THIS LEVEL</p>
       <div className="flex flex-wrap items-center gap-3">
         <StarRating value={userScore ?? 0} onChange={submit} disabled={saving} />
         {saving ? (
-          <Loader2 className="h-4 w-4 text-[#ffff00] animate-spin" />
+          <Loader2 className="h-4 w-4 text-arcade-yellow animate-spin" />
         ) : (
           <span className="font-arcade text-xs text-white">
             {(average || 0).toFixed(1)} / 5 ({count})

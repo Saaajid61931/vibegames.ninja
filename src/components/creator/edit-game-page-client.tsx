@@ -323,8 +323,8 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0d0d15]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#ffff00]" />
+      <div className="min-h-screen flex items-center justify-center bg-canvas">
+        <Loader2 className="h-8 w-8 animate-spin text-arcade-yellow" />
       </div>
     )
   }
@@ -335,12 +335,12 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
 
   if (error && !game) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+      <div className="min-h-screen flex flex-col bg-canvas">
         <Header />
         <main className="flex-1 flex items-center justify-center px-4">
           <Card variant="arcade" className="max-w-md w-full">
             <CardContent className="pt-6 text-center">
-              <AlertCircle className="h-16 w-16 text-[#ff0040] mx-auto mb-4" />
+              <AlertCircle className="h-16 w-16 text-arcade-red mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-white mb-2 font-arcade">{error}</h2>
               <Link href="/creator">
                 <Button variant="arcade-outline" className="mt-4 font-arcade">
@@ -357,17 +357,17 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+      <div className="min-h-screen flex flex-col bg-canvas">
         <Header />
         <main className="flex-1 flex items-center justify-center px-4">
           <Card variant="arcade" className="max-w-md w-full">
             <CardContent className="pt-6 text-center">
-              <CheckCircle className="h-16 w-16 text-[#00ff40] mx-auto mb-4" />
+              <CheckCircle className="h-16 w-16 text-arcade-green mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-white mb-2 font-arcade">Game Updated!</h2>
               {updateWarnings.length > 0 ? (
                 <div className="space-y-3 text-left">
-                  <p className="text-[#4a4a6a] text-sm font-arcade text-center">Game updated, but the platform hooks still need a few fixes before everything is live.</p>
-                  <div className="border-2 border-[var(--color-arcade-yellow)] bg-[var(--color-arcade-yellow)]/10 p-3 text-xs text-white font-arcade">
+                  <p className="text-text-secondary text-sm font-arcade text-center">Game updated, but the platform hooks still need a few fixes before everything is live.</p>
+                  <div className="border-2 border-arcade-yellow bg-arcade-yellow/10 p-3 text-xs text-white font-arcade">
                     {updateWarnings.map((warning) => (
                       <p key={warning}>{warning}</p>
                     ))}
@@ -375,7 +375,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                   <Button variant="arcade" className="w-full font-arcade" onClick={() => router.push("/creator")}>Go to Dashboard</Button>
                 </div>
               ) : (
-                <p className="text-[#4a4a6a] text-sm font-arcade">Redirecting to dashboard...</p>
+                <p className="text-text-secondary text-sm font-arcade">Redirecting to dashboard...</p>
               )}
             </CardContent>
           </Card>
@@ -386,35 +386,35 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0d0d15] text-white">
+    <div className="min-h-screen flex flex-col bg-canvas text-white">
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
         <div className="max-w-3xl mx-auto">
           <Link
             href="/creator"
-            className="inline-flex items-center gap-2 text-[#4a4a6a] hover:text-[#ffff00] mb-6 transition-colors font-arcade text-sm"
+            className="inline-flex items-center gap-2 text-text-secondary hover:text-arcade-yellow mb-6 transition-colors font-arcade text-sm"
           >
             <ChevronLeft className="h-4 w-4" />
             BACK_TO_DASHBOARD
           </Link>
 
-          <div className="mb-8 border-b-2 border-[#4a4a6a] pb-8">
+          <div className="mb-8 border-b-2 border-border-strong pb-8">
             <div className="mb-2 flex items-center gap-2">
-              <Gamepad2 className="h-5 w-5 text-[#ffff00]" />
-              <span className="text-[#ffff00] font-arcade text-sm">GAME.MANAGER</span>
+              <Gamepad2 className="h-5 w-5 text-arcade-yellow" />
+              <span className="text-arcade-yellow font-arcade text-sm">GAME.MANAGER</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white font-arcade uppercase">
               Edit Game
             </h1>
-            <p className="text-[#8b93a6] mt-2 font-arcade text-xs uppercase">
+            <p className="text-text-secondary mt-2 font-arcade text-xs uppercase">
               Update your game details and assets
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="p-4 border-2 border-[#ff0040] bg-[#ff0040]/10 text-[#ff0040] flex items-center gap-3 text-sm font-arcade">
+              <div className="p-4 border-2 border-arcade-red bg-arcade-red/10 text-arcade-red flex items-center gap-3 text-sm font-arcade">
                 <AlertCircle className="h-5 w-5 flex-shrink-0" />
                 {error.toUpperCase()}
               </div>
@@ -423,7 +423,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
             <Card variant="arcade">
               <CardHeader variant="arcade">
                 <CardTitle className="font-arcade text-sm text-white">CHANGE THUMBNAIL (OPTIONAL)</CardTitle>
-                <CardDescription className="font-arcade text-xs text-[#8b93a6]">
+                <CardDescription className="font-arcade text-xs text-text-secondary">
                   Upload a new thumbnail image. Max 5MB | PNG, JPG, GIF, or WebP
                 </CardDescription>
               </CardHeader>
@@ -432,10 +432,10 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                   {...getThumbnailRootProps()}
                   className={`border-3 border-dashed p-5 sm:p-6 text-center cursor-pointer transition-all ${
                     isThumbnailDragActive
-                      ? "border-[#ffff00] bg-[#ffff00]/10"
+                      ? "border-arcade-yellow bg-arcade-yellow/10"
                       : thumbnailFile
-                      ? "border-[#00ff40] bg-[#00ff40]/10"
-                      : "border-[#4a4a6a] hover:border-[#ffff00]"
+                      ? "border-arcade-green bg-arcade-green/10"
+                      : "border-border-strong hover:border-arcade-yellow"
                   }`}
                 >
                   <input {...getThumbnailInputProps()} />
@@ -447,18 +447,19 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                         width={512}
                         height={288}
                         unoptimized
-                        className="max-h-48 w-auto rounded-none border-2 border-[#4a4a6a]"
+                        className="max-h-48 w-auto rounded-none border-2 border-border-strong"
                       />
                       <div className="flex items-center gap-3 font-arcade">
                         <p className="text-sm text-white">{thumbnailFile?.name}</p>
                         <button
                           type="button"
+                          aria-label="Remove selected thumbnail"
                           onClick={(e) => {
                             e.stopPropagation()
                             setThumbnailFile(null)
                             setThumbnailPreview(null)
                           }}
-                          className="p-1 text-[#4a4a6a] hover:text-white cursor-pointer"
+                          className="p-1 text-text-secondary hover:text-white cursor-pointer"
                         >
                           <X className="h-5 w-5" />
                         </button>
@@ -472,19 +473,19 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                         width={512}
                         height={288}
                         unoptimized
-                        className="max-h-48 w-auto rounded-none border-2 border-[#4a4a6a] opacity-60"
+                        className="max-h-48 w-auto rounded-none border-2 border-border-strong opacity-60"
                       />
-                      <p className="text-[#8b93a6] text-xs font-arcade uppercase">
+                      <p className="text-text-secondary text-xs font-arcade uppercase">
                         Current thumbnail - drag a new image to replace
                       </p>
                     </div>
                   ) : (
                     <>
-                      <ImageIcon className="h-8 w-8 text-[#4a4a6a] mx-auto mb-2" />
+                      <ImageIcon className="h-8 w-8 text-text-secondary mx-auto mb-2" />
                       <p className="text-white font-arcade text-xs sm:text-sm mb-1 uppercase font-bold">
                         Drag and drop a thumbnail image
                       </p>
-                      <p className="text-[#8b93a6] text-xs font-arcade uppercase">Max 5MB | PNG, JPG, GIF, or WebP</p>
+                      <p className="text-text-secondary text-xs font-arcade uppercase">Max 5MB | PNG, JPG, GIF, or WebP</p>
                     </>
                   )}
                 </div>
@@ -494,7 +495,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
             <Card variant="arcade">
               <CardHeader variant="arcade">
                 <CardTitle className="font-arcade text-sm text-white">REPLACE GAME FILE (OPTIONAL)</CardTitle>
-                <CardDescription className="font-arcade text-xs text-[#8b93a6]">
+                <CardDescription className="font-arcade text-xs text-text-secondary">
                   Upload a new .zip or .html version. Old game assets are removed after replacement to save storage.
                 </CardDescription>
               </CardHeader>
@@ -503,40 +504,41 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                   {...getGameRootProps()}
                   className={`border-3 border-dashed rounded-none p-5 sm:p-6 text-center cursor-pointer transition-all ${
                     isGameDragActive
-                      ? "border-[#ffff00] bg-[#ffff00]/10"
+                      ? "border-arcade-yellow bg-arcade-yellow/10"
                       : gameFile
-                      ? "border-[#00ff40] bg-[#00ff40]/10"
-                      : "border-[#4a4a6a] hover:border-[#ffff00]"
+                      ? "border-arcade-green bg-arcade-green/10"
+                      : "border-border-strong hover:border-arcade-yellow"
                   }`}
                 >
                   <input {...getGameInputProps()} />
                   {gameFile ? (
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                      <FileArchive className="h-10 w-10 text-[#00ff40]" />
+                      <FileArchive className="h-10 w-10 text-arcade-green" />
                       <div className="text-center sm:text-left min-w-0">
                         <p className="font-arcade text-sm text-white break-all">{gameFile.name}</p>
-                        <p className="text-xs text-[#8b93a6] font-arcade">
+                        <p className="text-xs text-text-secondary font-arcade">
                           {(gameFile.size / 1024 / 1024).toFixed(2)} MB
                         </p>
                       </div>
                       <button
                         type="button"
+                        aria-label="Remove selected game file"
                         onClick={(e) => {
                           e.stopPropagation()
                           setGameFile(null)
                         }}
-                        className="p-1 text-[#4a4a6a] hover:text-white cursor-pointer"
+                        className="p-1 text-text-secondary hover:text-white cursor-pointer"
                       >
                         <X className="h-5 w-5" />
                       </button>
                     </div>
                   ) : (
                     <>
-                      <Upload className="h-8 w-8 text-[#4a4a6a] mx-auto mb-2" />
+                      <Upload className="h-8 w-8 text-text-secondary mx-auto mb-2" />
                       <p className="text-white font-arcade text-xs sm:text-sm mb-1 uppercase font-bold">
                         Drag and drop to replace your game build
                       </p>
-                      <p className="text-[#8b93a6] text-xs font-arcade uppercase">Max 50MB | .zip or .html</p>
+                      <p className="text-text-secondary text-xs font-arcade uppercase">Max 50MB | .zip or .html</p>
                     </>
                   )}
                 </div>
@@ -546,7 +548,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
             <Card variant="arcade">
               <CardHeader variant="arcade">
                 <CardTitle className="font-arcade text-sm text-white">GAME DETAILS</CardTitle>
-                <CardDescription className="font-arcade text-xs text-[#8b93a6]">
+                <CardDescription className="font-arcade text-xs text-text-secondary">
                   Update information about your game
                 </CardDescription>
               </CardHeader>
@@ -653,7 +655,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                   />
                 </div>
 
-                <div className="border-2 border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-3">
+                <div className="border-2 border-border-strong bg-surface-2 p-3">
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
@@ -665,17 +667,17 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                           mobileOrientation: e.target.checked ? formData.mobileOrientation as "BOTH" | "PORTRAIT" | "LANDSCAPE" : "BOTH",
                         })
                       }
-                      className="h-5 w-5 border-[3px] border-[var(--color-border-strong)] bg-[var(--color-base)] text-[var(--color-arcade-yellow)] focus:ring-[var(--color-arcade-yellow)] accent-[var(--color-arcade-yellow)]"
+                      className="h-5 w-5 border-[3px] border-border-strong bg-canvas text-arcade-yellow focus:ring-arcade-yellow accent-arcade-yellow"
                     />
                     <div>
-                      <p className="text-sm font-medium text-[var(--color-text)] font-arcade">SUPPORTS MOBILE DEVICES</p>
-                      <p className="text-xs text-[var(--color-text-secondary)] font-arcade text-[10px]">SHOW PLAYERS THAT THIS GAME IS PLAYABLE ON MOBILE</p>
+                      <p className="text-sm font-medium text-text font-arcade">SUPPORTS MOBILE DEVICES</p>
+                      <p className="text-xs text-text-secondary font-arcade text-xs">SHOW PLAYERS THAT THIS GAME IS PLAYABLE ON MOBILE</p>
                     </div>
                   </label>
                 </div>
 
                 {formData.supportsMobile && (
-                  <div className="border-2 border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-3 space-y-2">
+                  <div className="border-2 border-border-strong bg-surface-2 p-3 space-y-2">
                     <Label variant="arcade">Mobile orientation</Label>
                     <Select
                       value={formData.mobileOrientation}
@@ -694,26 +696,26 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-[var(--color-text-secondary)] font-arcade text-[10px]">
+                    <p className="text-xs text-text-secondary font-arcade text-xs">
                       CHOOSE WHETHER THE FULLSCREEN GAME SHOULD RUN IN PORTRAIT, LANDSCAPE, OR BOTH ON MOBILE.
                     </p>
                   </div>
                 )}
 
-                <details className="border-2 border-[var(--color-border-strong)] bg-[var(--color-surface-2)]">
+                <details className="border-2 border-border-strong bg-surface-2">
                   <summary className="cursor-pointer list-none px-4 py-3 font-arcade">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm font-medium text-[var(--color-text)]">ADVANCED SETTINGS</p>
-                        <p className="text-xs text-[var(--color-text-secondary)] font-arcade text-[10px]">
+                        <p className="text-sm font-medium text-text">ADVANCED SETTINGS</p>
+                        <p className="text-xs text-text-secondary font-arcade text-xs">
                           OPTIONAL DISCOVERY, CREATOR, AND COMMUNITY FEATURES.
                         </p>
                       </div>
-                      <span className="text-xs text-[#8b93a6]">[OPTIONAL]</span>
+                      <span className="text-xs text-text-secondary">[OPTIONAL]</span>
                     </div>
                   </summary>
 
-                  <div className="space-y-4 border-t-2 border-[var(--color-border-strong)] px-4 py-4">
+                  <div className="space-y-4 border-t-2 border-border-strong px-4 py-4">
                     <div className="space-y-2">
                       <Label variant="arcade">Launch / update note</Label>
                       <Textarea
@@ -723,12 +725,12 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                         placeholder="What changed, what should players notice, or what kind of feedback do you want?"
                         maxLength={280}
                       />
-                      <p className="text-xs text-[var(--color-text-secondary)] font-arcade text-[10px]">
+                      <p className="text-xs text-text-secondary font-arcade text-xs">
                         SHOWN ON THE PLAY PAGE AND CREATOR PORTFOLIO SO YOUR PROFILE FEELS ACTIVE.
                       </p>
                     </div>
 
-                    <div className="border-2 border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-3">
+                    <div className="border-2 border-border-strong bg-surface-2 p-3">
                       <label className="flex items-center gap-3 cursor-pointer">
                         <input
                           type="checkbox"
@@ -736,16 +738,16 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                           onChange={(e) =>
                             setFormData({ ...formData, seekingFeedback: e.target.checked })
                           }
-                          className="h-5 w-5 border-[3px] border-[var(--color-border-strong)] bg-[var(--color-base)] text-[var(--color-arcade-yellow)] focus:ring-[var(--color-arcade-yellow)] accent-[var(--color-arcade-yellow)]"
+                          className="h-5 w-5 border-[3px] border-border-strong bg-canvas text-arcade-yellow focus:ring-arcade-yellow accent-arcade-yellow"
                         />
                         <div>
-                          <p className="text-sm font-medium text-[var(--color-text)] font-arcade">PUT THIS IN THE FEEDBACK LANE</p>
-                          <p className="text-xs text-[var(--color-text-secondary)] font-arcade text-[10px]">ONLY ONE OF YOUR GAMES CAN BE MARKED THIS WAY AT A TIME, WHICH HELPS SMALLER LAUNCHES GET EYES QUICKLY.</p>
+                          <p className="text-sm font-medium text-text font-arcade">PUT THIS IN THE FEEDBACK LANE</p>
+                          <p className="text-xs text-text-secondary font-arcade text-xs">ONLY ONE OF YOUR GAMES CAN BE MARKED THIS WAY AT A TIME, WHICH HELPS SMALLER LAUNCHES GET EYES QUICKLY.</p>
                         </div>
                       </label>
                     </div>
 
-                    <div className="border-2 border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-3">
+                    <div className="border-2 border-border-strong bg-surface-2 p-3">
                       <label className="flex items-center gap-3 cursor-pointer">
                         <input
                           type="checkbox"
@@ -753,25 +755,25 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                           onChange={(e) =>
                             setFormData({ ...formData, hasLevelEditor: e.target.checked })
                           }
-                          className="h-5 w-5 border-[3px] border-[var(--color-border-strong)] bg-[var(--color-base)] text-[var(--color-arcade-yellow)] focus:ring-[var(--color-arcade-yellow)] accent-[var(--color-arcade-yellow)]"
+                          className="h-5 w-5 border-[3px] border-border-strong bg-canvas text-arcade-yellow focus:ring-arcade-yellow accent-arcade-yellow"
                         />
                         <div>
-                          <p className="text-sm font-medium text-[var(--color-text)] font-arcade">COMMUNITY LEVEL EDITOR</p>
-                          <p className="text-xs text-[var(--color-text-secondary)] font-arcade text-[10px]">TURN THIS GAME INTO A REMIXABLE PLAYGROUND WHERE PLAYERS CAN BUILD, SAVE, RATE, AND SHARE CUSTOM LEVELS.</p>
+                          <p className="text-sm font-medium text-text font-arcade">COMMUNITY LEVEL EDITOR</p>
+                          <p className="text-xs text-text-secondary font-arcade text-xs">TURN THIS GAME INTO A REMIXABLE PLAYGROUND WHERE PLAYERS CAN BUILD, SAVE, RATE, AND SHARE CUSTOM LEVELS.</p>
                         </div>
                       </label>
                     </div>
 
                     {formData.hasLevelEditor && (
                       <div className="space-y-2 font-arcade text-xs">
-                        <p className="text-[#8b93a6] text-[10px]">
+                        <p className="text-text-secondary text-xs">
                           LEVEL EDITOR IS FOR GAMES WHERE PLAYERS SHOULD BUILD AND SHARE CUSTOM STAGES.
                         </p>
                         <LevelEditorSetupGuide />
                       </div>
                     )}
 
-                    <div className="border-2 border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-3">
+                    <div className="border-2 border-border-strong bg-surface-2 p-3">
                       <label className="flex items-center gap-3 cursor-pointer">
                         <input
                           type="checkbox"
@@ -779,18 +781,18 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                           onChange={(e) =>
                             setFormData({ ...formData, hasGhostSharing: e.target.checked })
                           }
-                          className="h-5 w-5 border-[3px] border-[var(--color-border-strong)] bg-[var(--color-base)] text-[var(--color-arcade-yellow)] focus:ring-[var(--color-arcade-yellow)] accent-[var(--color-arcade-yellow)]"
+                          className="h-5 w-5 border-[3px] border-border-strong bg-canvas text-arcade-yellow focus:ring-arcade-yellow accent-arcade-yellow"
                         />
                         <div>
-                          <p className="text-sm font-medium text-[var(--color-text)] font-arcade">GHOST RACES + TIME LEADERBOARD</p>
-                          <p className="text-xs text-[var(--color-text-secondary)] font-arcade text-[10px]">BEST FOR GAMES THAT CAN DETERMINISTICALLY REPLAY A RUN FROM STRUCTURED DATA. PLAYERS CAN RACE GHOSTS AND CLIMB A TIME BOARD.</p>
+                          <p className="text-sm font-medium text-text font-arcade">GHOST RACES + TIME LEADERBOARD</p>
+                          <p className="text-xs text-text-secondary font-arcade text-xs">BEST FOR GAMES THAT CAN DETERMINISTICALLY REPLAY A RUN FROM STRUCTURED DATA. PLAYERS CAN RACE GHOSTS AND CLIMB A TIME BOARD.</p>
                         </div>
                       </label>
                     </div>
 
                     {formData.hasGhostSharing && (
                       <div className="space-y-2 font-arcade text-xs">
-                        <p className="text-[#8b93a6] text-[10px]">
+                        <p className="text-text-secondary text-xs">
                           GHOST RACES ARE SEPARATE FROM LEVEL EDITOR AND WORK FOR ANY GAME WITH DETERMINISTIC REPLAY DATA.
                         </p>
                         <GhostSharingSetupGuide />

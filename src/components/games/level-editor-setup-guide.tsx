@@ -165,33 +165,33 @@ export function LevelEditorSetupGuide() {
   }
 
   return (
-    <div className="space-y-4 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+    <div className="space-y-4 rounded-md border border-border bg-surface p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-[var(--color-text)]">Level Editor 2.0 Setup</p>
-          <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
+          <p className="text-sm font-semibold text-text">Level Editor 2.0 Setup</p>
+          <p className="mt-1 text-xs text-text-secondary">
             Use this when you want players to build, save, test, and share custom stages inside the game.
           </p>
         </div>
-        <Sparkles className="mt-0.5 h-4 w-4 text-[var(--color-primary)]" />
+        <Sparkles className="mt-0.5 h-4 w-4 text-primary-text" />
       </div>
 
       <div className="grid gap-3 md:grid-cols-3">
-        <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
-          <p className="text-[11px] font-semibold text-[var(--color-primary)]">Great fit</p>
-          <p className="mt-2 text-xs text-[var(--color-text-secondary)]">
+        <div className="rounded-md border border-border bg-canvas p-3">
+          <p className="text-xs font-semibold text-primary-text">Great fit</p>
+          <p className="mt-2 text-xs text-text-secondary">
             Platformers, puzzle games, racing tracks, tower defense, wave-based shooters, and games with obvious stage data.
           </p>
         </div>
-        <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
-          <p className="text-[11px] font-semibold text-[var(--color-text)]">Possible fit</p>
-          <p className="mt-2 text-xs text-[var(--color-text-secondary)]">
+        <div className="rounded-md border border-border bg-canvas p-3">
+          <p className="text-xs font-semibold text-text">Possible fit</p>
+          <p className="mt-2 text-xs text-text-secondary">
             Score chasers or arcade loops if players can still edit layouts, waves, checkpoints, or obstacle sets.
           </p>
         </div>
-        <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
-          <p className="text-[11px] font-semibold text-[var(--color-text)]">Usually weak fit</p>
-          <p className="mt-2 text-xs text-[var(--color-text-secondary)]">
+        <div className="rounded-md border border-border bg-canvas p-3">
+          <p className="text-xs font-semibold text-text">Usually weak fit</p>
+          <p className="mt-2 text-xs text-text-secondary">
             Pure narrative, trivia, or toy experiences with no real stage structure.
           </p>
         </div>
@@ -200,8 +200,8 @@ export function LevelEditorSetupGuide() {
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <p className="text-xs font-medium text-[var(--color-text)]">Quick prompt for your coding AI</p>
-            <p className="text-[11px] text-[var(--color-text-secondary)]">
+            <p className="text-xs font-medium text-text">Quick prompt for your coding AI</p>
+            <p className="text-xs text-text-secondary">
               This pushes the model to inspect the real game first, identify the actual level shape, and patch carefully.
             </p>
           </div>
@@ -213,10 +213,10 @@ export function LevelEditorSetupGuide() {
         <Textarea readOnly value={LEVEL_EDITOR_QUICK_PROMPT} className="min-h-[260px] text-xs" />
       </div>
 
-      <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
+      <div className="rounded-md border border-border bg-canvas p-3">
         <div className="mb-3 flex items-center gap-2">
-          <Wand2 className="h-4 w-4 text-[var(--color-primary)]" />
-          <p className="text-xs font-medium text-[var(--color-text)]">Optional genre boosters</p>
+          <Wand2 className="h-4 w-4 text-primary-text" />
+          <p className="text-xs font-medium text-text">Optional genre boosters</p>
         </div>
         <div className="grid gap-3 md:grid-cols-3">
           {[
@@ -224,9 +224,9 @@ export function LevelEditorSetupGuide() {
             { key: "puzzle" as const, title: "Puzzle / grid", value: PUZZLE_GRID_ADDON },
             { key: "racing" as const, title: "Racing / path", value: RACING_PATH_ADDON },
           ].map((item) => (
-            <div key={item.key} className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
+            <div key={item.key} className="rounded-md border border-border bg-surface p-3">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-[11px] font-medium text-[var(--color-text)]">{item.title}</p>
+                <p className="text-xs font-medium text-text">{item.title}</p>
                 <Button type="button" size="sm" variant="outline" onClick={() => void copy(item.key)}>
                   {copied === item.key ? <Check className="mr-1 h-4 w-4" /> : <Copy className="mr-1 h-4 w-4" />}
                   {copied === item.key ? "Copied" : "Copy"}
@@ -238,8 +238,8 @@ export function LevelEditorSetupGuide() {
         </div>
       </div>
 
-      <details className="rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
-        <summary className="cursor-pointer text-xs font-medium text-[var(--color-text)]">
+      <details className="rounded-md border border-border bg-canvas p-3">
+        <summary className="cursor-pointer text-xs font-medium text-text">
           Advanced prompt for tricky games
         </summary>
         <div className="mt-3 space-y-2">
@@ -253,13 +253,13 @@ export function LevelEditorSetupGuide() {
         </div>
       </details>
 
-      <details className="rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
-        <summary className="cursor-pointer text-xs font-medium text-[var(--color-text)]">
+      <details className="rounded-md border border-border bg-canvas p-3">
+        <summary className="cursor-pointer text-xs font-medium text-text">
           Manual hook snippet
         </summary>
         <div className="mt-3 space-y-2">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-[11px] text-[var(--color-text-secondary)]">
+            <div className="flex items-center gap-2 text-xs text-text-secondary">
               <Code2 className="h-4 w-4" />
               Paste this near the end of the main game script.
             </div>
@@ -272,7 +272,7 @@ export function LevelEditorSetupGuide() {
         </div>
       </details>
 
-      <p className="text-[11px] text-[var(--color-text-tertiary)]">
+      <p className="text-xs text-text-tertiary">
         VibeGames injects the SDK automatically when level editor is enabled. Your game still needs to call the hooks above so the editor shell can load and save community levels.
       </p>
     </div>

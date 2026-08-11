@@ -22,13 +22,13 @@ interface PageProps {
 function getJamBadgeClasses(status: string) {
   switch (status) {
     case "ACTIVE":
-      return "border-[#00ff40]/30 bg-[#00ff40]/10 text-[#00ff40]"
+      return "border-arcade-green/30 bg-arcade-green/10 text-arcade-green"
     case "VOTING":
-      return "border-[#ffff00]/30 bg-[#ffff00]/10 text-[#ffff00]"
+      return "border-arcade-yellow/30 bg-arcade-yellow/10 text-arcade-yellow"
     case "UPCOMING":
-      return "border-[#00d4ff]/30 bg-[#00d4ff]/10 text-[#00d4ff]"
+      return "border-arcade-cyan/30 bg-arcade-cyan/10 text-arcade-cyan"
     default:
-      return "border-[#b0b0d0]/30 bg-[#b0b0d0]/10 text-[#b0b0d0]"
+      return "border-text-secondary/30 bg-surface-2/10 text-text-secondary"
   }
 }
 
@@ -200,34 +200,34 @@ export default async function StudioPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+    <div className="min-h-screen flex flex-col bg-canvas">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(studioJsonLd) }} />
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
-        <Link href="/games" className="inline-flex items-center gap-2 text-[#4a4a6a] hover:text-[#ffff00] mb-6 transition-colors font-arcade text-sm">
+        <Link href="/games" className="inline-flex items-center gap-2 text-text-secondary hover:text-arcade-yellow mb-6 transition-colors font-arcade text-sm">
           <ChevronLeft className="h-4 w-4" />
           BACK TO GAMES
         </Link>
 
-        <section className="mb-8 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 sm:p-6">
+        <section className="mb-8 border-2 border-border-strong bg-surface-2 p-5 sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16 border-2 border-[#4a4a6a]">
+              <Avatar className="h-16 w-16 border-2 border-border-strong">
                 <AvatarImage src={studio.image || undefined} />
-                <AvatarFallback className="bg-[#0d0d15] text-[#4a4a6a]">
+                <AvatarFallback className="bg-canvas text-text-secondary">
                   {getInitials(studio.displayName || "S")}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <div className="inline-flex items-center gap-2 mb-1">
-                  <Building2 className="h-4 w-4 text-[#ffff00]" />
-                  <span className="font-pixel text-[10px] text-[#ffff00]">STUDIO PROFILE</span>
+                  <Building2 className="h-4 w-4 text-arcade-yellow" />
+                  <span className="text-kicker text-arcade-yellow">STUDIO PROFILE</span>
                 </div>
-                <h1 className="font-pixel text-sm text-white">{studio.displayName}</h1>
-                <p className="font-arcade text-sm text-[#ffff00]">@{studio.handle}</p>
+                <h1 className="heading-pixel-sm text-white">{studio.displayName}</h1>
+                <p className="font-arcade text-sm text-arcade-yellow">@{studio.handle}</p>
                 {studio.currentlyBuilding && (
-                  <p className="mt-2 font-arcade text-xs text-[#c9d1ff]">Currently building: {studio.currentlyBuilding}</p>
+                  <p className="mt-2 font-arcade text-xs text-text-secondary">Currently building: {studio.currentlyBuilding}</p>
                 )}
               </div>
             </div>
@@ -241,51 +241,51 @@ export default async function StudioPage({ params }: PageProps) {
           </div>
 
           <div className="mt-5 grid gap-3 md:grid-cols-3">
-            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+            <div className="border border-border-strong bg-canvas p-3">
               <div className="flex items-center gap-2">
-                <Trophy className="h-4 w-4 text-[#ffff00]" />
-                <span className="font-arcade text-[11px] text-[#ffff00]">FEATURED TITLE</span>
+                <Trophy className="h-4 w-4 text-arcade-yellow" />
+                <span className="font-arcade text-xs text-arcade-yellow">FEATURED TITLE</span>
               </div>
               <p className="mt-2 font-arcade text-sm text-white">{topGame?.title || "Launching soon"}</p>
             </div>
-            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+            <div className="border border-border-strong bg-canvas p-3">
               <div className="flex items-center gap-2">
-                <Smartphone className="h-4 w-4 text-[#22c55e]" />
-                <span className="font-arcade text-[11px] text-[#22c55e]">MOBILE READY</span>
+                <Smartphone className="h-4 w-4 text-success" />
+                <span className="font-arcade text-xs text-success">MOBILE READY</span>
               </div>
               <p className="mt-2 font-arcade text-sm text-white">{mobileReadyGames} live games</p>
             </div>
-            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+            <div className="border border-border-strong bg-canvas p-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-[#00d1ff]" />
-                <span className="font-arcade text-[11px] text-[#00d1ff]">SHARE THIS STUDIO</span>
+                <Sparkles className="h-4 w-4 text-arcade-cyan" />
+                <span className="font-arcade text-xs text-arcade-cyan">SHARE THIS STUDIO</span>
               </div>
               <p className="mt-2 font-arcade text-sm text-white">Use this page as the hub for your best launches.</p>
             </div>
           </div>
 
           <div className="mt-3 grid gap-3 md:grid-cols-4">
-            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
-              <p className="font-arcade text-[11px] text-[#8b93a6]">TOTAL LAUNCHES</p>
+            <div className="border border-border-strong bg-canvas p-3">
+              <p className="font-arcade text-xs text-text-secondary">TOTAL LAUNCHES</p>
               <p className="mt-2 font-arcade text-sm text-white">{normalizedGames.length}</p>
             </div>
-            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
-              <p className="font-arcade text-[11px] text-[#8b93a6]">FEATURED PICKS</p>
+            <div className="border border-border-strong bg-canvas p-3">
+              <p className="font-arcade text-xs text-text-secondary">FEATURED PICKS</p>
               <p className="mt-2 font-arcade text-sm text-white">{featuredPicks}</p>
             </div>
-            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
-              <p className="font-arcade text-[11px] text-[#8b93a6]">JAM ENTRIES</p>
+            <div className="border border-border-strong bg-canvas p-3">
+              <p className="font-arcade text-xs text-text-secondary">JAM ENTRIES</p>
               <p className="mt-2 font-arcade text-sm text-white">{jamEntries}</p>
             </div>
-            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
-              <p className="font-arcade text-[11px] text-[#8b93a6]">LAST UPDATED</p>
+            <div className="border border-border-strong bg-canvas p-3">
+              <p className="font-arcade text-xs text-text-secondary">LAST UPDATED</p>
               <p className="mt-2 font-arcade text-sm text-white">{lastUpdatedGame?.title || "No updates yet"}</p>
             </div>
           </div>
 
           {recentJams.length > 0 && (
-            <div className="mt-3 border border-[#4a4a6a] bg-[#0d0d15] p-3">
-              <p className="font-arcade text-[11px] text-[#ff7a00]">RECENT JAMS</p>
+            <div className="mt-3 border border-border-strong bg-canvas p-3">
+              <p className="font-arcade text-xs text-arcade-orange">RECENT JAMS</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {recentJams.map((jam) => {
                   const liveStatus = getLiveJamStatus(jam)
@@ -293,7 +293,7 @@ export default async function StudioPage({ params }: PageProps) {
                     <Link
                       key={jam.slug}
                       href={`/jams/${jam.slug}`}
-                      className={`inline-flex items-center rounded border px-2 py-1 font-arcade text-[10px] transition-colors hover:text-white ${getJamBadgeClasses(liveStatus)}`}
+                      className={`inline-flex items-center rounded border px-2 py-1 font-arcade text-xs transition-colors hover:text-white ${getJamBadgeClasses(liveStatus)}`}
                     >
                       {jam.title}
                     </Link>
@@ -304,13 +304,13 @@ export default async function StudioPage({ params }: PageProps) {
           )}
 
           {(studio.bio || toolsUsed.length > 0 || lastUpdatedGame?.latestUpdateNote) && (
-            <div className="mt-3 border border-[#4a4a6a] bg-[#0d0d15] p-3">
+            <div className="mt-3 border border-border-strong bg-canvas p-3">
               {studio.bio && <p className="font-arcade text-sm text-white">{studio.bio}</p>}
               {toolsUsed.length > 0 && (
-                <p className="mt-2 font-arcade text-xs text-[#00d1ff]">Common tools: {toolsUsed.join(" • ")}</p>
+                <p className="mt-2 font-arcade text-xs text-arcade-cyan">Common tools: {toolsUsed.join(" • ")}</p>
               )}
               {lastUpdatedGame?.latestUpdateNote && (
-                <p className="mt-2 font-arcade text-xs text-[#8b93a6]">Latest note: {lastUpdatedGame.latestUpdateNote}</p>
+                <p className="mt-2 font-arcade text-xs text-text-secondary">Latest note: {lastUpdatedGame.latestUpdateNote}</p>
               )}
             </div>
           )}
@@ -318,7 +318,7 @@ export default async function StudioPage({ params }: PageProps) {
 
         <section>
           <div className="mb-5 flex items-center justify-between gap-3">
-            <h2 className="font-pixel text-sm text-white">ALL GAMES [{normalizedGames.length}]</h2>
+            <h2 className="heading-pixel-sm text-white">ALL GAMES [{normalizedGames.length}]</h2>
           </div>
 
           {normalizedGames.length > 0 ? (
@@ -328,9 +328,9 @@ export default async function StudioPage({ params }: PageProps) {
                ))}
             </div>
           ) : (
-            <div className="text-center py-14 border-2 border-dashed border-[#4a4a6a]">
-              <Gamepad2 className="h-12 w-12 text-[#4a4a6a] mx-auto mb-3" />
-              <p className="font-arcade text-[#4a4a6a]">No published games yet.</p>
+            <div className="text-center py-14 border-2 border-dashed border-border-strong">
+              <Gamepad2 className="h-12 w-12 text-text-secondary mx-auto mb-3" />
+              <p className="font-arcade text-text-secondary">No published games yet.</p>
             </div>
           )}
         </section>

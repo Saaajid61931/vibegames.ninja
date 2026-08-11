@@ -17,15 +17,15 @@ export default function ErrorPage({
   }, [error])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0d0d15] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-canvas px-4">
       <div className="text-center max-w-md">
-        <AlertTriangle className="h-16 w-16 text-[#ff0040] mx-auto mb-6" />
+        <AlertTriangle className="h-16 w-16 text-arcade-red mx-auto mb-6" />
         <h1 className="font-arcade text-2xl text-white mb-3">SYSTEM_ERROR</h1>
-        <p className="font-arcade text-sm text-[#4a4a6a] mb-2">
+        <p className="font-arcade text-sm text-text-secondary mb-2">
           Something went wrong while loading this page.
         </p>
         {error.digest && (
-          <p className="font-arcade text-[10px] text-[#4a4a6a] mb-6">
+          <p className="font-arcade text-xs text-text-secondary mb-6">
             Error ID: {error.digest}
           </p>
         )}

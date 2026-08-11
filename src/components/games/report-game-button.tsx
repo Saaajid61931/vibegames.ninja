@@ -82,7 +82,7 @@ export function ReportGameButton({ gameId, gameTitle }: ReportGameButtonProps) {
         type="button"
         variant="ghost"
         size="sm"
-        className="h-auto gap-2 px-0 py-1 text-xs text-[var(--color-text-tertiary)] hover:bg-transparent hover:text-white"
+        className="h-auto gap-2 px-0 py-1 text-xs text-text-tertiary hover:bg-transparent hover:text-white"
         onClick={() => setOpen(true)}
       >
         <Flag className="h-4 w-4" />
@@ -92,9 +92,9 @@ export function ReportGameButton({ gameId, gameTitle }: ReportGameButtonProps) {
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 px-4 py-6">
           <div className="vg-panel w-full max-w-lg shadow-2xl" role="dialog" aria-modal="true" aria-labelledby={`${descriptionId}-title`}>
-            <div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-4">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-[#facc15]">Safety report</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-arcade-yellow">Safety report</p>
                 <h2 id={`${descriptionId}-title`} className="mt-1 text-lg font-semibold text-white">Report {gameTitle}</h2>
               </div>
               <Button type="button" variant="ghost" size="icon" onClick={close} aria-label="Close report dialog">
@@ -134,11 +134,11 @@ export function ReportGameButton({ gameId, gameTitle }: ReportGameButtonProps) {
                   className="min-h-32 text-sm"
                   disabled={submitting || Boolean(success)}
                 />
-                <p className="text-right text-xs text-[var(--color-text-tertiary)]">{description.length}/500</p>
+                <p className="text-right text-xs text-text-tertiary">{description.length}/500</p>
               </div>
 
-              {error && <p className="text-sm text-[#ff8aa8]">{error}</p>}
-              {success && <p className="text-sm text-[#6ee7a0]">{success}</p>}
+              {error && <p className="text-sm text-danger-text">{error}</p>}
+              {success && <p className="text-sm text-success-text">{success}</p>}
 
               <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <Button type="button" variant="outline" onClick={close}>

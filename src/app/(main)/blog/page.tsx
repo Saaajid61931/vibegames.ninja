@@ -50,22 +50,22 @@ export default function BlogPage() {
     : filteredPosts;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0d0d15] text-white">
+    <div className="min-h-screen flex flex-col bg-canvas text-white">
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-8 sm:py-12">
         <div className="max-w-6xl mx-auto">
           
           {/* Page Title Header */}
-          <div className="mb-10 border-b-2 border-[#4a4a6a] pb-8 text-center sm:text-left">
+          <div className="mb-10 border-b-2 border-border-strong pb-8 text-center sm:text-left">
             <div className="mb-2 flex items-center justify-center sm:justify-start gap-2">
-              <BookOpenCheck className="h-5 w-5 text-[#ffff00]" />
-              <span className="text-[#ffff00] font-arcade text-sm uppercase tracking-wider">VIBE_LOG // Dev & AI Hub</span>
+              <BookOpenCheck className="h-5 w-5 text-arcade-yellow" />
+              <span className="text-arcade-yellow font-arcade text-sm uppercase tracking-wider">VIBE_LOG // Dev & AI Hub</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold font-arcade uppercase text-white tracking-wide">
               Arcade Logs & Guides
             </h1>
-            <p className="text-[#8b93a6] mt-2 font-arcade text-xs uppercase max-w-xl">
+            <p className="text-text-secondary mt-2 font-arcade text-xs uppercase max-w-xl">
               Master the craft of building, styling, and optimizing web games with LLMs, prompt engineering, and platform integrations.
             </p>
           </div>
@@ -78,10 +78,10 @@ export default function BlogPage() {
                 <button
                   key={cat.value}
                   onClick={() => setActiveCategory(cat.value)}
-                  className={`px-4 py-2 border-2 text-xs font-bold font-pixel tracking-wider transition-all uppercase ${
+                  className={`border-2 px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all ${
                     activeCategory === cat.value
-                      ? "border-[var(--color-arcade-yellow)] bg-[var(--color-arcade-yellow)] text-black shadow-[2px_2px_0_#000]"
-                      : "border-[#4a4a6a] bg-[#11111d] text-white hover:border-[var(--color-arcade-yellow)] hover:text-[var(--color-arcade-yellow)]"
+                      ? "border-arcade-yellow bg-arcade-yellow text-black shadow-[2px_2px_0_#000]"
+                      : "border-border-strong bg-surface text-white hover:border-arcade-yellow hover:text-arcade-yellow"
                   }`}
                   id={`tab-${cat.value.toLowerCase()}`}
                 >
@@ -92,7 +92,7 @@ export default function BlogPage() {
 
             {/* Search Input */}
             <div className="relative w-full md:max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8b93a6] pointer-events-none" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary pointer-events-none" />
               <Input
                 variant="arcade"
                 type="text"
@@ -111,11 +111,12 @@ export default function BlogPage() {
               <Card variant="arcade">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 sm:p-6">
                   {/* Featured Image */}
-                  <div className="lg:col-span-7 relative aspect-video w-full overflow-hidden border-3 border-[#4a4a6a]">
+                  <div className="lg:col-span-7 relative aspect-video w-full overflow-hidden border-3 border-border-strong">
                     <Image
                       src={featuredPost.coverImage}
                       alt={featuredPost.title}
                       fill
+                      sizes="(max-width: 1024px) 100vw, 58vw"
                       unoptimized
                       priority
                       className="object-cover transition-transform duration-500 hover:scale-102"
@@ -128,30 +129,30 @@ export default function BlogPage() {
                   {/* Featured Info */}
                   <div className="lg:col-span-5 flex flex-col justify-between py-2">
                     <div className="space-y-4">
-                      <div className="flex items-center gap-4 text-xs font-arcade text-[#8b93a6]">
+                      <div className="flex items-center gap-4 text-xs font-arcade text-text-secondary">
                         <span className="flex items-center gap-1">
-                          <Calendar className="h-3.5 w-3.5 text-[#ffff00]" />
+                          <Calendar className="h-3.5 w-3.5 text-arcade-yellow" />
                           {featuredPost.date}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5 text-[#00ff40]" />
+                          <Clock className="h-3.5 w-3.5 text-arcade-green" />
                           {featuredPost.readTime}
                         </span>
                       </div>
 
-                      <h2 className="text-xl sm:text-2xl font-bold font-arcade uppercase text-white hover:text-[var(--color-arcade-yellow)] transition-colors leading-tight">
+                      <h2 className="text-xl sm:text-2xl font-bold font-arcade uppercase text-white hover:text-arcade-yellow transition-colors leading-tight">
                         <Link href={`/blog/${featuredPost.slug}`}>
                           {featuredPost.title}
                         </Link>
                       </h2>
 
-                      <p className="text-[#8b93a6] text-xs font-arcade leading-relaxed">
+                      <p className="text-text-secondary text-xs font-arcade leading-relaxed">
                         {featuredPost.excerpt}
                       </p>
 
                       <div className="flex flex-wrap gap-2 pt-2">
                         {featuredPost.tags.map((tag) => (
-                          <span key={tag} className="inline-flex items-center gap-1 text-[10px] font-pixel text-[var(--color-arcade-yellow)] border border-[var(--color-arcade-yellow)]/30 px-2 py-0.5 bg-[var(--color-arcade-yellow)]/5">
+                          <span key={tag} className="inline-flex items-center gap-1 border border-arcade-yellow/30 bg-arcade-yellow/5 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-arcade-yellow">
                             <Tag className="h-2.5 w-2.5" />
                             {tag.toUpperCase()}
                           </span>
@@ -179,16 +180,17 @@ export default function BlogPage() {
               {gridPosts.map((post) => (
                 <Card variant="arcade" key={post.id} className="flex flex-col h-full">
                   {/* Card Thumbnail */}
-                  <div className="relative aspect-video w-full overflow-hidden border-b-3 border-[#4a4a6a]">
+                  <div className="relative aspect-video w-full overflow-hidden border-b-3 border-border-strong">
                     <Image
                       src={post.coverImage}
                       alt={post.title}
                       fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       unoptimized
                       className="object-cover transition-transform duration-500 hover:scale-102"
                     />
                     <div className="absolute top-2 right-2">
-                      <span className="bg-[#0d0d15] border-2 border-[#4a4a6a] px-2 py-0.5 text-[8px] font-pixel font-bold text-white tracking-wider uppercase">
+                      <span className="border-2 border-border-strong bg-canvas px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-white">
                         {post.category.replace(/_/g, " ")}
                       </span>
                     </div>
@@ -198,26 +200,26 @@ export default function BlogPage() {
                   <CardHeader variant="arcade" className="p-4 flex-1 flex flex-col justify-between">
                     <div className="space-y-3">
                       {/* Meta */}
-                      <div className="flex items-center gap-3 text-[10px] font-arcade text-[#8b93a6]">
+                      <div className="flex items-center gap-3 text-xs font-arcade text-text-secondary">
                         <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3 text-[#ffff00]" />
+                          <Calendar className="h-3 w-3 text-arcade-yellow" />
                           {post.date}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3 text-[#00ff40]" />
+                          <Clock className="h-3 w-3 text-arcade-green" />
                           {post.readTime}
                         </span>
                       </div>
 
                       {/* Title */}
-                      <CardTitle className="font-arcade text-sm text-white hover:text-[var(--color-arcade-yellow)] transition-colors leading-snug line-clamp-2 uppercase">
+                      <CardTitle className="font-arcade text-sm text-white hover:text-arcade-yellow transition-colors leading-snug line-clamp-2 uppercase">
                         <Link href={`/blog/${post.slug}`}>
                           {post.title}
                         </Link>
                       </CardTitle>
 
                       {/* Excerpt */}
-                      <CardDescription className="font-arcade text-xs text-[#8b93a6] leading-relaxed line-clamp-3">
+                      <CardDescription className="font-arcade text-xs text-text-secondary leading-relaxed line-clamp-3">
                         {post.excerpt}
                       </CardDescription>
                     </div>
@@ -226,7 +228,7 @@ export default function BlogPage() {
                       {/* Tags */}
                       <div className="flex flex-wrap gap-1.5">
                         {post.tags.slice(0, 2).map((tag) => (
-                          <span key={tag} className="text-[9px] font-pixel text-[var(--color-arcade-yellow)]/80">
+                          <span key={tag} className="text-xs font-bold uppercase tracking-wide text-arcade-yellow/80">
                             #{tag.toUpperCase()}
                           </span>
                         ))}
@@ -245,10 +247,10 @@ export default function BlogPage() {
             </div>
           ) : (
             /* No Results State */
-            <div className="text-center py-16 border-2 border-dashed border-[#4a4a6a] bg-[#11111d]">
-              <BookOpen className="h-12 w-12 text-[#ff0040] mx-auto mb-4" />
+            <div className="text-center py-16 border-2 border-dashed border-border-strong bg-surface">
+              <BookOpen className="h-12 w-12 text-arcade-red mx-auto mb-4" />
               <h3 className="font-arcade text-lg text-white mb-2 uppercase">No Logs Found</h3>
-              <p className="font-arcade text-xs text-[#8b93a6] uppercase max-w-sm mx-auto">
+              <p className="font-arcade text-xs text-text-secondary uppercase max-w-sm mx-auto">
                 No articles match your search or filter criteria. Try checking another category or clearing your search.
               </p>
               <Button 

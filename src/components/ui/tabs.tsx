@@ -20,11 +20,11 @@ const TabsList = React.forwardRef<
       "inline-flex items-center justify-center gap-1",
       variant === "studio" && [
         "h-10 p-1",
-        "bg-[var(--color-surface-2)] rounded-lg",
+        "bg-surface-2 rounded-lg",
       ],
       variant === "arcade" && [
         "h-12 p-1 gap-2",
-        "bg-[var(--color-surface)] border-[3px] border-[var(--color-border-strong)]",
+        "bg-surface border-[3px] border-border-strong",
       ],
       className
     )}
@@ -45,22 +45,22 @@ const TabsTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       "inline-flex items-center justify-center whitespace-nowrap transition-all",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
       "disabled:pointer-events-none disabled:opacity-50",
       variant === "studio" && [
         "px-3 py-1.5 text-sm font-medium rounded-md",
-        "text-[var(--color-text-secondary)]",
-        "data-[state=active]:bg-[var(--color-surface)]",
-        "data-[state=active]:text-[var(--color-text)]",
+        "text-text-secondary",
+        "data-[state=active]:bg-surface",
+        "data-[state=active]:text-text",
         "data-[state=active]:shadow-sm",
       ],
       variant === "arcade" && [
-        "px-4 py-2 text-[10px] font-bold uppercase tracking-wider font-pixel",
+        "px-4 py-2 text-xs font-bold uppercase tracking-widest font-sans",
         "border-2 border-transparent",
-        "text-[var(--color-text-secondary)]",
-        "data-[state=active]:border-[var(--color-arcade-yellow)]",
-        "data-[state=active]:bg-[var(--color-arcade-yellow)]",
-        "data-[state=active]:text-[var(--color-base)]",
+        "text-text-secondary",
+        "data-[state=active]:border-arcade-yellow",
+        "data-[state=active]:bg-arcade-yellow",
+        "data-[state=active]:text-canvas",
         "data-[state=active]:shadow-[2px_2px_0_var(--color-primary)]",
       ],
       className
@@ -77,7 +77,7 @@ const TabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     className={cn(
-      "mt-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]",
+      "mt-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
       className
     )}
     {...props}

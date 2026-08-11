@@ -3,6 +3,7 @@ import { Play, Heart, User, Smartphone, SquarePen, Trophy } from "lucide-react"
 import { GameThumbnailSlideshow } from "@/components/games/game-thumbnail-slideshow"
 import { formatNumber, timeAgo, CATEGORIES } from "@/lib/utils"
 import { CreatorLink } from "@/components/games/creator-link"
+import { GameThumbnailPlaceholder } from "@/components/games/game-thumbnail-placeholder"
 
 interface GameCardProps {
   game: {
@@ -47,73 +48,68 @@ export function GameCard({
   const category = CATEGORIES.find(c => c.value === game.category)
   const jamTone =
     game.primaryJam?.status === "ACTIVE"
-      ? "border-[#00ff40] text-[#00ff40]"
+      ? "border-arcade-green text-arcade-green"
       : game.primaryJam?.status === "VOTING"
-        ? "border-[#ffff00] text-[#ffff00]"
+        ? "border-arcade-yellow text-arcade-yellow"
         : game.primaryJam?.status === "UPCOMING"
-          ? "border-[#00d4ff] text-[#00d4ff]"
-          : "border-[#b0b0d0] text-[#b0b0d0]"
+          ? "border-arcade-cyan text-arcade-cyan"
+          : "border-text-secondary text-text-secondary"
 
   return (
-    <Link
-      href={`/play/${game.slug}`}
-      prefetch={false}
-      className="group block card-arcade"
-    >
+    <article className="group card-arcade flex h-full flex-col">
       {/* Thumbnail */}
-      <div className="relative aspect-video overflow-hidden bg-[var(--color-base)]">
-        {game.thumbnail ? (
-          <GameThumbnailSlideshow
-            title={game.title}
-            thumbnail={game.thumbnail}
-            thumbnailSlides={game.thumbnailSlides}
-            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            imageClassName="object-cover transition-transform duration-300 group-hover:scale-105"
-            animateSlides={animateThumbnailSlides}
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Play className="h-10 w-10 text-[var(--color-text-tertiary)] group-hover:text-[var(--color-primary)] transition-colors" />
-          </div>
-        )}
-        
-        {/* Play overlay on hover */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center z-10">
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-            <span className="px-4 py-2 bg-[var(--color-arcade-yellow)] text-[var(--color-base)] font-bold font-pixel text-xs rounded">
-              PLAY NOW
-            </span>
+      <Link href={`/play/${game.slug}`} prefetch={false} aria-label={`Play ${game.title}`}>
+        <div className="relative aspect-video overflow-hidden bg-canvas">
+          {game.thumbnail ? (
+            <GameThumbnailSlideshow
+              title={game.title}
+              thumbnail={game.thumbnail}
+              thumbnailSlides={game.thumbnailSlides}
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              imageClassName="object-cover transition-transform duration-300 group-hover:scale-105"
+              animateSlides={animateThumbnailSlides}
+            />
+          ) : (
+            <GameThumbnailPlaceholder title={game.title} />
+          )}
+
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-black/0 transition-all group-hover:bg-black/40">
+            <div className="opacity-0 transition-opacity group-hover:opacity-100">
+              <span className="heading-pixel-sm bg-arcade-yellow px-4 py-2 text-canvas">
+                Play now
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      </Link>
 
       {/* Content */}
-      <div className="p-3 sm:p-4">
+      <div className="flex flex-1 flex-col p-3 sm:p-4">
         {/* Category Tag */}
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="text-[10px] text-[var(--color-primary)] font-pixel uppercase">
+          <span className="text-kicker text-primary-text">
             {category?.label || "Game"}
           </span>
           {game.seekingFeedback && (
-            <span className="inline-flex items-center gap-1 rounded border border-[#ff7a00] px-1.5 py-0.5 text-[10px] text-[#ff7a00]">
+            <span className="inline-flex items-center gap-1 rounded border border-arcade-orange px-1.5 py-0.5 text-xs text-arcade-orange">
               Needs feedback
             </span>
           )}
           {game.supportsMobile && (
-            <span className="inline-flex items-center gap-1 rounded border border-[var(--color-success)] px-1.5 py-0.5 text-[10px] text-[var(--color-success)]">
+            <span className="inline-flex items-center gap-1 rounded border border-success px-1.5 py-0.5 text-xs text-success">
               <Smartphone className="h-2.5 w-2.5" />
               Mobile
             </span>
           )}
           {game.hasLevelEditor && (
-            <span className="inline-flex items-center gap-1 rounded border border-[var(--color-primary)] px-1.5 py-0.5 text-[10px] text-[var(--color-primary)]">
+            <span className="inline-flex items-center gap-1 rounded border border-primary px-1.5 py-0.5 text-xs text-primary-text">
               <SquarePen className="h-2.5 w-2.5" />
               Editor
             </span>
           )}
           {game.primaryJam && (
             <span
-              className={`inline-flex max-w-full items-center gap-1 rounded px-1.5 py-0.5 text-[10px] ${jamTone}`}
+              className={`inline-flex max-w-full items-center gap-1 rounded px-1.5 py-0.5 text-xs ${jamTone}`}
               title={game.primaryJam.title}
             >
               <Trophy className="h-2.5 w-2.5 flex-shrink-0" />
@@ -123,30 +119,32 @@ export function GameCard({
         </div>
 
         {/* Title */}
-        <h3 className="font-semibold text-[var(--color-text)] group-hover:text-[var(--color-primary)] transition-colors mb-2 line-clamp-1">
-          {game.title}
+        <h3 className="mb-2 line-clamp-1 font-semibold text-text transition-colors group-hover:text-primary-text">
+          <Link href={`/play/${game.slug}`} prefetch={false}>
+            {game.title}
+          </Link>
         </h3>
 
         {game.aiModel && (
-          <p className="mb-2 line-clamp-1 text-xs text-[var(--color-text-tertiary)]">
+          <p className="mb-2 line-clamp-1 text-xs text-text-tertiary">
             Model: {game.aiModel}
           </p>
         )}
         
         {/* Creator */}
-        <div className="flex items-center gap-2 mb-3 text-sm text-[var(--color-text-secondary)]">
+        <div className="flex items-center gap-2 mb-3 text-sm text-text-secondary">
           <User className="h-3 w-3" />
           {game.studioProfile ? (
             <CreatorLink
               href={`/studio/${game.studioProfile.handle}`}
-              className="truncate hover:text-[var(--color-primary)] cursor-pointer"
+              className="truncate hover:text-primary-text cursor-pointer"
             >
               {game.studioProfile.displayName}
             </CreatorLink>
           ) : game.creator.username ? (
             <CreatorLink
               href={`/creator/${game.creator.username}`}
-              className="truncate hover:text-[var(--color-primary)] cursor-pointer"
+              className="truncate hover:text-primary-text cursor-pointer"
             >
               {game.creator.username}
             </CreatorLink>
@@ -158,14 +156,14 @@ export function GameCard({
         </div>
         
         {/* Stats */}
-        <div className="space-y-3 pt-3 border-t border-[var(--color-border)]">
+        <div className="mt-auto space-y-3 border-t border-border pt-3">
           <div className="flex items-center justify-between text-sm">
-            <span className="flex items-center gap-1 text-[var(--color-text-secondary)]">
+            <span className="flex items-center gap-1 text-text-secondary">
               <Play className="h-3 w-3" />
               {formatNumber(game.plays)}
             </span>
             <span className={`flex items-center gap-1 ${
-              game.likes > 0 ? "text-[var(--color-arcade-red)]" : "text-[var(--color-text-secondary)]"
+              game.likes > 0 ? "text-arcade-red" : "text-text-secondary"
             }`}>
               <Heart className="h-3 w-3" />
               {formatNumber(game.likes)}
@@ -175,9 +173,9 @@ export function GameCard({
       </div>
       
       {/* Footer */}
-      <div className="px-4 py-2 bg-[var(--color-surface-2)] border-t border-[var(--color-border)] text-xs text-[var(--color-text-tertiary)]">
+      <div className="border-t border-border bg-surface-2 px-4 py-2 text-xs text-text-secondary">
         {timeAgo(new Date(game.createdAt))}
       </div>
-    </Link>
+    </article>
   )
 }

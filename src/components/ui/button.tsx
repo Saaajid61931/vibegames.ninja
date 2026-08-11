@@ -4,68 +4,69 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex cursor-pointer items-center justify-center whitespace-nowrap font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex cursor-pointer items-center justify-center whitespace-nowrap font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
   {
     variants: {
       variant: {
-        // Studio variants - clean, professional
-        default: [
-          "bg-[var(--color-primary)] text-white",
+        studio: [
+          "bg-primary text-white",
           "rounded-md",
-          "hover:bg-[var(--color-primary-hover)]",
+          "hover:bg-primary-hover",
           "active:scale-[0.98]",
         ],
         secondary: [
-          "bg-[var(--color-surface-2)] text-[var(--color-text)]",
-          "border border-[var(--color-border)]",
+          "bg-surface-2 text-text",
+          "border border-border",
           "rounded-md",
-          "hover:bg-[var(--color-surface)] hover:border-[var(--color-border-strong)]",
+          "hover:border-border-strong hover:bg-surface",
         ],
         outline: [
-          "bg-transparent text-[var(--color-text)]",
-          "border border-[var(--color-border)]",
+          "bg-transparent text-text",
+          "border border-border",
           "rounded-md",
-          "hover:bg-[var(--color-surface)] hover:border-[var(--color-border-strong)]",
+          "hover:border-border-strong hover:bg-surface",
         ],
         ghost: [
-          "bg-transparent text-[var(--color-text-secondary)]",
+          "bg-transparent text-text-secondary",
           "rounded-md",
-          "hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]",
+          "hover:bg-surface hover:text-text",
         ],
         destructive: [
-          "bg-[var(--color-danger)] text-white",
+          "bg-danger text-white",
           "rounded-md",
-          "hover:bg-[#dc2626]",
+          "hover:bg-danger-hover",
         ],
         success: [
-          "bg-[var(--color-success)] text-white",
+          "bg-success text-white",
           "rounded-md",
-          "hover:bg-[#16a34a]",
+          "hover:bg-success-hover",
         ],
-        // Arcade variants - chunky, playful
+        default: [
+          "border-3 border-white bg-primary text-white",
+          "font-sans text-xs font-bold uppercase tracking-widest",
+          "shadow-hard-4",
+          "hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-arcade-yellow hover:text-canvas hover:shadow-hard-8",
+          "active:translate-x-0.5 active:translate-y-0.5 active:shadow-hard-2",
+        ],
         arcade: [
-          "bg-[var(--color-primary)] text-white",
-          "border-[3px] border-white",
-          "font-pixel text-xs uppercase tracking-wider",
-          "shadow-[0_4px_0_var(--color-base)]",
-          "hover:bg-[var(--color-arcade-yellow)] hover:text-[var(--color-base)]",
-          "hover:-translate-y-0.5 hover:shadow-[0_6px_0_var(--color-base)]",
-          "active:translate-y-1 active:shadow-[0_2px_0_var(--color-base)]",
+          "border-3 border-white bg-primary text-white",
+          "font-sans text-xs font-bold uppercase tracking-widest",
+          "shadow-hard-4",
+          "hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-arcade-yellow hover:text-canvas hover:shadow-hard-8",
+          "active:translate-x-0.5 active:translate-y-0.5 active:shadow-hard-2",
         ],
         "arcade-red": [
-          "bg-[var(--color-arcade-red)] text-white",
-          "border-[3px] border-white",
-          "font-pixel text-xs uppercase tracking-wider",
-          "shadow-[0_4px_0_var(--color-base)]",
-          "hover:bg-[var(--color-arcade-yellow)] hover:text-[var(--color-base)]",
-          "hover:-translate-y-0.5 hover:shadow-[0_6px_0_var(--color-base)]",
-          "active:translate-y-1 active:shadow-[0_2px_0_var(--color-base)]",
+          "border-3 border-white bg-arcade-red text-white",
+          "font-sans text-xs font-bold uppercase tracking-widest",
+          "shadow-hard-4",
+          "hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-arcade-yellow hover:text-canvas hover:shadow-hard-8",
+          "active:translate-x-0.5 active:translate-y-0.5 active:shadow-hard-2",
         ],
         "arcade-outline": [
           "bg-transparent text-white",
-          "border-[3px] border-[var(--color-border-strong)]",
-          "font-pixel text-xs uppercase tracking-wider",
-          "hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]",
+          "border-3 border-border-strong",
+          "font-sans text-xs font-bold uppercase tracking-widest",
+          "hover:border-primary hover:text-primary-text",
         ],
       },
       size: {
@@ -81,7 +82,7 @@ const buttonVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: "arcade",
       size: "default",
     },
   }

@@ -25,10 +25,11 @@ export function CopyButton({ code }: CopyButtonProps) {
       onClick={handleCopy}
       className={`p-1.5 border-2 transition-all flex items-center justify-center cursor-pointer ${
         copied
-          ? "border-[#00ff40] bg-[#00ff40]/10 text-[#00ff40]"
-          : "border-[#4a4a6a] bg-[#11111d] text-[#8b93a6] hover:border-[#ffff00] hover:text-[#ffff00]"
+          ? "border-arcade-green bg-arcade-green/10 text-arcade-green"
+          : "border-border-strong bg-surface text-text-secondary hover:border-arcade-yellow hover:text-arcade-yellow"
       }`}
       title="Copy Code"
+      aria-label={copied ? "Code copied" : "Copy code"}
       type="button"
       id="copy-code-btn"
     >

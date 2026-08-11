@@ -24,18 +24,18 @@ const SelectTrigger = React.forwardRef<
       "disabled:cursor-not-allowed disabled:opacity-50",
       variant === "studio" && [
         "h-10 px-3 py-2",
-        "bg-[var(--color-base)] text-[var(--color-text)]",
-        "border border-[var(--color-border)] rounded-md",
-        "text-sm placeholder:text-[var(--color-text-tertiary)]",
-        "focus:border-[var(--color-primary)] focus:outline-none",
-        "focus:ring-2 focus:ring-[var(--color-primary)]/20",
+        "bg-canvas text-text",
+        "border border-border rounded-md",
+        "text-sm placeholder:text-text-tertiary",
+        "focus:border-primary focus:outline-none",
+        "focus:ring-2 focus:ring-primary/20",
       ],
       variant === "arcade" && [
         "h-12 px-4 py-2",
-        "bg-[var(--color-base)] text-[var(--color-text)]",
-        "border-[3px] border-[var(--color-border-strong)]",
+        "bg-canvas text-text",
+        "border-[3px] border-border-strong",
         "text-base",
-        "focus:border-[var(--color-arcade-yellow)] focus:outline-none",
+        "focus:border-arcade-yellow focus:outline-none",
       ],
       className
     )}
@@ -66,14 +66,14 @@ const SelectContent = React.forwardRef<
         position === "popper" &&
           "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
         variant === "studio" && [
-          "bg-[var(--color-surface)] text-[var(--color-text)]",
-          "border border-[var(--color-border)] rounded-md",
+          "bg-surface text-text",
+          "border border-border rounded-md",
           "shadow-lg",
         ],
         variant === "arcade" && [
-          "bg-[var(--color-surface)] text-[var(--color-text)]",
-          "border-[3px] border-[var(--color-border-strong)]",
-          "shadow-[4px_4px_0_var(--color-base)]",
+          "bg-surface text-text",
+          "border-[3px] border-border-strong",
+          "shadow-[4px_4px_0_var(--color-canvas)]",
         ],
         className
       )}
@@ -108,13 +108,13 @@ const SelectItem = React.forwardRef<
       "relative flex w-full cursor-pointer select-none items-center py-2 pl-8 pr-2 outline-none",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       variant === "studio" && [
-        "text-sm text-[var(--color-text)]",
+        "text-sm text-text",
         "rounded-sm",
-        "focus:bg-[var(--color-surface-2)]",
+        "focus:bg-surface-2",
       ],
       variant === "arcade" && [
-        "text-base text-[var(--color-text)]",
-        "focus:bg-[var(--color-base)]",
+        "text-base text-text",
+        "focus:bg-canvas",
       ],
       className
     )}
@@ -124,7 +124,7 @@ const SelectItem = React.forwardRef<
       <SelectPrimitive.ItemIndicator>
         <Check className={cn(
           "h-4 w-4",
-          variant === "studio" ? "text-[var(--color-primary)]" : "text-[var(--color-arcade-yellow)]"
+          variant === "studio" ? "text-primary-text" : "text-arcade-yellow"
         )} />
       </SelectPrimitive.ItemIndicator>
     </span>

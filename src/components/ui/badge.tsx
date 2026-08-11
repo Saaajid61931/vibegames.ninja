@@ -4,7 +4,7 @@ type BadgeVariant = "default" | "secondary" | "success" | "warning" | "danger" |
 
 function Badge({
   className,
-  variant = "default",
+  variant = "arcade",
   ...props
 }: React.HTMLAttributes<HTMLSpanElement> & {
   variant?: BadgeVariant
@@ -14,18 +14,17 @@ function Badge({
       className={cn(
         "inline-flex items-center font-medium",
         {
-          // Studio variants - clean, professional
-          "px-2.5 py-0.5 text-xs rounded-md bg-[var(--color-primary)] text-white": variant === "default",
-          "px-2.5 py-0.5 text-xs rounded-md bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border)]": variant === "secondary",
-          "px-2.5 py-0.5 text-xs rounded-md bg-[var(--color-success)]/15 text-[var(--color-success)] border border-[var(--color-success)]": variant === "success",
-          "px-2.5 py-0.5 text-xs rounded-md bg-[var(--color-warning)]/15 text-[var(--color-warning)] border border-[var(--color-warning)]": variant === "warning",
-          "px-2.5 py-0.5 text-xs rounded-md bg-[var(--color-danger)]/15 text-[var(--color-danger)] border border-[var(--color-danger)]": variant === "danger",
-          "px-2.5 py-0.5 text-xs rounded-md bg-transparent text-[var(--color-text)] border border-[var(--color-border)]": variant === "outline",
+          "px-2.5 py-0.5 text-xs rounded-md bg-primary text-white": variant === "default",
+          "px-2.5 py-0.5 text-xs rounded-md bg-surface-2 text-text-secondary border border-border": variant === "secondary",
+          "px-2.5 py-0.5 text-xs rounded-md bg-success/15 text-success border border-success": variant === "success",
+          "px-2.5 py-0.5 text-xs rounded-md bg-warning/15 text-warning border border-warning": variant === "warning",
+          "px-2.5 py-0.5 text-xs rounded-md bg-danger/15 text-danger border border-danger": variant === "danger",
+          "px-2.5 py-0.5 text-xs rounded-md bg-transparent text-text border border-border": variant === "outline",
           // Arcade variants - chunky, playful
-          "px-3 py-1 text-[10px] font-bold uppercase tracking-wider font-pixel border-2 bg-[var(--color-arcade-yellow)] text-[var(--color-base)] border-[var(--color-base)] shadow-[2px_2px_0_var(--color-base)]": variant === "arcade",
-          "px-3 py-1 text-[10px] font-bold uppercase tracking-wider font-pixel border-2 bg-[var(--color-success)] text-white border-[var(--color-base)] shadow-[2px_2px_0_var(--color-base)]": variant === "arcade-success",
-          "px-3 py-1 text-[10px] font-bold uppercase tracking-wider font-pixel border-2 bg-[var(--color-warning)] text-[var(--color-base)] border-[var(--color-base)] shadow-[2px_2px_0_var(--color-base)]": variant === "arcade-warning",
-          "px-3 py-1 text-[10px] font-bold uppercase tracking-wider font-pixel border-2 bg-[var(--color-arcade-red)] text-white border-[var(--color-base)] shadow-[2px_2px_0_var(--color-base)]": variant === "arcade-danger",
+          "px-3 py-1 text-xs font-bold uppercase tracking-widest font-sans border-2 bg-arcade-yellow text-canvas border-canvas shadow-[2px_2px_0_var(--color-canvas)]": variant === "arcade",
+          "px-3 py-1 text-xs font-bold uppercase tracking-widest font-sans border-2 bg-success text-white border-canvas shadow-[2px_2px_0_var(--color-canvas)]": variant === "arcade-success",
+          "px-3 py-1 text-xs font-bold uppercase tracking-widest font-sans border-2 bg-warning text-canvas border-canvas shadow-[2px_2px_0_var(--color-canvas)]": variant === "arcade-warning",
+          "px-3 py-1 text-xs font-bold uppercase tracking-widest font-sans border-2 bg-arcade-red text-white border-canvas shadow-[2px_2px_0_var(--color-canvas)]": variant === "arcade-danger",
         },
         className
       )}

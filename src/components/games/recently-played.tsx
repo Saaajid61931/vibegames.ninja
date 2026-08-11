@@ -77,15 +77,15 @@ export function RecentlyPlayed({
   }
 
   return (
-    <section className="py-14 sm:py-20 border-b-2 sm:border-b-4 border-[#4a4a6a] bg-[#11111d]">
+    <section className="py-14 sm:py-20 border-b-2 sm:border-b-4 border-border-strong bg-surface">
       <div className="container mx-auto px-4">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="mb-2 flex items-center gap-2">
-              <Clock3 className="h-5 w-5 text-[#00d1ff]" />
-              <span className="font-pixel text-[10px] text-[#00d1ff]">CONTINUE PLAYING</span>
+              <Clock3 className="h-5 w-5 text-arcade-cyan" />
+              <span className="text-kicker text-arcade-cyan">CONTINUE PLAYING</span>
             </div>
-            <h2 className="font-pixel text-xl text-white sm:text-2xl md:text-3xl">RECENT RUNS</h2>
+            <h2 className="heading-pixel-lg text-white">RECENT RUNS</h2>
           </div>
         </div>
 

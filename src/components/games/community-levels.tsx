@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Star, Play, SquarePen, Loader2, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { useToast } from "@/components/ui/toast"
 import { timeAgo } from "@/lib/utils"
 
 const PAGE_SIZE = 20
@@ -42,6 +44,7 @@ interface LevelsResponse {
 
 export function CommunityLevels({ gameId, slug, selectedLevelId, currentUserId }: CommunityLevelsProps) {
   const router = useRouter()
+  const showToast = useToast()
   const [levels, setLevels] = useState<LevelListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -50,6 +53,7 @@ export function CommunityLevels({ gameId, slug, selectedLevelId, currentUserId }
   const [total, setTotal] = useState(0)
   const [hasMore, setHasMore] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<LevelListItem | null>(null)
   const [error, setError] = useState("")
 
   const fetchLevels = useCallback(async (nextPage: number, append: boolean) => {
@@ -101,10 +105,9 @@ export function CommunityLevels({ gameId, slug, selectedLevelId, currentUserId }
     void fetchLevels(1, false)
   }, [fetchLevels])
 
-  const handleDeleteLevel = async (level: LevelListItem) => {
-    if (!window.confirm(`Delete "${level.name}"? This cannot be undone.`)) {
-      return
-    }
+  const handleDeleteLevel = async () => {
+    const level = deleteTarget
+    if (!level) return
 
     setDeletingId(level.id)
     setError("")
@@ -123,17 +126,24 @@ export function CommunityLevels({ gameId, slug, selectedLevelId, currentUserId }
       if (selectedLevelId === level.id) {
         router.push(`/play/${slug}`)
       }
+      showToast({
+        title: "Level deleted",
+        description: `“${level.name}” was removed from the community levels.`,
+        tone: "success",
+      })
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Failed to delete level")
+      const message = deleteError instanceof Error ? deleteError.message : "Failed to delete level"
+      setError(message)
+      showToast({ title: "Delete failed", description: message, tone: "error" })
     } finally {
       setDeletingId(null)
     }
   }
 
   return (
-    <div className="border-2 border-[#4a4a6a] bg-[#0d0d15] p-4 sm:p-5">
+    <div className="border-2 border-border-strong bg-canvas p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h3 className="font-arcade text-xs sm:text-sm text-[#ffff00]">COMMUNITY LEVELS {total > 0 ? `(${total})` : ""}</h3>
+        <h3 className="font-arcade text-xs sm:text-sm text-arcade-yellow">COMMUNITY LEVELS {total > 0 ? `(${total})` : ""}</h3>
         <div className="flex flex-wrap gap-2">
           <Button variant={sort === "new" ? "arcade" : "arcade-outline"} size="sm" onClick={() => setSort("new")}>NEW</Button>
           <Button variant={sort === "top" ? "arcade" : "arcade-outline"} size="sm" onClick={() => setSort("top")}>TOP</Button>
@@ -149,16 +159,16 @@ export function CommunityLevels({ gameId, slug, selectedLevelId, currentUserId }
 
       {loading ? (
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 text-[#ffff00] animate-spin" />
+          <Loader2 className="h-6 w-6 text-arcade-yellow animate-spin" />
         </div>
       ) : levels.length === 0 ? (
         <div className="space-y-2">
-          {error && <p className="font-arcade text-[10px] text-[#ff0040]">{error}</p>}
-          <p className="font-arcade text-xs text-[#4a4a6a]">No levels yet. Be the first to build one.</p>
+          {error && <p className="font-arcade text-xs text-arcade-red">{error}</p>}
+          <p className="font-arcade text-xs text-text-secondary">No levels yet. Be the first to build one.</p>
         </div>
       ) : (
         <div className="space-y-2">
-          {error && <p className="font-arcade text-[10px] text-[#ff0040]">{error}</p>}
+          {error && <p className="font-arcade text-xs text-arcade-red">{error}</p>}
 
           {levels.map((level) => {
             const active = selectedLevelId === level.id
@@ -169,8 +179,8 @@ export function CommunityLevels({ gameId, slug, selectedLevelId, currentUserId }
                 key={level.id}
                 className={`border p-3 transition-colors ${
                   active
-                    ? "border-[#ffff00] bg-[#1a1a2e]"
-                    : "border-[#2e3446] bg-[#111626] hover:border-[#4a4a6a]"
+                    ? "border-arcade-yellow bg-surface-2"
+                    : "border-border bg-surface hover:border-border-strong"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -182,22 +192,23 @@ export function CommunityLevels({ gameId, slug, selectedLevelId, currentUserId }
                           alt={`Level thumbnail for ${level.name}`}
                           width={64}
                           height={40}
-                          className="w-16 h-10 object-cover border border-[#2e3446] rounded-sm"
+                          className="w-16 h-10 object-cover border border-border rounded-sm"
                         />
                       </Link>
                     )}
-                    <Link href={`/play/${slug}?level=${level.id}`} className="min-w-0 flex-1">
-                      <h4 className="font-arcade text-xs text-white truncate">{level.name}</h4>
-                    {level.description ? (
-                      <p className="font-arcade text-[10px] text-[#4a4a6a] mt-1 line-clamp-2">{level.description}</p>
-                    ) : null}
-                    <p className="font-arcade text-[10px] text-[#4a4a6a] mt-2">
+                    <div className="min-w-0 flex-1">
+                      <Link href={`/play/${slug}?level=${level.id}`} className="block min-w-0">
+                        <h4 className="font-arcade text-xs text-white truncate">{level.name}</h4>
+                        {level.description ? (
+                          <p className="font-arcade text-xs text-text-secondary mt-1 line-clamp-2">{level.description}</p>
+                        ) : null}
+                      </Link>
+                    <p className="font-arcade text-xs text-text-secondary mt-2">
                       by{" "}
                       {level.creator.username ? (
                         <Link
                           href={`/creator/${level.creator.username}`}
-                          className="text-[#4a4a6a] hover:text-[#ffff00] transition-colors"
-                          onClick={(e) => e.stopPropagation()}
+                          className="text-text-secondary hover:text-arcade-yellow transition-colors"
                         >
                           {level.creator.username}
                         </Link>
@@ -206,16 +217,16 @@ export function CommunityLevels({ gameId, slug, selectedLevelId, currentUserId }
                       )}{" "}
                       • {timeAgo(new Date(level.createdAt))}
                     </p>
-                  </Link>
+                    </div>
                   </div>
 
                   <div className="text-right space-y-1">
-                    <div className="inline-flex items-center gap-1 text-[#ffff00] font-arcade text-[10px]">
-                      <Star className="h-3 w-3 fill-[#ffff00]" />
+                    <div className="inline-flex items-center gap-1 text-arcade-yellow font-arcade text-xs">
+                      <Star className="h-3 w-3 fill-arcade-yellow" />
                       {level.avgRating.toFixed(1)}
-                      <span className="text-[#4a4a6a]">({level.ratingCount})</span>
+                      <span className="text-text-secondary">({level.ratingCount})</span>
                     </div>
-                    <div className="inline-flex items-center gap-1 text-[#4a4a6a] font-arcade text-[10px]">
+                    <div className="inline-flex items-center gap-1 text-text-secondary font-arcade text-xs">
                       <Play className="h-3 w-3" />
                       {level.plays}
                     </div>
@@ -235,7 +246,7 @@ export function CommunityLevels({ gameId, slug, selectedLevelId, currentUserId }
                       className="gap-2"
                       disabled={deletingId === level.id}
                       onClick={() => {
-                        void handleDeleteLevel(level)
+                        setDeleteTarget(level)
                       }}
                     >
                       {deletingId === level.id ? (
@@ -280,6 +291,18 @@ export function CommunityLevels({ gameId, slug, selectedLevelId, currentUserId }
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open && !deletingId) setDeleteTarget(null)
+        }}
+        title="Delete this level?"
+        description={deleteTarget ? `“${deleteTarget.name}” will be permanently removed.` : "This level will be permanently removed."}
+        confirmLabel="Delete level"
+        confirmVariant="arcade-red"
+        onConfirm={handleDeleteLevel}
+      />
     </div>
   )
 }

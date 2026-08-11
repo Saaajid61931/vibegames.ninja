@@ -27,7 +27,7 @@ export function StarRating({ value, onChange, size = "md", disabled = false }: S
             aria-label={`Rate ${star} stars`}
           >
             <Star
-              className={`${iconSize} ${active ? "fill-[#ffff00] text-[#ffff00]" : "text-[#4a4a6a]"}`}
+              className={`${iconSize} ${active ? "fill-arcade-yellow text-arcade-yellow" : "text-text-secondary"}`}
             />
           </button>
         )

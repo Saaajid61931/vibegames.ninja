@@ -13,26 +13,26 @@ function getStatusAccent(status: string) {
     case "ACTIVE":
       return {
         label: "GAME JAM LIVE",
-        color: "text-[#00ff40]",
-        icon: <Zap className="h-5 w-5 text-[#00ff40] animate-pulse" />,
+        color: "text-arcade-green",
+        icon: <Zap className="h-5 w-5 text-arcade-green animate-pulse" />,
       }
     case "VOTING":
       return {
         label: "VOTING OPEN",
-        color: "text-[#ffff00]",
-        icon: <Vote className="h-5 w-5 text-[#ffff00]" />,
+        color: "text-arcade-yellow",
+        icon: <Vote className="h-5 w-5 text-arcade-yellow" />,
       }
     case "UPCOMING":
       return {
         label: "COMING SOON",
-        color: "text-[#00d4ff]",
-        icon: <Clock className="h-5 w-5 text-[#00d4ff]" />,
+        color: "text-arcade-cyan",
+        icon: <Clock className="h-5 w-5 text-arcade-cyan" />,
       }
     default:
       return {
         label: "RESULTS LIVE",
-        color: "text-[#b0b0d0]",
-        icon: <Trophy className="h-5 w-5 text-[#b0b0d0]" />,
+        color: "text-text-secondary",
+        icon: <Trophy className="h-5 w-5 text-text-secondary" />,
       }
   }
 }
@@ -147,14 +147,14 @@ export async function ActiveJamBanner() {
           : "See Results"
 
   return (
-    <section className="border-b-2 border-[#4a4a6a] bg-[#11111d] py-4 sm:border-b-4 sm:py-6">
+    <section className="border-b-2 border-border-strong bg-surface py-4 sm:border-b-4 sm:py-6">
       <div className="container mx-auto px-4">
-        <div className="mx-auto max-w-6xl space-y-4 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4 sm:p-5">
+        <div className="mx-auto max-w-6xl space-y-4 border-2 border-border-strong bg-surface-2 p-4 sm:p-5">
           <Link
             href={`/jams/${featuredJam.slug}`}
             prefetch={false}
             aria-label={`Open ${featuredJam.title} jam page`}
-            className="group relative block aspect-[3/1] overflow-hidden border-2 border-[#4a4a6a] bg-[#0d0d15] transition-colors hover:border-[#ff0040] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff0040] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a1a2e]"
+            className="group relative block aspect-[3/1] overflow-hidden border-2 border-border-strong bg-canvas transition-colors hover:border-arcade-red focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-red focus-visible:ring-offset-2 focus-visible:ring-offset-surface-2"
           >
             {bannerImage ? (
               <Image
@@ -167,8 +167,8 @@ export async function ActiveJamBanner() {
             ) : (
               <div className="flex h-full items-center justify-center p-6 text-center">
                 <div>
-                  <p className="font-pixel text-[10px] text-[#ffff00]">GAME JAM</p>
-                  <p className="mt-2 font-pixel text-sm text-white">{featuredJam.title}</p>
+                  <p className="text-kicker text-arcade-yellow">GAME JAM</p>
+                  <p className="heading-pixel-sm mt-2 text-white">{featuredJam.title}</p>
                 </div>
               </div>
             )}
@@ -177,23 +177,23 @@ export async function ActiveJamBanner() {
 
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-3">
-              <div className={`inline-flex items-center gap-2 font-pixel text-[10px] sm:text-xs ${accent.color}`}>
+              <div className={`text-kicker inline-flex items-center gap-2 ${accent.color}`}>
                 {accent.icon}
                 <span>{accent.label}</span>
               </div>
               <div>
                 <Link href={`/jams/${featuredJam.slug}`} className="group">
-                  <h3 className="font-pixel text-sm text-white transition-colors group-hover:text-[#ff0040] sm:text-lg">
+                  <h3 className="heading-pixel-md text-white transition-colors group-hover:text-arcade-red">
                     {featuredJam.title}
                   </h3>
                 </Link>
                 {featuredJam.theme ? (
-                  <p className="mt-1 font-pixel text-[10px] text-[#ffff00] sm:text-xs">
+                  <p className="text-kicker mt-1 text-arcade-yellow">
                     THEME: {featuredJam.theme}
                   </p>
                 ) : null}
               </div>
-              <div className="flex flex-wrap items-center gap-4 text-[11px] text-[#d5d8e6] sm:text-xs">
+              <div className="flex flex-wrap items-center gap-4 text-xs text-text sm:text-xs">
                 <span className="flex items-center gap-1">
                   <Trophy className="h-3.5 w-3.5" />
                   {featuredJam._count.entries} {featuredJam._count.entries === 1 ? "entry" : "entries"}

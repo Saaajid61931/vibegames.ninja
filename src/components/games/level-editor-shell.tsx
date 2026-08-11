@@ -286,16 +286,16 @@ export function LevelEditorShell({
 
   return (
     <div className="space-y-4">
-      <div className="border-2 border-[#4a4a6a] bg-[#11111d] p-4 sm:p-5">
+      <div className="border-2 border-border-strong bg-surface p-4 sm:p-5">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="font-arcade text-[11px] text-[#ffff00]">LEVEL EDITOR WORKFLOW</p>
+            <p className="font-arcade text-xs text-arcade-yellow">LEVEL EDITOR WORKFLOW</p>
             <h1 className="mt-1 font-arcade text-sm text-white">Build inside the game, then save through the platform</h1>
-            <p className="mt-2 font-arcade text-xs text-[#8b93a6]">
+            <p className="mt-2 font-arcade text-xs text-text-secondary">
               1) wait for the SDK to go ready, 2) make sure the editor UI appears inside the game, 3) use the test and save loop until the runtime returns a clean structured payload.
             </p>
           </div>
-          <div className="rounded border border-[#4a4a6a] bg-[#0d0d15] px-3 py-2 font-arcade text-[11px] text-[#8b93a6]">
+          <div className="rounded border border-border-strong bg-canvas px-3 py-2 font-arcade text-xs text-text-secondary">
             {initialLevel ? `Editing existing level: ${initialLevel.name}` : "Creating a new community level"}
           </div>
         </div>
@@ -389,8 +389,8 @@ export function LevelEditorShell({
         </div>
 
         <div className="space-y-4">
-          <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4 space-y-3">
-            <h2 className="font-arcade text-xs text-[#ffff00]">LEVEL METADATA</h2>
+          <div className="border-2 border-border-strong bg-surface-2 p-4 space-y-3">
+            <h2 className="font-arcade text-xs text-arcade-yellow">LEVEL METADATA</h2>
             <div className="space-y-2">
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Level name" className="font-arcade" />
               <Textarea
@@ -431,42 +431,42 @@ export function LevelEditorShell({
               Save metadata with last payload
             </Button>
 
-            <p className="font-arcade text-[10px] text-[#8b93a6]">
+            <p className="font-arcade text-xs text-text-secondary">
               The primary button asks the game runtime for a fresh level payload. The game should answer with VG.saveLevel({`{ data, name, description, thumbnail }`}).
             </p>
 
             {hint && (
-              <div className="border border-[#ffff00] bg-[#ffff00]/10 p-3">
+              <div className="border border-arcade-yellow bg-arcade-yellow/10 p-3">
                 <div className="flex items-start gap-2">
-                  <Clock3 className="mt-0.5 h-4 w-4 text-[#ffff00]" />
-                  <p className="font-arcade text-[10px] text-[#fff2a8]">{hint}</p>
+                  <Clock3 className="mt-0.5 h-4 w-4 text-arcade-yellow" />
+                  <p className="font-arcade text-xs text-warning-text">{hint}</p>
                 </div>
               </div>
             )}
 
             {error && (
-              <div className="border border-[#ff0040] bg-[#ff0040]/10 p-3">
+              <div className="border border-arcade-red bg-arcade-red/10 p-3">
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 text-[#ff0040]" />
-                  <p className="font-arcade text-[10px] text-[#ffb3c0]">{error}</p>
+                  <AlertTriangle className="mt-0.5 h-4 w-4 text-arcade-red" />
+                  <p className="font-arcade text-xs text-danger-text">{error}</p>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
-            <h2 className="font-arcade text-xs text-[#00d1ff]">INTEGRATION CHECK</h2>
+          <div className="border-2 border-border-strong bg-surface-2 p-4">
+            <h2 className="font-arcade text-xs text-arcade-cyan">INTEGRATION CHECK</h2>
             <div className="mt-3 grid gap-2">
               {statusCards.map((item) => (
-                <div key={item.label} className="flex items-center gap-3 border border-[#2e3446] bg-[#0d0d15] px-3 py-2">
+                <div key={item.label} className="flex items-center gap-3 border border-border bg-canvas px-3 py-2">
                   {item.ok ? (
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-[#22c55e]" />
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
                   ) : (
-                    <Clock3 className="h-4 w-4 shrink-0 text-[#8b93a6]" />
+                    <Clock3 className="h-4 w-4 shrink-0 text-text-secondary" />
                   )}
                   <div className="min-w-0">
-                    <p className="font-arcade text-[11px] text-white">{item.label}</p>
-                    <p className="font-arcade text-[10px] text-[#8b93a6]">
+                    <p className="font-arcade text-xs text-white">{item.label}</p>
+                    <p className="font-arcade text-xs text-text-secondary">
                       {item.ok ? item.successLabel : item.pendingLabel}
                     </p>
                   </div>
@@ -475,9 +475,9 @@ export function LevelEditorShell({
             </div>
           </div>
 
-          <div className="border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
-            <h2 className="font-arcade text-xs text-[#ffff00]">LAST PAYLOAD SNAPSHOT</h2>
-            <div className="mt-3 space-y-2 font-arcade text-[10px] text-[#8b93a6]">
+          <div className="border-2 border-border-strong bg-surface-2 p-4">
+            <h2 className="font-arcade text-xs text-arcade-yellow">LAST PAYLOAD SNAPSHOT</h2>
+            <div className="mt-3 space-y-2 font-arcade text-xs text-text-secondary">
               <p>{payloadSummary}</p>
               <p>{runtimeStatus.saveThumbnailSeen ? "Thumbnail image received with the last save payload." : "No thumbnail received yet. The game should capture the main canvas when possible."}</p>
               {initialLevel && !runtimeStatus.loadLevelSeen && (
