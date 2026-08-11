@@ -37,20 +37,20 @@ export default async function NotificationsPage() {
   })
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+    <div className="min-h-screen flex flex-col bg-canvas">
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
-        <Link href="/creator" className="inline-flex items-center gap-2 text-[#4a4a6a] hover:text-[#ffff00] mb-6 transition-colors font-arcade text-sm">
+        <Link href="/creator" className="inline-flex items-center gap-2 text-text-secondary hover:text-arcade-yellow mb-6 transition-colors font-arcade text-sm">
           <ChevronLeft className="h-4 w-4" />
           BACK TO DASHBOARD
         </Link>
 
         <div className="mb-6 flex items-center gap-3">
-          <Bell className="h-6 w-6 text-[#ffff00]" />
+          <Bell className="h-6 w-6 text-arcade-yellow" />
           <div>
             <h1 className="text-2xl font-semibold text-white font-arcade">Notifications</h1>
-            <p className="text-sm text-[#4a4a6a] font-arcade">Recent activity across your games and profile.</p>
+            <p className="text-sm text-text-secondary font-arcade">Recent activity across your games and profile.</p>
           </div>
         </div>
 

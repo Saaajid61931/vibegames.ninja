@@ -1,3 +1,5 @@
+// Intentional static editorial source. Moving the blog to the database is out of
+// scope until authoring, review, and migration requirements justify that work.
 export interface BlogContentBlock {
   type: "paragraph" | "heading" | "code" | "list";
   text?: string;
@@ -610,7 +612,7 @@ window.addEventListener("message", (event) => {
         language: "text",
         code: `Structure the styling around this dark-theme CSS variable design system:
 :root {
-  --color-base: #0d0d15;       /* deep space black */
+  --color-canvas: #0d0d15;       /* deep space black */
   --color-surface: #11111d;    /* card panel background */
   --color-primary: #ffff00;    /* neon yellow accent */
   --color-secondary: #00ff40;  /* neon green success */

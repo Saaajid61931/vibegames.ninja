@@ -65,7 +65,7 @@ export function FollowButton({
 
   if (isOwnProfile) {
     return (
-      <div className="w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-center text-xs text-[var(--color-text-tertiary)]">
+      <div className="w-full rounded-md border border-border px-3 py-2 text-center text-xs text-text-tertiary">
         This is your creator profile
       </div>
     )
@@ -89,7 +89,7 @@ export function FollowButton({
         )}
         {following ? "Following" : "Follow"}
       </Button>
-      <span className="text-xs text-[var(--color-text-tertiary)]">{formatNumber(followers)} followers</span>
+      <span className="text-xs text-text-tertiary">{formatNumber(followers)} followers</span>
     </div>
   )
 }

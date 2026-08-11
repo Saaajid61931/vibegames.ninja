@@ -89,11 +89,11 @@ export default async function FavoritesPage() {
       <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-[var(--color-text)] flex items-center gap-3">
-              <Heart className="h-6 w-6 text-[var(--color-arcade-red)]" />
+            <h1 className="text-2xl font-semibold text-text flex items-center gap-3">
+              <Heart className="h-6 w-6 text-arcade-red" />
               My Favorites
             </h1>
-            <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+            <p className="mt-2 text-sm text-text-secondary">
               Saved games stay here so you can return anytime.
             </p>
           </div>
@@ -106,11 +106,15 @@ export default async function FavoritesPage() {
         </div>
 
         {favorites.length === 0 ? (
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-8 text-center">
-            <p className="text-[var(--color-text-secondary)]">No favorites yet.</p>
-            <p className="text-sm text-[var(--color-text-tertiary)] mt-2">
+          <div className="border-3 border-dashed border-border-strong bg-surface p-10 text-center shadow-hard-4">
+            <Heart className="mx-auto h-12 w-12 text-arcade-red" />
+            <h2 className="heading-pixel-md mt-5 text-text">Your cabinet is empty</h2>
+            <p className="mx-auto mt-3 max-w-md text-sm text-text-secondary">
               Open a game and use Save Favorite to keep it here.
             </p>
+            <Button asChild variant="arcade" className="mt-6">
+              <Link href="/games">Find a new favorite</Link>
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

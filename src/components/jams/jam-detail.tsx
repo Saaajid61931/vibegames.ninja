@@ -107,8 +107,8 @@ function Countdown({ targetDate, label }: { targetDate: string; label: string })
 
   return (
     <div className="text-center">
-      <p className="text-[#8080a0] text-xs mb-1">{label}</p>
-      <p className="font-pixel text-lg text-[#ff0040]">{timeLeft}</p>
+      <p className="text-text-secondary text-xs mb-1">{label}</p>
+      <p className="heading-pixel-md text-arcade-red">{timeLeft}</p>
     </div>
   )
 }
@@ -129,7 +129,9 @@ function StarRating({
       {[1, 2, 3, 4, 5].map((i) => (
         <button
           key={i}
+          type="button"
           disabled={disabled}
+          aria-label={`Rate ${i} ${i === 1 ? "star" : "stars"}`}
           onClick={() => onRate(i)}
           onMouseEnter={() => !disabled && setHover(i)}
           onMouseLeave={() => setHover(0)}
@@ -138,8 +140,8 @@ function StarRating({
           <Star
             className={`w-5 h-5 ${
               (hover || score || 0) >= i
-                ? "fill-[#ffff00] text-[#ffff00]"
-                : "text-[#4a4a6a]"
+                ? "fill-arcade-yellow text-arcade-yellow"
+                : "text-text-secondary"
             }`}
           />
         </button>
@@ -169,7 +171,7 @@ function EntryCard({
   const showRank = jamStatus === "COMPLETED" || jamStatus === "VOTING"
 
   return (
-    <Card className="bg-[#1a1a2e] border-[#2a2a4a] overflow-hidden hover:border-[#4a4a6a] transition-colors">
+    <Card className="bg-surface-2 border-border overflow-hidden hover:border-border-strong transition-colors">
       <div className="flex flex-col sm:flex-row">
         {/* Thumbnail */}
         <Link href={`/play/${entry.game.slug}`} className="sm:w-40 h-28 sm:h-auto block flex-shrink-0">
@@ -182,8 +184,8 @@ function EntryCard({
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-[#2a2a4a] flex items-center justify-center">
-              <Gamepad2 className="w-8 h-8 text-[#4a4a6a]" />
+            <div className="w-full h-full bg-border flex items-center justify-center">
+              <Gamepad2 className="w-8 h-8 text-text-secondary" />
             </div>
           )}
         </Link>
@@ -195,14 +197,14 @@ function EntryCard({
               <div className="flex items-center gap-2">
                 {showRank && (
                   <span
-                    className={`font-pixel text-sm ${
+                    className={`text-sm font-bold ${
                       rank === 1
-                        ? "text-[#ffff00]"
+                        ? "text-arcade-yellow"
                         : rank === 2
                           ? "text-[#c0c0c0]"
                           : rank === 3
                             ? "text-[#cd7f32]"
-                            : "text-[#8080a0]"
+                            : "text-text-secondary"
                     }`}
                   >
                     #{rank}
@@ -210,17 +212,17 @@ function EntryCard({
                 )}
                 <Link
                   href={`/play/${entry.game.slug}`}
-                  className="font-pixel text-xs text-white hover:text-[#ff0040] transition-colors"
+                  className="text-xs font-bold text-white transition-colors hover:text-arcade-red"
                 >
                   {entry.game.title}
                 </Link>
               </div>
-              <Badge className="bg-[#2a2a4a] text-[#b0b0d0] border-[#4a4a6a] text-[10px] flex-shrink-0">
+              <Badge className="bg-border text-text-secondary border-border-strong text-xs flex-shrink-0">
                 {entry.game.category}
               </Badge>
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-[#8080a0] mb-2">
+            <div className="flex items-center gap-2 text-xs text-text-secondary mb-2">
               <span>by {entry.user.username || entry.user.name || "Anonymous"}</span>
               <span>&middot;</span>
               <span>{entry.game.plays} plays</span>
@@ -232,11 +234,11 @@ function EntryCard({
             <div className="flex items-center gap-3">
               {entry.voteCount > 0 && (
                 <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 fill-[#ffff00] text-[#ffff00]" />
-                  <span className="text-[#ffff00] text-sm font-pixel">
+                  <Star className="w-4 h-4 fill-arcade-yellow text-arcade-yellow" />
+                  <span className="text-sm font-bold text-arcade-yellow">
                     {entry.avgScore.toFixed(1)}
                   </span>
-                  <span className="text-[#8080a0] text-xs">({entry.voteCount})</span>
+                  <span className="text-text-secondary text-xs">({entry.voteCount})</span>
                 </div>
               )}
             </div>
@@ -249,11 +251,11 @@ function EntryCard({
                   onRate={(score) => onVote(entry.id, score)}
                   disabled={voting}
                 />
-                {voting && <Loader2 className="w-4 h-4 text-[#ffff00] animate-spin" />}
+                {voting && <Loader2 className="w-4 h-4 text-arcade-yellow animate-spin" />}
               </div>
             )}
             {votingEnabled && isOwnEntry && (
-              <span className="text-[#8080a0] text-xs italic">Your entry</span>
+              <span className="text-text-secondary text-xs italic">Your entry</span>
             )}
           </div>
         </div>
@@ -366,10 +368,10 @@ export function JamDetail({
   }, [jam.slug, router])
 
   const statusConfig: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
-    ACTIVE: { color: "#00ff40", icon: <Zap className="w-5 h-5" />, label: "SUBMISSIONS OPEN" },
-    UPCOMING: { color: "#00d4ff", icon: <Clock className="w-5 h-5" />, label: "COMING SOON" },
-    VOTING: { color: "#ffff00", icon: <Vote className="w-5 h-5" />, label: "VOTING OPEN" },
-    COMPLETED: { color: "#b0b0d0", icon: <Trophy className="w-5 h-5" />, label: "COMPLETED" },
+    ACTIVE: { color: "var(--color-arcade-green)", icon: <Zap className="w-5 h-5" />, label: "SUBMISSIONS OPEN" },
+    UPCOMING: { color: "var(--color-arcade-cyan)", icon: <Clock className="w-5 h-5" />, label: "COMING SOON" },
+    VOTING: { color: "var(--color-arcade-yellow)", icon: <Vote className="w-5 h-5" />, label: "VOTING OPEN" },
+    COMPLETED: { color: "var(--color-text-secondary)", icon: <Trophy className="w-5 h-5" />, label: "COMPLETED" },
   }
 
   const sc = statusConfig[jam.status] || statusConfig.COMPLETED
@@ -379,7 +381,7 @@ export function JamDetail({
       {/* Back link */}
       <Link
         href="/jams"
-        className="inline-flex items-center gap-1 text-[#8080a0] hover:text-white text-sm mb-6 transition-colors"
+        className="inline-flex items-center gap-1 text-text-secondary hover:text-white text-sm mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         All Jams
@@ -402,7 +404,7 @@ export function JamDetail({
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-3">
           <Badge
-            className="font-pixel text-[10px] border"
+            className="border text-xs"
             style={{ color: sc.color, borderColor: sc.color + "40", backgroundColor: sc.color + "15" }}
           >
             {sc.icon}
@@ -410,16 +412,16 @@ export function JamDetail({
           </Badge>
         </div>
 
-        <h1 className="text-xl md:text-2xl font-pixel text-white mb-3 leading-relaxed">{jam.title}</h1>
+        <h1 className="heading-pixel-lg mb-3 text-white">{jam.title}</h1>
 
         {jam.theme && (
-          <p className="font-pixel text-sm text-[#ffff00] mb-3">THEME: {jam.theme}</p>
+          <p className="text-kicker mb-3 text-arcade-yellow">THEME: {jam.theme}</p>
         )}
 
-        <p className="text-[#b0b0d0] whitespace-pre-wrap mb-4">{jam.description}</p>
+        <p className="text-text-secondary whitespace-pre-wrap mb-4">{jam.description}</p>
 
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div className="text-xs text-[#8080a0]">
+          <div className="text-xs text-text-secondary">
             Share this jam to bring in more builders, players, and voters.
           </div>
           <JamShareButton title={jam.title} />
@@ -427,25 +429,25 @@ export function JamDetail({
 
         {/* Dates and countdown */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <Card className="bg-[#1a1a2e] border-[#2a2a4a] p-4 text-center">
-            <Calendar className="w-4 h-4 text-[#00d4ff] mx-auto mb-1" />
-            <p className="text-[#8080a0] text-xs mb-1">Submissions</p>
+          <Card className="bg-surface-2 border-border p-4 text-center">
+            <Calendar className="w-4 h-4 text-arcade-cyan mx-auto mb-1" />
+            <p className="text-text-secondary text-xs mb-1">Submissions</p>
             <p className="text-white text-sm">
               {new Date(jam.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               {" - "}
               {new Date(jam.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
             </p>
           </Card>
-          <Card className="bg-[#1a1a2e] border-[#2a2a4a] p-4 text-center">
-            <Vote className="w-4 h-4 text-[#ffff00] mx-auto mb-1" />
-            <p className="text-[#8080a0] text-xs mb-1">Voting</p>
+          <Card className="bg-surface-2 border-border p-4 text-center">
+            <Vote className="w-4 h-4 text-arcade-yellow mx-auto mb-1" />
+            <p className="text-text-secondary text-xs mb-1">Voting</p>
             <p className="text-white text-sm">
               {new Date(jam.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               {" - "}
               {new Date(jam.votingEndDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
             </p>
           </Card>
-          <Card className="bg-[#1a1a2e] border-[#2a2a4a] p-4">
+          <Card className="bg-surface-2 border-border p-4">
             {jam.status === "ACTIVE" && (
               <Countdown targetDate={jam.endDate} label="Submissions close in" />
             )}
@@ -457,16 +459,16 @@ export function JamDetail({
             )}
             {jam.status === "COMPLETED" && (
               <div className="text-center">
-                <Trophy className="w-4 h-4 text-[#ffff00] mx-auto mb-1" />
-                <p className="text-[#8080a0] text-xs mb-1">Final Results</p>
-                <p className="text-white text-sm font-pixel">{entries.length} entries</p>
+                <Trophy className="w-4 h-4 text-arcade-yellow mx-auto mb-1" />
+                <p className="text-text-secondary text-xs mb-1">Final Results</p>
+                <p className="text-sm font-bold text-white">{entries.length} entries</p>
               </div>
             )}
           </Card>
         </div>
 
         {/* Stats bar */}
-        <div className="flex items-center gap-6 text-sm text-[#8080a0]">
+        <div className="flex items-center gap-6 text-sm text-text-secondary">
           <span className="flex items-center gap-1">
             <Users className="w-4 h-4" />
             {entries.length} {entries.length === 1 ? "entry" : "entries"}
@@ -479,18 +481,18 @@ export function JamDetail({
 
       {/* Rules */}
       {jam.rules && (
-        <Card className="bg-[#1a1a2e] border-[#2a2a4a] p-5 mb-8">
-          <h2 className="font-pixel text-sm text-white mb-3">RULES</h2>
-          <div className="text-[#b0b0d0] text-sm whitespace-pre-wrap">{jam.rules}</div>
+        <Card className="bg-surface-2 border-border p-5 mb-8">
+          <h2 className="heading-pixel-sm mb-3 text-white">RULES</h2>
+          <div className="text-text-secondary text-sm whitespace-pre-wrap">{jam.rules}</div>
         </Card>
       )}
 
       {jam.status === "ACTIVE" && (
-        <Card className="bg-[#1a1a2e] border-[#ff0040]/30 p-5 mb-8">
+        <Card className="bg-surface-2 border-arcade-red/30 p-5 mb-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="font-pixel text-sm text-white mb-1">BUILD SOMETHING NEW FOR THIS JAM</h2>
-              <p className="text-[#8080a0] text-sm">
+              <h2 className="heading-pixel-sm mb-1 text-white">BUILD SOMETHING NEW FOR THIS JAM</h2>
+              <p className="text-text-secondary text-sm">
                 {canStartJamUpload
                   ? "Start from a fresh upload and this jam will already be selected for you."
                   : `You have already used all ${jam.maxEntries} ${jam.maxEntries === 1 ? "entry slot" : "entry slots"} for this jam.`}
@@ -498,7 +500,7 @@ export function JamDetail({
             </div>
             {canStartJamUpload && (
               <Link href={userId ? uploadHref : uploadLoginHref}>
-                <Button className="bg-[#ff0040] text-white hover:bg-[#e0003a] font-pixel text-xs">
+                <Button className="bg-arcade-red text-xs text-white hover:bg-danger-hover">
                   <Upload className="w-4 h-4 mr-1" />
                   UPLOAD FOR JAM
                 </Button>
@@ -510,16 +512,16 @@ export function JamDetail({
 
       {/* Submit entry */}
       {canSubmit && (
-        <Card className="bg-[#1a1a2e] border-[#00ff40]/30 p-5 mb-8">
+        <Card className="bg-surface-2 border-arcade-green/30 p-5 mb-8">
           {!showSubmitForm ? (
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-pixel text-sm text-[#00ff40] mb-1">SUBMIT YOUR GAME</h3>
-                <p className="text-[#8080a0] text-sm">Submit a published game to this jam, or upload a new one with the jam already selected.</p>
+                <h3 className="heading-pixel-sm mb-1 text-arcade-green">SUBMIT YOUR GAME</h3>
+                <p className="text-text-secondary text-sm">Submit a published game to this jam, or upload a new one with the jam already selected.</p>
               </div>
               <Button
                 onClick={() => setShowSubmitForm(true)}
-                className="bg-[#00ff40] text-black hover:bg-[#00cc33] font-pixel text-xs"
+                className="bg-arcade-green text-xs text-black hover:bg-success-hover"
               >
                 <Send className="w-4 h-4 mr-1" />
                 SUBMIT
@@ -528,8 +530,8 @@ export function JamDetail({
           ) : (
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-pixel text-sm text-[#00ff40]">SELECT A GAME</h3>
-                <button onClick={() => setShowSubmitForm(false)} className="text-[#8080a0] hover:text-white">
+                <h3 className="heading-pixel-sm text-arcade-green">SELECT A GAME</h3>
+                <button type="button" onClick={() => setShowSubmitForm(false)} className="text-text-secondary hover:text-white" aria-label="Close game selection">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -540,19 +542,19 @@ export function JamDetail({
                     onClick={() => setSelectedGameId(game.id)}
                     className={`w-full text-left p-3 rounded border transition-colors ${
                       selectedGameId === game.id
-                        ? "border-[#00ff40] bg-[#00ff40]/10 text-white"
-                        : "border-[#2a2a4a] hover:border-[#4a4a6a] text-[#b0b0d0]"
+                        ? "border-arcade-green bg-arcade-green/10 text-white"
+                        : "border-border hover:border-border-strong text-text-secondary"
                     }`}
                   >
-                    <span className="font-pixel text-xs">{game.title}</span>
+                    <span className="text-xs font-bold">{game.title}</span>
                   </button>
                 ))}
               </div>
-              {error && <p className="text-[#ff0040] text-sm mb-3">{error}</p>}
+              {error && <p className="text-arcade-red text-sm mb-3">{error}</p>}
               <Button
                 onClick={handleSubmit}
                 disabled={!selectedGameId || submitting}
-                className="bg-[#00ff40] text-black hover:bg-[#00cc33] font-pixel text-xs"
+                className="bg-arcade-green text-xs text-black hover:bg-success-hover"
               >
                 {submitting ? "SUBMITTING..." : "CONFIRM SUBMISSION"}
               </Button>
@@ -563,26 +565,26 @@ export function JamDetail({
 
       {/* Not logged in message for active jams */}
       {jam.status === "ACTIVE" && !userId && (
-        <Card className="bg-[#1a1a2e] border-[#2a2a4a] p-5 mb-8 text-center">
-          <p className="text-[#b0b0d0] mb-3">
-            <Link href={uploadLoginHref} className="text-[#ff0040] hover:underline">Sign in</Link> to upload or submit your game to this jam.
+        <Card className="bg-surface-2 border-border p-5 mb-8 text-center">
+          <p className="text-text-secondary mb-3">
+            <Link href={uploadLoginHref} className="text-arcade-red hover:underline">Sign in</Link> to upload or submit your game to this jam.
           </p>
         </Card>
       )}
 
       {/* Entries list */}
       <div>
-        <h2 className="font-pixel text-sm text-white mb-4 flex items-center gap-2">
-          <Gamepad2 className="w-5 h-5 text-[#ff0040]" />
+        <h2 className="heading-pixel-sm mb-4 flex items-center gap-2 text-white">
+          <Gamepad2 className="w-5 h-5 text-arcade-red" />
           {jam.status === "COMPLETED" ? "RESULTS" : "ENTRIES"}
-          <span className="text-[#8080a0] font-sans text-xs">({entries.length})</span>
+          <span className="text-text-secondary font-sans text-xs">({entries.length})</span>
         </h2>
 
         {entries.length === 0 ? (
-          <Card className="bg-[#1a1a2e] border-[#2a2a4a] p-8 text-center">
-            <Gamepad2 className="w-8 h-8 text-[#4a4a6a] mx-auto mb-3" />
-            <p className="text-[#b0b0d0] font-pixel text-xs">NO ENTRIES YET</p>
-            <p className="text-[#8080a0] text-sm mt-1">Be the first to submit a game!</p>
+          <Card className="bg-surface-2 border-border p-8 text-center">
+            <Gamepad2 className="w-8 h-8 text-text-secondary mx-auto mb-3" />
+            <p className="text-kicker text-text-secondary">NO ENTRIES YET</p>
+            <p className="text-text-secondary text-sm mt-1">Be the first to submit a game!</p>
           </Card>
         ) : (
           <div className="space-y-3">
@@ -602,7 +604,7 @@ export function JamDetail({
                   <button
                     onClick={() => handleWithdraw(entry.game.id)}
                     disabled={withdrawingGameId === entry.game.id}
-                    className="absolute top-2 right-2 text-[#8080a0] hover:text-[#ff0040] text-xs transition-colors disabled:opacity-50"
+                    className="absolute top-2 right-2 text-text-secondary hover:text-arcade-red text-xs transition-colors disabled:opacity-50"
                   >
                     {withdrawingGameId === entry.game.id ? (
                       <span className="flex items-center gap-1">

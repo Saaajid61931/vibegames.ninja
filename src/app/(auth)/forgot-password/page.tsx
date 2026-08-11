@@ -13,28 +13,28 @@ export const metadata: Metadata = {
 
 export default function ForgotPasswordPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0d0d15] px-4 py-12 text-white">
+    <div className="min-h-screen flex items-center justify-center bg-canvas px-4 py-12 text-white">
       <div className="w-full max-w-md">
         <Link href="/" className="mb-8 flex items-center justify-center gap-3">
-          <NinjaConsole className="h-8 w-8 text-[#ffff00]" />
-          <span className="font-pixel text-sm text-white">
-            <span className="text-[var(--color-arcade-yellow)]">VIBE</span>GAMES
+          <NinjaConsole className="h-8 w-8 text-arcade-yellow" />
+          <span className="heading-pixel-sm text-white">
+            <span className="text-arcade-yellow">VIBE</span>GAMES
           </span>
         </Link>
 
         <Card variant="arcade">
           <CardHeader variant="arcade" className="text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center border-2 border-[var(--color-arcade-yellow)] bg-[var(--color-arcade-yellow)]/10 text-[var(--color-arcade-yellow)]">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center border-2 border-arcade-yellow bg-arcade-yellow/10 text-arcade-yellow">
               <ShieldAlert className="h-6 w-6" />
             </div>
             <CardTitle className="mt-4 font-arcade text-sm text-white uppercase">Password reset is not live yet</CardTitle>
-            <CardDescription className="font-arcade text-xs text-[#8b93a6] uppercase mt-2">
+            <CardDescription className="font-arcade text-xs text-text-secondary uppercase mt-2">
               The sign-in flow should not have dropped you on a missing page. This route now gives
               you a safe recovery path instead of a 404.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="border-2 border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-4 text-xs font-arcade text-[var(--color-text-secondary)] uppercase">
+            <div className="border-2 border-border-strong bg-surface-2 p-4 text-xs font-arcade text-text-secondary uppercase">
               <p>
                 If you normally use Google, choose the Google sign-in button on the login page.
               </p>
@@ -44,9 +44,9 @@ export default function ForgotPasswordPage() {
               </p>
             </div>
 
-            <div className="border-2 border-[var(--color-border-strong)] bg-[var(--color-base)] p-4 text-xs font-arcade text-[var(--color-text-secondary)] uppercase">
+            <div className="border-2 border-border-strong bg-canvas p-4 text-xs font-arcade text-text-secondary uppercase">
               <div className="flex items-start gap-3">
-                <LifeBuoy className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-arcade-yellow)]" />
+                <LifeBuoy className="mt-0.5 h-4 w-4 shrink-0 text-arcade-yellow" />
                 <p>
                   A full reset-email flow can be added next, but this page keeps the auth flow from
                   breaking in the meantime.

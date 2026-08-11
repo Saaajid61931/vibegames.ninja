@@ -113,22 +113,22 @@ export function StructuredFeedbackPanel({
   }
 
   return (
-    <div className="border-2 border-[#4a4a6a] bg-[#11111d] p-4 sm:p-5">
+    <div className="border-2 border-border-strong bg-surface p-4 sm:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <MessageSquarePlus className="h-4 w-4 text-[#00d1ff]" />
-            <span className="font-arcade text-[11px] text-[#00d1ff]">STRUCTURED FEEDBACK</span>
+            <MessageSquarePlus className="h-4 w-4 text-arcade-cyan" />
+            <span className="font-arcade text-xs text-arcade-cyan">STRUCTURED FEEDBACK</span>
           </div>
           <h3 className="mt-2 font-arcade text-sm text-white">Help the creator improve this game</h3>
-          <p className="mt-2 font-arcade text-xs text-[#8b93a6]">
+          <p className="mt-2 font-arcade text-xs text-text-secondary">
             Quick signals work better than silence. Mark what stood out and optionally leave one short note.
           </p>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {FEEDBACK_SIGNAL_KEYS.map((key) => (
-            <div key={key} className="border border-[#2e3446] bg-[#0d0d15] px-3 py-2 text-center">
-              <p className="font-arcade text-[10px] text-[#4a4a6a]">{FEEDBACK_SIGNAL_LABELS[key].toUpperCase()}</p>
+            <div key={key} className="border border-border bg-canvas px-3 py-2 text-center">
+              <p className="font-arcade text-xs text-text-secondary">{FEEDBACK_SIGNAL_LABELS[key].toUpperCase()}</p>
               <p className="mt-1 font-arcade text-sm text-white">{summary.counts[key] || 0}</p>
             </div>
           ))}
@@ -136,7 +136,7 @@ export function StructuredFeedbackPanel({
       </div>
 
       {summary.topSignals.length > 0 && (
-        <p className="mt-4 font-arcade text-[11px] text-[#8b93a6]">
+        <p className="mt-4 font-arcade text-xs text-text-secondary">
           Most common notes so far: {summary.topSignals.slice(0, 2).map((item) => `${item.label} (${item.count})`).join(" • ")}
         </p>
       )}
@@ -144,8 +144,8 @@ export function StructuredFeedbackPanel({
       {recentComments.length > 0 && (
         <div className="mt-4 grid gap-2 sm:grid-cols-3">
           {recentComments.map((entry, index) => (
-            <div key={`${index}-${entry.createdAt}`} className="border border-[#2e3446] bg-[#0d0d15] p-3">
-              <p className="font-arcade text-[10px] text-[#4a4a6a]">PLAYER NOTE</p>
+            <div key={`${index}-${entry.createdAt}`} className="border border-border bg-canvas p-3">
+              <p className="font-arcade text-xs text-text-secondary">PLAYER NOTE</p>
               <p className="mt-2 font-arcade text-xs text-white line-clamp-4">{entry.comment}</p>
             </div>
           ))}
@@ -153,7 +153,7 @@ export function StructuredFeedbackPanel({
       )}
 
       {showPrompt && (
-        <div className="mt-5 space-y-3 border-t border-[#2e3446] pt-4">
+        <div className="mt-5 space-y-3 border-t border-border pt-4">
           <div className="flex flex-wrap gap-2">
             {FEEDBACK_SIGNAL_KEYS.map((key) => (
               <button
@@ -161,8 +161,8 @@ export function StructuredFeedbackPanel({
                 type="button"
                 className={`border px-3 py-2 text-xs font-arcade transition-colors ${
                   selectedSignals[key]
-                    ? "border-[#00d1ff] bg-[#00d1ff]/10 text-[#00d1ff]"
-                    : "border-[#2e3446] bg-[#0d0d15] text-[#8b93a6] hover:border-[#4a4a6a] hover:text-white"
+                    ? "border-arcade-cyan bg-arcade-cyan/10 text-arcade-cyan"
+                    : "border-border bg-canvas text-text-secondary hover:border-border-strong hover:text-white"
                 }`}
                 onClick={() => handleToggle(key)}
               >
@@ -185,7 +185,7 @@ export function StructuredFeedbackPanel({
           />
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="font-arcade text-[10px] text-[#4a4a6a]">{comment.length}/280</p>
+            <p className="font-arcade text-xs text-text-secondary">{comment.length}/280</p>
             {isAuthenticated ? (
               <Button
                 type="button"
@@ -206,7 +206,7 @@ export function StructuredFeedbackPanel({
           </div>
 
           {message && (
-            <p className={`font-arcade text-xs ${message.includes("Failed") ? "text-[#ff8b8b]" : "text-[#00ff40]"}`}>
+            <p className={`font-arcade text-xs ${message.includes("Failed") ? "text-danger-text" : "text-arcade-green"}`}>
               {message}
             </p>
           )}

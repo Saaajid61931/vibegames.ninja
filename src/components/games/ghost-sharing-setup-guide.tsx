@@ -113,23 +113,23 @@ export function GhostSharingSetupGuide() {
   }
 
   return (
-    <div className="space-y-4 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+    <div className="space-y-4 rounded-md border border-border bg-surface p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-[var(--color-text)]">Ghost Sharing Setup</p>
-          <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
+          <p className="text-sm font-semibold text-text">Ghost Sharing Setup</p>
+          <p className="mt-1 text-xs text-text-secondary">
             Use this when the game can deterministically replay a completed run from structured data. This feature is separate from level editor.
           </p>
         </div>
-        <Sparkles className="mt-0.5 h-4 w-4 text-[var(--color-primary)]" />
+        <Sparkles className="mt-0.5 h-4 w-4 text-primary-text" />
       </div>
 
-      <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
+      <div className="rounded-md border border-border bg-canvas p-3">
         <div className="flex items-center gap-2">
-          <Ghost className="h-4 w-4 text-[var(--color-primary)]" />
-          <p className="text-xs font-medium text-[var(--color-text)]">When to use it</p>
+          <Ghost className="h-4 w-4 text-primary-text" />
+          <p className="text-xs font-medium text-text">When to use it</p>
         </div>
-        <p className="mt-2 text-xs text-[var(--color-text-secondary)]">
+        <p className="mt-2 text-xs text-text-secondary">
           Great for racing, speedrunning, precision platformers, time attacks, and any skill game where the exact same run can be replayed reliably.
         </p>
       </div>
@@ -137,8 +137,8 @@ export function GhostSharingSetupGuide() {
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <p className="text-xs font-medium text-[var(--color-text)]">Quick prompt for your coding AI</p>
-            <p className="text-[11px] text-[var(--color-text-secondary)]">
+            <p className="text-xs font-medium text-text">Quick prompt for your coding AI</p>
+            <p className="text-xs text-text-secondary">
               This forces the model to prove the replay is deterministic before wiring the ghost hooks.
             </p>
           </div>
@@ -150,8 +150,8 @@ export function GhostSharingSetupGuide() {
         <Textarea readOnly value={GHOST_SHARING_QUICK_PROMPT} className="min-h-[250px] text-xs" />
       </div>
 
-      <details className="rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
-        <summary className="cursor-pointer text-xs font-medium text-[var(--color-text)]">
+      <details className="rounded-md border border-border bg-canvas p-3">
+        <summary className="cursor-pointer text-xs font-medium text-text">
           Advanced prompt
         </summary>
         <div className="mt-3 space-y-2">
@@ -165,8 +165,8 @@ export function GhostSharingSetupGuide() {
         </div>
       </details>
 
-      <details className="rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-3">
-        <summary className="cursor-pointer text-xs font-medium text-[var(--color-text)]">
+      <details className="rounded-md border border-border bg-canvas p-3">
+        <summary className="cursor-pointer text-xs font-medium text-text">
           Manual hook snippet
         </summary>
         <div className="mt-3 space-y-2">
@@ -180,7 +180,7 @@ export function GhostSharingSetupGuide() {
         </div>
       </details>
 
-      <p className="text-[11px] text-[var(--color-text-tertiary)]">
+      <p className="text-xs text-text-tertiary">
         VibeGames injects the SDK automatically when ghost sharing is enabled. Your game still needs to bind the replay hooks above so the play page can load and save ghosts.
       </p>
     </div>

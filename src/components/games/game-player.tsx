@@ -657,14 +657,14 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
   }), [launchFullscreen, runAutoThumbnailCapture])
 
   return (
-    <div ref={wrapperRef} className={`relative overflow-hidden ${isFullscreen ? "bg-black" : "border-2 border-[#4a4a6a] bg-[#11111d] shadow-[4px_4px_0_#080a11]"}`}>
+    <div ref={wrapperRef} className={`relative overflow-hidden ${isFullscreen ? "bg-black" : "border-2 border-border-strong bg-surface shadow-hard-4"}`}>
       {!isFullscreen && (
-        <div className="flex items-center justify-between gap-3 border-b-2 border-[#4a4a6a] bg-[#1a1a2e] px-3 py-3 sm:px-4">
+        <div className="flex items-center justify-between gap-3 border-b-2 border-border-strong bg-surface-2 px-3 py-3 sm:px-4">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="h-2 w-2 shrink-0 bg-[#22c55e]" />
-            <span className="truncate font-pixel text-[8px] text-[#dce4f5]">{runtimeLabel}</span>
+            <span className="h-2 w-2 shrink-0 bg-success" />
+            <span className="truncate text-kicker  text-text">{runtimeLabel}</span>
           </div>
-          <span className="shrink-0 font-pixel text-[8px] text-[#aeb7ca]">
+          <span className="shrink-0 text-kicker  text-text-secondary">
             {isAutoCapturing
               ? "Capturing screenshots"
               : mode === "preview"
@@ -677,7 +677,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
       )}
 
       {!isFullscreen && mode === "play" && (
-        <div className="border-b border-[#4a4a6a] bg-[#11111d] px-3 py-2.5 text-[11px] leading-5 text-[#8f99ad] sm:px-4">
+        <div className="border-b border-border-strong bg-surface px-3 py-2.5 text-xs leading-5 text-text-secondary sm:px-4">
           {isAutoCapturing
             ? "Share this browser tab when prompted and keep playing while screenshots are captured."
             : requiredOrientation
@@ -690,19 +690,19 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
             <div className="text-center">
-              <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-[var(--color-primary-hover)]" />
+              <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-primary-hover-text" />
               <p className="text-sm text-white">Loading game...</p>
             </div>
           </div>
         )}
 
         {showPlayOverlay && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#090b12]/90 p-4">
-            <div className="w-full max-w-md space-y-5 border-2 border-[#4a4a6a] bg-[#11111d] p-5 text-center shadow-[4px_4px_0_#080a11] sm:p-6">
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-canvas/90 p-4">
+            <div className="w-full max-w-md space-y-5 border-2 border-border-strong bg-surface p-5 text-center shadow-hard-4 sm:p-6">
               <div className="space-y-2">
-                <span className="font-pixel text-[9px] text-[#facc15]">Ready when you are</span>
-                <h3 className="font-pixel text-sm font-semibold leading-6 text-white sm:text-lg">Play {title}</h3>
-                <p className="text-sm leading-6 text-[#aeb7ca]">
+                <span className="text-kicker  text-arcade-yellow">Ready when you are</span>
+                <h3 className="heading-pixel-md font-semibold text-white">Play {title}</h3>
+                <p className="text-sm leading-6 text-text-secondary">
                   {requiredOrientation
                     ? `This game is designed for ${getMobileOrientationLabel(requiredOrientation).toLowerCase()}.`
                     : "Open the game in fullscreen for the best experience."}
@@ -722,7 +722,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
               </Button>
 
               {fullscreenError && (
-                <p className="text-sm text-[#ff9ab1]">{fullscreenError}</p>
+                <p className="text-sm text-danger-text">{fullscreenError}</p>
               )}
             </div>
           </div>
@@ -731,11 +731,11 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
         {orientationMismatch && requiredOrientation && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/80 p-4">
             <div className="max-w-sm text-center space-y-3">
-              <p className="font-arcade text-[10px] text-[#8b93a6]">ROTATE DEVICE</p>
+              <p className="font-arcade text-xs text-text-secondary">ROTATE DEVICE</p>
               <h3 className="font-arcade text-sm sm:text-base text-white">
                 {getMobileOrientationPrompt(requiredOrientation)}
               </h3>
-              <p className="font-arcade text-[11px] sm:text-xs text-[#8b93a6]">
+              <p className="font-arcade text-xs sm:text-xs text-text-secondary">
                 This game only supports {getMobileOrientationLabel(requiredOrientation).toLowerCase()} on mobile.
               </p>
             </div>

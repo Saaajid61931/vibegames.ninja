@@ -31,18 +31,18 @@ export default async function JamsPage() {
   const groups = await listJamGroupsForPage()
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+    <div className="min-h-screen flex flex-col bg-canvas">
       <Header />
       <main className="flex-1">
         <div className="max-w-6xl mx-auto px-4 py-8">
           {/* Hero */}
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-3 mb-4">
-              <Trophy className="w-8 h-8 text-[#ffff00]" />
-              <h1 className="text-2xl md:text-3xl font-pixel text-[#ffff00]">GAME JAMS</h1>
-              <Trophy className="w-8 h-8 text-[#ffff00]" />
+              <Trophy className="w-8 h-8 text-arcade-yellow" />
+              <h1 className="heading-pixel-lg text-arcade-yellow">GAME JAMS</h1>
+              <Trophy className="w-8 h-8 text-arcade-yellow" />
             </div>
-            <p className="text-[#b0b0d0] max-w-xl mx-auto">
+            <p className="text-text-secondary max-w-xl mx-auto">
               Build an AI game around a theme. Compete with the community. Vote on your favorites.
             </p>
           </div>

@@ -435,10 +435,10 @@ function decorateGameCards<
 }
 
 export const HOME_FEATURES = [
-  { icon: "Zap", title: "EXPLORE IDEAS", desc: "Discover games made by creative people worldwide", color: "#ffff00" },
-  { icon: "Upload", title: "NO SKILLS NEEDED", desc: "Build with AI. No coding required", color: "#0080ff" },
-  { icon: "Heart", title: "SHARE & INSPIRE", desc: "Comment, share, and build community levels", color: "#ff0040" },
-  { icon: "Trophy", title: "ZERO BARRIERS", desc: "Free forever. Everyone is a creator", color: "#00ff40" },
+  { icon: "Zap", title: "EXPLORE IDEAS", desc: "Discover games made by creative people worldwide", color: "var(--color-arcade-yellow)" },
+  { icon: "Upload", title: "NO SKILLS NEEDED", desc: "Build with AI. No coding required", color: "var(--color-arcade-blue)" },
+  { icon: "Heart", title: "SHARE & INSPIRE", desc: "Comment, share, and build community levels", color: "var(--color-arcade-red)" },
+  { icon: "Trophy", title: "ZERO BARRIERS", desc: "Free forever. Everyone is a creator", color: "var(--color-arcade-green)" },
 ] as const
 
 async function getHomeDataValue<T>(

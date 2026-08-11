@@ -177,7 +177,7 @@ export default async function JamDetailPage({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+    <div className="min-h-screen flex flex-col bg-canvas">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jamJsonLd) }} />
       <Header />
       <main className="flex-1">

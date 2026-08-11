@@ -75,16 +75,16 @@ export default async function MyLevelsPage() {
   const { levels, stats } = await getMyLevels(session.user.id)
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+    <div className="min-h-screen flex flex-col bg-canvas">
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-8 border-b-2 border-[#4a4a6a]">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-8 border-b-2 border-border-strong">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Terminal className="h-5 w-5 text-[#ffff00]" />
-              <span className="text-[#ffff00] font-arcade text-sm">MY_LEVELS</span>
+              <Terminal className="h-5 w-5 text-arcade-yellow" />
+              <span className="text-arcade-yellow font-arcade text-sm">MY_LEVELS</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white font-arcade">
               COMMUNITY LEVELS
@@ -100,41 +100,41 @@ export default async function MyLevelsPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-8">
-          <div className="border-2 border-[#4a4a6a] p-4">
+          <div className="border-2 border-border-strong p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Layers className="h-4 w-4 text-[#ffff00]" />
-              <span className="text-xs text-[#4a4a6a] font-arcade">TOTAL_LEVELS</span>
+              <Layers className="h-4 w-4 text-arcade-yellow" />
+              <span className="text-xs text-text-secondary font-arcade">TOTAL_LEVELS</span>
             </div>
             <p className="text-2xl sm:text-3xl font-bold text-white font-arcade">{stats.totalLevels}</p>
           </div>
-          <div className="border-2 border-[#4a4a6a] p-4">
+          <div className="border-2 border-border-strong p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Play className="h-4 w-4 text-[#ffff00]" />
-              <span className="text-xs text-[#4a4a6a] font-arcade">TOTAL_PLAYS</span>
+              <Play className="h-4 w-4 text-arcade-yellow" />
+              <span className="text-xs text-text-secondary font-arcade">TOTAL_PLAYS</span>
             </div>
             <p className="text-2xl sm:text-3xl font-bold text-white font-arcade">{formatNumber(stats.totalPlays)}</p>
           </div>
         </div>
 
         {/* Levels List */}
-        <div className="border-2 border-[#4a4a6a]">
-          <div className="border-b-2 border-[#4a4a6a] px-4 py-3 bg-[#1a1a2e] flex items-center justify-between">
+        <div className="border-2 border-border-strong">
+          <div className="border-b-2 border-border-strong px-4 py-3 bg-surface-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Layers className="h-4 w-4 text-[#ffff00]" />
+              <Layers className="h-4 w-4 text-arcade-yellow" />
               <span className="font-arcade text-sm">YOUR_LEVELS [{levels.length}]</span>
             </div>
           </div>
 
-          <div className="bg-[#0d0d15]">
+          <div className="bg-canvas">
             {levels.length > 0 ? (
               <div className="divide-y divide-[#222]">
                 {levels.map((level) => (
                   <div
                     key={level.id}
-                    className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 hover:bg-[#1a1a2e] transition-colors"
+                    className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 hover:bg-surface-2 transition-colors"
                   >
                     {/* Game thumbnail */}
-                    <div className="w-full sm:w-20 h-32 sm:h-12 bg-[#1a1a2e] border border-[#4a4a6a] overflow-hidden flex-shrink-0">
+                    <div className="w-full sm:w-20 h-32 sm:h-12 bg-surface-2 border border-border-strong overflow-hidden flex-shrink-0">
                       {level.game.thumbnail ? (
                         <Image
                           src={level.game.thumbnail}
@@ -146,7 +146,7 @@ export default async function MyLevelsPage() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <Gamepad2 className="h-5 w-5 text-[#4a4a6a]" />
+                          <Gamepad2 className="h-5 w-5 text-text-secondary" />
                         </div>
                       )}
                     </div>
@@ -158,10 +158,10 @@ export default async function MyLevelsPage() {
                         <span
                           className={`px-2 py-0.5 text-xs font-arcade ${
                             level.status === "PUBLISHED"
-                              ? "bg-[#ffff00]/20 text-[#ffff00]"
+                              ? "bg-arcade-yellow/20 text-arcade-yellow"
                               : level.status === "HIDDEN"
-                                ? "bg-[#ffa500]/20 text-[#ffa500]"
-                                : "bg-[#ff0040]/20 text-[#ff0040]"
+                                ? "bg-arcade-orange/20 text-arcade-orange"
+                                : "bg-arcade-red/20 text-arcade-red"
                           }`}
                         >
                           {level.status}
@@ -169,15 +169,15 @@ export default async function MyLevelsPage() {
                       </div>
 
                       {level.description && (
-                        <p className="font-arcade text-[10px] text-[#4a4a6a] line-clamp-1 mb-1">
+                        <p className="font-arcade text-xs text-text-secondary line-clamp-1 mb-1">
                           {level.description}
                         </p>
                       )}
 
-                      <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-[#4a4a6a] font-arcade">
+                      <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-text-secondary font-arcade">
                         <Link
                           href={`/play/${level.game.slug}`}
-                          className="hover:text-[#ffff00] transition-colors"
+                          className="hover:text-arcade-yellow transition-colors"
                         >
                           [{level.game.title.toUpperCase()}]
                         </Link>
@@ -185,10 +185,10 @@ export default async function MyLevelsPage() {
                           <Eye className="h-3 w-3" />
                           {formatNumber(level.plays)}
                         </span>
-                        <span className="flex items-center gap-1 text-[#ffff00]">
-                          <Star className="h-3 w-3 fill-[#ffff00]" />
+                        <span className="flex items-center gap-1 text-arcade-yellow">
+                          <Star className="h-3 w-3 fill-arcade-yellow" />
                           {level.avgRating.toFixed(1)}
-                          <span className="text-[#4a4a6a]">({level.ratingCount})</span>
+                          <span className="text-text-secondary">({level.ratingCount})</span>
                         </span>
                         <span>{timeAgo(new Date(level.createdAt))}</span>
                       </div>
@@ -198,13 +198,13 @@ export default async function MyLevelsPage() {
                     <div className="flex w-full sm:w-auto items-center justify-end gap-1">
                       {level.status === "PUBLISHED" && (
                         <Link href={`/play/${level.game.slug}?level=${level.id}`} target="_blank">
-                          <Button variant="ghost" size="icon" className="text-[#4a4a6a] hover:text-[#ffff00]">
+                          <Button variant="ghost" size="icon" className="text-text-secondary hover:text-arcade-yellow" aria-label={`Play ${level.name}`}>
                             <Play className="h-4 w-4" />
                           </Button>
                         </Link>
                       )}
                       <Link href={`/play/${level.game.slug}/editor?level=${level.id}`}>
-                        <Button variant="ghost" size="icon" className="text-[#4a4a6a] hover:text-white">
+                        <Button variant="ghost" size="icon" className="text-text-secondary hover:text-white" aria-label={`Edit ${level.name}`}>
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
@@ -214,9 +214,9 @@ export default async function MyLevelsPage() {
               </div>
             ) : (
               <div className="text-center py-16">
-                <Layers className="h-12 w-12 text-[#4a4a6a] mx-auto mb-4" />
+                <Layers className="h-12 w-12 text-text-secondary mx-auto mb-4" />
                 <h3 className="text-lg font-arcade text-white mb-2">NO_LEVELS_FOUND</h3>
-                <p className="text-[#4a4a6a] mb-6 font-arcade text-sm">
+                <p className="text-text-secondary mb-6 font-arcade text-sm">
                   You haven&apos;t created any community levels yet. Find a game with level editor support and start building!
                 </p>
                 <Link href="/games?editor=true">

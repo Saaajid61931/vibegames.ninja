@@ -66,7 +66,7 @@ export function PlayPageView({
   const isOwner = userId === game.creator.id
 
   return (
-    <div className="vg-shell flex min-h-screen flex-col bg-[#090b12]">
+    <div className="vg-shell flex min-h-screen flex-col bg-canvas">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(gameJsonLd) }}
@@ -81,7 +81,7 @@ export function PlayPageView({
         <div className="container mx-auto max-w-7xl px-4 py-4 sm:py-8">
           <Link
             href="/games"
-            className="mb-4 inline-flex items-center gap-2 font-pixel text-[9px] text-[#aeb7ca] transition-colors hover:text-white sm:mb-5"
+            className="mb-4 inline-flex items-center gap-2 text-kicker  text-text-secondary transition-colors hover:text-white sm:mb-5"
           >
             <ChevronLeft className="h-4 w-4" />
             Browse all games
@@ -90,11 +90,11 @@ export function PlayPageView({
           <div className="vg-play-hero mb-6 flex flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
               <div className="mb-4 flex flex-wrap items-center gap-2">
-                <span className="vg-chip border-[#facc15]/35 text-[#facc15]">
+                <span className="vg-chip border-arcade-yellow/35 text-arcade-yellow">
                   {category?.label || "Game"}
                 </span>
                 {game.supportsMobile ? (
-                  <span className="vg-chip border-[#22c55e]/35 text-[#6ee7a0]">
+                  <span className="vg-chip border-success/35 text-success-text">
                     <Smartphone className="h-3.5 w-3.5" />
                     {mobileTagLabel.replaceAll("_", " ")}
                   </span>
@@ -108,14 +108,14 @@ export function PlayPageView({
                   </span>
                 ))}
               </div>
-              <h1 className="max-w-4xl break-words font-pixel text-xl font-bold leading-tight text-white sm:text-3xl">
+              <h1 className="heading-pixel-lg max-w-4xl break-words font-bold text-white">
                 {game.title}
               </h1>
-              <p className="mt-3 text-sm text-[#aeb7ca]">
+              <p className="mt-3 text-sm text-text-secondary">
                 Created by{" "}
                 <Link
                   href={creatorProfileHref}
-                  className="font-medium text-white hover:text-[var(--color-arcade-cyan)]"
+                  className="font-medium text-white hover:text-arcade-cyan"
                 >
                   {game.studioProfile?.displayName ||
                     game.creator.name ||
@@ -166,23 +166,23 @@ export function PlayPageView({
                 aria-label="Game actions and activity"
                 className="vg-play-panel flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[var(--color-text-secondary)]">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-text-secondary">
                   <span className="inline-flex items-center gap-2">
-                    <Play className="h-4 w-4 text-[#facc15]" />
+                    <Play className="h-4 w-4 text-arcade-yellow" />
                     <strong className="font-semibold text-white">
                       {formatNumber(game.plays)}
                     </strong>{" "}
                     plays
                   </span>
                   <span className="inline-flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-[#ff3d6e]" />
+                    <Heart className="h-4 w-4 text-arcade-red" />
                     <strong className="font-semibold text-white">
                       {formatNumber(game.likes)}
                     </strong>{" "}
                     likes
                   </span>
                   <span className="inline-flex items-center gap-2">
-                    <MessageCircle className="h-4 w-4 text-[#20d8ff]" />
+                    <MessageCircle className="h-4 w-4 text-arcade-cyan" />
                     <strong className="font-semibold text-white">
                       {game._count.comments}
                     </strong>{" "}
@@ -202,10 +202,10 @@ export function PlayPageView({
               </section>
 
               {primaryJam ? (
-                <section className="vg-play-panel border-[#facc15]/50 p-4 sm:p-5">
+                <section className="vg-play-panel border-arcade-yellow/50 p-4 sm:p-5">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <span className="vg-kicker text-[#facc15]">
+                      <span className="vg-kicker text-arcade-yellow">
                         {primaryJamStatus === "ACTIVE"
                           ? "Live game jam"
                           : "Game jam entry"}
@@ -213,7 +213,7 @@ export function PlayPageView({
                       <h2 className="mt-3 text-lg font-semibold text-white">
                         {primaryJam.title}
                       </h2>
-                      <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">
+                      <p className="mt-1 text-sm leading-6 text-text-secondary">
                         {primaryJam.theme
                           ? `Theme: ${primaryJam.theme}. `
                           : ""}
@@ -240,33 +240,33 @@ export function PlayPageView({
                 <h2 id="about-game" className="mt-3 text-xl font-semibold text-white">
                   What to expect
                 </h2>
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-[var(--color-text-secondary)] sm:text-base">
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-text-secondary sm:text-base">
                   {game.description}
                 </p>
 
                 {game.instructions ? (
-                  <div className="mt-6 border border-[var(--color-border)] bg-[#11111d] p-4">
+                  <div className="mt-6 border border-border bg-surface p-4">
                     <h3 className="text-sm font-semibold text-white">
                       How to play
                     </h3>
-                    <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[var(--color-text-secondary)]">
+                    <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-text-secondary">
                       {game.instructions}
                     </p>
                   </div>
                 ) : null}
 
                 {game.latestUpdateNote ? (
-                  <div className="mt-4 border border-[#20d8ff]/25 bg-[#20d8ff]/5 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-[#7ee7ff]">
+                  <div className="mt-4 border border-arcade-cyan/25 bg-arcade-cyan/5 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-info-text">
                       Latest update
                     </p>
-                    <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+                    <p className="mt-2 text-sm text-text-secondary">
                       {game.latestUpdateNote}
                     </p>
                   </div>
                 ) : null}
 
-                <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 border-t border-[var(--color-border)] pt-4 text-xs text-[var(--color-text-tertiary)]">
+                <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 border-t border-border pt-4 text-xs text-text-tertiary">
                   <span className="inline-flex items-center gap-2">
                     <Clock3 className="h-3.5 w-3.5" />
                     Uploaded {timeAgo(new Date(game.createdAt))}
@@ -305,18 +305,18 @@ export function PlayPageView({
 
               {selectedLevel ? (
                 <section className="vg-play-panel p-4 sm:p-5">
-                  <span className="vg-kicker text-[#facc15]">
+                  <span className="vg-kicker text-arcade-yellow">
                     Current community level
                   </span>
                   <h2 className="mt-3 text-lg font-semibold text-white">
                     {selectedLevel.name}
                   </h2>
                   {selectedLevel.description ? (
-                    <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+                    <p className="mt-2 text-sm text-text-secondary">
                       {selectedLevel.description}
                     </p>
                   ) : null}
-                  <p className="mt-2 text-xs text-[var(--color-text-tertiary)]">
+                  <p className="mt-2 text-xs text-text-tertiary">
                     Made by{" "}
                     {selectedLevel.creator.username ||
                       selectedLevel.creator.name ||

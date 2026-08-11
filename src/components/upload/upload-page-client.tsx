@@ -784,7 +784,7 @@ export function UploadPageClient() {
   if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary)]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary-text" />
       </div>
     )
   }
@@ -799,25 +799,25 @@ export function UploadPageClient() {
         <Header />
         <main className="flex flex-1 items-center justify-center px-4 py-10">
           <section className="vg-panel w-full max-w-2xl p-6 text-center sm:p-8">
-            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-[#22c55e]/40 bg-[#22c55e]/10 text-[#6ee7a0]">
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-success/40 bg-success/10 text-success-text">
               <CheckCircle className="h-7 w-7" />
             </span>
-            <span className="vg-kicker mt-6 text-[#6ee7a0]">Published</span>
+            <span className="vg-kicker mt-6 text-success-text">Published</span>
             <h1 className="mt-4 text-3xl font-bold text-white">
               {createdGame?.title || "Your game"} is live
             </h1>
-            <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[var(--color-text-secondary)]">
+            <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-text-secondary">
               Players can now discover, play, like, and share your game.
             </p>
 
             {createdGame?.submittedJam ? (
-              <div className="mt-5 rounded-xl border border-[#22c55e]/30 bg-[#22c55e]/5 p-3 text-sm text-[#7ee2a8]">
+              <div className="mt-5 rounded-xl border border-success/30 bg-success/5 p-3 text-sm text-success-text">
                 Submitted to {createdGame.submittedJam.title}
               </div>
             ) : null}
 
             {uploadWarnings.length > 0 ? (
-              <div className="mt-5 rounded-xl border border-[#facc15]/30 bg-[#facc15]/5 p-4 text-left text-sm text-[#f8dd72]">
+              <div className="mt-5 rounded-xl border border-arcade-yellow/30 bg-arcade-yellow/5 p-4 text-left text-sm text-warning-text">
                 <p className="font-semibold">Published with a few notes</p>
                 <ul className="mt-2 list-disc space-y-1 pl-5">
                   {uploadWarnings.map((warning) => (
@@ -871,7 +871,7 @@ export function UploadPageClient() {
               <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
                 Publish a game in three steps
               </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-text-secondary)] sm:text-base">
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-text-secondary sm:text-base">
                 Add a ZIP or HTML file, tell players what it is, then preview and publish. Everything else is optional.
               </p>
             </div>
@@ -881,11 +881,11 @@ export function UploadPageClient() {
                 { number: 2, label: "Details" },
                 { number: 3, label: "Publish" },
               ].map((step) => (
-                <div key={step.number} className="rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
-                  <span className="grid h-7 w-7 place-items-center rounded-lg bg-[var(--color-primary)] text-xs font-bold text-white">
+                <div key={step.number} className="rounded-xl border border-border bg-black/15 p-3">
+                  <span className="grid h-7 w-7 place-items-center rounded-lg bg-primary text-xs font-bold text-white">
                     {step.number}
                   </span>
-                  <p className="mt-2 text-xs text-[var(--color-text-secondary)]">{step.label}</p>
+                  <p className="mt-2 text-xs text-text-secondary">{step.label}</p>
                 </div>
               ))}
             </div>
@@ -893,7 +893,7 @@ export function UploadPageClient() {
         </div>
 
         {draftNotice ? (
-          <div className="mb-5 flex flex-col gap-3 rounded-xl border border-[#facc15]/30 bg-[#facc15]/5 p-4 text-sm text-[#f8dd72] sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-5 flex flex-col gap-3 rounded-xl border border-arcade-yellow/30 bg-arcade-yellow/5 p-4 text-sm text-warning-text sm:flex-row sm:items-center sm:justify-between">
             <p>{draftNotice}</p>
             <Button type="button" variant="ghost" size="sm" onClick={clearSavedDraft}>
               Clear saved draft
@@ -902,14 +902,14 @@ export function UploadPageClient() {
         ) : null}
 
         {error ? (
-          <div className="mb-5 flex items-start gap-3 rounded-xl border border-[var(--color-danger)]/35 bg-[var(--color-danger)]/10 p-4 text-sm text-[#ff9ab1]">
+          <div className="mb-5 flex items-start gap-3 rounded-xl border border-danger/35 bg-danger/10 p-4 text-sm text-danger-text">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
             <p>{error}</p>
           </div>
         ) : null}
 
         {jamSelectionNotice ? (
-          <div className="mb-5 rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/5 p-4 text-sm text-[#f8dd72]">
+          <div className="mb-5 rounded-xl border border-warning/30 bg-warning/5 p-4 text-sm text-warning-text">
             {jamSelectionNotice}
           </div>
         ) : null}
@@ -918,12 +918,12 @@ export function UploadPageClient() {
           <div className="min-w-0 space-y-6">
             <section className="vg-panel p-5 sm:p-6" aria-labelledby="upload-source-title">
               <div className="flex items-start gap-3">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#20d8ff]/10 text-[#7ee7ff]">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-arcade-cyan/10 text-info-text">
                   <span className="text-sm font-bold">1</span>
                 </span>
                 <div>
                   <h2 id="upload-source-title" className="text-xl font-semibold text-white">Add your game</h2>
-                  <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+                  <p className="mt-1 text-sm text-text-secondary">
                     Upload a complete project or paste a self-contained HTML game.
                   </p>
                 </div>
@@ -951,19 +951,19 @@ export function UploadPageClient() {
                     className={
                       "cursor-pointer rounded-2xl border-2 border-dashed p-7 text-center transition-colors sm:p-10 " +
                       (isGameDragActive
-                        ? "border-[var(--color-primary)] bg-[var(--color-primary)]/10"
+                        ? "border-primary bg-primary/10"
                         : gameFile
-                          ? "border-[#22c55e]/50 bg-[#22c55e]/5"
-                          : "border-[var(--color-border-strong)] bg-black/15 hover:border-[var(--color-primary)]")
+                          ? "border-success/50 bg-success/5"
+                          : "border-border-strong bg-black/15 hover:border-primary")
                     }
                   >
                     <input {...getGameInputProps()} />
                     {gameFile ? (
                       <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-                        <FileArchive className="h-10 w-10 text-[#6ee7a0]" />
+                        <FileArchive className="h-10 w-10 text-success-text" />
                         <div className="min-w-0 text-center sm:text-left">
                           <p className="truncate font-medium text-white">{gameFile.name}</p>
-                          <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">
+                          <p className="mt-1 text-xs text-text-tertiary">
                             {(gameFile.size / 1024 / 1024).toFixed(2)} MB
                           </p>
                         </div>
@@ -974,22 +974,22 @@ export function UploadPageClient() {
                             event.stopPropagation()
                             setGameFile(null)
                           }}
-                          className="grid h-9 w-9 place-items-center rounded-lg text-[var(--color-text-tertiary)] hover:bg-white/[0.05] hover:text-white"
+                          className="grid h-9 w-9 place-items-center rounded-lg text-text-tertiary hover:bg-white/[0.05] hover:text-white"
                         >
                           <X className="h-5 w-5" />
                         </button>
                       </div>
                     ) : (
                       <>
-                        <Upload className="mx-auto h-10 w-10 text-[var(--color-text-tertiary)]" />
+                        <Upload className="mx-auto h-10 w-10 text-text-tertiary" />
                         <p className="mt-4 font-medium text-white">Drop a ZIP or HTML file here</p>
-                        <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+                        <p className="mt-2 text-sm text-text-secondary">
                           or click to choose a file · up to 50 MB
                         </p>
                       </>
                     )}
                   </div>
-                  <p className="text-xs leading-5 text-[var(--color-text-tertiary)]">
+                  <p className="text-xs leading-5 text-text-tertiary">
                     Use ZIP for games with images, audio, scripts, or multiple files. A single HTML file can be previewed before publishing.
                   </p>
                 </TabsContent>
@@ -1004,7 +1004,7 @@ export function UploadPageClient() {
                     className="min-h-64 font-mono text-xs"
                     disabled={uploading || autoThumbnailState === "capturing"}
                   />
-                  <p className="text-xs leading-5 text-[var(--color-text-tertiary)]">
+                  <p className="text-xs leading-5 text-text-tertiary">
                     Best for a self-contained HTML document. If the game uses local assets, upload a ZIP instead.
                   </p>
                 </TabsContent>
@@ -1013,12 +1013,12 @@ export function UploadPageClient() {
 
             <section className="vg-panel p-5 sm:p-6" aria-labelledby="upload-details-title">
               <div className="flex items-start gap-3">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#facc15]/10 text-[#f8dd72]">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-arcade-yellow/10 text-warning-text">
                   <span className="text-sm font-bold">2</span>
                 </span>
                 <div>
                   <h2 id="upload-details-title" className="text-xl font-semibold text-white">Add the essentials</h2>
-                  <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+                  <p className="mt-1 text-sm text-text-secondary">
                     Players only need a clear title, description, category, and controls.
                   </p>
                 </div>
@@ -1073,12 +1073,12 @@ export function UploadPageClient() {
                   </div>
                 </div>
 
-                <details className="rounded-2xl border border-[var(--color-border)] bg-black/15">
+                <details className="rounded-2xl border border-border bg-black/15">
                   <summary className="cursor-pointer list-none px-4 py-4">
                     <div className="flex items-center justify-between gap-4">
                       <div>
                         <p className="font-medium text-white">Optional details and advanced features</p>
-                        <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">
+                        <p className="mt-1 text-xs text-text-tertiary">
                           Discovery, jams, identity, mobile, level editors, and ghost races
                         </p>
                       </div>
@@ -1086,7 +1086,7 @@ export function UploadPageClient() {
                     </div>
                   </summary>
 
-                  <div className="space-y-5 border-t border-[var(--color-border)] p-4">
+                  <div className="space-y-5 border-t border-border p-4">
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="aiModel">AI model used</Label>
@@ -1130,9 +1130,9 @@ export function UploadPageClient() {
                           ))}
                         </SelectContent>
                       </Select>
-                      {jamLoadError ? <p className="text-xs text-[#ff8aa8]">{jamLoadError}</p> : null}
+                      {jamLoadError ? <p className="text-xs text-danger-text">{jamLoadError}</p> : null}
                       {selectedJam ? (
-                        <div className="rounded-xl border border-[#facc15]/25 bg-[#facc15]/5 p-3 text-xs leading-5 text-[var(--color-text-secondary)]">
+                        <div className="rounded-xl border border-arcade-yellow/25 bg-arcade-yellow/5 p-3 text-xs leading-5 text-text-secondary">
                           <p className="font-medium text-white">{selectedJam.title}</p>
                           <p className="mt-1">
                             {selectedJam.theme ? "Theme: " + selectedJam.theme + ". " : ""}
@@ -1140,13 +1140,13 @@ export function UploadPageClient() {
                           </p>
                           <p className="mt-1">{selectedJam.remainingEntries} entries remaining.</p>
                           {!selectedJam.isEligibleToSubmit ? (
-                            <p className="mt-2 text-[#f8dd72]">This jam cannot accept another entry from you right now.</p>
+                            <p className="mt-2 text-warning-text">This jam cannot accept another entry from you right now.</p>
                           ) : null}
                         </div>
                       ) : null}
                     </div>
 
-                    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--color-border)] bg-black/15 p-4">
+                    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-black/15 p-4">
                       <input
                         type="checkbox"
                         checked={formData.supportsMobile}
@@ -1157,11 +1157,11 @@ export function UploadPageClient() {
                             mobileOrientation: event.target.checked ? formData.mobileOrientation : "BOTH",
                           })
                         }
-                        className="mt-0.5 h-5 w-5 accent-[var(--color-primary)]"
+                        className="mt-0.5 h-5 w-5 accent-primary"
                       />
                       <span>
                         <span className="block text-sm font-medium text-white">Works on phones and tablets</span>
-                        <span className="mt-1 block text-xs text-[var(--color-text-tertiary)]">
+                        <span className="mt-1 block text-xs text-text-tertiary">
                           Show mobile players that touch devices are supported.
                         </span>
                       </span>
@@ -1185,10 +1185,10 @@ export function UploadPageClient() {
                     ) : null}
 
                     {session.user.id ? (
-                      <div className="space-y-4 rounded-xl border border-[var(--color-border)] bg-black/15 p-4">
+                      <div className="space-y-4 rounded-xl border border-border bg-black/15 p-4">
                         <div>
                           <p className="text-sm font-medium text-white">Publishing identity</p>
-                          <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">
+                          <p className="mt-1 text-xs text-text-tertiary">
                             Use your account or publish under a saved studio name.
                           </p>
                         </div>
@@ -1274,7 +1274,7 @@ export function UploadPageClient() {
                             </Button>
                           </div>
                         </div>
-                        {studioError ? <p className="text-sm text-[#ff8aa8]">{studioError}</p> : null}
+                        {studioError ? <p className="text-sm text-danger-text">{studioError}</p> : null}
                       </div>
                     ) : null}
 
@@ -1289,45 +1289,45 @@ export function UploadPageClient() {
                       />
                     </div>
 
-                    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--color-border)] bg-black/15 p-4">
+                    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-black/15 p-4">
                       <input
                         type="checkbox"
                         checked={formData.seekingFeedback}
                         onChange={(event) => setFormData({ ...formData, seekingFeedback: event.target.checked })}
-                        className="mt-0.5 h-5 w-5 accent-[var(--color-primary)]"
+                        className="mt-0.5 h-5 w-5 accent-primary"
                       />
                       <span>
                         <span className="block text-sm font-medium text-white">Highlight this game for feedback</span>
-                        <span className="mt-1 block text-xs text-[var(--color-text-tertiary)]">
+                        <span className="mt-1 block text-xs text-text-tertiary">
                           Put this game in the feedback discovery lane.
                         </span>
                       </span>
                     </label>
 
-                    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--color-border)] bg-black/15 p-4">
+                    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-black/15 p-4">
                       <input
                         type="checkbox"
                         checked={formData.hasLevelEditor}
                         onChange={(event) => setFormData({ ...formData, hasLevelEditor: event.target.checked })}
-                        className="mt-0.5 h-5 w-5 accent-[var(--color-primary)]"
+                        className="mt-0.5 h-5 w-5 accent-primary"
                       />
                       <span>
                         <span className="block text-sm font-medium text-white">Community level editor</span>
-                        <span className="mt-1 block text-xs text-[var(--color-text-tertiary)]">Let players build and share custom levels.</span>
+                        <span className="mt-1 block text-xs text-text-tertiary">Let players build and share custom levels.</span>
                       </span>
                     </label>
                     {formData.hasLevelEditor ? <LevelEditorSetupGuide /> : null}
 
-                    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--color-border)] bg-black/15 p-4">
+                    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-black/15 p-4">
                       <input
                         type="checkbox"
                         checked={formData.hasGhostSharing}
                         onChange={(event) => setFormData({ ...formData, hasGhostSharing: event.target.checked })}
-                        className="mt-0.5 h-5 w-5 accent-[var(--color-primary)]"
+                        className="mt-0.5 h-5 w-5 accent-primary"
                       />
                       <span>
                         <span className="block text-sm font-medium text-white">Ghost races and time leaderboard</span>
-                        <span className="mt-1 block text-xs text-[var(--color-text-tertiary)]">
+                        <span className="mt-1 block text-xs text-text-tertiary">
                           Enable replay ghosts for deterministic run data.
                         </span>
                       </span>
@@ -1340,12 +1340,12 @@ export function UploadPageClient() {
 
             <section className="vg-panel p-5 sm:p-6" aria-labelledby="upload-preview-title">
               <div className="flex items-start gap-3">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#ff3d6e]/10 text-[#ff8aa8]">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-arcade-red/10 text-danger-text">
                   <span className="text-sm font-bold">3</span>
                 </span>
                 <div>
                   <h2 id="upload-preview-title" className="text-xl font-semibold text-white">Preview and present it</h2>
-                  <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+                  <p className="mt-1 text-sm text-text-secondary">
                     Preview compatible HTML games and add a thumbnail. Both are optional for ZIP uploads.
                   </p>
                 </div>
@@ -1365,10 +1365,10 @@ export function UploadPageClient() {
                       onAutoThumbnailCaptureComplete={handleAutoThumbnailCaptureComplete}
                       onAutoThumbnailCaptureError={handleAutoThumbnailCaptureError}
                     />
-                    <div className="flex flex-col gap-3 rounded-xl border border-[var(--color-border)] bg-black/15 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-3 rounded-xl border border-border bg-black/15 p-4 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="text-sm font-medium text-white">Automatic screenshots</p>
-                        <p className="mt-1 text-xs leading-5 text-[var(--color-text-tertiary)]">{autoThumbnailMessage}</p>
+                        <p className="mt-1 text-xs leading-5 text-text-tertiary">{autoThumbnailMessage}</p>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <Button
@@ -1409,11 +1409,11 @@ export function UploadPageClient() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-start gap-3 rounded-xl border border-[var(--color-border)] bg-black/15 p-4">
-                    <MonitorPlay className="mt-0.5 h-5 w-5 shrink-0 text-[var(--color-text-tertiary)]" />
+                  <div className="flex items-start gap-3 rounded-xl border border-border bg-black/15 p-4">
+                    <MonitorPlay className="mt-0.5 h-5 w-5 shrink-0 text-text-tertiary" />
                     <div>
                       <p className="text-sm font-medium text-white">Preview is optional</p>
-                      <p className="mt-1 text-xs leading-5 text-[var(--color-text-tertiary)]">
+                      <p className="mt-1 text-xs leading-5 text-text-tertiary">
                         {previewSourceDescription} ZIP projects still publish normally.
                       </p>
                     </div>
@@ -1424,11 +1424,11 @@ export function UploadPageClient() {
                   <div>
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <p className="text-sm font-medium text-white">Captured screenshots</p>
-                      <span className="text-xs text-[var(--color-text-tertiary)]">{autoThumbnailImages.length} ready</span>
+                      <span className="text-xs text-text-tertiary">{autoThumbnailImages.length} ready</span>
                     </div>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
                       {autoThumbnailImages.map((image, index) => (
-                        <div key={String(index) + image.slice(0, 24)} className="overflow-hidden rounded-lg border border-[var(--color-border)]">
+                        <div key={String(index) + image.slice(0, 24)} className="overflow-hidden rounded-lg border border-border">
                           <Image
                             src={image}
                             alt={"Automatic thumbnail " + String(index + 1)}
@@ -1446,7 +1446,7 @@ export function UploadPageClient() {
                 <div className="space-y-3">
                   <div>
                     <Label>Game thumbnail</Label>
-                    <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">
+                    <p className="mt-1 text-xs text-text-tertiary">
                       Optional · 16:9 works best, for example 800 × 450 pixels.
                     </p>
                   </div>
@@ -1455,8 +1455,8 @@ export function UploadPageClient() {
                     className={
                       "cursor-pointer rounded-2xl border-2 border-dashed p-5 text-center transition-colors " +
                       (thumbnailPreview
-                        ? "border-[#22c55e]/50 bg-[#22c55e]/5"
-                        : "border-[var(--color-border-strong)] bg-black/15 hover:border-[var(--color-primary)]")
+                        ? "border-success/50 bg-success/5"
+                        : "border-border-strong bg-black/15 hover:border-primary")
                     }
                   >
                     <input {...getThumbnailInputProps()} />
@@ -1468,7 +1468,7 @@ export function UploadPageClient() {
                           width={800}
                           height={450}
                           unoptimized
-                          className="aspect-video w-full rounded-xl border border-[var(--color-border)] object-cover"
+                          className="aspect-video w-full rounded-xl border border-border object-cover"
                         />
                         <button
                           type="button"
@@ -1485,13 +1485,13 @@ export function UploadPageClient() {
                       </div>
                     ) : (
                       <>
-                        <Camera className="mx-auto h-8 w-8 text-[var(--color-text-tertiary)]" />
+                        <Camera className="mx-auto h-8 w-8 text-text-tertiary" />
                         <p className="mt-3 text-sm font-medium text-white">Drop a thumbnail here</p>
-                        <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">or click to choose an image</p>
+                        <p className="mt-1 text-xs text-text-tertiary">or click to choose an image</p>
                       </>
                     )}
                   </div>
-                  <p className="text-xs text-[var(--color-text-tertiary)]">{thumbnailStatusLabel}</p>
+                  <p className="text-xs text-text-tertiary">{thumbnailStatusLabel}</p>
                 </div>
               </div>
             </section>
@@ -1499,26 +1499,26 @@ export function UploadPageClient() {
 
           <aside className="space-y-4 lg:sticky lg:top-24">
             <section className="vg-panel p-5">
-              <span className="vg-kicker text-[#facc15]">Ready to publish?</span>
+              <span className="vg-kicker text-arcade-yellow">Ready to publish?</span>
               <h2 className="mt-3 text-xl font-semibold text-white">Final check</h2>
-              <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">
+              <p className="mt-2 text-sm leading-6 text-text-secondary">
                 Complete the four essentials. Preview, thumbnail, and advanced options are optional.
               </p>
 
               <div className="mt-5 space-y-2">
                 {readinessItems.map((item) => (
-                  <div key={item.label} className="flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-black/15 px-3 py-2.5">
+                  <div key={item.label} className="flex items-center gap-3 rounded-xl border border-border bg-black/15 px-3 py-2.5">
                     <span
                       className={
                         "grid h-6 w-6 place-items-center rounded-full text-xs " +
                         (item.complete
-                          ? "bg-[#22c55e]/15 text-[#6ee7a0]"
-                          : "bg-white/[0.05] text-[var(--color-text-tertiary)]")
+                          ? "bg-success/15 text-success-text"
+                          : "bg-white/[0.05] text-text-tertiary")
                       }
                     >
                       {item.complete ? "✓" : "·"}
                     </span>
-                    <span className={item.complete ? "text-sm text-white" : "text-sm text-[var(--color-text-secondary)]"}>
+                    <span className={item.complete ? "text-sm text-white" : "text-sm text-text-secondary"}>
                       {item.label}
                     </span>
                   </div>
@@ -1526,12 +1526,12 @@ export function UploadPageClient() {
               </div>
 
               {selectedJam ? (
-                <div className="mt-4 rounded-xl border border-[#facc15]/25 bg-[#facc15]/5 p-3">
+                <div className="mt-4 rounded-xl border border-arcade-yellow/25 bg-arcade-yellow/5 p-3">
                   <div className="flex gap-2">
-                    <Trophy className="mt-0.5 h-4 w-4 shrink-0 text-[#facc15]" />
+                    <Trophy className="mt-0.5 h-4 w-4 shrink-0 text-arcade-yellow" />
                     <div>
                       <p className="text-sm font-medium text-white">{selectedJam.title}</p>
-                      <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">
+                      <p className="mt-1 text-xs text-text-tertiary">
                         This game will be submitted automatically.
                       </p>
                     </div>
@@ -1540,9 +1540,9 @@ export function UploadPageClient() {
               ) : null}
 
               {uploading ? (
-                <div className="mt-4 rounded-xl border border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5 p-4">
+                <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
                   <div className="flex items-center gap-2 text-sm font-medium text-white">
-                    <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary-hover)]" />
+                    <Loader2 className="h-4 w-4 animate-spin text-primary-hover-text" />
                     {uploadStage === "uploading"
                       ? "Uploading files..."
                       : uploadStage === "publishing"
@@ -1551,7 +1551,7 @@ export function UploadPageClient() {
                           ? "Submitting to jam..."
                           : "Finishing..."}
                   </div>
-                  <p className="mt-2 text-xs text-[var(--color-text-tertiary)]">Keep this page open until publishing finishes.</p>
+                  <p className="mt-2 text-xs text-text-tertiary">Keep this page open until publishing finishes.</p>
                 </div>
               ) : null}
 
@@ -1573,7 +1573,7 @@ export function UploadPageClient() {
               >
                 Cancel
               </Button>
-              <p className="mt-4 text-center text-xs leading-5 text-[var(--color-text-tertiary)]">
+              <p className="mt-4 text-center text-xs leading-5 text-text-tertiary">
                 Your local draft is saved automatically while you work.
               </p>
             </section>

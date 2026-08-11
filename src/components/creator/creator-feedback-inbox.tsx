@@ -144,28 +144,28 @@ export function CreatorFeedbackInbox({
   return (
     <section
       id="feedback-inbox"
-      className="scroll-mt-24 border border-[var(--color-border-strong)] bg-[var(--color-surface)]"
+      className="scroll-mt-24 border border-border-strong bg-surface"
     >
-      <div className="border-b border-[var(--color-border)] p-5 sm:p-6">
+      <div className="border-b border-border p-5 sm:p-6">
         <span className="vg-kicker">Player feedback</span>
         <h2 className="mt-3 text-xl font-semibold text-white">Feedback inbox</h2>
-        <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+        <p className="mt-2 text-sm text-text-secondary">
           Review reported problems and useful improvement suggestions from players.
         </p>
 
-        <div className="mt-5 grid grid-cols-3 border border-[var(--color-border-strong)]">
+        <div className="mt-5 grid grid-cols-3 border border-border-strong">
           {filters.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => setFilter(item.id)}
-              className={`border-r border-[var(--color-border-strong)] px-2 py-3 text-center transition-colors last:border-r-0 ${
+              className={`border-r border-border-strong px-2 py-3 text-center transition-colors last:border-r-0 ${
                 filter === item.id
-                  ? "bg-[var(--color-primary)] text-white"
-                  : "bg-[var(--color-base)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-white"
+                  ? "bg-primary text-white"
+                  : "bg-canvas text-text-secondary hover:bg-surface-2 hover:text-white"
               }`}
             >
-              <span className="block font-pixel text-base text-white">{item.count}</span>
+              <span className="block text-base font-bold text-white">{item.count}</span>
               <span className="mt-1 block text-xs">
                 {item.label}
               </span>
@@ -175,49 +175,49 @@ export function CreatorFeedbackInbox({
       </div>
 
       {error ? (
-        <p className="border-b border-[var(--color-border)] px-5 py-3 text-sm text-[#ff8aa8]">
+        <p className="border-b border-border px-5 py-3 text-sm text-danger-text">
           {error}
         </p>
       ) : null}
 
-      <div className="divide-y divide-[var(--color-border)]">
+      <div className="divide-y divide-border">
         {visibleItems.length > 0 ? (
           visibleItems.slice(0, 20).map((item) => {
             const { message, context } = splitDescription(item.description)
             const isUpdating = updatingId === item.id
 
             return (
-              <article key={item.id} className="p-5 transition-colors hover:bg-[var(--color-surface-2)] sm:p-6">
+              <article key={item.id} className="p-5 transition-colors hover:bg-surface-2 sm:p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       {item.reason === "BUG" ? (
-                        <Bug className="h-4 w-4 text-[#f43f5e]" />
+                        <Bug className="h-4 w-4 text-arcade-red" />
                       ) : (
-                        <Lightbulb className="h-4 w-4 text-[#00d1ff]" />
+                        <Lightbulb className="h-4 w-4 text-arcade-cyan" />
                       )}
                       <Link
                         href={`/play/${item.game.slug}`}
-                        className="text-sm font-semibold text-white hover:text-[var(--color-primary-hover)]"
+                        className="text-sm font-semibold text-white hover:text-primary-hover-text"
                       >
                         {item.game.title}
                       </Link>
                       {item.status === "REVIEWING" ? (
-                        <span className="border border-[#facc15] bg-[var(--color-base)] px-2 py-0.5 text-[10px] text-[#facc15]">
+                        <span className="border border-arcade-yellow bg-canvas px-2 py-0.5 text-xs text-arcade-yellow">
                           Considering
                         </span>
                       ) : null}
-                      <span className="text-xs text-[var(--color-text-tertiary)]">
+                      <span className="text-xs text-text-tertiary">
                         {formatDate(item.createdAt)}
                       </span>
                     </div>
 
-                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[var(--color-text-secondary)]">
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-text-secondary">
                       {message}
                     </p>
 
                     {item.reason === "BUG" && context ? (
-                      <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-[var(--color-text-tertiary)]">
+                      <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-text-tertiary">
                         {context}
                       </p>
                     ) : null}
@@ -259,7 +259,7 @@ export function CreatorFeedbackInbox({
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="gap-2 rounded-sm text-[var(--color-text-secondary)]"
+                        className="gap-2 rounded-sm text-text-secondary"
                         disabled={Boolean(updatingId)}
                         onClick={() => {
                           void updateStatus(item.id, "DISMISSED")
@@ -273,7 +273,7 @@ export function CreatorFeedbackInbox({
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="gap-2 rounded-sm text-[var(--color-text-secondary)]"
+                      className="gap-2 rounded-sm text-text-secondary"
                       disabled={Boolean(updatingId)}
                       onClick={() => {
                         void updateStatus(item.id, "PENDING")
@@ -296,7 +296,7 @@ export function CreatorFeedbackInbox({
                   ? "No new ideas."
                   : "Nothing marked fixed yet."}
             </p>
-            <p className="mt-2 text-xs text-[var(--color-text-tertiary)]">
+            <p className="mt-2 text-xs text-text-tertiary">
               New player feedback will appear here.
             </p>
           </div>

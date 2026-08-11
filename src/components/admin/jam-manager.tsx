@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/components/ui/toast"
 import { Calendar, Clock, Edit, ImageIcon, Loader2, Plus, Trash2, Trophy, Users, Vote, X, Zap } from "lucide-react"
 
 type JamSummary = {
@@ -69,16 +71,16 @@ function toIsoString(value: string) {
 
 function statusBadge(status: string) {
   const config: Record<string, { color: string; label: string; icon: ReactNode }> = {
-    ACTIVE: { color: "#00ff40", label: "LIVE", icon: <Zap className="w-3 h-3" /> },
-    UPCOMING: { color: "#00d4ff", label: "UPCOMING", icon: <Clock className="w-3 h-3" /> },
-    VOTING: { color: "#ffff00", label: "VOTING", icon: <Vote className="w-3 h-3" /> },
-    COMPLETED: { color: "#b0b0d0", label: "COMPLETED", icon: <Trophy className="w-3 h-3" /> },
+    ACTIVE: { color: "var(--color-arcade-green)", label: "LIVE", icon: <Zap className="w-3 h-3" /> },
+    UPCOMING: { color: "var(--color-arcade-cyan)", label: "UPCOMING", icon: <Clock className="w-3 h-3" /> },
+    VOTING: { color: "var(--color-arcade-yellow)", label: "VOTING", icon: <Vote className="w-3 h-3" /> },
+    COMPLETED: { color: "var(--color-text-secondary)", label: "COMPLETED", icon: <Trophy className="w-3 h-3" /> },
   }
 
   const current = config[status] || config.COMPLETED
   return (
     <Badge
-      className="font-pixel text-[10px] border"
+      className="border text-xs font-bold uppercase tracking-wide"
       style={{
         color: current.color,
         borderColor: `${current.color}40`,
@@ -136,11 +138,13 @@ async function isThreeToOneBanner(source: string) {
 
 export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
   const router = useRouter()
+  const showToast = useToast()
   const [jams, setJams] = useState(initialJams)
   const [showForm, setShowForm] = useState(false)
   const [editingSlug, setEditingSlug] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [deletingSlug, setDeletingSlug] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<JamSummary | null>(null)
   const [error, setError] = useState("")
   const [bannerAspectError, setBannerAspectError] = useState("")
   const [form, setForm] = useState<JamFormState>(createEmptyForm())
@@ -232,18 +236,31 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
     }
   }
 
-  async function handleDelete(slug: string) {
-    if (!window.confirm("Delete this jam? This will also delete all entries and votes.")) {
-      return
-    }
+  async function handleDelete() {
+    const slug = deleteTarget?.slug
+    if (!slug) return
 
     setDeletingSlug(slug)
     try {
       const response = await fetch(`/api/jams/${slug}`, { method: "DELETE" })
-      if (response.ok) {
-        setJams((prev) => prev.filter((jam) => jam.slug !== slug))
-        router.refresh()
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || "Failed to delete game jam")
       }
+
+      setJams((prev) => prev.filter((jam) => jam.slug !== slug))
+      showToast({
+        title: "Game jam deleted",
+        description: "The jam, entries, and votes were removed.",
+        tone: "success",
+      })
+      router.refresh()
+    } catch (deleteError) {
+      showToast({
+        title: "Delete failed",
+        description: deleteError instanceof Error ? deleteError.message : "Failed to delete game jam.",
+        tone: "error",
+      })
     } finally {
       setDeletingSlug(null)
     }
@@ -260,15 +277,15 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
           Create Game Jam
         </Button>
       ) : (
-        <Card className="bg-[#1a1a2e] border-[#2a2a4a] p-5 space-y-4">
+        <Card className="bg-surface-2 border-border p-5 space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h3 className="font-pixel text-sm text-white">{isEditing ? "EDIT GAME JAM" : "NEW GAME JAM"}</h3>
-              <p className="text-xs text-[#8080a0] mt-1">
+              <h3 className="heading-pixel-sm text-white">{isEditing ? "EDIT GAME JAM" : "NEW GAME JAM"}</h3>
+              <p className="text-xs text-text-secondary mt-1">
                 Admin controls the theme, banner, rules, timeline, and entry limits here.
               </p>
             </div>
-            <button onClick={resetForm} className="text-[#8080a0] hover:text-white" type="button">
+            <button onClick={resetForm} className="text-text-secondary hover:text-white" type="button" aria-label="Close jam form">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -363,7 +380,7 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
                 }
               />
             </div>
-            <div className="rounded border border-[#2a2a4a] bg-[#12121c] px-3 py-2 text-xs text-[#8080a0]">
+            <div className="rounded border border-border bg-surface px-3 py-2 text-xs text-text-secondary">
               Jam status is calculated from the dates:
               <div className="mt-2 text-white">
                 Upcoming {"->"} Active {"->"} Voting {"->"} Completed
@@ -378,7 +395,7 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
                 id="jam-banner-file"
                 type="file"
                 accept="image/png,image/jpeg,image/webp,image/gif"
-                className="block w-full rounded-md border border-[#2a2a4a] bg-[#0d0d15] px-3 py-2 text-sm text-white file:mr-4 file:rounded file:border-0 file:bg-[#6c63ff] file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-[#7b73ff]"
+                className="block w-full rounded-md border border-border bg-canvas px-3 py-2 text-sm text-white file:mr-4 file:rounded file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-primary-hover"
                 onChange={(event) => {
                   const file = event.target.files?.[0] || null
                   setBannerFile(file)
@@ -394,9 +411,9 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
                   }
                 }}
               />
-              <p className="text-xs text-[#8080a0]">Use a 3:1 banner for desktop and mobile, like 1500x500. Max size: 5MB.</p>
+              <p className="text-xs text-text-secondary">Use a 3:1 banner for desktop and mobile, like 1500x500. Max size: 5MB.</p>
               {bannerFile && (
-                <p className="text-xs text-[#00d4ff]">New file selected: {bannerFile.name}</p>
+                <p className="text-xs text-arcade-cyan">New file selected: {bannerFile.name}</p>
               )}
             </div>
 
@@ -426,17 +443,17 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
                 }}
                 placeholder="https://..."
               />
-              <p className="text-xs text-[#8080a0]">Optional fallback if you prefer to host the jam banner elsewhere. Keep it 3:1.</p>
+              <p className="text-xs text-text-secondary">Optional fallback if you prefer to host the jam banner elsewhere. Keep it 3:1.</p>
             </div>
           </div>
 
-          {bannerAspectError && <p className="text-[#ff0040] text-sm">{bannerAspectError}</p>}
+          {bannerAspectError && <p className="text-arcade-red text-sm">{bannerAspectError}</p>}
 
           {(currentBanner || bannerFile || removeBanner) && (
-            <div className="rounded border border-[#2a2a4a] bg-[#12121c] p-3 space-y-3">
+            <div className="rounded border border-border bg-surface p-3 space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-xs text-white">
-                  <ImageIcon className="w-4 h-4 text-[#00d4ff]" />
+                  <ImageIcon className="w-4 h-4 text-arcade-cyan" />
                   Banner Preview
                 </div>
                 {isEditing && !removeBanner && (
@@ -470,7 +487,7 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
               </div>
 
               {removeBanner ? (
-                <div className="rounded border border-dashed border-[#2a2a4a] px-4 py-6 text-sm text-[#8080a0]">
+                <div className="rounded border border-dashed border-border px-4 py-6 text-sm text-text-secondary">
                   The current banner will be removed when you save this jam.
                 </div>
               ) : currentBanner ? (
@@ -480,17 +497,17 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
                   width={1500}
                   height={500}
                   unoptimized
-                  className="aspect-[3/1] w-full rounded object-cover border border-[#2a2a4a]"
+                  className="aspect-[3/1] w-full rounded object-cover border border-border"
                 />
               ) : bannerFile ? (
-                <div className="rounded border border-dashed border-[#2a2a4a] px-4 py-6 text-sm text-[#8080a0]">
+                <div className="rounded border border-dashed border-border px-4 py-6 text-sm text-text-secondary">
                   New banner file will be uploaded when you save this jam.
                 </div>
               ) : null}
             </div>
           )}
 
-          {error && <p className="text-[#ff0040] text-sm">{error}</p>}
+          {error && <p className="text-arcade-red text-sm">{error}</p>}
 
           <div className="flex gap-2">
             <Button
@@ -525,16 +542,16 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
       )}
 
       {jams.length === 0 ? (
-        <div className="text-center py-8 text-[#4a4a6a]">
+        <div className="text-center py-8 text-text-secondary">
           <Trophy className="w-10 h-10 mx-auto mb-3" />
-          <p className="font-pixel text-xs">No game jams yet</p>
+          <p className="text-xs font-bold uppercase tracking-wide">No game jams yet</p>
         </div>
       ) : (
         <div className="space-y-3">
           {jams.map((jam) => (
             <div
               key={jam.id}
-              className="p-4 bg-[#1a1a2e] border-2 border-[#4a4a6a] rounded space-y-3"
+              className="p-4 bg-surface-2 border-2 border-border-strong rounded space-y-3"
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
                 {jam.bannerImage ? (
@@ -543,23 +560,23 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
                     alt={`${jam.title} banner`}
                     width={960}
                     height={320}
-                    className="aspect-[3/1] w-full rounded object-cover border border-[#2a2a4a] flex-shrink-0 lg:w-48"
+                    className="aspect-[3/1] w-full rounded object-cover border border-border flex-shrink-0 lg:w-48"
                   />
                 ) : (
-                  <div className="aspect-[3/1] w-full rounded border border-dashed border-[#2a2a4a] flex items-center justify-center text-[#4a4a6a] flex-shrink-0 lg:w-48">
+                  <div className="aspect-[3/1] w-full rounded border border-dashed border-border flex items-center justify-center text-text-secondary flex-shrink-0 lg:w-48">
                     <ImageIcon className="w-5 h-5" />
                   </div>
                 )}
 
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <h4 className="font-pixel text-xs text-white">{jam.title}</h4>
+                    <h4 className="heading-pixel-sm text-white">{jam.title}</h4>
                     {statusBadge(jam.status)}
                   </div>
 
-                  <p className="text-sm text-[#c8c8d8] mb-2 line-clamp-2">{jam.description}</p>
+                  <p className="text-sm text-text-secondary mb-2 line-clamp-2">{jam.description}</p>
 
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-[#8080a0]">
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-text-secondary">
                     <span>{jam.theme ? `Theme: ${jam.theme}` : "No theme set"}</span>
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
@@ -586,9 +603,11 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-[#ff0040] hover:text-[#ff0040] gap-1"
-                    onClick={() => handleDelete(jam.slug)}
+                    className="text-arcade-red hover:text-arcade-red gap-1"
+                    onClick={() => setDeleteTarget(jam)}
                     disabled={deletingSlug === jam.slug}
+                    aria-label={`Delete ${jam.title}`}
+                    title={`Delete ${jam.title}`}
                   >
                     {deletingSlug === jam.slug ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
@@ -602,6 +621,18 @@ export function JamManager({ initialJams }: { initialJams: JamSummary[] }) {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open && !deletingSlug) setDeleteTarget(null)
+        }}
+        title="Delete this game jam?"
+        description="This also removes every entry and vote. This action cannot be undone."
+        confirmLabel="Delete jam"
+        confirmVariant="arcade-red"
+        onConfirm={handleDelete}
+      />
     </div>
   )
 }

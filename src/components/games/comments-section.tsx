@@ -184,11 +184,11 @@ export function CommentsSection({
     const author = comment.user.username || comment.user.name || "user"
 
     return (
-      <div key={comment.id} className={depth > 0 ? "ml-4 border-l border-[var(--color-border)] pl-4 sm:ml-6" : ""}>
-        <div className="flex gap-3 border-b border-[var(--color-border)] pb-4 last:border-b-0">
-          <Avatar className="h-9 w-9 border border-[var(--color-border-strong)]">
+      <div key={comment.id} className={depth > 0 ? "ml-4 border-l border-border pl-4 sm:ml-6" : ""}>
+        <div className="flex gap-3 border-b border-border pb-4 last:border-b-0">
+          <Avatar className="h-9 w-9 border border-border-strong">
             <AvatarImage src={comment.user.image || undefined} />
-            <AvatarFallback className="bg-[var(--color-surface-2)] text-xs text-[var(--color-text-secondary)]">
+            <AvatarFallback className="bg-surface-2 text-xs text-text-secondary">
               {getInitials(comment.user.name || comment.user.username || "U")}
             </AvatarFallback>
           </Avatar>
@@ -196,17 +196,17 @@ export function CommentsSection({
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-1">
               <span className="break-all text-sm font-medium text-white">@{author}</span>
-              <span className="text-xs text-[var(--color-text-tertiary)]">
+              <span className="text-xs text-text-tertiary">
                 {timeAgo(new Date(comment.createdAt))}
               </span>
             </div>
 
-            <p className="whitespace-pre-wrap text-sm leading-6 text-[var(--color-text-secondary)]">{comment.content}</p>
+            <p className="whitespace-pre-wrap text-sm leading-6 text-text-secondary">{comment.content}</p>
 
             <div className="mt-2 flex items-center gap-2">
               <button
                 type="button"
-                className="inline-flex items-center gap-1 text-xs text-[var(--color-text-tertiary)] transition-colors hover:text-[var(--color-arcade-cyan)]"
+                className="inline-flex items-center gap-1 text-xs text-text-tertiary transition-colors hover:text-arcade-cyan"
                 onClick={() => {
                   if (!ensureAuthenticated()) {
                     return
@@ -223,7 +223,7 @@ export function CommentsSection({
             </div>
 
             {isReplyingHere && (
-              <form onSubmit={handleReplySubmit} className="mt-3 space-y-2 rounded-xl border border-[var(--color-border)] bg-black/15 p-3">
+              <form onSubmit={handleReplySubmit} className="mt-3 space-y-2 rounded-xl border border-border bg-black/15 p-3">
                 <Textarea
                   value={replyContent}
                   onChange={(event) => {
@@ -238,7 +238,7 @@ export function CommentsSection({
                   disabled={replyLoading}
                 />
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <span className="text-xs text-[var(--color-text-tertiary)]">{replyContent.length}/1000</span>
+                  <span className="text-xs text-text-tertiary">{replyContent.length}/1000</span>
                   <div className="flex gap-2 sm:justify-end">
                     <Button
                       type="button"
@@ -264,7 +264,7 @@ export function CommentsSection({
                     </Button>
                   </div>
                 </div>
-                {replyError && <p className="text-xs text-[#ff8aa8]">{replyError}</p>}
+                {replyError && <p className="text-xs text-danger-text">{replyError}</p>}
               </form>
             )}
 
@@ -281,8 +281,8 @@ export function CommentsSection({
 
   return (
     <section id="comments" className="vg-panel scroll-mt-24" aria-labelledby="comments-title">
-      <div className="border-b border-[var(--color-border)] px-5 py-5 sm:px-6">
-        <span className="vg-kicker text-[#a78bfa]">
+      <div className="border-b border-border px-5 py-5 sm:px-6">
+        <span className="vg-kicker text-violet-text">
           <MessageCircle className="h-4 w-4" />
           Community
         </span>
@@ -290,7 +290,7 @@ export function CommentsSection({
           <h2 id="comments-title" className="text-xl font-semibold text-white">Comments</h2>
           <span className="vg-chip">{commentsCount}</span>
         </div>
-        <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+        <p className="mt-2 text-sm text-text-secondary">
           Join the public conversation about this game.
         </p>
       </div>
@@ -311,7 +311,7 @@ export function CommentsSection({
             disabled={loading}
           />
           <div className="flex items-center justify-between gap-3">
-            <span className="text-xs text-[var(--color-text-tertiary)]">{content.length}/1000</span>
+            <span className="text-xs text-text-tertiary">{content.length}/1000</span>
             <Button
               type="submit"
               size="sm"
@@ -327,7 +327,7 @@ export function CommentsSection({
               )}
             </Button>
           </div>
-          {error && <p className="text-sm text-[#ff8aa8]">{error}</p>}
+          {error && <p className="text-sm text-danger-text">{error}</p>}
         </form>
 
         {threadedComments.length > 0 ? (
@@ -335,7 +335,7 @@ export function CommentsSection({
             {threadedComments.map((comment) => renderComment(comment))}
           </div>
         ) : (
-          <p className="py-10 text-center text-sm text-[var(--color-text-tertiary)]">
+          <p className="py-10 text-center text-sm text-text-tertiary">
             No comments yet. Start the conversation.
           </p>
         )}

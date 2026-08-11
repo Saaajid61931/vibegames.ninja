@@ -1,13 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
-import { Bell, Heart, LayoutDashboard, Plus, User, Menu, Settings, X } from "lucide-react"
+import { Bell, Heart, LayoutDashboard, Plus, User, Menu, Search, Settings, X } from "lucide-react"
 import { NinjaConsole } from "@/components/icons/ninja-console"
 import { NotificationsMenu } from "@/components/layout/notifications-menu"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNotificationFeed } from "@/hooks/use-notification-feed"
 import {
   DropdownMenu,
@@ -25,8 +25,24 @@ interface HeaderProps {
 export function Header({ prefetchLinks = true }: HeaderProps) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
+  const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [marqueeVisible, setMarqueeVisible] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
   const { unreadCount, notifications, loading, refresh } = useNotificationFeed(session?.user?.id, pathname)
+
+  useEffect(() => {
+    let shouldShowMarquee = true
+
+    try {
+      shouldShowMarquee = window.sessionStorage.getItem("vg-marquee-dismissed") !== "true"
+    } catch {
+      // Keep the announcement visible when storage is unavailable.
+    }
+
+    const frameId = window.requestAnimationFrame(() => setMarqueeVisible(shouldShowMarquee))
+    return () => window.cancelAnimationFrame(frameId)
+  }, [])
 
   const displayedUnreadCount = session?.user?.id
     ? (pathname.startsWith("/notifications") ? 0 : unreadCount)
@@ -43,41 +59,73 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
     { name: "CREATOR", href: "/creator" },
   ]
 
+  const isNavigationActive = (href: string) => {
+    if (href === "/games") {
+      return pathname.startsWith("/games") || pathname.startsWith("/play/")
+    }
+
+    return pathname === href || pathname.startsWith(`${href}/`)
+  }
+
+  const submitSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const query = searchQuery.trim()
+    router.push(query ? `/games?q=${encodeURIComponent(query)}` : "/games")
+    setMobileMenuOpen(false)
+  }
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[var(--color-border)]">
-      {/* Marquee Banner - single line, no wrap */}
-      <div className="bg-[var(--color-primary)] overflow-hidden whitespace-nowrap">
-        <div className="marquee-content">
-          NEW GAMES DAILY &bull; AI ARCADE &bull; GAME JAMS &bull; BUILD &bull; PLAY &bull; GET INSPIRED &bull; NEW GAMES DAILY &bull; AI ARCADE &bull; GAME JAMS &bull; BUILD &bull; PLAY &bull; GET INSPIRED &bull;
+    <header className="sticky top-0 z-50 w-full border-b border-border">
+      {marqueeVisible ? (
+        <div className="relative overflow-hidden whitespace-nowrap bg-primary pr-9">
+          <div className="marquee-content">
+            NEW GAMES DAILY &bull; AI ARCADE &bull; GAME JAMS &bull; BUILD &bull; PLAY &bull; GET INSPIRED &bull; NEW GAMES DAILY &bull; AI ARCADE &bull; GAME JAMS &bull; BUILD &bull; PLAY &bull; GET INSPIRED &bull;
+          </div>
+          <button
+            type="button"
+            className="absolute inset-y-0 right-0 grid w-9 place-items-center bg-primary text-white transition-colors hover:bg-primary-hover"
+            aria-label="Dismiss announcement"
+            onClick={() => {
+              setMarqueeVisible(false)
+              try {
+                window.sessionStorage.setItem("vg-marquee-dismissed", "true")
+              } catch {
+                // The dismissal remains active for this render when storage is unavailable.
+              }
+            }}
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
         </div>
-      </div>
+      ) : null}
       
-      <div className="bg-[var(--color-base)]">
+      <div className="bg-canvas">
         <div className="container mx-auto px-4">
           <div className="flex h-14 items-center justify-between">
             {/* Logo */}
             <Link href="/" prefetch={prefetchLinks ? undefined : false} className="flex items-center gap-2 group">
               <NinjaConsole className="h-6 w-6" />
-              <span className="font-pixel text-xs tracking-tight">
-                <span className="text-[var(--color-primary)]">VIBE</span>
-                <span className="text-[var(--color-text)]">GAMES</span>
-                <span className="text-[var(--color-text-secondary)]">.NINJA</span>
+              <span className="font-sans text-xs font-bold uppercase tracking-widest">
+                <span className="text-primary-text">VIBE</span>
+                <span className="text-text">GAMES</span>
+                <span className="text-text-secondary">.NINJA</span>
               </span>
             </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-1">
               {navigation.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+                const isActive = isNavigationActive(item.href)
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
+                    aria-current={isActive ? "page" : undefined}
                     prefetch={item.href === "/upload" ? false : (prefetchLinks ? undefined : false)}
                     className={`px-3 py-2 text-xs font-medium rounded-md transition-all ${
                       isActive
-                        ? "bg-[var(--color-primary)] text-white"
-                        : "text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface)]"
+                        ? "bg-primary text-white"
+                        : "text-text-secondary hover:text-text hover:bg-surface"
                     }`}
                   >
                     {item.name}
@@ -86,10 +134,30 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
               })}
             </nav>
 
+            <form onSubmit={submitSearch} role="search" className="relative mx-2 hidden w-44 lg:block xl:w-56">
+              <label htmlFor="global-game-search" className="sr-only">Search games</label>
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" aria-hidden="true" />
+              <input
+                id="global-game-search"
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search games"
+                className="h-9 w-full border-2 border-border-strong bg-surface pl-9 pr-9 text-xs text-text placeholder:text-text-secondary focus:border-arcade-yellow focus:outline-none"
+              />
+              <button
+                type="submit"
+                className="absolute right-0 top-0 grid h-9 w-9 place-items-center text-text-secondary transition-colors hover:text-arcade-yellow"
+                aria-label="Submit game search"
+              >
+                <Search className="h-4 w-4" />
+              </button>
+            </form>
+
             {/* Right Section */}
             <div className="flex items-center gap-2">
               {status === "loading" ? (
-                <div className="h-9 w-20 bg-[var(--color-surface)] animate-pulse rounded-md" />
+                <div className="h-9 w-20 bg-surface animate-pulse rounded-md" />
               ) : session?.user ? (
                 <>
                   <Link href="/upload" prefetch={false} className="md:hidden">
@@ -116,8 +184,8 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                     
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="gap-2 border-[var(--color-border)] bg-[var(--color-surface)]">
-                          <User className="h-4 w-4 text-[var(--color-primary)]" />
+                        <Button variant="outline" className="gap-2 border-border bg-surface">
+                          <User className="h-4 w-4 text-primary-text" />
                           <span className="hidden sm:inline">
                             {session.user.name || session.user.username || "Account"}
                           </span>
@@ -147,7 +215,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                           <Link href="/favorites" prefetch={prefetchLinks ? undefined : false}>Favorites</Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-[var(--color-danger)] focus:text-[var(--color-danger)]" onClick={() => signOut()}>
+                        <DropdownMenuItem className="text-danger focus:text-danger" onClick={() => signOut()}>
                           Sign out
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -172,7 +240,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 text-[var(--color-text)] rounded-md border border-[var(--color-border)] hover:bg-[var(--color-surface)]"
+                className="md:hidden p-2 text-text rounded-md border border-border hover:bg-surface"
                 aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
                 aria-expanded={mobileMenuOpen}
               >
@@ -183,20 +251,36 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-[var(--color-border)] space-y-4">
+            <div className="md:hidden py-4 border-t border-border space-y-4">
+              <form onSubmit={submitSearch} role="search" className="relative">
+                <label htmlFor="mobile-global-game-search" className="sr-only">Search games</label>
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" aria-hidden="true" />
+                <input
+                  id="mobile-global-game-search"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search the arcade"
+                  className="h-11 w-full border-2 border-border-strong bg-surface pl-10 pr-12 text-sm text-text placeholder:text-text-secondary focus:border-arcade-yellow focus:outline-none"
+                />
+                <button type="submit" className="absolute right-0 top-0 grid h-11 w-11 place-items-center text-arcade-yellow" aria-label="Submit game search">
+                  <Search className="h-4 w-4" />
+                </button>
+              </form>
               <nav className="space-y-1">
                 {navigation.map((item) => {
-                  const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+                  const isActive = isNavigationActive(item.href)
                   return (
                     <Link
                       key={item.name}
                       href={item.href}
+                      aria-current={isActive ? "page" : undefined}
                       prefetch={item.href === "/upload" ? false : (prefetchLinks ? undefined : false)}
                       onClick={() => setMobileMenuOpen(false)}
                       className={`block px-3 py-2 rounded-md text-sm font-medium ${
                         isActive
-                          ? "bg-[var(--color-primary)] text-white"
-                          : "text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface)]"
+                          ? "bg-primary text-white"
+                          : "text-text-secondary hover:text-text hover:bg-surface"
                       }`}
                     >
                       <span>{item.name}</span>
@@ -206,12 +290,12 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
               </nav>
 
               {session?.user ? (
-                <div className="space-y-3 border-t border-[var(--color-border)] pt-4">
+                <div className="space-y-3 border-t border-border pt-4">
                   <div className="px-1">
-                    <p className="text-sm font-medium text-[var(--color-text)]">
+                    <p className="text-sm font-medium text-text">
                       {session.user.name || session.user.username || "Player"}
                     </p>
-                    <p className="text-xs text-[var(--color-text-tertiary)] truncate">{session.user.email}</p>
+                    <p className="text-xs text-text-tertiary truncate">{session.user.email}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <Link href="/notifications" prefetch={prefetchLinks ? undefined : false}>
@@ -219,7 +303,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                         <Bell className="h-4 w-4" />
                         Alerts
                         {displayedUnreadCount > 0 ? (
-                          <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-[#ff0040] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                          <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-arcade-red px-1.5 py-0.5 text-xs font-bold text-white">
                             {unreadLabel}
                           </span>
                         ) : null}
@@ -262,7 +346,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2 border-t border-[var(--color-border)] pt-4">
+                <div className="grid grid-cols-2 gap-2 border-t border-border pt-4">
                   <Link href="/login" prefetch={prefetchLinks ? undefined : false}>
                     <Button variant="outline" className="w-full" onClick={() => setMobileMenuOpen(false)}>Sign in</Button>
                   </Link>

@@ -116,16 +116,16 @@ export default async function AdminPage() {
   ]
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+    <div className="min-h-screen flex flex-col bg-canvas">
       <Header />
       
       <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-3 font-pixel">
-            <Shield className="h-8 w-8 text-[#ff0040]" />
+          <h1 className="heading-pixel-lg flex items-center gap-3 font-bold text-white">
+            <Shield className="h-8 w-8 text-arcade-red" />
             Admin Panel
           </h1>
-          <p className="text-[#4a4a6a] mt-2 font-arcade text-base sm:text-lg">Manage games, users, and reports</p>
+          <p className="text-text-secondary mt-2 font-arcade text-base sm:text-lg">Manage games, users, and reports</p>
         </div>
 
         {/* Stats */}
@@ -133,13 +133,13 @@ export default async function AdminPage() {
           {statCards.map((stat) => {
             const Icon = stat.icon
             return (
-              <Card key={stat.title} className={stat.alert ? "border-[#ffff00]" : ""}>
+              <Card key={stat.title} className={stat.alert ? "border-arcade-yellow" : ""}>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <Icon className={`h-5 w-5 ${stat.alert ? "text-[#ffff00]" : "text-[#4a4a6a]"}`} />
+                    <Icon className={`h-5 w-5 ${stat.alert ? "text-arcade-yellow" : "text-text-secondary"}`} />
                     <div>
-                      <p className="text-xs text-[#4a4a6a] font-pixel">{stat.title}</p>
-                      <p className={`text-xl font-bold ${stat.alert ? "text-[#ffff00]" : "text-white"}`}>
+                      <p className="text-kicker text-text-secondary">{stat.title}</p>
+                      <p className={`text-xl font-bold ${stat.alert ? "text-arcade-yellow" : "text-white"}`}>
                         {stat.value}
                       </p>
                     </div>
@@ -182,9 +182,9 @@ export default async function AdminPage() {
                     {pendingGames.map((game) => (
                       <div
                         key={game.id}
-                        className="flex flex-col sm:flex-row sm:items-center gap-4 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4"
+                        className="flex flex-col sm:flex-row sm:items-center gap-4 border-2 border-border-strong bg-surface-2 p-4"
                       >
-                        <div className="w-full sm:w-24 h-32 sm:h-14 bg-[#0d0d15] border-2 border-[#4a4a6a] overflow-hidden flex-shrink-0">
+                        <div className="w-full sm:w-24 h-32 sm:h-14 bg-canvas border-2 border-border-strong overflow-hidden flex-shrink-0">
                           {game.thumbnail ? (
                             <Image
                               src={game.thumbnail}
@@ -195,16 +195,16 @@ export default async function AdminPage() {
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Gamepad2 className="h-6 w-6 text-[#4a4a6a]" />
+                              <Gamepad2 className="h-6 w-6 text-text-secondary" />
                             </div>
                           )}
                         </div>
                         <div className="flex-1 min-w-0 w-full">
-                          <h3 className="font-medium text-white truncate font-pixel text-xs">{game.title}</h3>
-                          <p className="text-sm sm:text-base text-[#4a4a6a] font-arcade break-words">
+                          <h3 className="heading-pixel-sm truncate font-medium text-white">{game.title}</h3>
+                          <p className="text-sm sm:text-base text-text-secondary font-arcade break-words">
                             by {game.creator.name || game.creator.username} ({game.creator.email})
                           </p>
-                          <p className="text-xs text-[#4a4a6a] font-pixel">{timeAgo(new Date(game.createdAt))}</p>
+                          <p className="text-xs text-text-secondary">{timeAgo(new Date(game.createdAt))}</p>
                         </div>
                         <div className="flex w-full sm:w-auto flex-wrap sm:flex-nowrap items-center gap-2 justify-end">
                           <Link href={`/play/${game.slug}`} target="_blank">
@@ -236,8 +236,8 @@ export default async function AdminPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12 text-[#4a4a6a] font-arcade text-lg">
-                    <CheckCircle className="h-12 w-12 mx-auto mb-4 text-[#00ff40]" />
+                  <div className="text-center py-12 text-text-secondary font-arcade text-lg">
+                    <CheckCircle className="h-12 w-12 mx-auto mb-4 text-arcade-green" />
                     <p>All caught up! No games pending review.</p>
                   </div>
                 )}
@@ -257,18 +257,18 @@ export default async function AdminPage() {
                     {reports.map((report) => (
                       <div
                         key={report.id}
-                        className="flex flex-col sm:flex-row sm:items-center gap-4 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4"
+                        className="flex flex-col sm:flex-row sm:items-center gap-4 border-2 border-border-strong bg-surface-2 p-4"
                       >
-                        <AlertTriangle className="h-8 w-8 text-[#ffff00] flex-shrink-0" />
+                        <AlertTriangle className="h-8 w-8 text-arcade-yellow flex-shrink-0" />
                         <div className="flex-1 w-full">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-medium text-white font-pixel text-xs">{report.game.title}</h3>
+                            <h3 className="heading-pixel-sm font-medium text-white">{report.game.title}</h3>
                             <Badge variant="warning">{report.reason}</Badge>
                           </div>
                           {report.description && (
-                            <p className="text-sm sm:text-base text-[#4a4a6a] font-arcade break-words">{report.description}</p>
+                            <p className="text-sm sm:text-base text-text-secondary font-arcade break-words">{report.description}</p>
                           )}
-                          <p className="text-xs text-[#4a4a6a] font-pixel">{timeAgo(new Date(report.createdAt))}</p>
+                          <p className="text-xs text-text-secondary">{timeAgo(new Date(report.createdAt))}</p>
                         </div>
                         <div className="flex w-full sm:w-auto flex-wrap sm:flex-nowrap items-center gap-2 justify-end">
                           <Link href={`/play/${report.game.slug}`} target="_blank">
@@ -293,8 +293,8 @@ export default async function AdminPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12 text-[#4a4a6a] font-arcade text-lg">
-                    <CheckCircle className="h-12 w-12 mx-auto mb-4 text-[#00ff40]" />
+                  <div className="text-center py-12 text-text-secondary font-arcade text-lg">
+                    <CheckCircle className="h-12 w-12 mx-auto mb-4 text-arcade-green" />
                     <p>No pending reports.</p>
                   </div>
                 )}

@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback } from "react"
+import Link from "next/link"
+import { cn } from "@/lib/utils"
 
 interface CreatorLinkProps {
   href: string
@@ -9,30 +10,13 @@ interface CreatorLinkProps {
 }
 
 export function CreatorLink({ href, children, className }: CreatorLinkProps) {
-  const handleClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      window.location.href = href
-    },
-    [href]
-  )
-
   return (
-    <span
-      className={className}
-      onClick={handleClick}
-      role="link"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault()
-          e.stopPropagation()
-          window.location.href = href
-        }
-      }}
+    <Link
+      href={href}
+      className={cn("inline-flex min-h-11 items-center px-1", className)}
+      onClick={(event) => event.stopPropagation()}
     >
       {children}
-    </span>
+    </Link>
   )
 }

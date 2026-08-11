@@ -147,14 +147,14 @@ function GhostBoard({
   onRace: (runId: string) => void
 }) {
   return (
-    <div className="rounded border border-[#4a4a6a] bg-[#0d0d15] p-3">
+    <div className="rounded border border-border-strong bg-canvas p-3">
       <div className="mb-3">
-        <p className="font-arcade text-[11px] text-[#ffff00]">{title}</p>
-        <p className="mt-1 font-arcade text-[11px] text-[#8b93a6]">{subtitle}</p>
+        <p className="font-arcade text-xs text-arcade-yellow">{title}</p>
+        <p className="mt-1 font-arcade text-xs text-text-secondary">{subtitle}</p>
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-2 font-arcade text-xs text-[#8b93a6]">
+        <div className="flex items-center gap-2 font-arcade text-xs text-text-secondary">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading leaderboard...
         </div>
@@ -163,16 +163,16 @@ function GhostBoard({
           {board.leaderboard.map((entry) => (
             <div
               key={entry.runId}
-              className="flex flex-col gap-2 rounded border border-[#20263a] bg-[#11111d] p-3 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-2 rounded border border-border bg-surface p-3 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="min-w-0">
                 <p className="font-arcade text-xs text-white">
                   #{entry.rank} {getGhostPlayerLabel(entry.player)}
                 </p>
-                <p className="mt-1 font-arcade text-[11px] text-[#00d1ff]">
+                <p className="mt-1 font-arcade text-xs text-arcade-cyan">
                   {formatDurationMs(entry.durationMs)}
                 </p>
-                <p className="mt-1 font-arcade text-[10px] text-[#4a4a6a]">
+                <p className="mt-1 font-arcade text-xs text-text-secondary">
                   {new Date(entry.createdAt).toLocaleDateString()}
                 </p>
               </div>
@@ -194,7 +194,7 @@ function GhostBoard({
                   {activeRunId === entry.runId ? "LOADING" : "RACE GHOST"}
                 </Button>
               ) : (
-                <p className="font-arcade text-[10px] text-[#4a4a6a]">
+                <p className="font-arcade text-xs text-text-secondary">
                   Open the base game to race this ghost.
                 </p>
               )}
@@ -202,7 +202,7 @@ function GhostBoard({
           ))}
         </div>
       ) : (
-        <p className="font-arcade text-xs text-[#8b93a6]">
+        <p className="font-arcade text-xs text-text-secondary">
           No ghosts yet. Set the first time and give the next player someone to chase.
         </p>
       )}
@@ -477,12 +477,12 @@ export function PlayableGameSection({
 
   const renderPersonalBest = (label: string, personalBest: GhostPersonalBest) => {
     return (
-      <div className="rounded border border-[#20263a] bg-[#11111d] p-3">
-        <p className="font-arcade text-[11px] text-[#8b93a6]">{label}</p>
+      <div className="rounded border border-border bg-surface p-3">
+        <p className="font-arcade text-xs text-text-secondary">{label}</p>
         <p className="mt-2 font-arcade text-sm text-white">
           {personalBest ? formatDurationMs(personalBest.durationMs) : "--"}
         </p>
-        <p className="mt-1 font-arcade text-[10px] text-[#4a4a6a]">
+        <p className="mt-1 font-arcade text-xs text-text-secondary">
           {personalBest ? `Set ${new Date(personalBest.createdAt).toLocaleDateString()}` : "Finish a run to lock one in."}
         </p>
       </div>
@@ -492,18 +492,18 @@ export function PlayableGameSection({
   return (
     <div className="flex flex-col gap-4">
       {canAutoCaptureThumbnails && (
-        <div className="order-2 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-4">
+        <div className="order-2 border-2 border-border-strong bg-surface-2 p-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Camera className="h-4 w-4 text-[#ffff00]" />
-                <span className="font-arcade text-xs text-[#ffff00]">AUTO THUMBNAIL CAPTURE</span>
+                <Camera className="h-4 w-4 text-arcade-yellow" />
+                <span className="font-arcade text-xs text-arcade-yellow">AUTO THUMBNAIL CAPTURE</span>
               </div>
-              <p className="font-arcade text-xs text-[#8b93a6]">
+              <p className="font-arcade text-xs text-text-secondary">
                 {captureMessage}
               </p>
               {captureState === "capturing" && (
-                <p className="font-arcade text-[11px] text-white">
+                <p className="font-arcade text-xs text-white">
                   Captured {capturedCount}/5 screenshots
                 </p>
               )}
@@ -540,33 +540,33 @@ export function PlayableGameSection({
       )}
 
       {hasGhostSharing && (
-        <div className="order-3 border-2 border-[#4a4a6a] bg-[#11111d] p-4 sm:p-5">
+        <div className="order-3 border-2 border-border-strong bg-surface p-4 sm:p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Ghost className="h-4 w-4 text-[#00d1ff]" />
-                <span className="font-arcade text-[11px] text-[#00d1ff]">GHOST RACES + LEADERBOARDS</span>
+                <Ghost className="h-4 w-4 text-arcade-cyan" />
+                <span className="font-arcade text-xs text-arcade-cyan">GHOST RACES + LEADERBOARDS</span>
               </div>
-              <p className="font-arcade text-xs text-[#8b93a6]">
+              <p className="font-arcade text-xs text-text-secondary">
                 {selectedLevelId
                   ? `You are on ${levelName || "a community level"}. Race the best runs for this level or switch back to the whole-game board.`
                   : "Finish a run and the game can submit a replay ghost. Pick any ghost below to race it live inside the game."}
               </p>
               {!isAuthenticated && (
-                <p className="font-arcade text-[11px] text-[#ffd166]">
+                <p className="font-arcade text-xs text-warning-text">
                   Sign in to save your own ghost runs. Public ghosts can still be loaded and raced.
                 </p>
               )}
             </div>
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <div className={`rounded border px-3 py-2 font-arcade text-[11px] ${ghostRuntimeStatus.ready ? "border-[#22c55e] bg-[#22c55e]/10 text-[#22c55e]" : "border-[#4a4a6a] bg-[#0d0d15] text-[#8b93a6]"}`}>
+              <div className={`rounded border px-3 py-2 font-arcade text-xs ${ghostRuntimeStatus.ready ? "border-success bg-success/10 text-success" : "border-border-strong bg-canvas text-text-secondary"}`}>
                 SDK ready
               </div>
-              <div className={`rounded border px-3 py-2 font-arcade text-[11px] ${ghostRuntimeStatus.loadHookBound ? "border-[#22c55e] bg-[#22c55e]/10 text-[#22c55e]" : "border-[#4a4a6a] bg-[#0d0d15] text-[#8b93a6]"}`}>
+              <div className={`rounded border px-3 py-2 font-arcade text-xs ${ghostRuntimeStatus.loadHookBound ? "border-success bg-success/10 text-success" : "border-border-strong bg-canvas text-text-secondary"}`}>
                 Load hook
               </div>
-              <div className={`rounded border px-3 py-2 font-arcade text-[11px] ${ghostRuntimeStatus.loadReceived ? "border-[#22c55e] bg-[#22c55e]/10 text-[#22c55e]" : "border-[#4a4a6a] bg-[#0d0d15] text-[#8b93a6]"}`}>
+              <div className={`rounded border px-3 py-2 font-arcade text-xs ${ghostRuntimeStatus.loadReceived ? "border-success bg-success/10 text-success" : "border-border-strong bg-canvas text-text-secondary"}`}>
                 Ghost injected
               </div>
             </div>
@@ -575,28 +575,28 @@ export function PlayableGameSection({
           {(ghostError || ghostMessage || ghostSaving || selectedGhost) && (
             <div className="mt-4 space-y-3">
               {ghostError && (
-                <div className="rounded border border-[#ff0040] bg-[#ff0040]/10 p-3 font-arcade text-xs text-[#ff8aa8]">
+                <div className="rounded border border-arcade-red bg-arcade-red/10 p-3 font-arcade text-xs text-danger-text">
                   {ghostError}
                 </div>
               )}
 
               {ghostMessage && (
-                <div className="rounded border border-[#00d1ff] bg-[#00d1ff]/10 p-3 font-arcade text-xs text-[#c9f5ff]">
+                <div className="rounded border border-arcade-cyan bg-arcade-cyan/10 p-3 font-arcade text-xs text-info-text">
                   {ghostMessage}
                 </div>
               )}
 
               {ghostSaving && (
-                <div className="flex items-center gap-2 rounded border border-[#4a4a6a] bg-[#0d0d15] p-3 font-arcade text-xs text-[#8b93a6]">
+                <div className="flex items-center gap-2 rounded border border-border-strong bg-canvas p-3 font-arcade text-xs text-text-secondary">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Saving your latest run to the leaderboard...
                 </div>
               )}
 
               {selectedGhost && (
-                <div className="flex flex-col gap-3 rounded border border-[#20263a] bg-[#0d0d15] p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-3 rounded border border-border bg-canvas p-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="font-arcade text-[11px] text-[#ffff00]">ACTIVE GHOST</p>
+                    <p className="font-arcade text-xs text-arcade-yellow">ACTIVE GHOST</p>
                     <p className="mt-1 font-arcade text-xs text-white">
                       {selectedGhost.playerName || "anonymous"} • {formatDurationMs(selectedGhost.durationMs)}
                     </p>
@@ -621,10 +621,10 @@ export function PlayableGameSection({
             {selectedLevelId
               ? renderPersonalBest(`Your best on ${levelName || "this level"}`, levelGhostBoard?.personalBest || null)
               : (
-                <div className="rounded border border-[#20263a] bg-[#11111d] p-3">
-                  <p className="font-arcade text-[11px] text-[#8b93a6]">Current race scope</p>
+                <div className="rounded border border-border bg-surface p-3">
+                  <p className="font-arcade text-xs text-text-secondary">Current race scope</p>
                   <p className="mt-2 font-arcade text-sm text-white">Whole game board</p>
-                  <p className="mt-1 font-arcade text-[10px] text-[#4a4a6a]">Ghosts saved here apply when no community level is active.</p>
+                  <p className="mt-1 font-arcade text-xs text-text-secondary">Ghosts saved here apply when no community level is active.</p>
                 </div>
               )}
           </div>

@@ -63,35 +63,35 @@ export function GameOfTheDay({ game, monthlyStars, monthlyRatings }: GameOfTheDa
   const currentMonth = MONTH_NAMES[new Date().getUTCMonth()]
 
   return (
-    <section className="py-10 sm:py-14 border-b-2 sm:border-b-4 border-[#4a4a6a]">
+    <section className="py-10 sm:py-14 border-b-2 sm:border-b-4 border-border-strong">
       <div className="container mx-auto px-4">
         {/* Section header */}
         <div className="flex items-center gap-3 mb-6 sm:mb-8">
           <div className="flex items-center gap-2">
-            <Crown className="h-5 w-5 text-[#ffff00]" />
-            <span className="text-[10px] text-[#ffff00] font-pixel">
+            <Crown className="h-5 w-5 text-arcade-yellow" />
+            <span className="text-kicker text-arcade-yellow">
               {currentMonth}
             </span>
           </div>
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white font-pixel">
+          <h2 className="heading-pixel-lg font-bold text-white">
             GAME OF THE MONTH
           </h2>
         </div>
 
         {/* Hero card */}
-        <div className="bg-[#1a1a2e] border-2 sm:border-4 border-[#ffff00] relative overflow-hidden group hover:shadow-[6px_6px_0_#ffff00] transition-all duration-200">
+        <div className="group relative overflow-hidden border-2 border-arcade-yellow bg-surface-2 [--shadow-color:var(--color-arcade-yellow)] transition-all duration-200 hover:shadow-hard-8 sm:border-4">
           {/* Corner decorations */}
-          <div className="absolute top-0 left-0 w-4 h-4 bg-[#ffff00] z-10" />
-          <div className="absolute top-0 right-0 w-4 h-4 bg-[#ffff00] z-10" />
-          <div className="absolute bottom-0 left-0 w-4 h-4 bg-[#ffff00] z-10" />
-          <div className="absolute bottom-0 right-0 w-4 h-4 bg-[#ffff00] z-10" />
+          <div className="absolute top-0 left-0 w-4 h-4 bg-arcade-yellow z-10" />
+          <div className="absolute top-0 right-0 w-4 h-4 bg-arcade-yellow z-10" />
+          <div className="absolute bottom-0 left-0 w-4 h-4 bg-arcade-yellow z-10" />
+          <div className="absolute bottom-0 right-0 w-4 h-4 bg-arcade-yellow z-10" />
 
           <div className="flex flex-col lg:flex-row">
             {/* Thumbnail */}
             <Link
               href={`/play/${game.slug}`}
               prefetch={false}
-              className="relative w-full lg:w-[55%] aspect-video lg:aspect-auto lg:min-h-[320px] overflow-hidden bg-[#0d0d15] flex-shrink-0"
+              className="relative w-full lg:w-[55%] aspect-video lg:aspect-auto lg:min-h-[320px] overflow-hidden bg-canvas flex-shrink-0"
             >
               {game.thumbnail ? (
                 <GameThumbnailSlideshow
@@ -104,18 +104,18 @@ export function GameOfTheDay({ game, monthlyStars, monthlyRatings }: GameOfTheDa
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center min-h-[200px]">
-                  <Gamepad2 className="h-20 w-20 text-[#4a4a6a]" />
+                  <Gamepad2 className="h-20 w-20 text-text-secondary" />
                 </div>
               )}
               {/* Play overlay on hover */}
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="w-20 h-20 rounded-full bg-[#ffff00] flex items-center justify-center">
-                  <Play className="h-10 w-10 text-[#0d0d15] ml-1" />
+                <div className="w-20 h-20 rounded-full bg-arcade-yellow flex items-center justify-center">
+                  <Play className="h-10 w-10 text-canvas ml-1" />
                 </div>
               </div>
               {/* Category badge */}
               <div className="absolute top-4 left-4 z-10">
-                <span className="border border-[#ffff00] bg-[#0d0d15] px-3 py-1 font-pixel text-[10px] text-[#ffff00]">
+                <span className="border border-arcade-yellow bg-canvas px-3 py-1 text-xs font-bold uppercase tracking-wide text-arcade-yellow">
                   {game.category}
                 </span>
               </div>
@@ -126,32 +126,32 @@ export function GameOfTheDay({ game, monthlyStars, monthlyRatings }: GameOfTheDa
               <div>
                 {/* Title */}
                 <Link href={`/play/${game.slug}`} prefetch={false}>
-                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white font-pixel mb-3 hover:text-[#ffff00] transition-colors leading-tight">
+                  <h3 className="heading-pixel-lg mb-3 font-bold text-white transition-colors hover:text-arcade-yellow">
                     {game.title}
                   </h3>
                 </Link>
 
                 {/* Creator */}
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="text-xs text-[#4a4a6a] font-arcade">by</span>
+                  <span className="text-xs text-text-secondary font-arcade">by</span>
                   {creatorHref ? (
-                    <CreatorLink href={creatorHref} className="text-sm text-[#0080ff] font-arcade hover:underline cursor-pointer">
+                    <CreatorLink href={creatorHref} className="text-sm text-arcade-blue font-arcade hover:underline cursor-pointer">
                       {creatorName}
                     </CreatorLink>
                   ) : (
-                    <span className="text-sm text-[#0080ff] font-arcade">{creatorName}</span>
+                    <span className="text-sm text-arcade-blue font-arcade">{creatorName}</span>
                   )}
                 </div>
 
                 {/* Description */}
-                <p className="text-sm sm:text-base text-[#8a8aaa] font-arcade mb-6 leading-relaxed">
+                <p className="text-sm sm:text-base text-text-secondary font-arcade mb-6 leading-relaxed">
                   {shortDesc}
                 </p>
 
                 {/* Monthly stars note */}
                 {monthlyRatings > 0 && (
-                  <div className="mb-6 px-3 py-2 bg-[#0d0d15] border border-[#ffff00]/30 text-xs text-[#ffff00]/80 font-arcade flex items-center gap-2">
-                    <Star className="h-3.5 w-3.5 text-[#ffff00] fill-[#ffff00]" />
+                  <div className="mb-6 px-3 py-2 bg-canvas border border-arcade-yellow/30 text-xs text-arcade-yellow/80 font-arcade flex items-center gap-2">
+                    <Star className="h-3.5 w-3.5 text-arcade-yellow fill-arcade-yellow" />
                     {monthlyStars} stars from {monthlyRatings} {monthlyRatings === 1 ? "rating" : "ratings"} this month
                   </div>
                 )}
@@ -159,19 +159,19 @@ export function GameOfTheDay({ game, monthlyStars, monthlyRatings }: GameOfTheDa
                 {/* Stats row */}
                 <div className="flex flex-wrap items-center gap-4 sm:gap-6 mb-6">
                   <div className="flex items-center gap-1.5">
-                    <Eye className="h-4 w-4 text-[#0080ff]" />
-                    <span className="text-sm text-white font-pixel">{game.plays.toLocaleString()}</span>
-                    <span className="text-xs text-[#4a4a6a] font-arcade">plays</span>
+                    <Eye className="h-4 w-4 text-arcade-blue" />
+                    <span className="text-sm font-bold text-white">{game.plays.toLocaleString()}</span>
+                    <span className="text-xs text-text-secondary font-arcade">plays</span>
                   </div>
                   {game.ratingCount > 0 && (
                     <div className="flex items-center gap-1.5">
-                      <Star className="h-4 w-4 text-[#ffff00] fill-[#ffff00]" />
-                      <span className="text-sm text-white font-pixel">{game.avgRating.toFixed(1)}</span>
-                      <span className="text-xs text-[#4a4a6a] font-arcade">({game.ratingCount})</span>
+                      <Star className="h-4 w-4 text-arcade-yellow fill-arcade-yellow" />
+                      <span className="text-sm font-bold text-white">{game.avgRating.toFixed(1)}</span>
+                      <span className="text-xs text-text-secondary font-arcade">({game.ratingCount})</span>
                     </div>
                   )}
                   {game.aiModel && (
-                    <span className="text-xs text-[#4a4a6a] font-arcade">
+                    <span className="text-xs text-text-secondary font-arcade">
                       Built with {game.aiModel}
                     </span>
                   )}

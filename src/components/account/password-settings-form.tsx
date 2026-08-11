@@ -22,9 +22,9 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
 
   if (!hasPassword) {
     return (
-      <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 sm:p-6">
-        <h2 className="text-lg font-semibold text-[var(--color-text)]">Password</h2>
-        <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+      <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
+        <h2 className="text-lg font-semibold text-text">Password</h2>
+        <p className="mt-2 text-sm text-text-secondary">
           This account currently signs in with Google/GitHub. Password setup is not available yet.
         </p>
       </div>
@@ -69,10 +69,10 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
   }
 
   return (
-    <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 sm:p-6">
+    <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
       <div className="mb-5 flex items-center gap-2">
-        <KeyRound className="h-4 w-4 text-[var(--color-primary)]" />
-        <h2 className="text-lg font-semibold text-[var(--color-text)]">Password</h2>
+        <KeyRound className="h-4 w-4 text-primary-text" />
+        <h2 className="text-lg font-semibold text-text">Password</h2>
       </div>
 
       <form onSubmit={submit} className="space-y-4">
@@ -81,6 +81,7 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
           <div className="relative">
             <Input
               id="current-password"
+              variant="studio"
               type={showCurrent ? "text" : "password"}
               value={currentPassword}
               onChange={(event) => {
@@ -96,7 +97,7 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
             <button
               type="button"
               onClick={() => setShowCurrent((value) => !value)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] hover:text-[var(--color-text)]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text"
               aria-label={showCurrent ? "Hide current password" : "Show current password"}
             >
               {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -110,6 +111,7 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
             <div className="relative">
               <Input
                 id="new-password"
+                variant="studio"
                 type={showNext ? "text" : "password"}
                 minLength={8}
                 value={newPassword}
@@ -126,7 +128,7 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
               <button
                 type="button"
                 onClick={() => setShowNext((value) => !value)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] hover:text-[var(--color-text)]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text"
                 aria-label={showNext ? "Hide new password" : "Show new password"}
               >
                 {showNext ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -139,6 +141,7 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
             <div className="relative">
               <Input
                 id="confirm-password"
+                variant="studio"
                 type={showConfirm ? "text" : "password"}
                 minLength={8}
                 value={confirmPassword}
@@ -155,7 +158,7 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
               <button
                 type="button"
                 onClick={() => setShowConfirm((value) => !value)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] hover:text-[var(--color-text)]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text"
                 aria-label={showConfirm ? "Hide confirm password" : "Show confirm password"}
               >
                 {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -164,12 +167,12 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--color-border)] pt-4">
-          <p className={`text-sm ${status === "error" ? "text-[var(--color-danger)]" : status === "success" ? "text-[var(--color-success)]" : "text-[var(--color-text-tertiary)]"}`}>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+          <p className={`text-sm ${status === "error" ? "text-danger" : status === "success" ? "text-success" : "text-text-tertiary"}`}>
             {message || "Use a strong password you do not reuse elsewhere."}
           </p>
 
-          <Button type="submit" disabled={status === "saving" || !canSubmit} className="gap-2">
+          <Button type="submit" variant="studio" disabled={status === "saving" || !canSubmit} className="gap-2">
             {status === "saving" ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
             {status === "saving" ? "Updating..." : "Update Password"}
           </Button>

@@ -1,13 +1,26 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
+import Image from "next/image"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, MessageSquarePlus } from "lucide-react"
+import {
+  ArrowUpRight,
+  Flag,
+  Gamepad2,
+  Heart,
+  Lightbulb,
+  Loader2,
+  Maximize2,
+  MessageCircle,
+  RefreshCcw,
+  Share2,
+} from "lucide-react"
 import { DownloadCodeButton } from "@/components/games/download-code-button"
+import { GameThumbnailPlaceholder } from "@/components/games/game-thumbnail-placeholder"
 import { MobileHomeIntroSlide } from "@/components/home/mobile-home-intro-slide"
 import type { HomeBackdropGame } from "@/components/home/home-game-backdrop"
 import type { HomePageData } from "@/lib/home-page-data"
@@ -40,18 +53,6 @@ interface MobileReelsFeedProps {
   stats: HomePageData["stats"]
 }
 
-interface CommentItem {
-  id: string
-  content: string
-  createdAt: string
-  user: {
-    id: string
-    name: string | null
-    username: string | null
-    image: string | null
-  }
-}
-
 type LockableScreenOrientation = ScreenOrientation & {
   lock?: (orientation: "landscape") => Promise<void>
   unlock?: () => void
@@ -65,6 +66,222 @@ type VendorFullscreenElement = HTMLElement & {
 type VendorFullscreenDocument = Document & {
   webkitExitFullscreen?: () => Promise<void> | void
   msExitFullscreen?: () => Promise<void> | void
+}
+
+type FeedLoadState = "loading" | "ready" | "empty" | "error"
+type FrameLoadState = "loading" | "ready" | "slow"
+type FeedbackKind = "IDEA" | "BUG"
+type FeedbackStatus = { type: "success" | "error"; message: string } | null
+
+const MAX_FEED_ITEMS = 80
+
+const reelActionClass =
+  "flex h-12 w-full min-w-0 items-center justify-center border-2 border-border-strong bg-surface text-text-secondary shadow-[2px_2px_0_#000] transition-colors hover:border-arcade-yellow hover:text-arcade-yellow active:translate-x-0.5 active:translate-y-0.5 active:shadow-none disabled:opacity-50"
+
+const normalizeFeedGames = (items: FeedGame[]) =>
+  items.filter(
+    (game) =>
+      Boolean(game?.id) &&
+      Boolean(game?.slug) &&
+      Boolean(game?.gameUrl?.trim())
+  )
+
+function ReelPoster({ game, muted = false }: { game: FeedGame; muted?: boolean }) {
+  const [imageFailed, setImageFailed] = useState(false)
+  const thumbnail = game.thumbnail?.trim() || ""
+  const showThumbnail = Boolean(thumbnail) && !imageFailed
+
+  return (
+    <div className="absolute inset-0 overflow-hidden bg-surface">
+      {showThumbnail ? (
+        <Image
+          src={thumbnail}
+          alt=""
+          fill
+          sizes="(max-width: 767px) 100vw, 1px"
+          draggable={false}
+          onError={() => setImageFailed(true)}
+          className={`h-full w-full object-cover transition-opacity ${muted ? "opacity-45" : "opacity-70"}`}
+        />
+      ) : (
+        <GameThumbnailPlaceholder title={game.title} compact />
+      )}
+      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(7,9,14,0.1),rgba(7,9,14,0.48))]" />
+    </div>
+  )
+}
+
+interface ActiveGameFrameProps {
+  game: FeedGame
+  index: number
+  isInteractive: boolean
+  isFullscreen: boolean
+  rotateLandscape: boolean
+  width: number
+  height: number
+  logicalWidth: number
+  logicalHeight: number
+  onInteractionChange: (interactive: boolean) => void
+  onTouchStart: (event: React.TouchEvent) => void
+  onTouchEnd: (event: React.TouchEvent) => void
+  onOpenGame: () => void
+}
+
+function ActiveGameFrame({
+  game,
+  index,
+  isInteractive,
+  isFullscreen,
+  rotateLandscape,
+  width,
+  height,
+  logicalWidth,
+  logicalHeight,
+  onInteractionChange,
+  onTouchStart,
+  onTouchEnd,
+  onOpenGame,
+}: ActiveGameFrameProps) {
+  const [frameState, setFrameState] = useState<FrameLoadState>("loading")
+  const [attempt, setAttempt] = useState(0)
+
+  useEffect(() => {
+    if (frameState !== "loading") return
+
+    const timer = window.setTimeout(() => {
+      setFrameState((current) => current === "loading" ? "slow" : current)
+    }, 9000)
+
+    return () => window.clearTimeout(timer)
+  }, [attempt, frameState])
+
+  const retry = () => {
+    setFrameState("loading")
+    setAttempt((current) => current + 1)
+  }
+
+  const exitFullscreen = () => {
+    const fullscreenDocument = document as VendorFullscreenDocument
+    if (fullscreenDocument.exitFullscreen) {
+      void fullscreenDocument.exitFullscreen()
+    } else if (fullscreenDocument.webkitExitFullscreen) {
+      void fullscreenDocument.webkitExitFullscreen()
+    } else if (fullscreenDocument.msExitFullscreen) {
+      void fullscreenDocument.msExitFullscreen()
+    }
+  }
+
+  return (
+    <div className="relative flex h-full w-full items-center justify-center bg-canvas">
+      <ReelPoster game={game} />
+
+      <iframe
+        key={`${game.id}-${index}-${attempt}`}
+        id={`iframe-${game.id}-${index}`}
+        src={game.gameUrl}
+        title={game.title}
+        loading="lazy"
+        onLoad={() => setFrameState("ready")}
+        onError={() => setFrameState("slow")}
+        className={`border-0 bg-black transition-opacity duration-500 ${
+          frameState === "ready" ? "opacity-100" : "opacity-0"
+        } ${isInteractive || isFullscreen ? "pointer-events-auto" : "pointer-events-none"}`}
+        sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-forms"
+        allow="fullscreen; gamepad; accelerometer; gyroscope"
+        style={
+          rotateLandscape ? {
+            width: `${logicalWidth}px`,
+            height: `${logicalHeight}px`,
+            transform: "rotate(90deg)",
+            transformOrigin: "center",
+            position: "absolute",
+            left: `${(width - logicalWidth) / 2}px`,
+            top: `${(height - logicalHeight) / 2}px`,
+          } : {
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            inset: 0,
+          }
+        }
+      />
+
+      {frameState === "loading" ? (
+        <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-canvas/45 text-center">
+          <span className="flex h-12 w-12 items-center justify-center border-2 border-border-strong bg-surface shadow-[3px_3px_0_#000]">
+            <Loader2 className="h-5 w-5 animate-spin text-arcade-yellow" />
+          </span>
+          <span className="border border-border-strong bg-canvas/90 px-3 py-2 text-kicker  text-text-secondary">
+            STARTING GAME...
+          </span>
+        </div>
+      ) : null}
+
+      {frameState === "slow" ? (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-canvas/82 p-6">
+          <div className="w-full max-w-xs border-2 border-border-strong bg-surface p-5 text-center shadow-[5px_5px_0_#000]">
+            <span className="mx-auto flex h-11 w-11 items-center justify-center border-2 border-arcade-yellow bg-canvas text-arcade-yellow">
+              <Gamepad2 className="h-5 w-5" />
+            </span>
+            <h3 className="mt-4 text-kicker  text-white">GAME STILL LOADING</h3>
+            <p className="mt-2 text-xs leading-relaxed text-text-secondary">
+              The game host is taking longer than usual. Retry here or open its full page.
+            </p>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={retry}
+                className="flex h-10 items-center justify-center gap-2 border-2 border-border-strong bg-canvas text-kicker  text-white"
+              >
+                <RefreshCcw className="h-3.5 w-3.5" /> Retry
+              </button>
+              <button
+                type="button"
+                onClick={onOpenGame}
+                className="flex h-10 items-center justify-center gap-2 border-2 border-arcade-yellow bg-arcade-yellow text-kicker text-canvas"
+              >
+                Open <ArrowUpRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {frameState === "ready" && !isInteractive && !isFullscreen ? (
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={`Tap to play ${game.title}`}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+          onClick={() => onInteractionChange(true)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault()
+              onInteractionChange(true)
+            }
+          }}
+          className="absolute inset-0 z-20 cursor-pointer touch-pan-y"
+        >
+          <span className="text-kicker pointer-events-none absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap border-2 border-white bg-canvas/90 px-3 py-2 text-white [--shadow-color:var(--color-arcade-red)] shadow-hard-4">
+            <Gamepad2 className="h-3.5 w-3.5 text-arcade-yellow" /> TAP TO PLAY
+          </span>
+        </div>
+      ) : null}
+
+      {isFullscreen ? (
+        <button
+          type="button"
+          onClick={exitFullscreen}
+          className="absolute right-4 top-4 z-30 flex h-9 w-9 items-center justify-center border-2 border-white bg-canvas text-sm text-white [--shadow-color:var(--color-arcade-red)] shadow-hard-2"
+          title="Exit fullscreen"
+          aria-label="Exit fullscreen"
+        >
+          ×
+        </button>
+      ) : null}
+    </div>
+  )
 }
 
 // Fisher-Yates Shuffle algorithm
@@ -87,12 +304,14 @@ export function MobileReelsFeed({
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const firstGameSlideRef = useRef<HTMLDivElement>(null)
   const gameFrameRef = useRef<HTMLDivElement>(null)
+  const scrollFrameRef = useRef<number | null>(null)
+  const recoveryAbortRef = useRef<AbortController | null>(null)
 
   // Endless scrolling randomized feed state
   const [feedGames, setFeedGames] = useState<FeedGame[]>([])
+  const [seedGames, setSeedGames] = useState<FeedGame[]>([])
+  const [feedLoadState, setFeedLoadState] = useState<FeedLoadState>("loading")
   const [activeIndex, setActiveIndex] = useState(-1)
-  const [isIntroVisible, setIsIntroVisible] = useState(true)
-  const [showMeta, setShowMeta] = useState(true)
 
   // Pagination states
   const [page, setPage] = useState(1)
@@ -117,30 +336,76 @@ export function MobileReelsFeed({
   const [likesState, setLikesState] = useState<Record<string, { liked: boolean; count: number }>>({})
   const [likesLoading, setLikesLoading] = useState<Record<string, boolean>>({})
 
-  // Comment Drawer states
-  const [commentsOpen, setCommentsOpen] = useState(false)
-  const [commentsGameId, setCommentsGameId] = useState<string | null>(null)
-  const [commentsList, setCommentsList] = useState<CommentItem[]>([])
-  const [commentContent, setCommentContent] = useState("")
-  const [commentsLoading, setCommentsLoading] = useState(false)
-  const [postCommentLoading, setPostCommentLoading] = useState(false)
-  const [commentsCountState, setCommentsCountState] = useState<Record<string, number>>({})
+  // Suggest/report drawer state
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [feedbackGameId, setFeedbackGameId] = useState<string | null>(null)
+  const [feedbackKind, setFeedbackKind] = useState<FeedbackKind | null>(null)
+  const [feedbackComment, setFeedbackComment] = useState("")
+  const [feedbackSaving, setFeedbackSaving] = useState(false)
+  const [feedbackStatus, setFeedbackStatus] = useState<FeedbackStatus>(null)
 
-  // Feedback states
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   // Track session checks we've already done
   const [fetchedSessionIds, setFetchedSessionIds] = useState<Set<string>>(new Set())
 
-  // Initialize randomized endless feed
-  useEffect(() => {
-    if (games.length > 0) {
-      setFeedGames(shuffleArray(games))
-      if (games.length < 20) {
+  const loadInitialGames = useCallback(async () => {
+    recoveryAbortRef.current?.abort()
+    const controller = new AbortController()
+    recoveryAbortRef.current = controller
+    setFeedLoadState("loading")
+
+    try {
+      const response = await fetch("/api/games?mobile=true&limit=20&page=1&sort=popular", {
+        signal: controller.signal,
+      })
+      if (!response.ok) throw new Error("Feed request failed")
+
+      const payload = await response.json()
+      const recoveredGames = Array.isArray(payload.data)
+        ? normalizeFeedGames(payload.data as FeedGame[])
+        : []
+
+      if (recoveredGames.length === 0) {
+        setFeedGames([])
+        setSeedGames([])
         setHasMore(false)
+        setFeedLoadState("empty")
+        return
       }
+
+      setSeedGames(recoveredGames)
+      setFeedGames(shuffleArray(recoveredGames))
+      setPage(1)
+      setHasMore(Boolean(payload.hasMore))
+      setFeedLoadState("ready")
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return
+      console.error("Failed to recover Arcade Reels:", error)
+      setFeedLoadState("error")
     }
-  }, [games])
+  }, [])
+
+  // Use the server payload immediately when available. If its database query
+  // transiently returned an empty fallback, recover from the client API.
+  useEffect(() => {
+    const initialGames = normalizeFeedGames(games)
+    if (initialGames.length > 0) {
+      recoveryAbortRef.current?.abort()
+      setSeedGames(initialGames)
+      setFeedGames(shuffleArray(initialGames))
+      setPage(1)
+      setHasMore(initialGames.length >= 20)
+      setFeedLoadState("ready")
+      return
+    }
+
+    void loadInitialGames()
+  }, [games, loadInitialGames])
+
+  useEffect(() => {
+    return () => recoveryAbortRef.current?.abort()
+  }, [])
 
   // Measure active game container height dynamically
   useEffect(() => {
@@ -159,15 +424,6 @@ export function MobileReelsFeed({
     return () => {
       observer.disconnect()
     }
-  }, [activeIndex])
-
-  // Auto fade-out timer for game details (meta)
-  useEffect(() => {
-    setShowMeta(true)
-    const timer = setTimeout(() => {
-      setShowMeta(false)
-    }, 5000)
-    return () => clearTimeout(timer)
   }, [activeIndex])
 
   // Fullscreen change listener to toggle pointer-events and orientation lock
@@ -220,7 +476,7 @@ export function MobileReelsFeed({
     return () => clearTimeout(timer)
   }, [activeIndex])
 
-  // Initialize likes and comments counts for the feed list
+  // Initialize likes for the feed list
   useEffect(() => {
     if (feedGames.length === 0) return
     setLikesState((prev) => {
@@ -228,15 +484,6 @@ export function MobileReelsFeed({
       feedGames.forEach((game) => {
         if (next[game.id] === undefined) {
           next[game.id] = { liked: false, count: game.likes }
-        }
-      })
-      return next
-    })
-    setCommentsCountState((prev) => {
-      const next = { ...prev }
-      feedGames.forEach((game) => {
-        if (next[game.id] === undefined) {
-          next[game.id] = 0
         }
       })
       return next
@@ -281,92 +528,102 @@ export function MobileReelsFeed({
     })
   }, [activeIndex, feedGames, session, fetchedSessionIds])
 
-  // IntersectionObserver to detect active index smoothly
-  useEffect(() => {
+  // Calculate the snapped slide directly from scroll position. This keeps the
+  // active iframe in sync even when a fast swipe skips virtualized slides.
+  const syncActiveSlide = useCallback(() => {
     const container = scrollContainerRef.current
     if (!container) return
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const index = Number(entry.target.getAttribute("data-index"))
-          if (isNaN(index)) return
+    const slideHeight = Math.max(container.clientHeight, 1)
+    const snappedPosition = Math.round(container.scrollTop / slideHeight)
+    const maxIndex = Math.max(feedGames.length - 1, 0)
+    const nextIndex = Math.min(Math.max(snappedPosition - 1, -1), maxIndex)
+    setActiveIndex((current) => current === nextIndex ? current : nextIndex)
+  }, [feedGames.length])
 
-          if (index === -1) {
-            setIsIntroVisible(entry.intersectionRatio >= 0.5)
-          }
+  const handleFeedScroll = useCallback(() => {
+    if (scrollFrameRef.current !== null) return
 
-          if (entry.intersectionRatio >= 0.5) {
-            setActiveIndex(index)
-          }
-        })
-      },
-      {
-        root: container,
-        threshold: 0.5,
-      }
-    )
+    scrollFrameRef.current = window.requestAnimationFrame(() => {
+      scrollFrameRef.current = null
+      syncActiveSlide()
+    })
+  }, [syncActiveSlide])
 
-    const slides = container.querySelectorAll("[data-slide]")
-    slides.forEach((slide) => observer.observe(slide))
+  useEffect(() => {
+    syncActiveSlide()
+    window.addEventListener("resize", syncActiveSlide)
+    window.visualViewport?.addEventListener("resize", syncActiveSlide)
 
     return () => {
-      observer.disconnect()
+      window.removeEventListener("resize", syncActiveSlide)
+      window.visualViewport?.removeEventListener("resize", syncActiveSlide)
+      if (scrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(scrollFrameRef.current)
+        scrollFrameRef.current = null
+      }
     }
-  }, [feedGames])
+  }, [syncActiveSlide])
 
   // Load next page function
   const loadNextPage = useCallback(async () => {
-    if (isLoadingMore) return
+    if (isLoadingMore || seedGames.length === 0 || feedGames.length >= MAX_FEED_ITEMS) return
+
+    const appendFallbackBatch = () => {
+      setFeedGames((current) => {
+        const room = MAX_FEED_ITEMS - current.length
+        if (room <= 0) return current
+        return [...current, ...shuffleArray(seedGames).slice(0, room)]
+      })
+    }
+
     setIsLoadingMore(true)
     const nextPage = page + 1
     try {
-      // If all database games are finished or we only have a small local set, we reload and randomize
-      if (!hasMore || games.length < 20) {
-        const reshuffled = shuffleArray(games)
-        setFeedGames((prev) => [...prev, ...reshuffled])
-        if (games.length < 20) {
-          setHasMore(false)
-        } else {
-          setPage(1)
-          setHasMore(true)
-        }
-        setIsLoadingMore(false)
+      if (!hasMore || seedGames.length < 20) {
+        appendFallbackBatch()
+        setHasMore(false)
         return
       }
 
-      const res = await fetch(`/api/games?mobile=true&limit=20&page=${nextPage}&sort=popular`)
-      if (res.ok) {
-        const data = await res.json()
-        if (data.data && data.data.length > 0) {
-          const newGames = shuffleArray(data.data)
-          setFeedGames((prev) => [...prev, ...newGames])
-          setPage(nextPage)
-          setHasMore(data.hasMore)
-        } else {
-          // If no more games returned from database, loop and reshuffle
-          const reshuffled = shuffleArray(games)
-          setFeedGames((prev) => [...prev, ...reshuffled])
-          setPage(1)
-          setHasMore(true)
-        }
+      const response = await fetch(`/api/games?mobile=true&limit=20&page=${nextPage}&sort=popular`)
+      if (!response.ok) throw new Error("Next feed page failed")
+
+      const payload = await response.json()
+      const nextGames = Array.isArray(payload.data)
+        ? normalizeFeedGames(payload.data as FeedGame[])
+        : []
+
+      if (nextGames.length > 0) {
+        setFeedGames((current) => {
+          const room = MAX_FEED_ITEMS - current.length
+          return room > 0
+            ? [...current, ...shuffleArray(nextGames).slice(0, room)]
+            : current
+        })
+        setPage(nextPage)
+        setHasMore(Boolean(payload.hasMore))
       } else {
-        // Fallback on error
-        const reshuffled = shuffleArray(games)
-        setFeedGames((prev) => [...prev, ...reshuffled])
+        appendFallbackBatch()
+        setHasMore(false)
       }
     } catch (e) {
       console.error("Error loading next page:", e)
-      const reshuffled = shuffleArray(games)
-      setFeedGames((prev) => [...prev, ...reshuffled])
+      appendFallbackBatch()
+      setHasMore(false)
     } finally {
       setIsLoadingMore(false)
     }
-  }, [page, hasMore, isLoadingMore, games])
+  }, [feedGames.length, hasMore, isLoadingMore, page, seedGames])
 
   // Trigger loading next page when close to end of feed (5 items buffer)
   useEffect(() => {
-    if (activeIndex >= 0 && activeIndex >= feedGames.length - 5 && feedGames.length > 0) {
+    if (
+      activeIndex >= 0 &&
+      activeIndex >= feedGames.length - 5 &&
+      feedGames.length > 0 &&
+      feedGames.length < MAX_FEED_ITEMS
+    ) {
       void loadNextPage()
     }
   }, [activeIndex, feedGames.length, loadNextPage])
@@ -397,7 +654,7 @@ export function MobileReelsFeed({
           ...prev,
           [gameId]: { liked: Boolean(data.liked), count: Number(data.likes) || 0 }
         }))
-        triggerToast(data.liked ? "SAVED TO CABINET!" : "REMOVED FROM FAVORITES")
+        triggerToast(data.liked ? "Saved to your cabinet" : "Removed from favorites")
       }
     } catch (e) {
       console.error("Like failed:", e)
@@ -406,56 +663,57 @@ export function MobileReelsFeed({
     }
   }
 
-  // Handle Comments drawer loading
-  const openComments = async (gameId: string) => {
-    setCommentsGameId(gameId)
-    setCommentsOpen(true)
-    setCommentsLoading(true)
-    try {
-      const res = await fetch(`/api/games/${gameId}/comments`)
-      if (res.ok) {
-        const data = await res.json()
-        setCommentsList(data.comments || [])
-        setCommentsCountState((prev) => ({ ...prev, [gameId]: data.comments?.length || 0 }))
-      }
-    } catch (e) {
-      console.error("Failed to load comments:", e)
-    } finally {
-      setCommentsLoading(false)
-    }
+  const openFeedback = (gameId: string) => {
+    setFeedbackGameId(gameId)
+    setFeedbackKind(null)
+    setFeedbackComment("")
+    setFeedbackStatus(null)
+    setFeedbackOpen(true)
   }
 
-  // Handle Post Comment
-  const postComment = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!session?.user?.id || !commentsGameId || !commentContent.trim() || postCommentLoading) return
+  const submitFeedback = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (
+      !session?.user?.id ||
+      !feedbackGameId ||
+      !feedbackKind ||
+      feedbackComment.trim().length < 5 ||
+      feedbackSaving
+    ) return
 
-    setPostCommentLoading(true)
+    setFeedbackSaving(true)
+    setFeedbackStatus(null)
+
     try {
-      const res = await fetch(`/api/games/${commentsGameId}/comments`, {
+      const response = await fetch(`/api/games/${feedbackGameId}/feedback`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: commentContent.trim() })
+        body: JSON.stringify({
+          kind: feedbackKind,
+          comment: feedbackComment.trim(),
+          context: {
+            userAgent: navigator.userAgent,
+            viewport: `${window.innerWidth}x${window.innerHeight}`,
+          },
+        }),
       })
+      const data = await response.json()
 
-      if (res.ok) {
-        const data = await res.json()
-        setCommentsList((prev) => [data.comment, ...prev])
-        setCommentContent("")
-        setCommentsCountState((prev) => ({
-          ...prev,
-          [commentsGameId]: (prev[commentsGameId] || 0) + 1
-        }))
-        triggerToast("COMMENT BROADCAST SUCCESSFUL!")
-      } else {
-        const err = await res.json()
-        triggerToast(err.error || "POST FAILED")
+      if (!response.ok) {
+        throw new Error(data.error || "Could not send feedback")
       }
+
+      const message = data.message || "Feedback sent to the creator."
+      setFeedbackStatus({ type: "success", message })
+      setFeedbackComment("")
+      triggerToast(message)
     } catch (error) {
-      console.error("Failed to post comment:", error)
-      triggerToast("TRANSMISSION ERROR")
+      setFeedbackStatus({
+        type: "error",
+        message: error instanceof Error ? error.message : "Could not send feedback",
+      })
     } finally {
-      setPostCommentLoading(false)
+      setFeedbackSaving(false)
     }
   }
 
@@ -475,7 +733,7 @@ export function MobileReelsFeed({
     } else {
       try {
         await navigator.clipboard.writeText(url)
-        triggerToast("SHARE LINK COPIED TO CLIPBOARD!")
+        triggerToast("Share link copied")
       } catch (e) {
         console.error("Copy failed:", e)
       }
@@ -486,7 +744,7 @@ export function MobileReelsFeed({
   const toggleFullscreen = (index: number) => {
     const activeId = feedGames[index]?.id
     if (!activeId) return
-    const container = document.getElementById(`frame-container-${activeId}`)
+    const container = document.getElementById(`frame-container-${activeId}-${index}`)
     if (container) {
       try {
         const fullscreenContainer = container as VendorFullscreenElement
@@ -560,25 +818,36 @@ export function MobileReelsFeed({
 
   // Measured width and height fallbacks
   const width = frameWidth || (typeof window !== "undefined" ? window.innerWidth : 360)
-  const height = frameHeight || (typeof window !== "undefined" ? window.innerHeight - 135 : 480)
+  const height = frameHeight || (typeof window !== "undefined" ? window.innerHeight - 80 : 480)
 
   return (
-    <div className="relative w-full h-[100dvh] flex flex-col bg-[#0d0d15] text-white overflow-hidden">
-      {/* Top Banner overlay */}
-      {activeIndex >= 0 && !isIntroVisible ? (
-        <div className="pointer-events-none absolute left-0 right-0 top-0 z-20 flex items-center justify-between border-b border-[#303047] bg-black/85 p-4">
-          <div className="flex items-center gap-2">
-            <span className="font-pixel text-[11px] text-[#ffff00] bg-[#1a1a2e] border border-[#ffff00] px-2 py-0.5 shadow-[2px_2px_0_#ff0040]">
-              AI ARCADE FEED
-            </span>
-          </div>
-        </div>
+    <div className="relative flex h-[100dvh] w-full flex-col overflow-hidden bg-canvas text-white">
+      {activeIndex >= 0 && !isFullscreen ? (
+        <nav
+          aria-label="Arcade Reels shortcuts"
+          className="absolute inset-x-0 top-0 z-40 flex items-center justify-between px-[max(0.75rem,env(safe-area-inset-left))] pt-[max(0.75rem,env(safe-area-inset-top))]"
+        >
+          <Link
+            href="/games"
+            className="text-kicker flex h-9 items-center gap-2 border-2 border-border-strong bg-canvas/90 px-3 text-white shadow-hard-2 backdrop-blur hover:border-arcade-yellow hover:text-arcade-yellow"
+          >
+            <Gamepad2 className="h-3.5 w-3.5" aria-hidden="true" />
+            Browse
+          </Link>
+          <Link
+            href="/upload"
+            prefetch={false}
+            className="text-kicker flex h-9 items-center gap-2 border-2 border-arcade-yellow bg-canvas/90 px-3 text-arcade-yellow shadow-hard-2 backdrop-blur hover:bg-arcade-yellow hover:text-canvas"
+          >
+            Upload
+            <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </Link>
+        </nav>
       ) : null}
-
-      {/* Snap Scroll Reels container */}
       <div
         ref={scrollContainerRef}
-        className="min-h-0 flex-1 w-full overflow-y-scroll overscroll-y-contain touch-pan-y snap-y snap-mandatory scrollbar-none flex flex-col"
+        onScroll={handleFeedScroll}
+        className="scrollbar-none flex min-h-0 w-full flex-1 touch-pan-y snap-y snap-mandatory flex-col overflow-y-scroll overscroll-y-contain"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         <MobileHomeIntroSlide
@@ -587,28 +856,87 @@ export function MobileReelsFeed({
           onStart={scrollToFirstGame}
         />
 
+        {feedGames.length === 0 ? (
+          <div
+            ref={firstGameSlideRef}
+            data-index="0"
+            data-slide
+            aria-live="polite"
+            className="relative flex h-full w-full shrink-0 snap-start snap-always items-center justify-center overflow-hidden bg-canvas px-7 text-center"
+            style={{ height: "100%" }}
+          >
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,209,255,0.08),transparent_45%,rgba(244,63,94,0.08))]" />
+            <div className="relative w-full max-w-xs border-2 border-border-strong bg-surface p-7 shadow-[6px_6px_0_#000]">
+              <span className="mx-auto flex h-14 w-14 items-center justify-center border-2 border-arcade-yellow bg-canvas text-arcade-yellow">
+                {feedLoadState === "loading" ? (
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                ) : feedLoadState === "error" ? (
+                  <RefreshCcw className="h-6 w-6" />
+                ) : (
+                  <Gamepad2 className="h-6 w-6" />
+                )}
+              </span>
+              <p className="mt-5 text-kicker  text-arcade-cyan">ARCADE REELS</p>
+              <h2 className="heading-pixel-sm mt-3 text-white">
+                {feedLoadState === "loading"
+                  ? "Loading the next cabinet"
+                  : feedLoadState === "error"
+                    ? "The feed missed a beat"
+                    : "No mobile games yet"}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+                {feedLoadState === "loading"
+                  ? "Finding mobile-ready games for you now."
+                  : feedLoadState === "error"
+                    ? "The arcade list did not arrive. Try again in a moment."
+                    : "Fresh mobile-ready games will appear here as creators publish them."}
+              </p>
+              {feedLoadState !== "loading" ? (
+                <div className="mt-5 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void loadInitialGames()}
+                    className="flex h-11 items-center justify-center gap-2 border-2 border-border-strong bg-canvas text-kicker  text-white"
+                  >
+                    <RefreshCcw className="h-3.5 w-3.5" /> Retry
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => router.push("/games?mobile=true")}
+                    className="flex h-11 items-center justify-center gap-2 border-2 border-arcade-yellow bg-arcade-yellow text-kicker text-canvas"
+                  >
+                    Browse <ArrowUpRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
         {feedGames.map((game, index) => {
           const isActive = index === activeIndex
-          const shouldRender = Math.abs(index - activeIndex) <= 2
+          const shouldRender = Math.abs(index - activeIndex) <= 3
 
           const gameLikes = likesState[game.id] || { liked: false, count: game.likes }
-          const commentsCount = commentsCountState[game.id] || 0
 
           // Check if rotation to landscape is needed on a portrait mobile screen
           const rotateLandscape = height > width && game.mobileOrientation === "LANDSCAPE"
           const logicalHeight = rotateLandscape ? width : height
           const logicalWidth = rotateLandscape ? height : width
 
-          // Virtualized empty slide spacer to protect mobile memory
+          // A lightweight poster keeps fast swipes from ever landing on an
+          // empty spacer while the active iframe catches up.
           if (!shouldRender) {
             return (
               <div
                 key={`${game.id}-${index}`}
                 data-index={index}
                 data-slide
-                className="w-full h-full snap-start snap-always shrink-0 bg-[#0d0d15]"
+                className="relative h-full w-full shrink-0 snap-start snap-always overflow-hidden bg-canvas"
                 style={{ height: "100%" }}
-              />
+              >
+                <ReelPoster game={game} muted />
+              </div>
             )
           }
 
@@ -618,316 +946,227 @@ export function MobileReelsFeed({
               key={`${game.id}-${index}`}
               data-index={index}
               data-slide
-              className="w-full h-full snap-start snap-always flex flex-col landscape:flex-row bg-[#0d0d15] relative shrink-0 overflow-hidden"
+              className="relative flex h-full w-full shrink-0 snap-start snap-always flex-col overflow-hidden bg-canvas landscape:flex-row"
               style={{ height: "100%" }}
             >
               {/* Game Frame Area */}
               <div
                 ref={isActive ? gameFrameRef : null}
-                id={`frame-container-${game.id}`}
-                className="flex-1 w-full bg-black relative flex items-center justify-center overflow-hidden"
+                id={`frame-container-${game.id}-${index}`}
+                className="relative flex w-full flex-1 items-center justify-center overflow-hidden bg-canvas"
               >
                 {isActive ? (
-                  <div className="relative w-full h-full flex items-center justify-center">
-                    <iframe
-                      id={`iframe-${game.id}`}
-                      src={game.gameUrl}
-                      title={game.title}
-                      className={`border-0 transition-all duration-300 ${
-                        isInteractive || isFullscreen ? "pointer-events-auto" : "pointer-events-none"
-                      }`}
-                      sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-forms"
-                      allow="fullscreen; gamepad; accelerometer; gyroscope"
-                      style={
-                        rotateLandscape ? {
-                          width: `${logicalWidth}px`,
-                          height: `${logicalHeight}px`,
-                          transform: "rotate(90deg)",
-                          transformOrigin: "center",
-                          position: "absolute",
-                          left: `${(width - logicalWidth) / 2}px`,
-                          top: `${(height - logicalHeight) / 2}px`
-                        } : {
-                          width: "100%",
-                          height: "100%",
-                          position: "absolute",
-                          inset: 0
-                        }
-                      }
-                    />
-                    {!isInteractive && (
-                      <div
-                        onTouchStart={handleTouchStart}
-                        onTouchEnd={handleTouchEnd}
-                        onClick={() => setIsInteractive(true)}
-                        className="absolute inset-0 bg-transparent z-20 pointer-events-auto cursor-pointer"
-                      />
-                    )}
-                    {isFullscreen && (
-                      <button
-                        onClick={() => {
-                          const fullscreenDocument = document as VendorFullscreenDocument
-                          if (fullscreenDocument.exitFullscreen) {
-                            void fullscreenDocument.exitFullscreen()
-                          } else if (fullscreenDocument.webkitExitFullscreen) {
-                            void fullscreenDocument.webkitExitFullscreen()
-                          } else if (fullscreenDocument.msExitFullscreen) {
-                            void fullscreenDocument.msExitFullscreen()
-                          }
-                        }}
-                        className="absolute top-4 right-4 z-30 bg-black/60 hover:bg-black/80 border border-white/20 text-white/80 hover:text-white rounded-full w-8 h-8 flex items-center justify-center font-pixel text-xs transition-all pointer-events-auto shadow-md"
-                        title="Exit Fullscreen"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
+                  <ActiveGameFrame
+                    game={game}
+                    index={index}
+                    isInteractive={isInteractive}
+                    isFullscreen={isFullscreen}
+                    rotateLandscape={rotateLandscape}
+                    width={width}
+                    height={height}
+                    logicalWidth={logicalWidth}
+                    logicalHeight={logicalHeight}
+                    onInteractionChange={setIsInteractive}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                    onOpenGame={() => router.push(`/play/${game.slug}`)}
+                  />
                 ) : (
-                  <div className="w-full h-full relative flex items-center justify-center bg-[#11111d]">
-                    {game.thumbnail ? (
-                      <img
-                        src={game.thumbnail}
-                        alt={game.title}
-                        className="w-full h-full object-cover opacity-50"
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <svg className="w-12 h-12 text-[#4a4a6a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                          <rect x="2" y="6" width="20" height="12" rx="2" />
-                          <path d="M6 12h4M8 10v4M15 11h.01M18 13h.01" strokeWidth="2.5" />
-                        </svg>
-                        <span className="font-arcade text-xs text-[#4a4a6a]">ROM_LOAD_PENDING</span>
-                      </div>
-                    )}
+                  <div className="relative h-full w-full">
+                    <ReelPoster game={game} muted />
                   </div>
                 )}
-
-                {/* Left Side Game Meta Tag Details (Fades out after 5 seconds on active slide) */}
-                <div
-                  className={`pointer-events-none absolute bottom-4 left-4 z-10 flex max-w-[70%] flex-col gap-1 rounded bg-black/80 p-2 transition-opacity duration-1000 ${
-                    isActive && showMeta ? "opacity-100" : "opacity-0"
-                  }`}
-                >
-                  <span className="font-pixel text-[9px] text-[#00d1ff] bg-[#00d1ff]/10 border border-[#00d1ff]/30 px-1.5 py-0.5 rounded-sm self-start">
-                    {String(game.category || "OTHER").toUpperCase()}
-                  </span>
-                  <h3 className="font-arcade text-white text-sm drop-shadow-md font-bold truncate">
-                    {game.title}
-                  </h3>
-                  <p className="font-arcade text-[10px] text-[#a5aec4] drop-shadow-md line-clamp-2 leading-tight">
-                    {game.description}
-                  </p>
-                </div>
               </div>
 
-              {/* Bottom/Side Navigation & Controls (Never Overlaps Iframe) */}
-              <div className="h-[135px] landscape:h-full w-full landscape:w-[80px] bg-[#0d0d15] border-t-2 landscape:border-t-0 landscape:border-l-2 border-[#20263a] flex flex-col justify-between p-3 landscape:p-2 shrink-0 z-10 select-none">
-                {/* 5 square colored buttons row/column */}
-                <div className="flex landscape:flex-col items-center justify-between landscape:justify-center gap-3 landscape:gap-2 px-1">
-                  
-                  {/* Button 1: Like */}
+              <div className="z-10 w-full shrink-0 select-none border-t-2 border-border-strong bg-canvas px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-3 landscape:h-full landscape:w-[112px] landscape:border-l-2 landscape:border-t-0 landscape:p-2">
+                <div className="grid grid-cols-5 gap-2 landscape:h-full landscape:grid-cols-2 landscape:content-center">
                   <button
+                    type="button"
                     onClick={() => handleLike(game.id)}
                     disabled={likesLoading[game.id]}
-                    className={`w-12 h-12 flex flex-col items-center justify-center rounded border-2 transition-all ${
-                      gameLikes.liked
-                        ? "bg-[#ff4500]/20 border-[#ff4500] text-[#ff4500] shadow-[2px_2px_0_#ff4500]"
-                        : "bg-transparent border-[#4a4a6a] text-[#8b93a6] hover:border-[#ff4500] hover:text-[#ff4500]"
-                    }`}
+                    className={`${reelActionClass} ${gameLikes.liked ? "border-arcade-red bg-arcade-red/15 text-arcade-red" : ""}`}
+                    aria-label={`${gameLikes.liked ? "Unlike" : "Like"} ${game.title}`}
+                    title={gameLikes.liked ? "Unlike" : "Like"}
                   >
                     {likesLoading[game.id] ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
-                      <svg
-                        className={`w-5 h-5 transition-transform ${gameLikes.liked ? "fill-current scale-110 animate-bounce" : "fill-none stroke-current"}`}
-                        viewBox="0 0 24 24"
-                        strokeWidth="2.5"
-                      >
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                      </svg>
+                      <Heart className={`h-5 w-5 ${gameLikes.liked ? "fill-current" : ""}`} />
                     )}
-                    <span className="text-[8px] font-pixel mt-0.5 leading-none">
-                      {gameLikes.count}
-                    </span>
                   </button>
 
-                  {/* Button 2: Comment */}
                   <button
-                    onClick={() => openComments(game.id)}
-                    className="w-12 h-12 flex flex-col items-center justify-center rounded border-2 bg-transparent border-[#4a4a6a] text-[#8b93a6] hover:border-[#0080ff] hover:text-[#0080ff] transition-all"
+                    type="button"
+                    onClick={() => openFeedback(game.id)}
+                    className={reelActionClass}
+                    aria-label={`Suggest an improvement or report a problem with ${game.title}`}
+                    title="Suggest or report"
                   >
-                    <svg className="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2.5">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                    </svg>
-                    {commentsCount > 0 && (
-                      <span className="text-[8px] font-pixel mt-0.5 leading-none">
-                        {commentsCount}
-                      </span>
-                    )}
+                    <MessageCircle className="h-5 w-5" />
                   </button>
 
-                  {/* Button 3: Share */}
                   <button
+                    type="button"
                     onClick={() => shareGame(game)}
-                    className="w-12 h-12 flex flex-col items-center justify-center rounded border-2 bg-transparent border-[#4a4a6a] text-[#8b93a6] hover:border-[#ffff00] hover:text-[#ffff00] transition-all"
+                    className={reelActionClass}
+                    aria-label={`Share ${game.title}`}
+                    title="Share"
                   >
-                    <svg className="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2.5">
-                      <circle cx="18" cy="5" r="3" />
-                      <circle cx="6" cy="12" r="3" />
-                      <circle cx="18" cy="19" r="3" />
-                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                    </svg>
+                    <Share2 className="h-5 w-5" />
                   </button>
 
-                  {/* Button 4: Full Screen */}
                   <button
+                    type="button"
                     onClick={() => toggleFullscreen(index)}
-                    className={`w-12 h-12 flex flex-col items-center justify-center rounded border-2 bg-transparent transition-all ${
-                      isActive && showFullscreenHint
-                        ? "border-[#ffff00] text-[#ffff00] bg-[#ffff00]/10 scale-110 animate-pulse"
-                        : "border-[#4a4a6a] text-[#8b93a6] hover:border-[#8d6e63] hover:text-[#8d6e63]"
-                    }`}
+                    className={`${reelActionClass} ${isActive && showFullscreenHint ? "border-arcade-yellow bg-arcade-yellow/15 text-arcade-yellow" : ""}`}
+                    aria-label={`Play ${game.title} fullscreen`}
+                    title="Fullscreen"
                   >
-                    <svg className="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2.5">
-                      <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-                    </svg>
+                    <Maximize2 className="h-5 w-5" />
                   </button>
 
-                  {/* Button 5: Player Feedback */}
-                  <button
-                    onClick={() =>
-                      router.push(`/play/${game.slug}#feedback`)
-                    }
-                    className="w-12 h-12 flex flex-col items-center justify-center rounded border-2 bg-transparent border-[#4a4a6a] text-[#8b93a6] hover:border-[#00d1ff] hover:text-[#00d1ff] transition-all"
-                    aria-label={`Send feedback for ${game.title}`}
-                    title="Send feedback"
-                  >
-                    <MessageSquarePlus className="h-5 w-5" />
-                  </button>
+                  <DownloadCodeButton game={game} variant="feed" className="landscape:col-span-2" />
                 </div>
-
-                {/* Download Code Button */}
-                <div className="w-full landscape:hidden">
-                  <DownloadCodeButton game={game} variant="feed" />
-                </div>
-
               </div>
             </div>
           )
         })}
       </div>
 
-      {/* Floating Retro Toast Alert */}
       {toastMessage && (
-        <div className="absolute bottom-40 left-1/2 -translate-x-1/2 z-50 bg-[#1a1a2e] border-2 border-[#ffff00] px-4 py-2 text-[#ffff00] font-pixel text-[10px] shadow-[4px_4px_0_#ff0040] animate-bounce">
+        <div className="text-kicker absolute bottom-24 left-1/2 z-50 -translate-x-1/2 whitespace-nowrap border-2 border-arcade-yellow bg-canvas px-4 py-3 text-arcade-yellow [--shadow-color:var(--color-arcade-red)] shadow-hard-4">
           {toastMessage}
         </div>
       )}
 
-      {/* Dynamic Comments Bottom Drawer */}
-      {commentsOpen && commentsGameId && (
-        <div className="absolute inset-0 z-40 flex flex-col justify-end bg-black/85">
-          <div className="flex-1" onClick={() => setCommentsOpen(false)} />
-          
-          <div className="h-[65%] w-full bg-[#1a1a2e] border-t-4 border-[#0080ff] flex flex-col shadow-2xl relative animate-slide-up">
-            {/* Drawer Header */}
-            <div className="px-4 py-3 border-b-2 border-[#20263a] flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-[#0080ff] fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2.5">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-                <span className="font-pixel text-[11px] text-[#0080ff]">
-                  COMMENTS ({commentsList.length})
+      {feedbackOpen && feedbackGameId && (
+        <div className="absolute inset-0 z-40 flex flex-col justify-end bg-black/80">
+          <button
+            type="button"
+            className="flex-1 cursor-default"
+            onClick={() => setFeedbackOpen(false)}
+            aria-label="Close player input"
+          />
+
+          <div className="relative w-full animate-slide-up border-t-4 border-arcade-cyan bg-canvas shadow-[0_-6px_0_rgba(0,0,0,0.55)]">
+            <div className="flex items-center justify-between border-b-2 border-border-strong px-4 py-3">
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center border-2 border-arcade-cyan bg-surface text-arcade-cyan">
+                  <MessageCircle className="h-4 w-4" />
                 </span>
+                <div>
+                  <h2 className="text-kicker  text-white">PLAYER INPUT</h2>
+                  <p className="mt-1 text-kicker  text-text-secondary">SEND IT TO THE CREATOR</p>
+                </div>
               </div>
               <button
-                onClick={() => setCommentsOpen(false)}
-                className="font-pixel text-[11px] text-[#8b93a6] hover:text-white px-2 py-1"
+                type="button"
+                onClick={() => setFeedbackOpen(false)}
+                className="border-2 border-border-strong bg-surface px-3 py-2 text-kicker  text-text-secondary hover:border-white hover:text-white"
               >
-                [X] CLOSE
+                [X]
               </button>
             </div>
 
-            {/* Comments scroll container */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {commentsLoading ? (
-                <div className="flex flex-col items-center justify-center h-full gap-2">
-                  <Loader2 className="w-6 h-6 animate-spin text-[#0080ff]" />
-                  <span className="font-arcade text-[10px] text-[#8b93a6]">FETCHING_LOGS...</span>
-                </div>
-              ) : commentsList.length > 0 ? (
-                commentsList.map((c) => {
-                  const author = c.user.username || c.user.name || "player"
-                  return (
-                    <div key={c.id} className="flex gap-3 border-b border-[#20263a] pb-3 last:border-0 last:pb-0">
-                      <Avatar className="h-8 w-8 border border-[#4a4a6a]">
-                        <AvatarImage src={c.user.image || undefined} />
-                        <AvatarFallback className="bg-[#0d0d15] text-[#8b93a6] text-[10px]">
-                          {author.slice(0,2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-baseline gap-2">
-                          <span className="font-arcade text-xs text-[#ffff00]">@{author}</span>
-                          <span className="font-arcade text-[9px] text-[#4a4a6a]">
-                            {new Date(c.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <p className="font-arcade text-xs text-[#e5e5e5] mt-1 whitespace-pre-wrap leading-relaxed">
-                          {c.content}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                })
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <span className="font-arcade text-xs text-[#4a4a6a]">NO_COMMENTS_FOUND</span>
-                  <span className="font-arcade text-[10px] text-[#4a4a6a] mt-1">Be the first to comment!</span>
-                </div>
-              )}
-            </div>
+            <form
+              onSubmit={submitFeedback}
+              className="space-y-3 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4"
+            >
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFeedbackKind("IDEA")
+                    setFeedbackStatus(null)
+                  }}
+                  className={`flex h-14 items-center justify-center gap-2 border-2 text-kicker  shadow-[3px_3px_0_#000] transition-colors ${
+                    feedbackKind === "IDEA"
+                      ? "border-arcade-cyan bg-arcade-cyan/10 text-arcade-cyan"
+                      : "border-border-strong bg-surface text-text-secondary"
+                  }`}
+                >
+                  <Lightbulb className="h-4 w-4" /> SUGGEST
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFeedbackKind("BUG")
+                    setFeedbackStatus(null)
+                  }}
+                  className={`flex h-14 items-center justify-center gap-2 border-2 text-kicker  shadow-[3px_3px_0_#000] transition-colors ${
+                    feedbackKind === "BUG"
+                      ? "border-arcade-red bg-arcade-red/10 text-arcade-red"
+                      : "border-border-strong bg-surface text-text-secondary"
+                  }`}
+                >
+                  <Flag className="h-4 w-4" /> REPORT
+                </button>
+              </div>
 
-            {/* Comment Post Form */}
-            <form onSubmit={postComment} className="p-3 border-t-2 border-[#20263a] bg-[#0d0d15] flex flex-col gap-2">
-              {session?.user?.id ? (
+              {feedbackKind ? (
                 <>
                   <Textarea
-                     value={commentContent}
-                     onChange={(e) => setCommentContent(e.target.value)}
-                     placeholder="Type comments to broadcast..."
-                     maxLength={1000}
-                     className="font-arcade text-xs min-h-[50px] bg-[#1a1a2e] border-[#4a4a6a] text-white focus:border-[#0080ff] focus:ring-0"
-                     disabled={postCommentLoading}
+                    value={feedbackComment}
+                    onChange={(event) => {
+                      setFeedbackComment(event.target.value)
+                      setFeedbackStatus(null)
+                    }}
+                    maxLength={500}
+                    placeholder={
+                      feedbackKind === "IDEA"
+                        ? "What would make this game better?"
+                        : "What broke, glitched, or did not work?"
+                    }
+                    className="min-h-[88px] rounded-none border-2 border-border-strong bg-surface text-xs text-white placeholder:text-text-secondary focus:border-arcade-cyan focus:ring-0"
+                    disabled={feedbackSaving}
                   />
-                  <div className="flex items-center justify-between">
-                    <span className="font-arcade text-[9px] text-[#4a4a6a]">
-                      {commentContent.length}/1000 CHARS
-                    </span>
-                    <Button
-                      type="submit"
-                      disabled={postCommentLoading || !commentContent.trim()}
-                      className="font-pixel text-[9px] h-7 bg-[#0080ff] hover:bg-[#0080ff]/80 text-white rounded-sm"
-                    >
-                      {postCommentLoading ? (
-                        <Loader2 className="w-3 h-3 animate-spin mr-1.5" />
-                      ) : null}
-                      POST_COMMENT
-                    </Button>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-kicker  text-text-secondary">{feedbackComment.length}/500</span>
+                    {session?.user?.id ? (
+                      <Button
+                        type="submit"
+                        disabled={feedbackSaving || feedbackComment.trim().length < 5}
+                        className={`h-10 rounded-none border-2 px-4 text-kicker  shadow-[3px_3px_0_#000] ${
+                          feedbackKind === "IDEA"
+                            ? "border-arcade-cyan bg-arcade-cyan text-canvas hover:bg-info-text"
+                            : "border-arcade-red bg-arcade-red text-white hover:bg-danger-hover"
+                        }`}
+                      >
+                        {feedbackSaving ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
+                        {feedbackSaving
+                          ? "SENDING..."
+                          : feedbackKind === "IDEA"
+                            ? "SEND SUGGESTION"
+                            : "SEND REPORT"}
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        onClick={() => router.push(`/login?callbackUrl=${encodeURIComponent("/")}`)}
+                        className="text-kicker h-10 rounded-none border-2 border-arcade-yellow bg-arcade-yellow px-4 text-canvas shadow-hard-4 hover:bg-warning-text"
+                      >
+                        LOG IN TO SEND
+                      </Button>
+                    )}
                   </div>
                 </>
               ) : (
-                <div className="text-center py-2">
-                  <p className="font-arcade text-xs text-[#8b93a6] mb-2">YOU MUST BE LOGGED IN TO COMMENT</p>
-                  <Button
-                    onClick={() => router.push(`/login?callbackUrl=${encodeURIComponent("/")}`)}
-                    className="font-pixel text-[9px] h-7 bg-[#ffff00] text-black hover:bg-[#ffff00]/80 rounded-sm"
-                  >
-                    LOGIN_TO_ACCOUNT
-                  </Button>
-                </div>
+                <p className="border border-border-strong bg-surface px-3 py-3 text-center text-kicker  leading-relaxed text-text-secondary">
+                  CHOOSE SUGGEST OR REPORT
+                </p>
               )}
+
+              {feedbackStatus ? (
+                <p
+                  className={`border-2 px-3 py-3 text-center text-xs ${
+                    feedbackStatus.type === "error"
+                      ? "border-arcade-red bg-arcade-red/10 text-danger-text"
+                      : "border-arcade-cyan bg-arcade-cyan/10 text-info-text"
+                  }`}
+                >
+                  {feedbackStatus.message}
+                </p>
+              ) : null}
             </form>
           </div>
         </div>

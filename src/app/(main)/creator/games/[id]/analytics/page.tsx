@@ -63,21 +63,21 @@ export default async function GameAnalyticsPage({ params }: PageProps) {
       value: game.impressions,
       description: "People who opened this game page",
       icon: Eye,
-      color: "#20d8ff",
+      color: "var(--color-arcade-cyan)",
     },
     {
       label: "Plays",
       value: game.plays,
       description: "People who actually pressed Play",
       icon: Play,
-      color: "#facc15",
+      color: "var(--color-arcade-yellow)",
     },
     {
       label: "Likes",
       value: game.likes,
       description: "Players who liked this game",
       icon: Heart,
-      color: "#ff3d6e",
+      color: "var(--color-arcade-red)",
     },
   ] as const
 
@@ -88,7 +88,7 @@ export default async function GameAnalyticsPage({ params }: PageProps) {
       <main id="main-content" className="container mx-auto max-w-5xl flex-1 px-4 py-6 sm:py-10">
         <Link
           href="/creator/analytics"
-          className="mb-5 inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)] transition-colors hover:text-white"
+          className="mb-5 inline-flex items-center gap-2 text-sm text-text-secondary transition-colors hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to all analytics
@@ -102,7 +102,7 @@ export default async function GameAnalyticsPage({ params }: PageProps) {
                 alt={"Thumbnail for " + game.title}
                 width={224}
                 height={126}
-                className="aspect-video w-full border-2 border-[var(--color-border-strong)] object-cover sm:w-56"
+                className="aspect-video w-full border-2 border-border-strong object-cover sm:w-56"
               />
             ) : null}
             <div className="min-w-0 flex-1">
@@ -110,7 +110,7 @@ export default async function GameAnalyticsPage({ params }: PageProps) {
               <h1 className="mt-4 truncate text-3xl font-bold tracking-tight text-white">
                 {game.title}
               </h1>
-              <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+              <p className="mt-2 text-sm text-text-secondary">
                 A simple view of discovery, plays, and player appreciation.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -139,18 +139,18 @@ export default async function GameAnalyticsPage({ params }: PageProps) {
               >
                 <div className="relative z-10 flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-secondary)]">
+                    <p className="text-sm font-medium text-text-secondary">
                       {metric.label}
                     </p>
                     <p className="mt-3 text-3xl font-bold text-white">
                       {formatNumber(metric.value)}
                     </p>
-                    <p className="mt-2 text-xs leading-5 text-[var(--color-text-tertiary)]">
+                    <p className="mt-2 text-xs leading-5 text-text-tertiary">
                       {metric.description}
                     </p>
                   </div>
                   <span
-                    className="grid h-10 w-10 shrink-0 place-items-center border-2 bg-[var(--color-base)]"
+                    className="grid h-10 w-10 shrink-0 place-items-center border-2 bg-canvas"
                     style={{ borderColor: metric.color, color: metric.color }}
                   >
                     <Icon className="h-5 w-5" />
@@ -162,28 +162,28 @@ export default async function GameAnalyticsPage({ params }: PageProps) {
         </section>
 
         <section className="vg-panel mt-6 p-6 sm:p-8" aria-labelledby="game-funnel-title">
-          <span className="vg-kicker text-[#facc15]">At a glance</span>
+          <span className="vg-kicker text-arcade-yellow">At a glance</span>
           <h2 id="game-funnel-title" className="mt-3 text-2xl font-semibold text-white">
             From discovery to appreciation
           </h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">
+          <p className="mt-2 text-sm leading-6 text-text-secondary">
             Use this simple path to decide what needs attention. More impressions means discovery is working. More plays means the game page earns the click. More likes means the experience connected.
           </p>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            <div className="border border-[var(--color-border-strong)] bg-[var(--color-base)] p-4">
-              <p className="text-sm text-[var(--color-text-secondary)]">Impressions that became plays</p>
+            <div className="border border-border-strong bg-canvas p-4">
+              <p className="text-sm text-text-secondary">Impressions that became plays</p>
               <p className="mt-2 text-3xl font-bold text-white">
                 {playRate === null ? "New" : `${playRate.toFixed(0)}%`}
               </p>
             </div>
-            <div className="border border-[var(--color-border-strong)] bg-[var(--color-base)] p-4">
-              <p className="text-sm text-[var(--color-text-secondary)]">Players who left a like</p>
+            <div className="border border-border-strong bg-canvas p-4">
+              <p className="text-sm text-text-secondary">Players who left a like</p>
               <p className="mt-2 text-3xl font-bold text-white">{likeRate.toFixed(0)}%</p>
             </div>
           </div>
 
-          <div className="mt-5 border-l-4 border-[#20d8ff] bg-[var(--color-surface-2)] p-4 text-sm leading-6 text-[var(--color-text-secondary)]">
+          <div className="mt-5 border-l-4 border-arcade-cyan bg-surface-2 p-4 text-sm leading-6 text-text-secondary">
             {!hasComparableImpressionData
               ? "Impression tracking started recently, so older plays are not included in the comparison yet. Use the three totals while new data builds up."
               : playRate !== null && playRate < 20

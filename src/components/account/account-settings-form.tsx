@@ -137,9 +137,9 @@ export function AccountSettingsForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)] p-4">
+      <div className="rounded-xl border border-border bg-surface-2 p-4">
         <div className="flex flex-wrap items-center gap-4">
-          <Avatar className="h-20 w-20 border border-[var(--color-border)]">
+          <Avatar className="h-20 w-20 border border-border">
             <AvatarImage src={avatarUrl || undefined} />
             <AvatarFallback>{getInitials(name || usernameValue || "P")}</AvatarFallback>
           </Avatar>
@@ -148,6 +148,7 @@ export function AccountSettingsForm({
             <Label htmlFor="account-avatar">Avatar</Label>
             <Input
               id="account-avatar"
+              variant="studio"
               type="file"
               accept="image/png,image/jpeg,image/webp,image/gif"
               onChange={(event) => {
@@ -162,17 +163,17 @@ export function AccountSettingsForm({
               disabled={avatarStatus === "uploading"}
               className="h-auto py-2"
             />
-            <p className="text-xs text-[var(--color-text-tertiary)]">
+            <p className="text-xs text-text-tertiary">
               PNG, JPG, WEBP, or GIF up to 2MB.
             </p>
             {avatarMessage ? (
               <p
                 className={`text-xs ${
                   avatarStatus === "error"
-                    ? "text-[var(--color-danger)]"
+                    ? "text-danger"
                     : avatarStatus === "uploading"
-                      ? "text-[var(--color-text-tertiary)]"
-                      : "text-[var(--color-success)]"
+                      ? "text-text-tertiary"
+                      : "text-success"
                 }`}
               >
                 {avatarStatus === "uploading" ? "Uploading avatar..." : avatarMessage}
@@ -187,6 +188,7 @@ export function AccountSettingsForm({
           <Label htmlFor="account-name">Display name</Label>
           <Input
             id="account-name"
+            variant="studio"
             value={name}
             onChange={(event) => {
               setName(event.target.value)
@@ -198,15 +200,15 @@ export function AccountSettingsForm({
             placeholder="Your display name"
             maxLength={60}
           />
-          <p className="text-xs text-[var(--color-text-tertiary)]">
+          <p className="text-xs text-text-tertiary">
             This is shown around the site when your full name is available.
           </p>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="account-email">Email</Label>
-          <Input id="account-email" value={email} readOnly className="bg-[var(--color-surface)] text-[var(--color-text-secondary)]" />
-          <p className="text-xs text-[var(--color-text-tertiary)]">
+          <Input id="account-email" variant="studio" value={email} readOnly className="bg-surface text-text-secondary" />
+          <p className="text-xs text-text-tertiary">
             Email changes are not editable yet.
           </p>
         </div>
@@ -217,6 +219,7 @@ export function AccountSettingsForm({
           <Label htmlFor="account-username">Username</Label>
           <Input
             id="account-username"
+            variant="studio"
             value={usernameValue}
             onChange={(event) => {
               setUsernameValue(event.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
@@ -229,10 +232,10 @@ export function AccountSettingsForm({
             minLength={3}
             maxLength={24}
           />
-          <p className="text-xs text-[var(--color-text-tertiary)]">
+          <p className="text-xs text-text-tertiary">
             Letters, numbers, and underscores only. This controls your public creator URL.
           </p>
-          <p className="text-xs text-[var(--color-primary)]">
+          <p className="text-xs text-primary-text">
             {usernameValue ? `Public profile: /creator/${usernameValue}` : "Set a username to get a public creator link."}
           </p>
         </div>
@@ -253,7 +256,7 @@ export function AccountSettingsForm({
             maxLength={280}
             className="min-h-[140px]"
           />
-          <div className="flex items-center justify-between text-xs text-[var(--color-text-tertiary)]">
+          <div className="flex items-center justify-between text-xs text-text-tertiary">
             <span>Shown on your creator profile when you publish games.</span>
             <span>{bio.length}/280</span>
           </div>
@@ -264,6 +267,7 @@ export function AccountSettingsForm({
         <Label htmlFor="account-current-project">Currently building</Label>
         <Input
           id="account-current-project"
+          variant="studio"
           value={currentProject}
           onChange={(event) => {
             setCurrentProject(event.target.value)
@@ -275,26 +279,26 @@ export function AccountSettingsForm({
           placeholder="What are you shipping next?"
           maxLength={120}
         />
-        <div className="flex items-center justify-between text-xs text-[var(--color-text-tertiary)]">
+        <div className="flex items-center justify-between text-xs text-text-tertiary">
           <span>Shown near the top of your creator profile to make it feel active.</span>
           <span>{currentProject.length}/120</span>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--color-border)] pt-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
         <div className="text-sm">
           {message ? (
-            <p className={status === "error" ? "text-[var(--color-danger)]" : "text-[var(--color-success)]"}>
+            <p className={status === "error" ? "text-danger" : "text-success"}>
               {message}
             </p>
           ) : (
-            <p className="text-[var(--color-text-tertiary)]">
+            <p className="text-text-tertiary">
               Save your display name and bio here.
             </p>
           )}
         </div>
 
-        <Button type="submit" className="gap-2" disabled={status === "saving" || !hasChanges}>
+        <Button type="submit" variant="studio" className="gap-2" disabled={status === "saving" || !hasChanges}>
           {status === "saving" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           {status === "saving" ? "Saving..." : "Save Changes"}
         </Button>

@@ -41,23 +41,23 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--color-bg)]">
+    <div className="min-h-screen flex flex-col bg-canvas">
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <Link href="/creator" className="inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">
+            <Link href="/creator" className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-primary-text">
               <ArrowLeft className="h-4 w-4" />
               Back to dashboard
             </Link>
             <div className="mt-3 flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]">
-                <Settings className="h-5 w-5 text-[var(--color-primary)]" />
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-surface">
+                <Settings className="h-5 w-5 text-primary-text" />
               </div>
               <div>
-                <h1 className="text-2xl font-semibold text-[var(--color-text)]">Account Settings</h1>
-                <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+                <h1 className="text-2xl font-semibold text-text">Account Settings</h1>
+                <p className="mt-1 text-sm text-text-secondary">
                   Update your display name, creator bio, and what you are building next.
                 </p>
               </div>
@@ -73,10 +73,10 @@ export default async function SettingsPage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_320px]">
-          <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 sm:p-6">
+          <section className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
             <div className="mb-5">
-              <h2 className="text-lg font-semibold text-[var(--color-text)]">Public profile</h2>
-              <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+              <h2 className="text-lg font-semibold text-text">Public profile</h2>
+              <p className="mt-1 text-sm text-text-secondary">
                 These details appear in your header menu, creator pages, and game listings.
               </p>
             </div>
@@ -94,9 +94,9 @@ export default async function SettingsPage() {
           <PasswordSettingsForm hasPassword={Boolean(user.password)} />
 
           <aside className="space-y-4">
-            <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
-              <h3 className="text-sm font-semibold text-[var(--color-text)]">What you can change now</h3>
-              <ul className="mt-3 space-y-2 text-sm text-[var(--color-text-secondary)]">
+            <div className="rounded-2xl border border-border bg-surface p-5">
+              <h3 className="text-sm font-semibold text-text">What you can change now</h3>
+              <ul className="mt-3 space-y-2 text-sm text-text-secondary">
                 <li>- Display name shown across the site</li>
                 <li>- Username and public creator link</li>
                 <li>- Creator bio shown on public profile pages</li>
@@ -105,9 +105,9 @@ export default async function SettingsPage() {
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
-              <h3 className="text-sm font-semibold text-[var(--color-text)]">Good next upgrades</h3>
-              <ul className="mt-3 space-y-2 text-sm text-[var(--color-text-secondary)]">
+            <div className="rounded-2xl border border-border bg-surface p-5">
+              <h3 className="text-sm font-semibold text-text">Good next upgrades</h3>
+              <ul className="mt-3 space-y-2 text-sm text-text-secondary">
                 <li>- Avatar crop support</li>
                 <li>- Email change and verification</li>
                 <li>- Account deletion and data export</li>

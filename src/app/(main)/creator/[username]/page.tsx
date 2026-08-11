@@ -24,13 +24,13 @@ interface PageProps {
 function getJamBadgeClasses(status: string) {
   switch (status) {
     case "ACTIVE":
-      return "border-[#00ff40]/30 bg-[#00ff40]/10 text-[#00ff40]"
+      return "border-arcade-green/30 bg-arcade-green/10 text-arcade-green"
     case "VOTING":
-      return "border-[#ffff00]/30 bg-[#ffff00]/10 text-[#ffff00]"
+      return "border-arcade-yellow/30 bg-arcade-yellow/10 text-arcade-yellow"
     case "UPCOMING":
-      return "border-[#00d4ff]/30 bg-[#00d4ff]/10 text-[#00d4ff]"
+      return "border-arcade-cyan/30 bg-arcade-cyan/10 text-arcade-cyan"
     default:
-      return "border-[#b0b0d0]/30 bg-[#b0b0d0]/10 text-[#b0b0d0]"
+      return "border-text-secondary/30 bg-surface-2/10 text-text-secondary"
   }
 }
 
@@ -248,34 +248,34 @@ export default async function PublicCreatorPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0d0d15]">
+    <div className="min-h-screen flex flex-col bg-canvas">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(creatorJsonLd) }} />
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
-        <Link href="/games" className="inline-flex items-center gap-2 text-[#4a4a6a] hover:text-[#ffff00] mb-6 transition-colors font-arcade text-sm">
+        <Link href="/games" className="inline-flex items-center gap-2 text-text-secondary hover:text-arcade-yellow mb-6 transition-colors font-arcade text-sm">
           <ChevronLeft className="h-4 w-4" />
           BACK TO GAMES
         </Link>
 
-        <section className="mb-8 border-2 border-[#4a4a6a] bg-[#1a1a2e] p-5 sm:p-6">
+        <section className="mb-8 border-2 border-border-strong bg-surface-2 p-5 sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16 border-2 border-[#4a4a6a]">
+              <Avatar className="h-16 w-16 border-2 border-border-strong">
                 <AvatarImage src={creator.image || undefined} />
-                <AvatarFallback className="bg-[#0d0d15] text-[#4a4a6a]">
+                <AvatarFallback className="bg-canvas text-text-secondary">
                   {getInitials(creator.name || creator.username || "C")}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="font-pixel text-sm text-white">{creator.name || creator.username}</h1>
-                <p className="font-arcade text-sm text-[#ffff00]">@{creator.username}</p>
-                <p className="mt-1 text-xs text-[#4a4a6a] inline-flex items-center gap-1">
+                <h1 className="heading-pixel-sm text-white">{creator.name || creator.username}</h1>
+                <p className="font-arcade text-sm text-arcade-yellow">@{creator.username}</p>
+                <p className="mt-1 text-xs text-text-secondary inline-flex items-center gap-1">
                   <Users className="h-3 w-3" />
                   {formatNumber(followers)} followers
                 </p>
                 {creator.currentlyBuilding && (
-                  <p className="mt-2 font-arcade text-xs text-[#c9d1ff]">Currently building: {creator.currentlyBuilding}</p>
+                  <p className="mt-2 font-arcade text-xs text-text-secondary">Currently building: {creator.currentlyBuilding}</p>
                 )}
               </div>
             </div>
@@ -288,55 +288,55 @@ export default async function PublicCreatorPage({ params }: PageProps) {
           </div>
 
           {creator.bio && (
-            <p className="mt-4 text-sm text-[#4a4a6a] font-arcade">{creator.bio}</p>
+            <p className="mt-4 text-sm text-text-secondary font-arcade">{creator.bio}</p>
           )}
 
           <div className="mt-5 grid gap-3 md:grid-cols-3">
-            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+            <div className="border border-border-strong bg-canvas p-3">
               <div className="flex items-center gap-2">
-                <Trophy className="h-4 w-4 text-[#ffff00]" />
-                <span className="font-arcade text-[11px] text-[#ffff00]">TOP GAME</span>
+                <Trophy className="h-4 w-4 text-arcade-yellow" />
+                <span className="font-arcade text-xs text-arcade-yellow">TOP GAME</span>
               </div>
               <p className="mt-2 font-arcade text-sm text-white">{topGame?.title || "Coming soon"}</p>
             </div>
-            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+            <div className="border border-border-strong bg-canvas p-3">
               <div className="flex items-center gap-2">
-                <Smartphone className="h-4 w-4 text-[#22c55e]" />
-                <span className="font-arcade text-[11px] text-[#22c55e]">MOBILE READY</span>
+                <Smartphone className="h-4 w-4 text-success" />
+                <span className="font-arcade text-xs text-success">MOBILE READY</span>
               </div>
               <p className="mt-2 font-arcade text-sm text-white">{formatNumber(mobileReadyGames)} games</p>
             </div>
-            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
+            <div className="border border-border-strong bg-canvas p-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-[#00d1ff]" />
-                <span className="font-arcade text-[11px] text-[#00d1ff]">FOLLOW FOR DROPS</span>
+                <Sparkles className="h-4 w-4 text-arcade-cyan" />
+                <span className="font-arcade text-xs text-arcade-cyan">FOLLOW FOR DROPS</span>
               </div>
               <p className="mt-2 font-arcade text-sm text-white">Get new releases in your notifications.</p>
             </div>
           </div>
 
           <div className="mt-3 grid gap-3 md:grid-cols-4">
-            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
-              <p className="font-arcade text-[11px] text-[#8b93a6]">TOTAL LAUNCHES</p>
+            <div className="border border-border-strong bg-canvas p-3">
+              <p className="font-arcade text-xs text-text-secondary">TOTAL LAUNCHES</p>
               <p className="mt-2 font-arcade text-sm text-white">{normalizedGames.length}</p>
             </div>
-            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
-              <p className="font-arcade text-[11px] text-[#8b93a6]">FEATURED PICKS</p>
+            <div className="border border-border-strong bg-canvas p-3">
+              <p className="font-arcade text-xs text-text-secondary">FEATURED PICKS</p>
               <p className="mt-2 font-arcade text-sm text-white">{featuredPicks}</p>
             </div>
-            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
-              <p className="font-arcade text-[11px] text-[#8b93a6]">JAM ENTRIES</p>
+            <div className="border border-border-strong bg-canvas p-3">
+              <p className="font-arcade text-xs text-text-secondary">JAM ENTRIES</p>
               <p className="mt-2 font-arcade text-sm text-white">{jamEntries}</p>
             </div>
-            <div className="border border-[#4a4a6a] bg-[#0d0d15] p-3">
-              <p className="font-arcade text-[11px] text-[#8b93a6]">LAST UPDATED</p>
+            <div className="border border-border-strong bg-canvas p-3">
+              <p className="font-arcade text-xs text-text-secondary">LAST UPDATED</p>
               <p className="mt-2 font-arcade text-sm text-white">{lastUpdatedGame ? lastUpdatedGame.title : "No updates yet"}</p>
             </div>
           </div>
 
           {recentJams.length > 0 && (
-            <div className="mt-3 border border-[#4a4a6a] bg-[#0d0d15] p-3">
-              <p className="font-arcade text-[11px] text-[#ff7a00]">RECENT JAMS</p>
+            <div className="mt-3 border border-border-strong bg-canvas p-3">
+              <p className="font-arcade text-xs text-arcade-orange">RECENT JAMS</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {recentJams.map((jam) => {
                   const liveStatus = getLiveJamStatus(jam)
@@ -344,7 +344,7 @@ export default async function PublicCreatorPage({ params }: PageProps) {
                     <Link
                       key={jam.slug}
                       href={`/jams/${jam.slug}`}
-                      className={`inline-flex items-center rounded border px-2 py-1 font-arcade text-[10px] transition-colors hover:text-white ${getJamBadgeClasses(liveStatus)}`}
+                      className={`inline-flex items-center rounded border px-2 py-1 font-arcade text-xs transition-colors hover:text-white ${getJamBadgeClasses(liveStatus)}`}
                     >
                       {jam.title}
                     </Link>
@@ -355,11 +355,11 @@ export default async function PublicCreatorPage({ params }: PageProps) {
           )}
 
           {toolsUsed.length > 0 && (
-            <div className="mt-3 border border-[#4a4a6a] bg-[#0d0d15] p-3">
-              <p className="font-arcade text-[11px] text-[#00d1ff]">COMMON TOOLS</p>
+            <div className="mt-3 border border-border-strong bg-canvas p-3">
+              <p className="font-arcade text-xs text-arcade-cyan">COMMON TOOLS</p>
               <p className="mt-2 font-arcade text-sm text-white">{toolsUsed.join(" • ")}</p>
               {lastUpdatedGame?.latestUpdateNote && (
-                <p className="mt-2 font-arcade text-xs text-[#8b93a6]">Latest note: {lastUpdatedGame.latestUpdateNote}</p>
+                <p className="mt-2 font-arcade text-xs text-text-secondary">Latest note: {lastUpdatedGame.latestUpdateNote}</p>
               )}
             </div>
           )}
@@ -367,7 +367,7 @@ export default async function PublicCreatorPage({ params }: PageProps) {
 
         <section>
           <div className="mb-5 flex items-center justify-between gap-3">
-            <h2 className="font-pixel text-sm text-white">
+            <h2 className="heading-pixel-sm text-white">
               ALL GAMES [{normalizedGames.length}]
             </h2>
             <Link href="/upload">
@@ -385,9 +385,9 @@ export default async function PublicCreatorPage({ params }: PageProps) {
                ))}
             </div>
           ) : (
-            <div className="text-center py-14 border-2 border-dashed border-[#4a4a6a]">
-              <Gamepad2 className="h-12 w-12 text-[#4a4a6a] mx-auto mb-3" />
-              <p className="font-arcade text-[#4a4a6a]">No published games yet.</p>
+            <div className="text-center py-14 border-2 border-dashed border-border-strong">
+              <Gamepad2 className="h-12 w-12 text-text-secondary mx-auto mb-3" />
+              <p className="font-arcade text-text-secondary">No published games yet.</p>
             </div>
           )}
         </section>

@@ -66,21 +66,21 @@ export default async function CreatorAnalyticsPage() {
       value: summary.impressions,
       description: "Game pages opened",
       icon: Eye,
-      color: "#20d8ff",
+      color: "var(--color-arcade-cyan)",
     },
     {
       label: "Plays",
       value: summary.plays,
       description: "Players who pressed Play",
       icon: Play,
-      color: "#facc15",
+      color: "var(--color-arcade-yellow)",
     },
     {
       label: "Likes",
       value: summary.likes,
       description: "Players who liked a game",
       icon: Heart,
-      color: "#ff3d6e",
+      color: "var(--color-arcade-red)",
     },
   ] as const
 
@@ -91,21 +91,21 @@ export default async function CreatorAnalyticsPage() {
       <main id="main-content" className="container mx-auto max-w-6xl flex-1 px-4 py-6 sm:py-10">
         <Link
           href="/creator"
-          className="mb-5 inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)] transition-colors hover:text-white"
+          className="mb-5 inline-flex items-center gap-2 text-sm text-text-secondary transition-colors hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to creator studio
         </Link>
 
-        <section className="vg-panel vg-soft-grid p-6 sm:p-8">
+        <section className="vg-panel p-6 sm:p-8">
           <span className="vg-kicker">Simple analytics</span>
           <h1 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
             See what players are doing
           </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-text-secondary)] sm:text-base">
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-text-secondary sm:text-base">
             Three numbers tell the story: how many people found your games, how many chose to play, and how many liked what they played.
           </p>
-          <div className="mt-5 flex flex-wrap gap-2 text-xs text-[var(--color-text-tertiary)]">
+          <div className="mt-5 flex flex-wrap gap-2 text-xs text-text-tertiary">
             <span className="vg-chip">{summary.games} {summary.games === 1 ? "game" : "games"}</span>
             <span className="vg-chip">
               {playRate === null
@@ -126,12 +126,12 @@ export default async function CreatorAnalyticsPage() {
               >
                 <div className="relative z-10 flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-secondary)]">{metric.label}</p>
+                    <p className="text-sm font-medium text-text-secondary">{metric.label}</p>
                     <p className="mt-3 text-3xl font-bold text-white sm:text-4xl">{formatNumber(metric.value)}</p>
-                    <p className="mt-2 text-xs text-[var(--color-text-tertiary)]">{metric.description}</p>
+                    <p className="mt-2 text-xs text-text-tertiary">{metric.description}</p>
                   </div>
                   <span
-                    className="grid h-10 w-10 place-items-center border-2 bg-[var(--color-base)]"
+                    className="grid h-10 w-10 place-items-center border-2 bg-canvas"
                     style={{ borderColor: metric.color, color: metric.color }}
                   >
                     <Icon className="h-5 w-5" />
@@ -144,11 +144,11 @@ export default async function CreatorAnalyticsPage() {
 
         <section className="mt-8" aria-labelledby="game-breakdown-title">
           <div className="mb-4">
-            <span className="vg-kicker text-[#facc15]">Game breakdown</span>
+            <span className="vg-kicker text-arcade-yellow">Game breakdown</span>
             <h2 id="game-breakdown-title" className="mt-3 text-2xl font-semibold text-white">
               Performance by game
             </h2>
-            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+            <p className="mt-1 text-sm text-text-secondary">
               Compare only the numbers that help you decide what to improve next.
             </p>
           </div>
@@ -156,7 +156,7 @@ export default async function CreatorAnalyticsPage() {
           {games.length > 0 ? (
             <div className="vg-panel overflow-x-auto">
               <table className="w-full min-w-[680px] text-left">
-                <thead className="border-b border-[var(--color-border)] bg-white/[0.025] text-xs text-[var(--color-text-tertiary)]">
+                <thead className="border-b border-border bg-white/[0.025] text-xs text-text-tertiary">
                   <tr>
                     <th className="px-5 py-4 font-medium">Game</th>
                     <th className="px-4 py-4 text-right font-medium">Impressions</th>
@@ -165,7 +165,7 @@ export default async function CreatorAnalyticsPage() {
                     <th className="px-5 py-4 text-right font-medium">Play rate</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--color-border)]">
+                <tbody className="divide-y divide-border">
                   {games.map((game) => {
                     const gamePlayRate =
                       game.impressions > 0 && game.impressions >= game.plays
@@ -177,16 +177,16 @@ export default async function CreatorAnalyticsPage() {
                         <td className="px-5 py-4">
                           <Link
                             href={`/creator/games/${game.id}/analytics`}
-                            className="font-medium text-white hover:text-[var(--color-primary-hover)]"
+                            className="font-medium text-white hover:text-primary-hover-text"
                           >
                             {game.title}
                           </Link>
-                          <p className="mt-1 text-xs capitalize text-[var(--color-text-tertiary)]">{game.status.toLowerCase()}</p>
+                          <p className="mt-1 text-xs capitalize text-text-tertiary">{game.status.toLowerCase()}</p>
                         </td>
                         <td className="px-4 py-4 text-right font-semibold text-white">{formatNumber(game.impressions)}</td>
                         <td className="px-4 py-4 text-right font-semibold text-white">{formatNumber(game.plays)}</td>
                         <td className="px-4 py-4 text-right font-semibold text-white">{formatNumber(game.likes)}</td>
-                        <td className="px-5 py-4 text-right text-sm text-[var(--color-text-secondary)]">
+                        <td className="px-5 py-4 text-right text-sm text-text-secondary">
                           {gamePlayRate === null ? "New" : `${gamePlayRate.toFixed(0)}%`}
                         </td>
                       </tr>
@@ -197,9 +197,9 @@ export default async function CreatorAnalyticsPage() {
             </div>
           ) : (
             <div className="vg-panel px-5 py-14 text-center">
-              <Gamepad2 className="mx-auto h-12 w-12 text-[var(--color-text-tertiary)]" />
+              <Gamepad2 className="mx-auto h-12 w-12 text-text-tertiary" />
               <h3 className="mt-4 text-lg font-semibold text-white">No games to measure yet</h3>
-              <p className="mt-2 text-sm text-[var(--color-text-secondary)]">Publish a game and its activity will appear here.</p>
+              <p className="mt-2 text-sm text-text-secondary">Publish a game and its activity will appear here.</p>
               <Button asChild className="mt-5">
                 <Link href="/upload">Publish a game</Link>
               </Button>

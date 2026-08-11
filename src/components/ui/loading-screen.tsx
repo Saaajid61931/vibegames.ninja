@@ -38,7 +38,7 @@ export function LoadingScreen({
       className={`flex flex-col items-center justify-center ${
         fullScreen ? "min-h-screen" : "min-h-[60vh]"
       }`}
-      style={{ background: fullScreen ? "var(--color-base)" : "transparent" }}
+      style={{ background: fullScreen ? "var(--color-canvas)" : "transparent" }}
     >
       <div className="flex flex-col items-center gap-6">
         {/* Mascot */}
@@ -64,7 +64,7 @@ export function LoadingScreen({
 
         {/* Message */}
         <p
-          className="font-pixel text-xs tracking-widest"
+          className="text-kicker"
           style={{
             color: "var(--color-text-tertiary)",
             animation: "loadingPulse 2s ease-in-out infinite",

@@ -17,10 +17,10 @@ const Label = React.forwardRef<
     className={cn(
       "leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
       variant === "studio" && [
-        "text-sm font-medium text-[var(--color-text-secondary)]",
+        "text-sm font-medium text-text-secondary",
       ],
       variant === "arcade" && [
-        "text-[10px] font-bold uppercase tracking-wider text-[var(--color-arcade-yellow)] font-pixel",
+        "text-xs font-bold uppercase tracking-widest text-arcade-yellow font-sans",
       ],
       className
     )}
