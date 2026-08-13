@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from "next/server"
 import { unstable_cache } from "next/cache"
 import prisma from "@/lib/prisma"
 import { DiscoverySort, getDiscoveryOrderBy } from "@/lib/discovery"
+import {
+  normalizeDiscoveryFilters,
+  normalizeDiscoveryPage,
+  normalizeDiscoveryPageSize,
+} from "@/lib/discovery-query"
 import { pickPrimaryJam, toPrimaryJamBadge } from "@/lib/jams"
 import { logServerError } from "@/lib/server-log"
 
-const getCachedGames = unstable_cache(
-  async (
+async function queryGames(
     page: number,
     limit: number,
     category: string | null,
@@ -14,7 +18,7 @@ const getCachedGames = unstable_cache(
     search: string | null,
     supportsMobile: boolean | null,
     hasLevelEditor: boolean | null
-  ) => {
+  ) {
     const skip = (page - 1) * limit
 
     const where: Record<string, unknown> = {
@@ -107,7 +111,10 @@ const getCachedGames = unstable_cache(
       limit,
       hasMore: skip + games.length < total,
     }
-  },
+  }
+
+const getCachedGames = unstable_cache(
+  queryGames,
   ["api-games-list"],
   { revalidate: 30, tags: ["games"] }
 )
@@ -115,24 +122,33 @@ const getCachedGames = unstable_cache(
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const rawPage = Number.parseInt(searchParams.get("page") || "1", 10)
-    const rawLimit = Number.parseInt(searchParams.get("limit") || "20", 10)
-    const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1
-    const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 50) : 20
-    const category = searchParams.get("category")
-    const sortParam = searchParams.get("sort") || "trending"
-    const sort: DiscoverySort = ["trending", "new", "popular", "top"].includes(sortParam)
-      ? (sortParam as DiscoverySort)
-      : "trending"
-    const search = searchParams.get("q")
-    const supportsMobile = searchParams.get("mobile") === "true"
-    const hasLevelEditor = searchParams.get("editor") === "true"
-
-    const response = await getCachedGames(page, limit, category, sort, search, supportsMobile, hasLevelEditor)
+    const page = normalizeDiscoveryPage(searchParams.get("page"))
+    const limit = normalizeDiscoveryPageSize(searchParams.get("limit"))
+    const filters = normalizeDiscoveryFilters({
+      category: searchParams.get("category"),
+      sort: searchParams.get("sort"),
+      search: searchParams.get("q"),
+      mobile: searchParams.get("mobile"),
+      editor: searchParams.get("editor"),
+    })
+    const category = filters.category === "all" ? null : filters.category
+    const search = filters.search || null
+    const query = search ? queryGames : getCachedGames
+    const response = await query(
+      page,
+      limit,
+      category,
+      filters.sort as DiscoverySort,
+      search,
+      filters.supportsMobile,
+      filters.hasLevelEditor
+    )
 
     return NextResponse.json(response, {
       headers: {
-        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
+        "Cache-Control": search
+          ? "no-store"
+          : "public, s-maxage=30, stale-while-revalidate=120",
       },
     })
   } catch (error) {

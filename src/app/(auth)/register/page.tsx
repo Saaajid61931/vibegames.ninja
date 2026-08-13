@@ -68,7 +68,7 @@ export default function RegisterPage() {
       }
 
       const result = await signIn("credentials", {
-        email: formData.email,
+        email: formData.email.trim().toLowerCase(),
         password: formData.password,
         redirect: false,
       })
@@ -76,6 +76,8 @@ export default function RegisterPage() {
       if (result?.ok) {
         router.push("/creator")
         router.refresh()
+      } else {
+        setError("Account created, but automatic sign-in failed. Please sign in manually.")
       }
     } catch {
       setError("Registration failed. Please try again.")
@@ -103,7 +105,7 @@ export default function RegisterPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="p-3 border-2 border-arcade-red bg-arcade-red/10 text-arcade-red font-arcade text-xs text-center uppercase">
+                <div role="alert" className="p-3 border-2 border-arcade-red bg-arcade-red/10 text-arcade-red font-arcade text-xs text-center uppercase">
                   {error}
                 </div>
               )}
@@ -118,6 +120,7 @@ export default function RegisterPage() {
                     variant="arcade"
                     value={formData.name}
                     onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                    maxLength={60}
                     placeholder="John Doe"
                     className="pl-10"
                     required
@@ -141,6 +144,7 @@ export default function RegisterPage() {
                       }))
                     }
                     placeholder="johndoe"
+                    maxLength={24}
                     className="pl-10"
                     required
                   />
@@ -157,6 +161,7 @@ export default function RegisterPage() {
                     variant="arcade"
                     value={formData.email}
                     onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                    maxLength={254}
                     placeholder="you@example.com"
                     className="pl-10"
                     required
@@ -173,6 +178,7 @@ export default function RegisterPage() {
                     type={showPassword ? "text" : "password"}
                     variant="arcade"
                     minLength={8}
+                    maxLength={72}
                     value={formData.password}
                     onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
                     placeholder="Min 8 characters"

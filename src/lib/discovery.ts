@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client"
+import type { DiscoverySortValue } from "./discovery-query"
 
-export type DiscoverySort = "trending" | "new" | "popular" | "top"
+export type DiscoverySort = DiscoverySortValue
 
 export function getDiscoveryOrderBy(sort: DiscoverySort): Prisma.GameOrderByWithRelationInput[] {
   switch (sort) {

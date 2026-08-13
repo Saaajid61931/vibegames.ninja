@@ -46,12 +46,26 @@ export const RATE_LIMIT_POLICIES = {
   likes: { name: "likes", limit: 30, windowMs: 60 * 1000 },
   follows: { name: "follows", limit: 30, windowMs: 60 * 1000 },
   shares: { name: "shares", limit: 30, windowMs: 60 * 1000 },
+  ratings: { name: "ratings", limit: 20, windowMs: 60 * 1000 },
+  passwordChanges: { name: "password-changes", limit: 5, windowMs: 15 * 60 * 1000 },
 } satisfies Record<string, RateLimitPolicy>
 
 export class MemoryRateLimiter {
+  private operationsSinceSweep = 0
+
   constructor(private readonly store: GlobalRateLimitStore = globalRateLimitStore) {}
 
   consume(key: string, policy: RateLimitPolicy, now = Date.now()): RateLimitResult {
+    this.operationsSinceSweep += 1
+    if (this.operationsSinceSweep >= 250) {
+      for (const [bucketKey, bucket] of this.store.buckets) {
+        if (bucket.resetAt <= now) {
+          this.store.buckets.delete(bucketKey)
+        }
+      }
+      this.operationsSinceSweep = 0
+    }
+
     const existing = this.store.buckets.get(key)
 
     if (!existing || existing.resetAt <= now) {
@@ -90,5 +104,6 @@ export class MemoryRateLimiter {
 
   clear() {
     this.store.buckets.clear()
+    this.operationsSinceSweep = 0
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
+import { Prisma } from "@prisma/client"
 import prisma from "@/lib/prisma"
 import { createRateLimitResponse, enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/rate-limit"
 import { logServerError } from "@/lib/server-log"
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
       return createRateLimitResponse(rateLimit, "Too many registration attempts. Please wait before trying again.")
     }
 
-    const body = await request.json()
+    const body = await request.json().catch(() => null)
     
     // Validate input
     const result = registerSchema.safeParse(body)
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     if (existingEmail) {
       return NextResponse.json(
         { error: "Email already registered" },
-        { status: 400 }
+        { status: 409 }
       )
     }
 
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
     if (existingUsername) {
       return NextResponse.json(
         { error: "Username already taken" },
-        { status: 400 }
+        { status: 409 }
       )
     }
 
@@ -95,6 +96,17 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      const fields = Array.isArray(error.meta?.target)
+        ? error.meta.target.join(",")
+        : String(error.meta?.target || "")
+      const message = fields.includes("username")
+        ? "Username already taken"
+        : "Email already registered"
+
+      return NextResponse.json({ error: message }, { status: 409 })
+    }
+
     logServerError("Registration error", error, {
       route: "/api/auth/register",
       method: "POST",

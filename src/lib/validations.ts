@@ -4,6 +4,17 @@ import { AI_MODELS, AI_TOOLS, CATEGORIES } from "./utils"
 const MAX_LEVEL_DATA_BYTES = 5 * 1024 * 1024
 export const MAX_GHOST_REPLAY_BYTES = 512 * 1024
 
+function jsonByteLength(value: unknown) {
+  try {
+    const serialized = JSON.stringify(value)
+    return typeof serialized === "string"
+      ? new TextEncoder().encode(serialized).length
+      : Number.POSITIVE_INFINITY
+  } catch {
+    return Number.POSITIVE_INFINITY
+  }
+}
+
 const usernameSchema = z
   .string()
   .trim()
@@ -26,6 +37,10 @@ const levelDataSchema = z
     (value) => Array.isArray(value) || (typeof value === 'object' && value !== null),
     'Level data must be an object or array'
   )
+  .refine(
+    (value) => jsonByteLength(value) <= MAX_LEVEL_DATA_BYTES,
+    'Level data exceeds 5MB limit'
+  )
 
 const ghostReplayDataSchema = z
   .unknown()
@@ -37,12 +52,8 @@ const ghostReplayDataSchema = z
     return Array.isArray(value) || (typeof value === 'object' && value !== null)
   }, 'Replay data must be a string, object, or array')
   .refine(
-    (value) => new TextEncoder().encode(JSON.stringify(value)).length <= MAX_GHOST_REPLAY_BYTES,
+    (value) => jsonByteLength(value) <= MAX_GHOST_REPLAY_BYTES,
     'Replay data exceeds 512KB limit'
-  )
-  .refine(
-    (value) => new TextEncoder().encode(JSON.stringify(value)).length <= MAX_LEVEL_DATA_BYTES,
-    'Level data exceeds 5MB limit'
   )
 
 const CATEGORY_VALUES = new Set(CATEGORIES.map((category) => category.value))
@@ -64,15 +75,15 @@ function optionalKnownValueSchema(values: Set<string>, errorMessage: string) {
 }
 
 export const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(60, 'Name must be 60 characters or less'),
+  email: z.string().trim().toLowerCase().max(254, 'Email must be 254 characters or less').email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters').max(72, 'Password is too long'),
   username: usernameSchema,
 })
 
 export const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string().trim().toLowerCase().max(254, 'Email must be 254 characters or less').email('Invalid email address'),
+  password: z.string().min(1, 'Password is required').max(72, 'Password is too long'),
 })
 
 export const profileSettingsSchema = z.object({
@@ -84,9 +95,9 @@ export const profileSettingsSchema = z.object({
 
 export const passwordChangeSchema = z
   .object({
-    currentPassword: z.string().min(1, 'Current password is required'),
+    currentPassword: z.string().min(1, 'Current password is required').max(72, 'Password is too long'),
     newPassword: z.string().min(8, 'New password must be at least 8 characters').max(72, 'New password is too long'),
-    confirmPassword: z.string().min(1, 'Please confirm your new password'),
+    confirmPassword: z.string().min(1, 'Please confirm your new password').max(72, 'Password confirmation is too long'),
   })
   .refine((value) => value.newPassword === value.confirmPassword, {
     message: 'New password confirmation does not match',

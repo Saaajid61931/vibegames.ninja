@@ -7,8 +7,9 @@ import { Bell, Heart, LayoutDashboard, Plus, User, Menu, Search, Settings, X } f
 import { NinjaConsole } from "@/components/icons/ninja-console"
 import { NotificationsMenu } from "@/components/layout/notifications-menu"
 import { Button } from "@/components/ui/button"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useNotificationFeed } from "@/hooks/use-notification-feed"
+import { MAX_DISCOVERY_SEARCH_LENGTH } from "@/lib/discovery-query"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +30,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [marqueeVisible, setMarqueeVisible] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null)
   const { unreadCount, notifications, loading, refresh } = useNotificationFeed(session?.user?.id, pathname)
 
   useEffect(() => {
@@ -43,6 +45,35 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
     const frameId = window.requestAnimationFrame(() => setMarqueeVisible(shouldShowMarquee))
     return () => window.cancelAnimationFrame(frameId)
   }, [])
+
+  useEffect(() => {
+    if (!mobileMenuOpen) {
+      return
+    }
+
+    const previousOverflow = document.body.style.overflow
+    const closeForDesktop = () => {
+      if (window.innerWidth >= 768) {
+        setMobileMenuOpen(false)
+      }
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileMenuOpen(false)
+        mobileMenuButtonRef.current?.focus()
+      }
+    }
+
+    document.body.style.overflow = "hidden"
+    window.addEventListener("resize", closeForDesktop)
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener("resize", closeForDesktop)
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [mobileMenuOpen])
 
   const displayedUnreadCount = session?.user?.id
     ? (pathname.startsWith("/notifications") ? 0 : unreadCount)
@@ -142,6 +173,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                 type="search"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
+                maxLength={MAX_DISCOVERY_SEARCH_LENGTH}
                 placeholder="Search games"
                 className="h-9 w-full border-2 border-border-strong bg-surface pl-9 pr-9 text-xs text-text placeholder:text-text-secondary focus:border-arcade-yellow focus:outline-none"
               />
@@ -239,10 +271,12 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
 
               {/* Mobile Menu Button */}
               <button
+                ref={mobileMenuButtonRef}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="md:hidden p-2 text-text rounded-md border border-border hover:bg-surface"
                 aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
                 aria-expanded={mobileMenuOpen}
+                aria-controls="mobile-navigation-menu"
               >
                 {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
@@ -251,7 +285,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-border space-y-4">
+            <div id="mobile-navigation-menu" className="max-h-[calc(100dvh-6rem)] space-y-4 overflow-y-auto overscroll-contain border-t border-border py-4 md:hidden">
               <form onSubmit={submitSearch} role="search" className="relative">
                 <label htmlFor="mobile-global-game-search" className="sr-only">Search games</label>
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" aria-hidden="true" />
@@ -260,6 +294,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                   type="search"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
+                  maxLength={MAX_DISCOVERY_SEARCH_LENGTH}
                   placeholder="Search the arcade"
                   className="h-11 w-full border-2 border-border-strong bg-surface pl-10 pr-12 text-sm text-text placeholder:text-text-secondary focus:border-arcade-yellow focus:outline-none"
                 />

@@ -6,6 +6,7 @@ import Google from "next-auth/providers/google"
 import GitHub from "next-auth/providers/github"
 import bcrypt from "bcryptjs"
 import prisma from "@/lib/prisma"
+import { loginSchema } from "@/lib/validations"
 
 const providers: Provider[] = [
   Credentials({
@@ -15,12 +16,19 @@ const providers: Provider[] = [
       password: { label: "Password", type: "password" },
     },
     async authorize(credentials) {
-      if (!credentials?.email || !credentials?.password) {
+      const parsedCredentials = loginSchema.safeParse({
+        email: credentials?.email,
+        password: credentials?.password,
+      })
+
+      if (!parsedCredentials.success) {
         throw new Error("Invalid credentials")
       }
 
+      const { email, password } = parsedCredentials.data
+
       const user = await prisma.user.findUnique({
-        where: { email: credentials.email as string },
+        where: { email },
       })
 
       if (!user || !user.password) {
@@ -28,7 +36,7 @@ const providers: Provider[] = [
       }
 
       const isValid = await bcrypt.compare(
-        credentials.password as string,
+        password,
         user.password
       )
 

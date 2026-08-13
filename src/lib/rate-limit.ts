@@ -8,18 +8,24 @@ import {
 export { MemoryRateLimiter, RATE_LIMIT_POLICIES, type RateLimitPolicy, type RateLimitResult } from "./rate-limit-core"
 
 function getClientIp(request: RequestHeadersLike) {
+  const normalizeIp = (value: string | null) => value?.trim().slice(0, 64) || null
+
+  const cloudflareIp = normalizeIp(request.headers.get("cf-connecting-ip"))
+  if (cloudflareIp) {
+    return cloudflareIp
+  }
+
   const forwardedFor = request.headers.get("x-forwarded-for")
   if (forwardedFor) {
-    const forwardedIp = forwardedFor.split(",")[0]?.trim()
+    const forwardedIp = normalizeIp(forwardedFor.split(",")[0] || null)
     if (forwardedIp) {
       return forwardedIp
     }
   }
 
   return (
-    request.headers.get("cf-connecting-ip") ||
-    request.headers.get("x-real-ip") ||
-    request.headers.get("x-client-ip") ||
+    normalizeIp(request.headers.get("x-real-ip")) ||
+    normalizeIp(request.headers.get("x-client-ip")) ||
     "unknown"
   )
 }

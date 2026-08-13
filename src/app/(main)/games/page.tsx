@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import prisma from "@/lib/prisma"
 import { DiscoverySort, getDiscoveryOrderBy } from "@/lib/discovery"
+import { normalizeDiscoveryFilters, normalizeDiscoveryPage } from "@/lib/discovery-query"
 import { pickPrimaryJam, toPrimaryJamBadge } from "@/lib/jams"
 import { GamesBrowser } from "@/components/games/games-browser"
 import { CATEGORIES } from "@/lib/utils"
@@ -24,21 +25,28 @@ interface PageProps {
 
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
   const params = await searchParams
-  const resolvedCategory = CATEGORIES.find((category) => category.value.toLowerCase() === params.category)
-  const titleParts = [resolvedCategory?.label, params.mobile === "true" ? "Mobile" : null, params.editor === "true" ? "Level Editor" : null, "AI Games"].filter(Boolean)
+  const filters = normalizeDiscoveryFilters({
+    category: params.category,
+    sort: params.sort,
+    search: params.q,
+    mobile: params.mobile,
+    editor: params.editor,
+  })
+  const resolvedCategory = CATEGORIES.find((category) => category.value.toLowerCase() === filters.category)
+  const titleParts = [resolvedCategory?.label, filters.supportsMobile ? "Mobile" : null, filters.hasLevelEditor ? "Level Editor" : null, "AI Games"].filter(Boolean)
   const title = titleParts.join(" ")
-  const description = params.q
-    ? `Search results for ${params.q} on ${SITE_NAME}. Explore browser games, mobile-friendly picks, and creator-made experiments.`
+  const description = filters.search
+    ? `Search results for ${filters.search} on ${SITE_NAME}. Explore browser games, mobile-friendly picks, and creator-made experiments.`
     : resolvedCategory
       ? `Browse ${resolvedCategory.label.toLowerCase()} AI games on ${SITE_NAME}, including trending launches, mobile-ready picks, and remixable experiments.`
       : "Explore trending, popular, mobile-friendly, and level-editor AI-generated HTML5 games across every category."
 
   const canonicalParams = new URLSearchParams()
-  if (params.category) canonicalParams.set("category", params.category)
-  if (params.sort && params.sort !== "trending") canonicalParams.set("sort", params.sort)
-  if (params.q) canonicalParams.set("q", params.q)
-  if (params.mobile === "true") canonicalParams.set("mobile", "true")
-  if (params.editor === "true") canonicalParams.set("editor", "true")
+  if (filters.category !== "all") canonicalParams.set("category", filters.category)
+  if (filters.sort !== "trending") canonicalParams.set("sort", filters.sort)
+  if (filters.search) canonicalParams.set("q", filters.search)
+  if (filters.supportsMobile) canonicalParams.set("mobile", "true")
+  if (filters.hasLevelEditor) canonicalParams.set("editor", "true")
   const canonical = canonicalParams.size > 0 ? `/games?${canonicalParams.toString()}` : "/games"
 
   return {
@@ -71,12 +79,15 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   }
 }
 
-const getGames = unstable_cache(async (category?: string, sort?: string, q?: string, mobile?: string, editor?: string) => {
+const GAMES_PAGE_SIZE = 24
+
+async function queryGames(page: number, category: string, sort: DiscoverySort, q: string, mobile: boolean, editor: boolean) {
+  const skip = (page - 1) * GAMES_PAGE_SIZE
   const where: Record<string, unknown> = {
     status: "PUBLISHED",
   }
 
-  if (category && category !== "all") {
+  if (category !== "all") {
     where.category = category.toUpperCase()
   }
 
@@ -88,18 +99,15 @@ const getGames = unstable_cache(async (category?: string, sort?: string, q?: str
     ]
   }
 
-  if (mobile === "true") {
+  if (mobile) {
     where.supportsMobile = true
   }
 
-  if (editor === "true") {
+  if (editor) {
     where.hasLevelEditor = true
   }
 
-  const parsedSort: DiscoverySort = ["trending", "new", "popular", "top"].includes(sort || "")
-    ? (sort as DiscoverySort)
-    : "trending"
-  const orderBy = getDiscoveryOrderBy(parsedSort)
+  const orderBy = getDiscoveryOrderBy(sort)
 
   const [games, total] = await Promise.all([
     prisma.game.findMany({
@@ -145,7 +153,8 @@ const getGames = unstable_cache(async (category?: string, sort?: string, q?: str
         },
       },
       orderBy,
-      take: 24,
+      skip,
+      take: GAMES_PAGE_SIZE,
     }),
     prisma.game.count({ where }),
   ])
@@ -153,13 +162,35 @@ const getGames = unstable_cache(async (category?: string, sort?: string, q?: str
   return {
     data: games,
     total,
-    hasMore: games.length < total,
+    page,
+    hasMore: skip + games.length < total,
   }
-}, ["games-page-list"], { revalidate: 30, tags: ["games"] })
+}
+
+const getCachedGames = unstable_cache(queryGames, ["games-page-list"], {
+  revalidate: 30,
+  tags: ["games"],
+})
 
 export default async function GamesPage({ searchParams }: PageProps) {
   const params = await searchParams
-  const response = await getGames(params.category, params.sort, params.q, params.mobile, params.editor)
+  const filters = normalizeDiscoveryFilters({
+    category: params.category,
+    sort: params.sort,
+    search: params.q,
+    mobile: params.mobile,
+    editor: params.editor,
+  })
+  const page = normalizeDiscoveryPage(params.page)
+  const query = filters.search ? queryGames : getCachedGames
+  const response = await query(
+    page,
+    filters.category,
+    filters.sort,
+    filters.search,
+    filters.supportsMobile,
+    filters.hasLevelEditor
+  )
   const normalizedGames = response.data.map((game) => ({
     ...game,
     createdAt: new Date(game.createdAt),
@@ -184,11 +215,12 @@ export default async function GamesPage({ searchParams }: PageProps) {
             initialGames={normalizedGames} 
             initialTotal={response.total}
             initialHasMore={response.hasMore}
-            initialCategory={params.category} 
-            initialSort={params.sort} 
-            initialQuery={params.q} 
-            initialSupportsMobile={params.mobile === "true"}
-            initialEditorOnly={params.editor === "true"}
+            initialPage={response.page}
+            initialCategory={filters.category}
+            initialSort={filters.sort}
+            initialQuery={filters.search}
+            initialSupportsMobile={filters.supportsMobile}
+            initialEditorOnly={filters.hasLevelEditor}
          />
       </main>
       

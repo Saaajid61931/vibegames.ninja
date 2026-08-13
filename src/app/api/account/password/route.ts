@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 import { Prisma } from "@prisma/client"
 import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
+import { createRateLimitResponse, enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/rate-limit"
 import { passwordChangeSchema } from "@/lib/validations"
 import { logServerError } from "@/lib/server-log"
 
@@ -12,6 +13,20 @@ export async function PATCH(request: Request) {
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "AUTHENTICATION_REQUIRED" }, { status: 401 })
+    }
+
+    const rateLimit = enforceRateLimit({
+      request,
+      userId: session.user.id,
+      policy: RATE_LIMIT_POLICIES.passwordChanges,
+      keyPrefix: "api-password-change",
+    })
+
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(
+        rateLimit,
+        "Too many password attempts. Please wait before trying again."
+      )
     }
 
     const body = await request.json().catch(() => null)
@@ -31,7 +46,10 @@ export async function PATCH(request: Request) {
     })
 
     if (!user) {
-      return NextResponse.json({ error: "USER_NOT_FOUND" }, { status: 404 })
+      return NextResponse.json(
+        { error: "SESSION_EXPIRED", message: "Your session has expired. Please sign in again." },
+        { status: 401 }
+      )
     }
 
     if (!user.password) {
@@ -77,6 +95,13 @@ export async function PATCH(request: Request) {
           message: "Database schema is out of date. Run prisma db push and restart the server.",
         },
         { status: 500 }
+      )
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      return NextResponse.json(
+        { error: "SESSION_EXPIRED", message: "Your session has expired. Please sign in again." },
+        { status: 401 }
       )
     }
 

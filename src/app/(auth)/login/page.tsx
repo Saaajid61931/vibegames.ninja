@@ -55,12 +55,12 @@ function LoginForm() {
 
     try {
       const result = await signIn("credentials", {
-        email,
+        email: email.trim().toLowerCase(),
         password,
         redirect: false,
       })
 
-      if (result?.error) {
+      if (!result?.ok || result.error) {
         setError("Invalid email or password.")
       } else {
         router.push(callbackUrl)
@@ -82,7 +82,7 @@ function LoginForm() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="p-3 border-2 border-arcade-red bg-arcade-red/10 text-arcade-red font-arcade text-xs text-center uppercase">
+            <div role="alert" className="p-3 border-2 border-arcade-red bg-arcade-red/10 text-arcade-red font-arcade text-xs text-center uppercase">
               {error}
             </div>
           )}
@@ -97,6 +97,7 @@ function LoginForm() {
                 variant="arcade"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                maxLength={254}
                 placeholder="you@example.com"
                 autoComplete="email"
                 className="pl-10"
@@ -117,6 +118,7 @@ function LoginForm() {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
+                maxLength={72}
                 variant="arcade"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

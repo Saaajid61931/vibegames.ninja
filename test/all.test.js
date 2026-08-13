@@ -108,7 +108,22 @@ const { groupJamsByLiveStatus } = require('@/lib/jam-page-data')
 const { markNotificationsRead } = require('@/lib/notifications')
 const { createRateLimitResponse, enforceRateLimit, getRateLimitIdentity } = require('@/lib/rate-limit')
 const { MemoryRateLimiter, RATE_LIMIT_POLICIES } = require('@/lib/rate-limit-core')
-const { gameUploadSchema } = require('@/lib/validations')
+const {
+  gameUploadSchema,
+  ghostRunSchema,
+  levelInputSchema,
+  loginSchema,
+  MAX_GHOST_REPLAY_BYTES,
+  registerSchema,
+} = require('@/lib/validations')
+const {
+  MAX_DISCOVERY_PAGE,
+  MAX_DISCOVERY_PAGE_SIZE,
+  MAX_DISCOVERY_SEARCH_LENGTH,
+  normalizeDiscoveryFilters,
+  normalizeDiscoveryPage,
+  normalizeDiscoveryPageSize,
+} = require('@/lib/discovery-query')
 
 test('admin action helper returns a JSON success response without redirect metadata', async () => {
   const response = createAdminActionSuccessResponse()
@@ -381,7 +396,7 @@ test('groupJamsByLiveStatus uses live dates instead of persisted status when gro
   }
 })
 
-test('rate limiting keys authenticated users by user id and anonymous users by IP', () => {
+test('rate limiting keys authenticated users by user id and prefers Cloudflare IPs for anonymous users', () => {
   const request = {
     headers: new Headers({
       'x-forwarded-for': '203.0.113.10, 198.51.100.2',
@@ -390,7 +405,7 @@ test('rate limiting keys authenticated users by user id and anonymous users by I
   }
 
   assert.equal(getRateLimitIdentity(request, 'user-123'), 'user:user-123')
-  assert.equal(getRateLimitIdentity(request, null), 'ip:203.0.113.10')
+  assert.equal(getRateLimitIdentity(request, null), 'ip:198.51.100.7')
 })
 
 test('memory rate limiter blocks requests after the policy limit and reports retry metadata', () => {
@@ -409,6 +424,36 @@ test('memory rate limiter blocks requests after the policy limit and reports ret
   assert.equal(blocked.allowed, false)
   assert.equal(blocked.remaining, 0)
   assert.equal(blocked.retryAfterSeconds > 0, true)
+})
+
+test('memory rate limiter periodically removes expired buckets without removing live ones', () => {
+  const now = new Date('2026-03-18T12:00:00.000Z').getTime()
+  const buckets = new Map([
+    ['expired', { count: 1, resetAt: now - 1 }],
+    ['live', { count: 1, resetAt: now + 60_000 }],
+  ])
+  const limiter = new MemoryRateLimiter({ buckets })
+  const policy = { name: 'sweep-test', limit: 500, windowMs: 60_000 }
+
+  for (let index = 0; index < 250; index += 1) {
+    limiter.consume(`key-${index}`, policy, now)
+  }
+
+  assert.equal(buckets.has('expired'), false)
+  assert.equal(buckets.has('live'), true)
+})
+
+test('rating and password-change policies use the requested shared limits', () => {
+  assert.deepEqual(RATE_LIMIT_POLICIES.ratings, {
+    name: 'ratings',
+    limit: 20,
+    windowMs: 60 * 1000,
+  })
+  assert.deepEqual(RATE_LIMIT_POLICIES.passwordChanges, {
+    name: 'password-changes',
+    limit: 5,
+    windowMs: 15 * 60 * 1000,
+  })
 })
 
 test('enforceRateLimit and createRateLimitResponse produce a stable 429 payload', async () => {
@@ -473,6 +518,105 @@ test('markNotificationsRead targets only unread notifications for the selected u
 
 test('countUniqueCreators deduplicates overlapping creator buckets', () => {
   assert.equal(countUniqueCreators(['user-1', 'user-2', 'user-3'], ['user-2', 'studio-1', 'studio-2']), 5)
+})
+
+test('discovery query normalization bounds pagination and safely normalizes filters', () => {
+  assert.equal(normalizeDiscoveryPage('999999'), MAX_DISCOVERY_PAGE)
+  assert.equal(normalizeDiscoveryPage('0'), 1)
+  assert.equal(normalizeDiscoveryPage('not-a-number'), 1)
+  assert.equal(normalizeDiscoveryPageSize('999999'), MAX_DISCOVERY_PAGE_SIZE)
+  assert.equal(normalizeDiscoveryPageSize('0'), 20)
+
+  const normalized = normalizeDiscoveryFilters({
+    category: 'not-a-category',
+    sort: 'not-a-sort',
+    search: `  ${'a'.repeat(MAX_DISCOVERY_SEARCH_LENGTH + 5)}  `,
+    mobile: 'true',
+    editor: true,
+  })
+
+  assert.deepEqual(normalized, {
+    category: 'all',
+    sort: 'trending',
+    search: 'a'.repeat(MAX_DISCOVERY_SEARCH_LENGTH),
+    supportsMobile: true,
+    hasLevelEditor: true,
+  })
+})
+
+test('discovery query normalization preserves valid categories and sorts', () => {
+  assert.deepEqual(
+    normalizeDiscoveryFilters({
+      category: '  arcade  ',
+      sort: 'top',
+      search: '  neon race  ',
+      mobile: 'false',
+      editor: 'false',
+    }),
+    {
+      category: 'arcade',
+      sort: 'top',
+      search: 'neon race',
+      supportsMobile: false,
+      hasLevelEditor: false,
+    }
+  )
+})
+
+test('registration and login schemas trim and lowercase email addresses', () => {
+  const register = registerSchema.safeParse({
+    name: '  Arcade Player  ',
+    username: '  Arcade_Player  ',
+    email: '  PLAYER@EXAMPLE.COM  ',
+    password: 'password123',
+  })
+  const login = loginSchema.safeParse({
+    email: '  PLAYER@EXAMPLE.COM  ',
+    password: 'password123',
+  })
+
+  assert.equal(register.success, true)
+  assert.equal(login.success, true)
+  if (!register.success || !login.success) {
+    throw new Error('Expected valid normalized credentials')
+  }
+
+  assert.equal(register.data.name, 'Arcade Player')
+  assert.equal(register.data.username, 'arcade_player')
+  assert.equal(register.data.email, 'player@example.com')
+  assert.equal(login.data.email, 'player@example.com')
+})
+
+test('level data accepts exactly 5MB of JSON and rejects larger JSON payloads', () => {
+  const maxLevelDataBytes = 5 * 1024 * 1024
+  const overhead = Buffer.byteLength(JSON.stringify({ payload: '' }), 'utf8')
+  const shared = {
+    name: 'Boundary Level',
+    data: { payload: 'x'.repeat(maxLevelDataBytes - overhead) },
+  }
+
+  assert.equal(levelInputSchema.safeParse(shared).success, true)
+  assert.equal(
+    levelInputSchema.safeParse({
+      ...shared,
+      data: { payload: 'x'.repeat(maxLevelDataBytes - overhead + 1) },
+    }).success,
+    false
+  )
+})
+
+test('ghost replay data accepts the 512KB boundary and rejects a larger JSON replay', () => {
+  const accepted = ghostRunSchema.safeParse({
+    durationMs: 1000,
+    replayData: 'x'.repeat(MAX_GHOST_REPLAY_BYTES - 2),
+  })
+  const rejected = ghostRunSchema.safeParse({
+    durationMs: 1000,
+    replayData: 'x'.repeat(MAX_GHOST_REPLAY_BYTES - 1),
+  })
+
+  assert.equal(accepted.success, true)
+  assert.equal(rejected.success, false)
 })
 
 test('gameUploadSchema accepts curated values and rejects unknown ones', () => {

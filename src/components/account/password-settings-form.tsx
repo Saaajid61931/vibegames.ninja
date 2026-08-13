@@ -84,6 +84,7 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
               variant="studio"
               type={showCurrent ? "text" : "password"}
               value={currentPassword}
+              maxLength={72}
               onChange={(event) => {
                 setCurrentPassword(event.target.value)
                 if (status !== "idle") {
@@ -114,6 +115,7 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
                 variant="studio"
                 type={showNext ? "text" : "password"}
                 minLength={8}
+                maxLength={72}
                 value={newPassword}
                 onChange={(event) => {
                   setNewPassword(event.target.value)
@@ -144,6 +146,7 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
                 variant="studio"
                 type={showConfirm ? "text" : "password"}
                 minLength={8}
+                maxLength={72}
                 value={confirmPassword}
                 onChange={(event) => {
                   setConfirmPassword(event.target.value)
@@ -168,7 +171,7 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-          <p className={`text-sm ${status === "error" ? "text-danger" : status === "success" ? "text-success" : "text-text-tertiary"}`}>
+          <p role={status === "error" ? "alert" : "status"} aria-live="polite" className={`text-sm ${status === "error" ? "text-danger" : status === "success" ? "text-success" : "text-text-tertiary"}`}>
             {message || "Use a strong password you do not reuse elsewhere."}
           </p>
 

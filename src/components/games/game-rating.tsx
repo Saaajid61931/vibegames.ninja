@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { StarRating } from "@/components/games/star-rating"
-import { rateGame } from "@/actions/ratings"
 
 interface GameRatingProps {
   gameId: string
@@ -12,6 +11,27 @@ interface GameRatingProps {
   initialCount: number
   initialUserScore: number | null
   isAuthenticated: boolean
+}
+
+function isValidRatingResponse(value: unknown): value is {
+  score: number
+  avgRating: number
+  ratingCount: number
+} {
+  if (typeof value !== "object" || value === null) {
+    return false
+  }
+
+  const result = value as Record<string, unknown>
+  return Number.isInteger(result.score)
+    && typeof result.score === "number"
+    && result.score >= 1
+    && result.score <= 5
+    && typeof result.avgRating === "number"
+    && Number.isFinite(result.avgRating)
+    && typeof result.ratingCount === "number"
+    && Number.isInteger(result.ratingCount)
+    && result.ratingCount >= 0
 }
 
 export function GameRating({
@@ -41,17 +61,30 @@ export function GameRating({
     setSaving(true)
     setError(null)
     try {
-      const result = await rateGame(gameId, score)
-      if (!result.success) {
-        setError(result.error)
+      const response = await fetch(`/api/games/${gameId}/rate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ score }),
+      })
+      const result = await response.json().catch(() => null) as {
+        error?: string
+        message?: string
+      } | null
+
+      if (!response.ok) {
+        setError(result?.message || result?.error || "Failed to save rating. Please try again.")
+        return
+      }
+
+      if (!isValidRatingResponse(result)) {
+        setError("The arcade returned an invalid rating response. Please try again.")
         return
       }
 
       setUserScore(result.score)
       setAverage(result.avgRating)
       setCount(result.ratingCount)
-    } catch (err) {
-      console.error(err)
+    } catch {
       setError("Failed to save rating. Please try again.")
     } finally {
       setSaving(false)
@@ -72,7 +105,7 @@ export function GameRating({
         )}
       </div>
       {error && (
-        <p className="font-arcade text-xs text-red-400 mt-2">{error}</p>
+        <p className="font-arcade text-xs text-red-400 mt-2" role="alert">{error}</p>
       )}
     </div>
   )
