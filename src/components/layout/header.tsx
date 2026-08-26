@@ -106,7 +106,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border pt-[env(safe-area-inset-top)]">
+    <header className="sticky top-0 z-50 w-full max-w-full overflow-x-clip border-b border-border pt-[env(safe-area-inset-top)]">
       {/* Hide a previously dismissed announcement before first paint to avoid a layout jump. */}
       <script
         dangerouslySetInnerHTML={{
@@ -138,12 +138,12 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
       ) : null}
       
       <div className="bg-canvas">
-        <div className="container mx-auto px-4">
-          <div className="flex h-14 items-center justify-between">
+        <div className="container mx-auto min-w-0 px-4">
+          <div className="flex h-14 min-w-0 items-center justify-between gap-2">
             {/* Logo */}
-            <Link href="/" prefetch={prefetchLinks ? undefined : false} className="flex items-center gap-2 group">
-              <NinjaConsole className="h-6 w-6" />
-              <span className="font-sans text-xs font-bold uppercase tracking-widest">
+            <Link href="/" prefetch={prefetchLinks ? undefined : false} className="group flex min-w-0 items-center gap-2">
+              <NinjaConsole className="h-6 w-6 shrink-0" />
+              <span className="truncate font-sans text-xs font-bold uppercase tracking-widest">
                 <span className="text-primary-text">VIBE</span>
                 <span className="text-text">GAMES</span>
                 <span className="text-text-secondary">.NINJA</span>
@@ -194,9 +194,9 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
             </form>
 
             {/* Right Section */}
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-2">
               {status === "loading" ? (
-                <div className="h-9 w-20 bg-surface animate-pulse rounded-md" />
+                null
               ) : session?.user ? (
                 <>
                   <Link href="/upload" prefetch={false} className="md:hidden">

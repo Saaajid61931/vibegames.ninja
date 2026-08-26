@@ -660,14 +660,14 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
   }), [launchFullscreen, runAutoThumbnailCapture])
 
   return (
-    <div ref={wrapperRef} className={`relative overflow-hidden ${isFullscreen ? "bg-black" : "border-2 border-border-strong bg-surface shadow-hard-4"}`}>
+    <div ref={wrapperRef} className={`relative min-w-0 max-w-full overflow-hidden ${isFullscreen ? "w-full bg-black" : "w-full border-2 border-border-strong bg-surface shadow-hard-4"}`}>
       {!isFullscreen && (
-        <div className="flex items-center justify-between gap-3 border-b-2 border-border-strong bg-surface-2 px-3 py-3 sm:px-4">
-          <div className="flex items-center gap-2 min-w-0">
+        <div className="grid min-w-0 grid-cols-1 gap-1.5 border-b-2 border-border-strong bg-surface-2 px-3 py-3 min-[380px]:grid-cols-[minmax(0,1fr)_auto] min-[380px]:items-center min-[380px]:gap-3 sm:px-4">
+          <div className="flex min-w-0 items-center gap-2">
             <span className="h-2 w-2 shrink-0 bg-success" />
             <span className="truncate text-kicker  text-text">{runtimeLabel}</span>
           </div>
-          <span className="shrink-0 text-kicker  text-text-secondary">
+          <span className="min-w-0 text-kicker text-text-secondary min-[380px]:text-right">
             {isAutoCapturing
               ? "Capturing screenshots"
               : mode === "preview"
@@ -704,7 +704,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
             <div className="w-full max-w-md space-y-5 border-2 border-border-strong bg-surface p-5 text-center shadow-hard-4 sm:p-6">
               <div className="space-y-2">
                 <span className="text-kicker  text-arcade-yellow">Ready when you are</span>
-                <h3 className="heading-pixel-md font-semibold text-white">Play {title}</h3>
+                <h3 className="heading-pixel-md break-words font-semibold text-white">Play {title}</h3>
                 <p className="text-sm leading-6 text-text-secondary">
                   {requiredOrientation
                     ? `This game is designed for ${getMobileOrientationLabel(requiredOrientation).toLowerCase()}.`

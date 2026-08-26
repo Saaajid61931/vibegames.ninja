@@ -7,7 +7,7 @@ import { AlertTriangle, ChevronLeft, Gamepad2, Loader2, RefreshCw, Search, Smart
 import { GameCard } from "@/components/games/game-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { GameCardSkeleton } from "@/components/ui/route-skeletons"
+import { LoadingScreen } from "@/components/ui/loading-screen"
 import { useDebounce } from "@/hooks/use-debounce"
 import { CATEGORIES } from "@/lib/utils"
 import { MAX_DISCOVERY_SEARCH_LENGTH } from "@/lib/discovery-query"
@@ -543,8 +543,8 @@ export function GamesBrowser({
       </div>
 
       {loading && games.length === 0 ? (
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-label="Updating game results">
-          {Array.from({ length: 8 }, (_, index) => <GameCardSkeleton key={index} />)}
+        <div aria-label="Updating game results">
+          <LoadingScreen fullScreen={false} message="UPDATING THE ARCADE FLOOR..." />
         </div>
       ) : games.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

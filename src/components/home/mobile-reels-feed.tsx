@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import { DownloadCodeButton } from "@/components/games/download-code-button"
 import { GameThumbnailPlaceholder } from "@/components/games/game-thumbnail-placeholder"
+import { NinjaConsole } from "@/components/icons/ninja-console"
 import { MobileHomeIntroSlide } from "@/components/home/mobile-home-intro-slide"
 import type { HomeBackdropGame } from "@/components/home/home-game-backdrop"
 import type { HomePageData } from "@/lib/home-page-data"
@@ -114,6 +115,7 @@ function ReelPoster({ game, muted = false }: { game: FeedGame; muted?: boolean }
 interface ActiveGameFrameProps {
   game: FeedGame
   index: number
+  isActive: boolean
   isInteractive: boolean
   isFullscreen: boolean
   rotateLandscape: boolean
@@ -130,6 +132,7 @@ interface ActiveGameFrameProps {
 function ActiveGameFrame({
   game,
   index,
+  isActive,
   isInteractive,
   isFullscreen,
   rotateLandscape,
@@ -180,7 +183,7 @@ function ActiveGameFrame({
         id={`iframe-${game.id}-${index}`}
         src={game.gameUrl}
         title={game.title}
-        loading="lazy"
+        loading="eager"
         onLoad={() => setFrameState("ready")}
         onError={() => setFrameState("slow")}
         className={`border-0 bg-black transition-opacity duration-500 ${
@@ -206,18 +209,7 @@ function ActiveGameFrame({
         }
       />
 
-      {frameState === "loading" ? (
-        <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-canvas/45 text-center">
-          <span className="flex h-12 w-12 items-center justify-center border-2 border-border-strong bg-surface shadow-[3px_3px_0_#000]">
-            <Loader2 className="h-5 w-5 animate-spin text-arcade-yellow" />
-          </span>
-          <span className="border border-border-strong bg-canvas/90 px-3 py-2 text-kicker  text-text-secondary">
-            STARTING GAME...
-          </span>
-        </div>
-      ) : null}
-
-      {frameState === "slow" ? (
+      {isActive && frameState === "slow" ? (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-canvas/82 p-6">
           <div className="w-full max-w-xs border-2 border-border-strong bg-surface p-5 text-center shadow-[5px_5px_0_#000]">
             <span className="mx-auto flex h-11 w-11 items-center justify-center border-2 border-arcade-yellow bg-canvas text-arcade-yellow">
@@ -294,6 +286,25 @@ const shuffleArray = (array: FeedGame[]) => {
   return arr
 }
 
+const buildSeamlessFeed = (items: FeedGame[]) => {
+  const source = normalizeFeedGames(items).slice(0, MAX_FEED_ITEMS)
+  if (source.length === 0) return []
+
+  const feed: FeedGame[] = []
+  while (feed.length < MAX_FEED_ITEMS) {
+    const batch = shuffleArray(source)
+    const previousGame = feed.at(-1)
+
+    if (batch.length > 1 && previousGame?.id === batch[0]?.id) {
+      batch.push(batch.shift() as FeedGame)
+    }
+
+    feed.push(...batch.slice(0, MAX_FEED_ITEMS - feed.length))
+  }
+
+  return feed
+}
+
 export function MobileReelsFeed({
   games,
   backgroundGames,
@@ -309,14 +320,8 @@ export function MobileReelsFeed({
 
   // Endless scrolling randomized feed state
   const [feedGames, setFeedGames] = useState<FeedGame[]>([])
-  const [seedGames, setSeedGames] = useState<FeedGame[]>([])
   const [feedLoadState, setFeedLoadState] = useState<FeedLoadState>("loading")
   const [activeIndex, setActiveIndex] = useState(-1)
-
-  // Pagination states
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   // Fullscreen tracking state
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -356,7 +361,7 @@ export function MobileReelsFeed({
     setFeedLoadState("loading")
 
     try {
-      const response = await fetch("/api/games?mobile=true&limit=20&page=1&sort=popular", {
+      const response = await fetch("/api/games?mobile=true&limit=50&page=1&sort=popular", {
         signal: controller.signal,
       })
       if (!response.ok) throw new Error("Feed request failed")
@@ -368,16 +373,11 @@ export function MobileReelsFeed({
 
       if (recoveredGames.length === 0) {
         setFeedGames([])
-        setSeedGames([])
-        setHasMore(false)
         setFeedLoadState("empty")
         return
       }
 
-      setSeedGames(recoveredGames)
-      setFeedGames(shuffleArray(recoveredGames))
-      setPage(1)
-      setHasMore(Boolean(payload.hasMore))
+      setFeedGames(buildSeamlessFeed(recoveredGames))
       setFeedLoadState("ready")
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return
@@ -392,10 +392,7 @@ export function MobileReelsFeed({
     const initialGames = normalizeFeedGames(games)
     if (initialGames.length > 0) {
       recoveryAbortRef.current?.abort()
-      setSeedGames(initialGames)
-      setFeedGames(shuffleArray(initialGames))
-      setPage(1)
-      setHasMore(initialGames.length >= 20)
+      setFeedGames(buildSeamlessFeed(initialGames))
       setFeedLoadState("ready")
       return
     }
@@ -564,69 +561,6 @@ export function MobileReelsFeed({
       }
     }
   }, [syncActiveSlide])
-
-  // Load next page function
-  const loadNextPage = useCallback(async () => {
-    if (isLoadingMore || seedGames.length === 0 || feedGames.length >= MAX_FEED_ITEMS) return
-
-    const appendFallbackBatch = () => {
-      setFeedGames((current) => {
-        const room = MAX_FEED_ITEMS - current.length
-        if (room <= 0) return current
-        return [...current, ...shuffleArray(seedGames).slice(0, room)]
-      })
-    }
-
-    setIsLoadingMore(true)
-    const nextPage = page + 1
-    try {
-      if (!hasMore || seedGames.length < 20) {
-        appendFallbackBatch()
-        setHasMore(false)
-        return
-      }
-
-      const response = await fetch(`/api/games?mobile=true&limit=20&page=${nextPage}&sort=popular`)
-      if (!response.ok) throw new Error("Next feed page failed")
-
-      const payload = await response.json()
-      const nextGames = Array.isArray(payload.data)
-        ? normalizeFeedGames(payload.data as FeedGame[])
-        : []
-
-      if (nextGames.length > 0) {
-        setFeedGames((current) => {
-          const room = MAX_FEED_ITEMS - current.length
-          return room > 0
-            ? [...current, ...shuffleArray(nextGames).slice(0, room)]
-            : current
-        })
-        setPage(nextPage)
-        setHasMore(Boolean(payload.hasMore))
-      } else {
-        appendFallbackBatch()
-        setHasMore(false)
-      }
-    } catch (e) {
-      console.error("Error loading next page:", e)
-      appendFallbackBatch()
-      setHasMore(false)
-    } finally {
-      setIsLoadingMore(false)
-    }
-  }, [feedGames.length, hasMore, isLoadingMore, page, seedGames])
-
-  // Trigger loading next page when close to end of feed (5 items buffer)
-  useEffect(() => {
-    if (
-      activeIndex >= 0 &&
-      activeIndex >= feedGames.length - 5 &&
-      feedGames.length > 0 &&
-      feedGames.length < MAX_FEED_ITEMS
-    ) {
-      void loadNextPage()
-    }
-  }, [activeIndex, feedGames.length, loadNextPage])
 
   // Custom toast trigger
   const triggerToast = (msg: string) => {
@@ -869,7 +803,7 @@ export function MobileReelsFeed({
             <div className="relative w-full max-w-xs border-2 border-border-strong bg-surface p-7 shadow-[6px_6px_0_#000]">
               <span className="mx-auto flex h-14 w-14 items-center justify-center border-2 border-arcade-yellow bg-canvas text-arcade-yellow">
                 {feedLoadState === "loading" ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <NinjaConsole className="h-10 w-10" animated />
                 ) : feedLoadState === "error" ? (
                   <RefreshCcw className="h-6 w-6" />
                 ) : (
@@ -915,7 +849,7 @@ export function MobileReelsFeed({
 
         {feedGames.map((game, index) => {
           const isActive = index === activeIndex
-          const shouldRender = Math.abs(index - activeIndex) <= 3
+          const shouldRender = index >= activeIndex - 1 && index <= activeIndex + 2
 
           const gameLikes = likesState[game.id] || { liked: false, count: game.likes }
 
@@ -955,27 +889,22 @@ export function MobileReelsFeed({
                 id={`frame-container-${game.id}-${index}`}
                 className="relative flex w-full flex-1 items-center justify-center overflow-hidden bg-canvas"
               >
-                {isActive ? (
-                  <ActiveGameFrame
-                    game={game}
-                    index={index}
-                    isInteractive={isInteractive}
-                    isFullscreen={isFullscreen}
-                    rotateLandscape={rotateLandscape}
-                    width={width}
-                    height={height}
-                    logicalWidth={logicalWidth}
-                    logicalHeight={logicalHeight}
-                    onInteractionChange={setIsInteractive}
-                    onTouchStart={handleTouchStart}
-                    onTouchEnd={handleTouchEnd}
-                    onOpenGame={() => router.push(`/play/${game.slug}`)}
-                  />
-                ) : (
-                  <div className="relative h-full w-full">
-                    <ReelPoster game={game} muted />
-                  </div>
-                )}
+                <ActiveGameFrame
+                  game={game}
+                  index={index}
+                  isActive={isActive}
+                  isInteractive={isActive && isInteractive}
+                  isFullscreen={isActive && isFullscreen}
+                  rotateLandscape={rotateLandscape}
+                  width={width}
+                  height={height}
+                  logicalWidth={logicalWidth}
+                  logicalHeight={logicalHeight}
+                  onInteractionChange={setIsInteractive}
+                  onTouchStart={handleTouchStart}
+                  onTouchEnd={handleTouchEnd}
+                  onOpenGame={() => router.push(`/play/${game.slug}`)}
+                />
               </div>
 
               <div className="z-10 w-full shrink-0 select-none border-t-2 border-border-strong bg-canvas px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-3 landscape:h-full landscape:w-[112px] landscape:border-l-2 landscape:border-t-0 landscape:p-2">

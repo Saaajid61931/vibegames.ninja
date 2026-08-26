@@ -1,5 +1,5 @@
-import { GamesRouteSkeleton } from "@/components/ui/route-skeletons"
+import { LoadingScreen } from "@/components/ui/loading-screen"
 
 export default function Loading() {
-  return <GamesRouteSkeleton />
+  return <LoadingScreen message="OPENING THE ARCADE..." />
 }

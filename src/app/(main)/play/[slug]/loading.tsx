@@ -1,5 +1,5 @@
-import { PlayRouteSkeleton } from "@/components/ui/route-skeletons"
+import { LoadingScreen } from "@/components/ui/loading-screen"
 
 export default function Loading() {
-  return <PlayRouteSkeleton />
+  return <LoadingScreen message="STARTING THE GAME..." />
 }

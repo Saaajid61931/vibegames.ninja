@@ -1,5 +1,5 @@
-import { DashboardRouteSkeleton } from "@/components/ui/route-skeletons"
+import { LoadingScreen } from "@/components/ui/loading-screen"
 
 export default function Loading() {
-  return <DashboardRouteSkeleton label="Loading creator dashboard" />
+  return <LoadingScreen message="LOADING CREATOR DASHBOARD..." />
 }

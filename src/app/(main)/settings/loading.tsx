@@ -1,5 +1,5 @@
-import { FormRouteSkeleton } from "@/components/ui/route-skeletons"
+import { LoadingScreen } from "@/components/ui/loading-screen"
 
 export default function Loading() {
-  return <FormRouteSkeleton label="Loading account settings" />
+  return <LoadingScreen message="LOADING ACCOUNT SETTINGS..." />
 }

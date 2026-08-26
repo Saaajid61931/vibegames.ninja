@@ -137,7 +137,7 @@ export function PlayPageView({
             ) : null}
           </div>
 
-          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_19rem] xl:grid-cols-[minmax(0,1fr)_21rem]">
+          <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1fr)_19rem] xl:grid-cols-[minmax(0,1fr)_21rem]">
             <div className="min-w-0 space-y-5 sm:space-y-6">
               <PlayTracker
                 gameId={game.id}

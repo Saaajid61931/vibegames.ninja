@@ -143,7 +143,7 @@ const getAllMobileGames = unstable_cache(async () => {
     },
     select: mobileReelsGameSelect,
     orderBy: getDiscoveryOrderBy("popular"),
-    take: 20,
+    take: 80,
   })
 }, ["home-all-mobile-games"], { revalidate: 60, tags: ["games"] })
 
