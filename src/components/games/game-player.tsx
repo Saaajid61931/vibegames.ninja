@@ -101,6 +101,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
   const [gameReady, setGameReady] = useState(false)
   const [fullscreenError, setFullscreenError] = useState("")
   const [isAutoCapturing, setIsAutoCapturing] = useState(false)
+  const [playRequested, setPlayRequested] = useState(false)
   const effectiveMode = mode === "preview" ? "play" : mode
 
   const requiredOrientation = supportsMobile && mobileOrientation !== "BOTH"
@@ -113,6 +114,8 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
       viewportOrientation !== requiredOrientation.toLowerCase()
   )
   const showPlayOverlay = !isFullscreen && !isAutoCapturing && mode === "play"
+  const shouldLoadGame =
+    playRequested || isFullscreen || isAutoCapturing || mode !== "play"
 
   useEffect(() => {
     isLoadingRef.current = isLoading
@@ -687,7 +690,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
       )}
 
       <div className={isFullscreen ? "relative h-[100dvh] w-full bg-black" : "relative w-full bg-black aspect-[4/3] sm:aspect-video"}>
-        {isLoading && (
+        {shouldLoadGame && isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
             <div className="text-center">
               <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-primary-hover-text" />
@@ -714,6 +717,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
                 size="lg"
                 className="w-full gap-2 px-8 sm:w-auto"
                 onClick={() => {
+                  setPlayRequested(true)
                   void launchFullscreen()
                 }}
               >
@@ -744,7 +748,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
 
         <iframe
           ref={iframeRef}
-          src={gameUrl}
+          src={shouldLoadGame ? gameUrl : undefined}
           title={title}
           sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-forms"
           allow="fullscreen; gamepad; accelerometer; gyroscope"

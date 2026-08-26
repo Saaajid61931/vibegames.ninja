@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -45,6 +45,8 @@ interface LevelsResponse {
 export function CommunityLevels({ gameId, slug, selectedLevelId, currentUserId }: CommunityLevelsProps) {
   const router = useRouter()
   const showToast = useToast()
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [hasIntersected, setHasIntersected] = useState(false)
   const [levels, setLevels] = useState<LevelListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -102,8 +104,37 @@ export function CommunityLevels({ gameId, slug, selectedLevelId, currentUserId }
   }, [gameId, sort])
 
   useEffect(() => {
+    const root = rootRef.current
+    if (!root || hasIntersected) {
+      return
+    }
+
+    if (typeof IntersectionObserver === "undefined") {
+      setHasIntersected(true)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setHasIntersected(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: "300px 0px" }
+    )
+
+    observer.observe(root)
+    return () => observer.disconnect()
+  }, [hasIntersected])
+
+  useEffect(() => {
+    if (!hasIntersected) {
+      return
+    }
+
     void fetchLevels(1, false)
-  }, [fetchLevels])
+  }, [fetchLevels, hasIntersected])
 
   const handleDeleteLevel = async () => {
     const level = deleteTarget
@@ -141,7 +172,7 @@ export function CommunityLevels({ gameId, slug, selectedLevelId, currentUserId }
   }
 
   return (
-    <div className="border-2 border-border-strong bg-canvas p-4 sm:p-5">
+    <div ref={rootRef} className="border-2 border-border-strong bg-canvas p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h3 className="font-arcade text-xs sm:text-sm text-arcade-yellow">COMMUNITY LEVELS {total > 0 ? `(${total})` : ""}</h3>
         <div className="flex flex-wrap gap-2">

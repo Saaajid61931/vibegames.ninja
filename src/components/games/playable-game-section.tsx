@@ -283,6 +283,8 @@ export function PlayableGameSection({
     }
 
     let cancelled = false
+    let idleCallbackId: number | null = null
+    let fallbackTimeoutId: number | null = null
 
     const loadGhostBoards = async () => {
       setGhostLoading(true)
@@ -311,10 +313,20 @@ export function PlayableGameSection({
       }
     }
 
-    void loadGhostBoards()
+    if (typeof window.requestIdleCallback === "function") {
+      idleCallbackId = window.requestIdleCallback(() => void loadGhostBoards(), { timeout: 2000 })
+    } else {
+      fallbackTimeoutId = window.setTimeout(() => void loadGhostBoards(), 300)
+    }
 
     return () => {
       cancelled = true
+      if (idleCallbackId !== null) {
+        window.cancelIdleCallback(idleCallbackId)
+      }
+      if (fallbackTimeoutId !== null) {
+        window.clearTimeout(fallbackTimeoutId)
+      }
     }
   }, [gameId, hasGhostSharing, selectedLevelId])
 

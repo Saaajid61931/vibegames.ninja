@@ -70,7 +70,7 @@ const getGame = cache(async (slug: string) => {
           },
         },
         orderBy: { createdAt: "desc" },
-        take: 80,
+        take: 12,
       },
       jamEntries: {
         orderBy: { submittedAt: "desc" },

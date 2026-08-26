@@ -368,7 +368,7 @@ export function GamesBrowser({
       </div>
 
       <>
-        <div className="sticky top-[4.75rem] z-30 -mx-4 mb-6 space-y-3 border-y-2 border-border-strong bg-canvas/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:space-y-6 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+        <div className="sticky top-[var(--vg-header-height,4.75rem)] z-30 -mx-4 mb-6 space-y-3 border-y-2 border-border-strong bg-canvas/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:space-y-6 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
           <div className="relative">
             <label htmlFor="arcade-search" className="sr-only">Search the arcade</label>
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-text-secondary" aria-hidden="true" />

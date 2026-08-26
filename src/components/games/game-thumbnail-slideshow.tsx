@@ -17,6 +17,25 @@ interface GameThumbnailSlideshowProps {
 }
 
 const SLIDESHOW_INTERVAL_MS = 2800
+
+function useCanAutoAnimateSlides() {
+  const [canAutoAnimate, setCanAutoAnimate] = useState(false)
+
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 768px)")
+    const update = () => setCanAutoAnimate(query.matches)
+
+    update()
+    query.addEventListener("change", update)
+
+    return () => {
+      query.removeEventListener("change", update)
+    }
+  }, [])
+
+  return canAutoAnimate
+}
+
 export function GameThumbnailSlideshow({
   title,
   thumbnail,
@@ -49,18 +68,20 @@ export function GameThumbnailSlideshow({
 
   const [activeIndex, setActiveIndex] = useState(0)
   const [failedFrames, setFailedFrames] = useState<Set<string>>(() => new Set())
+  const canAutoAnimate = useCanAutoAnimateSlides()
+  const shouldAnimateSlides = animateSlides && canAutoAnimate
   const frameKey = frames.join("|")
   const usableFrames = frames.filter((frame) => !failedFrames.has(frame))
   const visibleIndex =
     usableFrames.length === 0
       ? 0
-      : animateSlides
+      : shouldAnimateSlides
         ? activeIndex % usableFrames.length
         : 0
   const currentSrc = usableFrames[visibleIndex]
 
   useEffect(() => {
-    if (!animateSlides || usableFrames.length < 2) {
+    if (!shouldAnimateSlides || usableFrames.length < 2) {
       return
     }
 
@@ -71,7 +92,7 @@ export function GameThumbnailSlideshow({
     return () => {
       window.clearInterval(intervalId)
     }
-  }, [animateSlides, usableFrames.length])
+  }, [shouldAnimateSlides, usableFrames.length])
 
   if (usableFrames.length === 0) {
     return <GameThumbnailPlaceholder title={title} />

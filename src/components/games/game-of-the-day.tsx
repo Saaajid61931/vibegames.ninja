@@ -99,7 +99,6 @@ export function GameOfTheDay({ game, monthlyStars, monthlyRatings }: GameOfTheDa
                   thumbnail={game.thumbnail}
                   thumbnailSlides={game.thumbnailSlides}
                   sizes="(max-width: 1024px) 100vw, 55vw"
-                  priority
                   imageClassName="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (

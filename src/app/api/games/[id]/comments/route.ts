@@ -12,6 +12,14 @@ export async function GET(
 ) {
   try {
     const { id: gameId } = await params
+    const skipParam = Number(request.nextUrl.searchParams.get("skip"))
+    const takeParam = Number(request.nextUrl.searchParams.get("take"))
+    const skip = Number.isFinite(skipParam) && skipParam > 0 ? Math.floor(skipParam) : 0
+    const take =
+      Number.isFinite(takeParam) && takeParam > 0
+        ? Math.min(Math.floor(takeParam), 80)
+        : 80
+
     const comments = await prisma.comment.findMany({
       where: { gameId },
       include: {
@@ -25,7 +33,8 @@ export async function GET(
         },
       },
       orderBy: { createdAt: "desc" },
-      take: 80,
+      skip,
+      take,
     })
 
     return NextResponse.json({ comments })

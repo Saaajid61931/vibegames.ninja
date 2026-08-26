@@ -16,6 +16,35 @@ type HomeGameBackdropProps = {
   onActiveThumbnailChange?: (thumbnail: string | null) => void
 }
 
+function useDesktopBackdropActive(variant: HomeGameBackdropProps["variant"]) {
+  const [active, setActive] = useState(variant === "mobile")
+
+  useEffect(() => {
+    if (variant === "mobile") {
+      return
+    }
+
+    const wideQuery = window.matchMedia("(min-width: 768px)")
+    const shortLandscapeQuery = window.matchMedia(
+      "(max-height: 500px) and (orientation: landscape)"
+    )
+    const update = () => {
+      setActive(wideQuery.matches && !shortLandscapeQuery.matches)
+    }
+
+    update()
+    wideQuery.addEventListener("change", update)
+    shortLandscapeQuery.addEventListener("change", update)
+
+    return () => {
+      wideQuery.removeEventListener("change", update)
+      shortLandscapeQuery.removeEventListener("change", update)
+    }
+  }, [variant])
+
+  return active
+}
+
 export function HomeGameBackdrop({
   games,
   variant,
@@ -37,8 +66,10 @@ export function HomeGameBackdrop({
       ? "(max-width: 767px) 100vw, 1px"
       : "(max-width: 767px) 1px, 100vw"
 
+  const backdropActive = useDesktopBackdropActive(variant)
+
   useEffect(() => {
-    if (backdropGames.length <= 1) return
+    if (!backdropActive || backdropGames.length <= 1) return
 
     const nextIndex = (currentIndex + 1) % backdropGames.length
     const nextThumbnail = backdropGames[nextIndex]?.thumbnail
@@ -46,10 +77,10 @@ export function HomeGameBackdrop({
       const preload = new Image()
       preload.src = nextThumbnail
     }
-  }, [backdropGames, currentIndex])
+  }, [backdropActive, backdropGames, currentIndex])
 
   useEffect(() => {
-    if (backdropGames.length <= 1) return
+    if (!backdropActive || backdropGames.length <= 1) return
 
     const interval = window.setInterval(() => {
       setSlide((currentSlide) => ({
@@ -59,7 +90,7 @@ export function HomeGameBackdrop({
     }, 6000)
 
     return () => window.clearInterval(interval)
-  }, [backdropGames.length])
+  }, [backdropActive, backdropGames.length])
 
   const currentGame = backdropGames[currentIndex]
   const previousGame =
@@ -168,7 +199,6 @@ export function HomeGameBackdrop({
             fill
             sizes={imageSizes}
             draggable={false}
-            loading="eager"
             onError={() => markImageFailed(previousGame.id)}
             className="absolute inset-0 z-10 h-full w-full scale-[1.04] object-cover object-center opacity-100 saturate-[1.12] contrast-[1.06]"
           />
@@ -189,8 +219,6 @@ export function HomeGameBackdrop({
             fill
             sizes={imageSizes}
             draggable={false}
-            loading="eager"
-            fetchPriority={slide.current === 0 ? "high" : "auto"}
             onError={() => markImageFailed(currentGame.id)}
             className="home-game-backdrop-image absolute inset-0 z-10 h-full w-full object-cover object-center saturate-[1.12] contrast-[1.06]"
           />

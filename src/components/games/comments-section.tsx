@@ -46,6 +46,10 @@ export function CommentsSection({
 
   const [comments, setComments] = useState(initialComments)
   const [commentsCount, setCommentsCount] = useState(initialCommentsCount)
+  const [hasMoreComments, setHasMoreComments] = useState(
+    initialCommentsCount > initialComments.length
+  )
+  const [loadingMore, setLoadingMore] = useState(false)
   const [content, setContent] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -118,6 +122,44 @@ export function CommentsSection({
 
     setComments((prev) => [data.comment as CommentItem, ...prev])
     setCommentsCount((prev) => Number(data.commentsCount) || prev + 1)
+  }
+
+  const loadMoreComments = async () => {
+    if (loadingMore) {
+      return
+    }
+
+    setLoadingMore(true)
+    setError("")
+
+    try {
+      const params = new URLSearchParams({
+        skip: String(comments.length),
+        take: "24",
+      })
+      const res = await fetch(`/api/games/${gameId}/comments?${params.toString()}`)
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to load comments")
+      }
+
+      const fetched = (Array.isArray(data.comments) ? data.comments : []) as CommentItem[]
+      let added = 0
+
+      setComments((prev) => {
+        const seen = new Set(prev.map((comment) => comment.id))
+        const fresh = fetched.filter((comment) => !seen.has(comment.id))
+        added = fresh.length
+        return [...prev, ...fresh]
+      })
+
+      setHasMoreComments(comments.length + added < Math.max(initialCommentsCount, commentsCount))
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Failed to load comments")
+    } finally {
+      setLoadingMore(false)
+    }
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -333,6 +375,26 @@ export function CommentsSection({
         {threadedComments.length > 0 ? (
           <div className="space-y-4">
             {threadedComments.map((comment) => renderComment(comment))}
+            {hasMoreComments ? (
+              <div className="flex justify-center pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void loadMoreComments()}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    "Load more comments"
+                  )}
+                </Button>
+              </div>
+            ) : null}
           </div>
         ) : (
           <p className="py-10 text-center text-sm text-text-tertiary">

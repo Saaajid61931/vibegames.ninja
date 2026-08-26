@@ -234,6 +234,12 @@ html {
   animation-play-state: paused;
 }
 
+/* Hide a previously dismissed announcement before React hydrates (set by inline
+   script in the header) so the sticky header never jumps after first paint. */
+[data-marquee-dismissed] .vg-marquee {
+  display: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

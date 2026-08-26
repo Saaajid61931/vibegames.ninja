@@ -106,15 +106,22 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border">
+    <header className="sticky top-0 z-50 w-full border-b border-border pt-[env(safe-area-inset-top)]">
+      {/* Hide a previously dismissed announcement before first paint to avoid a layout jump. */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html:
+            'try{if(window.sessionStorage.getItem("vg-marquee-dismissed")==="true"){document.documentElement.setAttribute("data-marquee-dismissed","")}}catch(e){}',
+        }}
+      />
       {marqueeVisible ? (
-        <div className="relative overflow-hidden whitespace-nowrap bg-primary pr-9">
+        <div className="vg-marquee relative overflow-hidden whitespace-nowrap bg-primary pr-11">
           <div className="marquee-content">
             NEW GAMES DAILY &bull; AI ARCADE &bull; GAME JAMS &bull; BUILD &bull; PLAY &bull; GET INSPIRED &bull; NEW GAMES DAILY &bull; AI ARCADE &bull; GAME JAMS &bull; BUILD &bull; PLAY &bull; GET INSPIRED &bull;
           </div>
           <button
             type="button"
-            className="absolute inset-y-0 right-0 grid w-9 place-items-center bg-primary text-white transition-colors hover:bg-primary-hover"
+            className="absolute inset-y-0 right-0 grid w-11 place-items-center bg-primary text-white transition-colors hover:bg-primary-hover"
             aria-label="Dismiss announcement"
             onClick={() => {
               setMarqueeVisible(false)
@@ -125,7 +132,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
               }
             }}
           >
-            <X className="h-3.5 w-3.5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
       ) : null}
@@ -193,7 +200,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
               ) : session?.user ? (
                 <>
                   <Link href="/upload" prefetch={false} className="md:hidden">
-                    <Button size="icon" aria-label="Upload game" className="h-10 w-10">
+                    <Button size="icon" aria-label="Upload game" className="h-11 w-11">
                       <Plus className="h-4 w-4" />
                     </Button>
                   </Link>
@@ -273,7 +280,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
               <button
                 ref={mobileMenuButtonRef}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 text-text rounded-md border border-border hover:bg-surface"
+                className="md:hidden grid h-11 w-11 place-items-center text-text rounded-md border border-border transition-colors hover:bg-surface"
                 aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
                 aria-expanded={mobileMenuOpen}
                 aria-controls="mobile-navigation-menu"
@@ -284,8 +291,15 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
           </div>
 
           {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <div id="mobile-navigation-menu" className="max-h-[calc(100dvh-6rem)] space-y-4 overflow-y-auto overscroll-contain border-t border-border py-4 md:hidden">
+          <div
+            id="mobile-navigation-menu"
+            className={`md:hidden overflow-hidden border-t border-border transition-[max-height,opacity] duration-200 ease-out ${
+              mobileMenuOpen
+                ? "max-h-[calc(100dvh-6rem)] opacity-100"
+                : "max-h-0 border-t-0 opacity-0"
+            }`}
+          >
+            <div className="max-h-[calc(100dvh-6rem)] space-y-4 overflow-y-auto overscroll-contain py-4">
               <form onSubmit={submitSearch} role="search" className="relative">
                 <label htmlFor="mobile-global-game-search" className="sr-only">Search games</label>
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" aria-hidden="true" />
@@ -296,7 +310,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                   onChange={(event) => setSearchQuery(event.target.value)}
                   maxLength={MAX_DISCOVERY_SEARCH_LENGTH}
                   placeholder="Search the arcade"
-                  className="h-11 w-full border-2 border-border-strong bg-surface pl-10 pr-12 text-sm text-text placeholder:text-text-secondary focus:border-arcade-yellow focus:outline-none"
+                  className="h-11 w-full border-2 border-border-strong bg-surface pl-10 pr-12 text-base text-text placeholder:text-text-secondary focus:border-arcade-yellow focus:outline-none"
                 />
                 <button type="submit" className="absolute right-0 top-0 grid h-11 w-11 place-items-center text-arcade-yellow" aria-label="Submit game search">
                   <Search className="h-4 w-4" />
@@ -312,7 +326,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                       aria-current={isActive ? "page" : undefined}
                       prefetch={item.href === "/upload" ? false : (prefetchLinks ? undefined : false)}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`block px-3 py-2 rounded-md text-sm font-medium ${
+                      className={`flex min-h-[44px] items-center rounded-md px-3 text-sm font-medium transition-colors ${
                         isActive
                           ? "bg-primary text-white"
                           : "text-text-secondary hover:text-text hover:bg-surface"
@@ -334,7 +348,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <Link href="/notifications" prefetch={prefetchLinks ? undefined : false}>
-                      <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="h-11 w-full justify-start gap-2" onClick={() => setMobileMenuOpen(false)}>
                         <Bell className="h-4 w-4" />
                         Alerts
                         {displayedUnreadCount > 0 ? (
@@ -345,25 +359,25 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                       </Button>
                     </Link>
                     <Link href="/upload" prefetch={false}>
-                      <Button className="w-full justify-start gap-2" onClick={() => setMobileMenuOpen(false)}>
+                      <Button className="h-11 w-full justify-start gap-2" onClick={() => setMobileMenuOpen(false)}>
                         <Plus className="h-4 w-4" />
                         Upload
                       </Button>
                     </Link>
                     <Link href="/creator" prefetch={prefetchLinks ? undefined : false}>
-                      <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="h-11 w-full justify-start gap-2" onClick={() => setMobileMenuOpen(false)}>
                         <LayoutDashboard className="h-4 w-4" />
                         Dashboard
                       </Button>
                     </Link>
                     <Link href="/favorites" prefetch={prefetchLinks ? undefined : false}>
-                      <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="h-11 w-full justify-start gap-2" onClick={() => setMobileMenuOpen(false)}>
                         <Heart className="h-4 w-4" />
                         Favorites
                       </Button>
                     </Link>
                     <Link href="/settings" prefetch={prefetchLinks ? undefined : false} className="col-span-2">
-                      <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="h-11 w-full justify-start gap-2" onClick={() => setMobileMenuOpen(false)}>
                         <Settings className="h-4 w-4" />
                         Settings
                       </Button>
@@ -371,7 +385,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                   </div>
                   <Button
                     variant="ghost"
-                    className="w-full"
+                    className="h-11 w-full"
                     onClick={() => {
                       setMobileMenuOpen(false)
                       signOut()
@@ -383,15 +397,23 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
               ) : (
                 <div className="grid grid-cols-2 gap-2 border-t border-border pt-4">
                   <Link href="/login" prefetch={prefetchLinks ? undefined : false}>
-                    <Button variant="outline" className="w-full" onClick={() => setMobileMenuOpen(false)}>Sign in</Button>
+                    <Button variant="outline" className="h-11 w-full" onClick={() => setMobileMenuOpen(false)}>Sign in</Button>
                   </Link>
                   <Link href="/register" prefetch={prefetchLinks ? undefined : false}>
-                    <Button className="w-full" onClick={() => setMobileMenuOpen(false)}>Get Started</Button>
+                    <Button className="h-11 w-full" onClick={() => setMobileMenuOpen(false)}>Get Started</Button>
                   </Link>
                 </div>
               )}
             </div>
-          )}
+          </div>
+
+          {/* Keep sticky offsets in sync before first paint (marquee + safe area aware). */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html:
+                '(function(){var el=document.currentScript&&document.currentScript.parentElement;if(!el)return;var set=function(){document.documentElement.style.setProperty("--vg-header-height",el.getBoundingClientRect().height+"px")};set();if(typeof ResizeObserver!=="undefined"){new ResizeObserver(set).observe(el)}})()',
+            }}
+          />
         </div>
       </div>
     </header>
