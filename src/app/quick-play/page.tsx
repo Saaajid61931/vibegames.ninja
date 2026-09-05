@@ -8,7 +8,6 @@ export default async function QuickPlayPage() {
   return (
     <main className="mx-auto h-[100dvh] max-w-2xl overflow-hidden bg-canvas">
       <MobileReelsFeed
-        showIntro={false}
         games={data.allMobileGames}
         backgroundGames={data.heroGames}
         stats={data.stats}

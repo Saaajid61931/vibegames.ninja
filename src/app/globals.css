@@ -593,3 +593,16 @@ html {
 .community-form input:not([type=checkbox]),.community-form textarea,.community-form select { width:100%; min-height:44px; padding:.75rem; color:var(--color-text); background:var(--color-canvas); border:2px solid var(--color-border-strong); border-radius:0; }
 .community-form textarea { min-height:100px; }
 .community-button:focus-visible,.community-form :is(input,textarea,select):focus-visible { outline:2px solid var(--color-primary); outline-offset:3px; }
+
+/* Updated discovery layout, dressed in the original arcade design system. */
+.community-welcome { display:grid; min-width:0; align-items:center; gap:2rem; padding-top:2rem; padding-bottom:1.5rem; }
+.community-hero-title { font-family:var(--font-pixel),monospace; font-size:clamp(1.125rem,2.6vw,2rem); line-height:1.55; text-transform:uppercase; letter-spacing:.02em; }
+.community-hero-title > span { text-shadow:3px 3px 0 var(--color-arcade-red); }
+.community-quick-link { display:none; padding:1.5rem; background:var(--color-surface-2); border:2px solid var(--color-arcade-yellow); box-shadow:var(--shadow-hard-4); }
+.community-quick-link > span:first-child,.community-quick-link > span:last-child { display:block; }
+.community-filter-bar { border:2px solid var(--color-border-strong); background:var(--color-surface); padding:.75rem; }
+.community-filter-bar > div:first-child { display:none; }
+.community-filter-bar > div:nth-child(2) { margin-top:0; }
+.community-browser { min-width:0; }
+@media(min-width:1024px) { .community-welcome { grid-template-columns:minmax(0,1.7fr) minmax(0,1fr); padding-top:2.5rem; padding-bottom:2rem; } .community-quick-link { display:block; } }
+@media(max-width:767px) { .responsive-lane { contain:paint; } }

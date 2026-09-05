@@ -1,9 +1,12 @@
 # Community and source marketplace implementation
 
-## Preferred visual design restored
+## Final design direction: improved experience with the preferred arcade style
 
-The owner confirmed that the production deployment of commit `5bc0adc` is the visual baseline to preserve. The original desktop homepage, hero, marquee, mobile PLAY / BUILD / INSPIRE intro, arcade browse layout, pixel typography, card treatment and creator profile are restored. New collections, creator stories and source-marketplace functionality remain, with their pages styled using the existing arcade palette, square borders and hard shadows. Account/menu and footer links expose the added features without replacing the original main navigation. The separate Quick play route still starts directly with a game. No tests or deployment were run for this visual correction, as requested. Earlier screenshots and layout measurements below describe the superseded redesign.
+The improved layout and product flows from commit `4fff9cf` are retained. The subsequent return to the old layout was superseded: this is a visual theme adjustment, not a rollback of the redesign.
 
+The homepage retains Worth a play, inspiration collections, Fresh experiments, Looking for feedback, recent plays and the sharing invitation. Explore retains the streamlined filters and readable sorting. Quick play retains creator identity, saving and a single active game. Primary navigation exposes Collections and Community. Creator stories, source purchases, review, support and payout workflows remain.
+
+These updated layouts use the preferred deployment's arcade fonts, dark palette, yellow/cyan accents, square borders, hard shadows, card treatment and marquee. No tests or deployment were run for this correction, as requested. Earlier screenshots and measurements below may not reflect the final arcade styling.
 
 The local application now focuses on playing, sharing, collecting ideas and meeting creators. AI generation remains outside the main discovery and sharing journeys.
 

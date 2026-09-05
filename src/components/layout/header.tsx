@@ -82,12 +82,11 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
   const unreadLabel = displayedUnreadCount > 99 ? "99+" : String(displayedUnreadCount)
 
   const navigation = [
-    { name: "PLAY", href: "/games" },
+    { name: "EXPLORE", href: "/games" },
+    { name: "COLLECTIONS", href: "/collections" },
+    { name: "COMMUNITY", href: "/community" },
     { name: "JAMS", href: "/jams" },
-    { name: "BLOG", href: "/blog" },
-    ...(session?.user ? [{ name: "FAVS", href: "/favorites" }] : []),
-    { name: "UPLOAD", href: "/upload" },
-    { name: "CREATOR", href: "/creator" },
+    { name: "SHARE A GAME", href: "/upload" },
   ]
 
   const isNavigationActive = (href: string) => {
@@ -274,7 +273,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                   </Link>
                   <Link href="/register" prefetch={prefetchLinks ? undefined : false}>
                     <Button size="sm">
-                      Get Started
+                      Join the community
                     </Button>
                   </Link>
                 </div>
@@ -322,8 +321,6 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                 </button>
               </form>
               <nav className="space-y-1">
-                <Link key="/collections" href="/collections" prefetch={false} onClick={() => setMobileMenuOpen(false)} className="block rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface hover:text-text">Collections</Link>
-                <Link key="/community" href="/community" prefetch={false} onClick={() => setMobileMenuOpen(false)} className="block rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface hover:text-text">Community</Link>
                 <Link key="/library" href="/library" prefetch={false} onClick={() => setMobileMenuOpen(false)} className="block rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface hover:text-text">Source library</Link>
                 <Link key="/creator/projects" href="/creator/projects" prefetch={false} onClick={() => setMobileMenuOpen(false)} className="block rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface hover:text-text">Stories & source</Link>
                 {navigation.map((item) => {
@@ -409,7 +406,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                     <Button variant="outline" className="h-11 w-full" onClick={() => setMobileMenuOpen(false)}>Sign in</Button>
                   </Link>
                   <Link href="/register" prefetch={prefetchLinks ? undefined : false}>
-                    <Button className="h-11 w-full" onClick={() => setMobileMenuOpen(false)}>Get Started</Button>
+                    <Button className="h-11 w-full" onClick={() => setMobileMenuOpen(false)}>Join the community</Button>
                   </Link>
                 </div>
               )}

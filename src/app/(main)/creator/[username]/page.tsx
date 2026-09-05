@@ -258,7 +258,7 @@ export default async function PublicCreatorPage({ params }: PageProps) {
           BACK TO GAMES
         </Link>
 
-        <section className="mb-8 border-2 border-border-strong bg-surface-2 p-5 sm:p-6">
+        <section className="inspiration-tile mb-7">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 border-2 border-border-strong">
@@ -291,7 +291,7 @@ export default async function PublicCreatorPage({ params }: PageProps) {
             <p className="mt-4 text-sm text-text-secondary font-arcade">{creator.bio}</p>
           )}
 
-          <div className="mt-5 grid gap-3 md:grid-cols-3">
+          <div className="hidden">
             <div className="border border-border-strong bg-canvas p-3">
               <div className="flex items-center gap-2">
                 <Trophy className="h-4 w-4 text-arcade-yellow" />
@@ -315,7 +315,7 @@ export default async function PublicCreatorPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="mt-3 grid gap-3 md:grid-cols-4">
+          <div className="sr-only">
             <div className="border border-border-strong bg-canvas p-3">
               <p className="font-arcade text-xs text-text-secondary">TOTAL LAUNCHES</p>
               <p className="mt-2 font-arcade text-sm text-white">{normalizedGames.length}</p>
@@ -373,7 +373,7 @@ export default async function PublicCreatorPage({ params }: PageProps) {
             <Link href="/upload">
               <Button variant="outline" size="sm" className="gap-2">
                 <Gamepad2 className="h-4 w-4" />
-                Upload your game
+                Share your game
               </Button>
             </Link>
           </div>

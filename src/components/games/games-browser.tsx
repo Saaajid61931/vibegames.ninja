@@ -3,7 +3,7 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { AlertTriangle, ChevronLeft, Gamepad2, Loader2, RefreshCw, Search, Smartphone, SquarePen, X } from "lucide-react"
+import { AlertTriangle, Gamepad2, Loader2, RefreshCw, Search, Smartphone, SquarePen, X } from "lucide-react"
 import { GameCard } from "@/components/games/game-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -61,10 +61,10 @@ function createBrowseUrl(
 }
 
 const SORT_OPTIONS = [
-  { key: "trending", label: "TRENDING" },
-  { key: "new", label: "NEW" },
-  { key: "popular", label: "POPULAR" },
-  { key: "top", label: "TOP" },
+  { key: "trending", label: "Most played" },
+  { key: "new", label: "New" },
+  { key: "popular", label: "Most loved" },
+  { key: "top", label: "Highest rated" },
 ] as const
 
 const CATEGORY_OPTIONS = [
@@ -339,36 +339,11 @@ export function GamesBrowser({
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 sm:py-8">
-      <Link
-        href="/"
-        className="mb-4 inline-flex items-center gap-2 font-arcade text-sm text-text-secondary transition-colors hover:text-arcade-yellow sm:mb-6 sm:text-base"
-      >
-        <ChevronLeft className="h-5 w-5" />
-        BACK TO ARCADE
-      </Link>
-
-      <div className="mb-6 border-b-2 border-border-strong pb-6 sm:mb-8 sm:border-b-4 sm:pb-8">
-        <div className="mb-4 flex items-center gap-3">
-          <div className="border-2 border-arcade-yellow bg-arcade-yellow p-2 sm:border-4">
-            <Gamepad2 className="h-5 w-5 text-canvas sm:h-6 sm:w-6" />
-          </div>
-          <div>
-            <span className="text-kicker block text-arcade-yellow">Game select</span>
-            <h1 className="heading-pixel-lg text-white">Arcade floor</h1>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-          <div className="border-2 border-arcade-blue bg-surface-2 px-3 py-2 shadow-hard-2 sm:border-3 sm:px-4">
-            <span className="text-kicker block text-arcade-blue">Games online</span>
-            <span className="heading-pixel-md text-white">{total.toString().padStart(3, "0")}</span>
-          </div>
-        </div>
-      </div>
+    <div className="community-browser container mx-auto px-4 py-5 sm:py-7">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h1 className="heading-pixel-lg text-white">Explore games</h1><p className="mt-1 hidden text-sm text-text-secondary sm:block">Find something fun. Leave with an idea.</p></div><Link href="/quick-play" className="community-button">Quick play</Link></div>
 
       <>
-        <div className="sticky top-[var(--vg-header-height,4.75rem)] z-30 -mx-4 mb-6 space-y-3 border-y-2 border-border-strong bg-canvas/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:space-y-6 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+        <div className="mb-4 space-y-3">
           <div className="relative">
             <label htmlFor="arcade-search" className="sr-only">Search the arcade</label>
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-text-secondary" aria-hidden="true" />
@@ -378,7 +353,7 @@ export function GamesBrowser({
               value={q}
               onChange={(event) => setQ(event.target.value)}
               maxLength={MAX_DISCOVERY_SEARCH_LENGTH}
-              placeholder="SEARCH ARCADE..."
+              placeholder="Search games, mechanics, or ideas"
               className="pl-12 pr-12 text-base sm:text-lg"
             />
             {q ? (
@@ -393,7 +368,7 @@ export function GamesBrowser({
             ) : null}
           </div>
 
-          <div className="border-2 border-border-strong bg-surface p-3 sm:p-4">
+          <div className="community-filter-bar">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="text-kicker text-text-secondary">Filters</span>
@@ -423,7 +398,7 @@ export function GamesBrowser({
                 key={option.key}
                 variant={sort === option.key ? "arcade" : "arcade-outline"}
                 size="sm"
-                className="min-w-[8rem] shrink-0 justify-center"
+                className="shrink-0 justify-center"
                 aria-pressed={sort === option.key}
                 onClick={() => setSort(option.key)}
               >
@@ -433,7 +408,7 @@ export function GamesBrowser({
             <Button
               variant={supportsMobile ? "arcade" : "arcade-outline"}
               size="sm"
-              className="min-w-[8rem] shrink-0 justify-center"
+              className="shrink-0 justify-center"
               aria-pressed={supportsMobile}
               onClick={() => setSupportsMobile(!supportsMobile)}
             >
@@ -443,7 +418,7 @@ export function GamesBrowser({
             <Button
               variant={editorOnly ? "arcade" : "arcade-outline"}
               size="sm"
-              className="min-w-[8rem] shrink-0 justify-center"
+              className="shrink-0 justify-center"
               aria-pressed={editorOnly}
               onClick={() => setEditorOnly(!editorOnly)}
             >
@@ -454,21 +429,19 @@ export function GamesBrowser({
           </div>
         </div>
 
-        <div className="mb-8 border-2 border-border-strong bg-surface-2 p-3 sm:border-4 sm:p-4">
+        <div className="mb-4">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-kicker block text-text-secondary">Select category</span>
-            {!showAllCategories && visibleCategories.length < CATEGORY_OPTIONS.length ? (
-              <span className="font-arcade text-xs text-text-secondary">Top picks first</span>
-            ) : null}
+            <span className="sr-only">Select category</span>
+            
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+          <div className="mt-2 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap">
             {visibleCategories.map((option) => (
               <Button
                 key={option.value}
                 variant={category === option.value ? "arcade" : "outline"}
                 size="sm"
-                className="w-full justify-center sm:min-w-[120px] sm:w-auto"
+                className="shrink-0 justify-center"
                 aria-pressed={category === option.value}
                 onClick={() => setCategory(option.value)}
               >

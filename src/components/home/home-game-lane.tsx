@@ -30,18 +30,18 @@ export function HomeGameLane({
   animateThumbnailSlides = true,
 }: HomeGameLaneProps) {
   return (
-    <section className={`py-14 sm:py-20 border-b-2 sm:border-b-4 border-border-strong ${sectionClassName}`.trim()}>
+    <section className={`py-6 sm:py-9 border-b-2 border-border-strong ${sectionClassName}`.trim()}>
       <div className="container mx-auto px-4">
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <span className="text-kicker text-arcade-yellow">{eyebrow}</span>
-            <h2 className="heading-pixel-lg mt-2 text-white">{title}</h2>
+            <h2 className="mt-2 heading-pixel-md text-white">{title}</h2>
             {description ? (
-              <p className="mt-2 font-arcade text-sm text-text-secondary">{description}</p>
+              <p className="mt-2 hidden text-sm text-text-secondary sm:block">{description}</p>
             ) : null}
           </div>
           <Link href={actionHref} prefetch={false}>
-            <Button variant="secondary" size="sm" className="gap-2">
+            <Button variant="arcade-outline" size="sm" className="gap-2">
               {actionLabel}
               <ChevronRight className="h-4 w-4" />
             </Button>
