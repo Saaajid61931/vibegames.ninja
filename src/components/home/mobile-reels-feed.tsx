@@ -1,5 +1,6 @@
 "use client"
 import {SaveGameButton} from "@/components/community/save-game-button"
+import { MobileHomeIntroSlide } from "@/components/home/mobile-home-intro-slide"
 
 
 import { useState, useEffect, useRef, useCallback } from "react"
@@ -309,6 +310,8 @@ const buildSeamlessFeed = (items: FeedGame[]) => {
 
 export function MobileReelsFeed({
   games,
+  backgroundGames,
+  stats,
 }: MobileReelsFeedProps) {
   const router = useRouter()
   const { data: session } = useSession()
@@ -321,7 +324,7 @@ export function MobileReelsFeed({
   // Endless scrolling randomized feed state
   const [feedGames, setFeedGames] = useState<FeedGame[]>([])
   const [feedLoadState, setFeedLoadState] = useState<FeedLoadState>("loading")
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [activeIndex, setActiveIndex] = useState(-1)
 
   // Fullscreen tracking state
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -534,7 +537,7 @@ export function MobileReelsFeed({
     const slideHeight = Math.max(container.clientHeight, 1)
     const snappedPosition = Math.round(container.scrollTop / slideHeight)
     const maxIndex = Math.max(feedGames.length - 1, 0)
-    const nextIndex = Math.min(Math.max(snappedPosition, 0), maxIndex)
+    const nextIndex = Math.min(Math.max(snappedPosition - 1, -1), maxIndex)
     setActiveIndex((current) => current === nextIndex ? current : nextIndex)
   }, [feedGames.length])
 
@@ -726,6 +729,15 @@ export function MobileReelsFeed({
     }
   }
 
+  const startPlaying = () => {
+    const container = scrollContainerRef.current
+    if (!container) return
+    container.scrollTo({
+      top: container.clientHeight,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    })
+  }
+
   // Measured width and height fallbacks
   const width = frameWidth || (typeof window !== "undefined" ? window.innerWidth : 360)
   const height = frameHeight || (typeof window !== "undefined" ? window.innerHeight - 80 : 480)
@@ -761,6 +773,12 @@ export function MobileReelsFeed({
         style={{ WebkitOverflowScrolling: "touch" }}
       >
 
+
+        <MobileHomeIntroSlide
+          backgroundGames={games.length ? games : backgroundGames}
+          stats={stats}
+          onStart={startPlaying}
+        />
 
         {feedGames.length === 0 ? (
           <div

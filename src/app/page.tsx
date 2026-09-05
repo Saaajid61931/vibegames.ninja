@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/footer"
 import { HomeGameLane } from "@/components/home/home-game-lane"
 import { RecentlyPlayedDeferred } from "@/components/games/recently-played-deferred"
 import { getHomePageData } from "@/lib/home-page-data"
+import { HomeExperience } from "@/components/home/home-experience"
 import { InspirationHero } from "@/components/home/inspiration-hero"
 import { getMonthlyHeroShowcase } from "@/lib/monthly-hero-data"
 import { InspirationCollections } from "@/components/community/inspiration-collections"
@@ -21,6 +22,7 @@ export default async function HomePage() {
   const data = await getHomePageData()
   const monthlyShowcase = await getMonthlyHeroShowcase()
   return (
+    <HomeExperience games={data.allMobileGames} backgroundGames={data.heroGames} stats={data.stats}>
     <div className="min-h-screen overflow-x-clip bg-canvas">
       <Header prefetchLinks={false} />
       <main id="main-content">
@@ -88,5 +90,6 @@ export default async function HomePage() {
       </main>
       <Footer prefetchLinks={false} />
     </div>
+    </HomeExperience>
   )
 }

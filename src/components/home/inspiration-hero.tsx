@@ -3,6 +3,7 @@ import Link from "next/link"
 import { ArrowDown, ArrowUpRight, Gamepad2, Play, Plus, Sparkles, Trophy } from "lucide-react"
 import { GameThumbnailPlaceholder } from "@/components/games/game-thumbnail-placeholder"
 import { formatNumber } from "@/lib/utils"
+import "./inspiration-hero.css"
 
 type ShowcaseGame = {
   id: string
@@ -98,7 +99,7 @@ export function InspirationHero({ rankedGames, fallbackGames, monthLabel }: Prop
                   className="showcase-featured"
                   aria-label={`Play ${featured.title}${monthly ? ", most played this month" : ""}`}
                 >
-                  <div className="showcase-featured-screen">
+                  <div className="showcase-featured-screen" style={{ position: "relative", overflow: "hidden", aspectRatio: "16 / 9" }}>
                     <Thumbnail game={featured} featured />
                     <div className="showcase-image-shade" />
                     <span className="showcase-rank">
@@ -147,7 +148,7 @@ export function InspirationHero({ rankedGames, fallbackGames, monthLabel }: Prop
                         className="showcase-mini"
                         aria-label={`Play ${game.title}`}
                       >
-                        <div className="showcase-mini-image">
+                        <div className="showcase-mini-image" style={{ position: "relative", overflow: "hidden" }}>
                           <Thumbnail game={game} />
                           <span className="showcase-mini-rank">
                             {monthly ? `0${index + 2}` : <Sparkles className="h-3 w-3" />}
