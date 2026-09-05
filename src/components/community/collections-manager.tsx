@@ -50,7 +50,7 @@ export function CollectionsManager() {
   if (!session?.user)
     return (
       <div className="inspiration-tile">
-        <h2 className="text-xl font-semibold">Keep your next idea close.</h2>
+        <h2 className="heading-pixel-sm text-white">Keep your next idea close.</h2>
         <p className="my-3 text-text-secondary">
           Save games into private collections, then share a collection whenever you want.
         </p>
@@ -61,7 +61,7 @@ export function CollectionsManager() {
     )
   return (
     <section>
-      <h2 className="mb-4 text-2xl font-semibold">Your collections</h2>
+      <h2 className="mb-4 heading-pixel-md text-white">Your collections</h2>
       <form
         className="community-form mb-6"
         onSubmit={(e) => {
@@ -91,7 +91,7 @@ export function CollectionsManager() {
       <div className="grid gap-4 lg:grid-cols-2">
         {collections.map((c) => (
           <article key={c.id} className="inspiration-tile">
-            <h3 className="text-xl font-semibold">{c.name}</h3>
+            <h3 className="heading-pixel-sm text-white">{c.name}</h3>
             <label className="my-3 flex items-center gap-2 text-sm">
               <input
                 type="checkbox"

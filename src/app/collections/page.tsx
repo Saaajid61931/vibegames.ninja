@@ -27,7 +27,7 @@ export default async function CollectionsPage() {
       <InspirationCollections />
       {published.length > 0 && (
         <section className="mb-10">
-          <h2 className="mb-4 text-2xl font-semibold">Collected by the community</h2>
+          <h2 className="mb-4 heading-pixel-md text-white">Collected by the community</h2>
           <div className="grid gap-3 sm:grid-cols-3">
             {published.map((c) => (
               <Link href={"/collections/" + c.id} key={c.id} className="inspiration-tile">

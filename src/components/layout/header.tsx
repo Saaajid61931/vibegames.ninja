@@ -28,11 +28,23 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [marqueeVisible, setMarqueeVisible] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null)
   const { unreadCount, notifications, loading, refresh } = useNotificationFeed(session?.user?.id, pathname)
 
+  useEffect(() => {
+    let shouldShowMarquee = true
 
+    try {
+      shouldShowMarquee = window.sessionStorage.getItem("vg-marquee-dismissed") !== "true"
+    } catch {
+      // Keep the announcement visible when storage is unavailable.
+    }
+
+    const frameId = window.requestAnimationFrame(() => setMarqueeVisible(shouldShowMarquee))
+    return () => window.cancelAnimationFrame(frameId)
+  }, [])
 
   useEffect(() => {
     if (!mobileMenuOpen) {
@@ -70,11 +82,12 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
   const unreadLabel = displayedUnreadCount > 99 ? "99+" : String(displayedUnreadCount)
 
   const navigation = [
-    { name: "Explore", href: "/games" },
-    { name: "Collections", href: "/collections" },
-    { name: "Community", href: "/community" },
-    { name: "Jams", href: "/jams" },
-    { name: "Share a game", href: "/upload" },
+    { name: "PLAY", href: "/games" },
+    { name: "JAMS", href: "/jams" },
+    { name: "BLOG", href: "/blog" },
+    ...(session?.user ? [{ name: "FAVS", href: "/favorites" }] : []),
+    { name: "UPLOAD", href: "/upload" },
+    { name: "CREATOR", href: "/creator" },
   ]
 
   const isNavigationActive = (href: string) => {
@@ -94,6 +107,36 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full max-w-full overflow-x-clip border-b border-border pt-[env(safe-area-inset-top)]">
+      {/* Hide a previously dismissed announcement before first paint to avoid a layout jump. */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html:
+            'try{if(window.sessionStorage.getItem("vg-marquee-dismissed")==="true"){document.documentElement.setAttribute("data-marquee-dismissed","")}}catch(e){}',
+        }}
+      />
+      {marqueeVisible ? (
+        <div className="vg-marquee relative overflow-hidden whitespace-nowrap bg-primary pr-11">
+          <div className="marquee-content">
+            NEW GAMES DAILY &bull; AI ARCADE &bull; GAME JAMS &bull; BUILD &bull; PLAY &bull; GET INSPIRED &bull; NEW GAMES DAILY &bull; AI ARCADE &bull; GAME JAMS &bull; BUILD &bull; PLAY &bull; GET INSPIRED &bull;
+          </div>
+          <button
+            type="button"
+            className="absolute inset-y-0 right-0 grid w-11 place-items-center bg-primary text-white transition-colors hover:bg-primary-hover"
+            aria-label="Dismiss announcement"
+            onClick={() => {
+              setMarqueeVisible(false)
+              try {
+                window.sessionStorage.setItem("vg-marquee-dismissed", "true")
+              } catch {
+                // The dismissal remains active for this render when storage is unavailable.
+              }
+            }}
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ) : null}
+      
       <div className="bg-canvas">
         <div className="container mx-auto min-w-0 px-4">
           <div className="flex h-14 min-w-0 items-center justify-between gap-2">
@@ -196,21 +239,25 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                          <Link href="/creator/projects" prefetch={false}>Creator workspace</Link>
+                          <Link href="/creator" prefetch={prefetchLinks ? undefined : false}>Dashboard</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href="/upload" prefetch={false}>Upload Game</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/library" prefetch={false}>Purchased projects</Link>
+                          <Link href="/jams" prefetch={prefetchLinks ? undefined : false}>Game Jams</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href="/settings" prefetch={prefetchLinks ? undefined : false}>Settings</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/favorites" prefetch={prefetchLinks ? undefined : false}>Saved games</Link>
+                          <Link href="/favorites" prefetch={prefetchLinks ? undefined : false}>Favorites</Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild><Link href="/collections" prefetch={false}>Collections</Link></DropdownMenuItem>
+                        <DropdownMenuItem asChild><Link href="/community" prefetch={false}>Community</Link></DropdownMenuItem>
+                        <DropdownMenuItem asChild><Link href="/library" prefetch={false}>Source library</Link></DropdownMenuItem>
+                        <DropdownMenuItem asChild><Link href="/creator/projects" prefetch={false}>Stories & source</Link></DropdownMenuItem>
                         <DropdownMenuItem className="text-danger focus:text-danger" onClick={() => signOut()}>
                           Sign out
                         </DropdownMenuItem>
@@ -227,7 +274,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                   </Link>
                   <Link href="/register" prefetch={prefetchLinks ? undefined : false}>
                     <Button size="sm">
-                      Join the community
+                      Get Started
                     </Button>
                   </Link>
                 </div>
@@ -275,6 +322,10 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                 </button>
               </form>
               <nav className="space-y-1">
+                <Link key="/collections" href="/collections" prefetch={false} onClick={() => setMobileMenuOpen(false)} className="block rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface hover:text-text">Collections</Link>
+                <Link key="/community" href="/community" prefetch={false} onClick={() => setMobileMenuOpen(false)} className="block rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface hover:text-text">Community</Link>
+                <Link key="/library" href="/library" prefetch={false} onClick={() => setMobileMenuOpen(false)} className="block rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface hover:text-text">Source library</Link>
+                <Link key="/creator/projects" href="/creator/projects" prefetch={false} onClick={() => setMobileMenuOpen(false)} className="block rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface hover:text-text">Stories & source</Link>
                 {navigation.map((item) => {
                   const isActive = isNavigationActive(item.href)
                   return (
@@ -331,7 +382,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                     <Link href="/favorites" prefetch={prefetchLinks ? undefined : false}>
                       <Button variant="outline" className="h-11 w-full justify-start gap-2" onClick={() => setMobileMenuOpen(false)}>
                         <Heart className="h-4 w-4" />
-                        Saved games
+                        Favorites
                       </Button>
                     </Link>
                     <Link href="/settings" prefetch={prefetchLinks ? undefined : false} className="col-span-2">
@@ -358,7 +409,7 @@ export function Header({ prefetchLinks = true }: HeaderProps) {
                     <Button variant="outline" className="h-11 w-full" onClick={() => setMobileMenuOpen(false)}>Sign in</Button>
                   </Link>
                   <Link href="/register" prefetch={prefetchLinks ? undefined : false}>
-                    <Button className="h-11 w-full" onClick={() => setMobileMenuOpen(false)}>Join the community</Button>
+                    <Button className="h-11 w-full" onClick={() => setMobileMenuOpen(false)}>Get Started</Button>
                   </Link>
                 </div>
               )}

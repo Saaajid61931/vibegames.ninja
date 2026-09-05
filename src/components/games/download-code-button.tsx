@@ -12,7 +12,7 @@ export function DownloadCodeButton({
     <Link
       href={`/play/${game.slug}#source-project`}
       aria-label={`About ${game.title} and source availability`}
-      className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg border border-border bg-surface text-xs text-text-secondary hover:text-primary-text ${className}`}
+      className={`flex min-h-12 flex-col items-center justify-center gap-1 border-2 border-border-strong bg-surface shadow-hard-2 text-xs text-text-secondary hover:text-primary-text ${className}`}
     >
       <Info className="h-4 w-4" />
       Details

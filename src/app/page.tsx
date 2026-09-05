@@ -1,118 +1,134 @@
 import type { Metadata } from "next"
-import Link from "next/link"
-import { ArrowUpRight, Sparkles, Play, Upload } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { HomeGameLane } from "@/components/home/home-game-lane"
+import { GameOfTheDay } from "@/components/games/game-of-the-day"
 import { RecentlyPlayedDeferred } from "@/components/games/recently-played-deferred"
+import { ActiveJamBanner } from "@/components/jams/active-jam-banner"
+import { HomeGameLane } from "@/components/home/home-game-lane"
+import { HomeHeroSection } from "@/components/home/home-hero-section"
+import {
+  HomeCategoryBar,
+  HomeCommunityCta,
+  HomeFeatureGrid,
+} from "@/components/home/home-static-sections"
 import { getHomePageData } from "@/lib/home-page-data"
-import { InspirationCollections } from "@/components/community/inspiration-collections"
+import { SITE_NAME, SITE_URL } from "@/lib/site"
+import { MobileReelsFeed } from "@/components/home/mobile-reels-feed"
 
 export const revalidate = 60
+
+const homepageDescription = "Discover and play games made with AI, get inspired by creators, and build something of your own with the VibeGames Ninja community."
+
 export const metadata: Metadata = {
-  title: "Play something unexpected. Make something inspired.",
-  description:
-    "Discover and share games made with AI. Meet the creators, collect ideas, and share what you make.",
-  alternates: { canonical: "/" },
+  title: "Play AI Games, Get Inspired & Build",
+  description: homepageDescription,
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: `${SITE_NAME} - Play AI Games Made by the Community`,
+    description: homepageDescription,
+    url: SITE_URL,
+    type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: `${SITE_NAME} - Play AI Games Made by the Community`,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} - Play AI Games Made by the Community`,
+    description: homepageDescription,
+    images: ["/opengraph-image"],
+  },
 }
+
 export default async function HomePage() {
-  const data = await getHomePageData()
+  const {
+    stats,
+    gameOfTheMonth,
+    games,
+    mobileGames,
+    editorGames,
+    allMobileGames,
+    heroGames,
+  } = await getHomePageData()
+
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE_NAME,
+    url: SITE_URL,
+    description: homepageDescription,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${SITE_URL}/games?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  }
+
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: `${SITE_URL}/icon.svg`,
+  }
+
   return (
-    <div className="min-h-screen overflow-x-clip bg-canvas">
-      <Header prefetchLinks={false} />
-      <main id="main-content">
-        <section className="community-welcome container mx-auto px-4">
-          <div>
-            <p className="mb-3 flex items-center gap-2 text-sm font-medium text-primary-text">
-              <Sparkles className="h-4 w-4" /> Small games. Big ideas.
-            </p>
-            <h1 className="text-balance text-2xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
-              Play something unexpected.
-              <br />
-              <span className="text-primary-text">Make something inspired.</span>
-            </h1>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-text-secondary sm:text-base">
-              Discover and share games made with AI. Meet the creators, collect ideas, and share
-              what you make.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link className="community-button primary" href="/games">
-                <Play className="h-4 w-4" /> Explore games
-              </Link>
-              <Link className="community-button" href="/upload">
-                <Upload className="h-4 w-4" /> Share your game
-              </Link>
-            </div>
-          </div>
-          <Link href="/quick-play" className="community-quick-link">
-            <span className="text-xs uppercase tracking-widest text-primary-text">
-              Feeling curious?
-            </span>
-            <span className="mt-2 flex items-center gap-4 text-xl font-semibold">
-              Find your next surprise <ArrowUpRight className="h-5 w-5" />
-            </span>
-            <span className="mt-2 text-sm text-text-secondary">
-              Try mobile-friendly games in Quick play.
-            </span>
-          </Link>
-        </section>
-        <HomeGameLane
-          eyebrow="Discover"
-          title="Worth a play"
-          description="Community-made games to get your imagination going."
-          actionHref="/games"
-          actionLabel="Explore all"
-          games={data.games.slice(0, 4)}
-          animateThumbnailSlides={false}
-          emptyTitle="Your next idea starts here"
-          emptyDescription="Share a playable experiment and help this community grow."
-        />
-        <InspirationCollections />
-        {data.justLaunchedGames.length > 0 && (
-          <HomeGameLane
-            eyebrow="New voices"
-            title="Fresh experiments"
-            description="Make someone's first play a good one. Try something new and leave a thoughtful response."
-            actionHref="/games?sort=new"
-            actionLabel="See new games"
-            games={data.justLaunchedGames.slice(0, 4)}
+    <>
+      {/* Desktop Homepage View */}
+      <div className="hidden md:flex flex-col min-h-screen bg-canvas hidden-mobile-landscape">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
+        <Header prefetchLinks={false} />
+
+        <main className="flex-1">
+          <HomeHeroSection stats={stats} heroGames={heroGames} />
+          <HomeCategoryBar />
+          <ActiveJamBanner />
+          <RecentlyPlayedDeferred
+            games={[...games, ...mobileGames, ...editorGames]}
             animateThumbnailSlides={false}
           />
-        )}
-        {data.needsFeedbackGames.length > 0 && (
+
+          {gameOfTheMonth?.game ? (
+            <GameOfTheDay
+              game={gameOfTheMonth.game}
+              monthlyStars={gameOfTheMonth.monthlyStars}
+              monthlyRatings={gameOfTheMonth.monthlyRatings}
+            />
+          ) : null}
+
           <HomeGameLane
-            eyebrow="Lend a hand"
-            title="Looking for feedback"
-            description="These creators would love to hear what worked, where you got stuck, or an idea you would try."
-            actionHref="/community"
-            actionLabel="Meet the community"
-            games={data.needsFeedbackGames.slice(0, 4)}
+            eyebrow="TOP GAMES"
+            title="FEATURED ARCADE"
+            description="Start with games the community is playing and sharing right now."
+            actionHref="/games"
+            actionLabel="VIEW ALL"
+            games={games}
             animateThumbnailSlides={false}
           />
-        )}
-        <RecentlyPlayedDeferred
-          games={[...data.games, ...data.mobileGames, ...data.editorGames]}
-          animateThumbnailSlides={false}
+
+          <HomeFeatureGrid />
+          <HomeCommunityCta />
+        </main>
+
+        <Footer prefetchLinks={false} />
+      </div>
+
+      {/* Mobile Reels snap scrolling feed */}
+      <div className="block md:hidden h-[100dvh] w-full bg-canvas overflow-hidden block-mobile-landscape">
+        <MobileReelsFeed
+          games={allMobileGames}
+          backgroundGames={heroGames}
+          stats={stats}
         />
-        <section className="container mx-auto px-4 py-10">
-          <div className="community-invitation">
-            <div>
-              <p className="text-sm text-primary-text">Your experiment belongs here</p>
-              <h2 className="mt-2 text-2xl font-semibold text-white">
-                Someone is waiting to discover your idea.
-              </h2>
-              <p className="mt-3 max-w-2xl leading-7 text-text-secondary">
-                Share a game made with your favorite tools. Tell us what you tried, ask for
-                feedback, and inspire what comes next.
-              </p>
-            </div>
-            <Link href="/upload" className="community-button primary">
-              Share your game <ArrowUpRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </section>
-      </main>
-      <Footer prefetchLinks={false} />
-    </div>
+      </div>
+    </>
   )
 }

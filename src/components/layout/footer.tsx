@@ -49,6 +49,10 @@ export function Footer({ prefetchLinks = true }: FooterProps) {
           <div>
             <h3 className="mb-4 text-sm font-semibold text-text">Platform</h3>
             <ul className="space-y-2">
+              <li><Link href="/collections" prefetch={false} className="text-sm text-text-secondary transition-colors hover:text-text">Collections</Link></li>
+              <li><Link href="/community" prefetch={false} className="text-sm text-text-secondary transition-colors hover:text-text">Community</Link></li>
+              <li><Link href="/library" prefetch={false} className="text-sm text-text-secondary transition-colors hover:text-text">Source library</Link></li>
+              <li><Link href="/creator/projects" prefetch={false} className="text-sm text-text-secondary transition-colors hover:text-text">Stories & source</Link></li>
               <li>
                 <Link
                   href="/games"

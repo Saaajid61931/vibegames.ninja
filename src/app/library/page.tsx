@@ -37,7 +37,7 @@ export default async function Library({
       <div className="grid gap-4 lg:grid-cols-2">
         {orders.map((order) => (
           <article key={order.id} className="inspiration-tile">
-            <Link className="text-xl font-semibold" href={"/play/" + order.package.game.slug}>
+            <Link className="heading-pixel-sm text-white" href={"/play/" + order.package.game.slug}>
               {order.package.game.title}
             </Link>
             <p className="mt-2 text-sm text-text-secondary">
@@ -91,7 +91,7 @@ export default async function Library({
       </div>
       {orders.length === 0 && (
         <div className="inspiration-tile">
-          <h2 className="text-xl font-semibold">
+          <h2 className="heading-pixel-sm text-white">
             Start with a game that catches your imagination.
           </h2>
           <p className="my-3 text-sm text-text-secondary">

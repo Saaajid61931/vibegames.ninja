@@ -1,5 +1,10 @@
 # Community and source marketplace implementation
 
+## Preferred visual design restored
+
+The owner confirmed that the production deployment of commit `5bc0adc` is the visual baseline to preserve. The original desktop homepage, hero, marquee, mobile PLAY / BUILD / INSPIRE intro, arcade browse layout, pixel typography, card treatment and creator profile are restored. New collections, creator stories and source-marketplace functionality remain, with their pages styled using the existing arcade palette, square borders and hard shadows. Account/menu and footer links expose the added features without replacing the original main navigation. The separate Quick play route still starts directly with a game. No tests or deployment were run for this visual correction, as requested. Earlier screenshots and layout measurements below describe the superseded redesign.
+
+
 The local application now focuses on playing, sharing, collecting ideas and meeting creators. AI generation remains outside the main discovery and sharing journeys.
 
 ## Delivered

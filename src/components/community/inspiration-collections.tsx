@@ -28,7 +28,7 @@ export function InspirationCollections() {
           <p className="text-xs font-medium uppercase tracking-wider text-primary-text">
             Follow your curiosity
           </p>
-          <h2 className="mt-1 text-2xl font-semibold text-white">Find your next idea</h2>
+          <h2 className="mt-1 heading-pixel-md text-white text-white">Find your next idea</h2>
         </div>
         <Link href="/collections" className="text-sm text-primary-text">
           All collections →

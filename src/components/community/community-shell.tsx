@@ -15,10 +15,10 @@ export function CommunityShell({
     <div className="min-h-screen bg-canvas">
       <Header />
       <main id="main-content" className="container mx-auto px-4 py-8">
-        <div className="mb-7">
-          <h1 className="text-3xl font-semibold tracking-tight text-white">{title}</h1>
+        <div className="mb-7 border-b-2 border-border-strong pb-6">
+          <h1 className="heading-pixel-lg text-white">{title}</h1>
           {description && (
-            <p className="mt-3 max-w-2xl leading-7 text-text-secondary">{description}</p>
+            <p className="mt-3 max-w-2xl font-arcade leading-7 text-text-secondary">{description}</p>
           )}
         </div>
         <nav aria-label="Your community" className="mb-7 flex flex-wrap gap-3 text-sm">

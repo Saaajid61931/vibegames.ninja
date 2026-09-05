@@ -258,7 +258,7 @@ export default async function PublicCreatorPage({ params }: PageProps) {
           BACK TO GAMES
         </Link>
 
-        <section className="inspiration-tile mb-7">
+        <section className="mb-8 border-2 border-border-strong bg-surface-2 p-5 sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 border-2 border-border-strong">
@@ -268,7 +268,7 @@ export default async function PublicCreatorPage({ params }: PageProps) {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="text-2xl font-semibold text-white">{creator.name || creator.username}</h1>
+                <h1 className="heading-pixel-sm text-white">{creator.name || creator.username}</h1>
                 <p className="font-arcade text-sm text-arcade-yellow">@{creator.username}</p>
                 <p className="mt-1 text-xs text-text-secondary inline-flex items-center gap-1">
                   <Users className="h-3 w-3" />
@@ -291,7 +291,7 @@ export default async function PublicCreatorPage({ params }: PageProps) {
             <p className="mt-4 text-sm text-text-secondary font-arcade">{creator.bio}</p>
           )}
 
-          <div className="hidden">
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
             <div className="border border-border-strong bg-canvas p-3">
               <div className="flex items-center gap-2">
                 <Trophy className="h-4 w-4 text-arcade-yellow" />
@@ -315,7 +315,7 @@ export default async function PublicCreatorPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="sr-only">
+          <div className="mt-3 grid gap-3 md:grid-cols-4">
             <div className="border border-border-strong bg-canvas p-3">
               <p className="font-arcade text-xs text-text-secondary">TOTAL LAUNCHES</p>
               <p className="mt-2 font-arcade text-sm text-white">{normalizedGames.length}</p>
@@ -373,7 +373,7 @@ export default async function PublicCreatorPage({ params }: PageProps) {
             <Link href="/upload">
               <Button variant="outline" size="sm" className="gap-2">
                 <Gamepad2 className="h-4 w-4" />
-                Share your game
+                Upload your game
               </Button>
             </Link>
           </div>

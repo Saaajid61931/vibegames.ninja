@@ -93,7 +93,7 @@ export function SourceEditor({
         </p>
       )}
       <form onSubmit={saveStory} className="community-form inspiration-tile">
-        <h2 className="text-xl font-semibold">Behind your game</h2>
+        <h2 className="heading-pixel-sm text-white">Behind your game</h2>
         <p className="text-sm leading-6 text-text-secondary">
           Optional notes that help someone understand your idea and find a spark of their own.
         </p>
@@ -147,7 +147,7 @@ export function SourceEditor({
         </button>
       </form>
       <section className="inspiration-tile">
-        <h2 className="text-xl font-semibold">Sharing source is your choice.</h2>
+        <h2 className="heading-pixel-sm text-white">Sharing source is your choice.</h2>
         <p className="mt-2 text-sm leading-7 text-text-secondary">
           Your playable game stays free. Upload an editable project separately if you want others to
           build on it. Existing source listings are managed below.

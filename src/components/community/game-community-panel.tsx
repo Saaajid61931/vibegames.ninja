@@ -113,7 +113,7 @@ export function GameCommunityPanel({ gameId }: { gameId: string }) {
           </section>
         )}
       <section id="source-project" className="inspiration-tile scroll-mt-24">
-        <h2 className="text-xl font-semibold">Build on an idea you love</h2>
+        <h2 className="heading-pixel-sm text-white">Build on an idea you love</h2>
         <p className="mt-2 text-sm leading-6 text-text-secondary">
           Playing and getting inspired are free. Source projects are an optional head start, shared
           by their creators.

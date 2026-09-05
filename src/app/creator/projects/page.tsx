@@ -83,7 +83,7 @@ export default async function CreatorProjects({
       {selected ? (
         <>
           <div className="mb-5 flex flex-wrap items-center gap-4">
-            <h2 className="text-2xl font-semibold">{selected.title}</h2>
+            <h2 className="heading-pixel-md text-white">{selected.title}</h2>
             <Link href={"/play/" + selected.slug} className="text-sm text-primary-text">
               View game →
             </Link>
@@ -106,7 +106,7 @@ export default async function CreatorProjects({
           />
           {packages.length > 0 && (
             <section className="mt-8">
-              <h2 className="mb-4 text-xl font-semibold">Your source versions</h2>
+              <h2 className="mb-4 heading-pixel-sm text-white">Your source versions</h2>
               {packages.map((p) => (
                 <article key={p.id} className="inspiration-tile mb-3">
                   <p className="font-semibold">

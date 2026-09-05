@@ -37,7 +37,7 @@ export default async function SourceReview() {
     >
       {packages.map((p) => (
         <article key={p.id} className="inspiration-tile mb-6">
-          <h2 className="text-xl font-semibold">
+          <h2 className="heading-pixel-sm text-white">
             {p.game.title} · {p.version}
           </h2>
           <p className="mt-2 text-sm">
@@ -62,7 +62,7 @@ export default async function SourceReview() {
         <p className="text-text-secondary">No source projects are waiting for review.</p>
       )}
       <section className="mt-10">
-        <h2 className="mb-4 text-2xl font-semibold">Manage existing source projects</h2>
+        <h2 className="mb-4 heading-pixel-md text-white">Manage existing source projects</h2>
         {active.map((p) => (
           <details key={p.id} className="inspiration-tile mb-3">
             <summary className="cursor-pointer">
@@ -77,7 +77,7 @@ export default async function SourceReview() {
         ))}
       </section>
       <section className="mt-10">
-        <h2 className="mb-4 text-2xl font-semibold">Purchase support</h2>
+        <h2 className="mb-4 heading-pixel-md text-white">Purchase support</h2>
         {requests.map((o) => (
           <article key={o.id} className="inspiration-tile mb-4">
             <h3 className="font-semibold">

@@ -61,7 +61,7 @@ export default async function CommunityPage({
       {spotlight && (
         <aside className="inspiration-tile mb-8">
           <p className="text-sm text-primary-text">Meet a creator</p>
-          <h2 className="mt-2 text-xl font-semibold">
+          <h2 className="mt-2 heading-pixel-sm text-white">
             {spotlight.creator.name || spotlight.creator.username}
           </h2>
           <p className="mt-2 text-sm leading-7 text-text-secondary">
@@ -81,7 +81,7 @@ export default async function CommunityPage({
       </div>
       {games.length === 0 && (
         <div className="inspiration-tile">
-          <h2 className="text-xl font-semibold">
+          <h2 className="heading-pixel-sm text-white">
             {view === "following"
               ? "Your next favorite creator is out there."
               : "Every experiment starts somewhere."}
@@ -104,7 +104,7 @@ export default async function CommunityPage({
         </div>
       )}
       <section className="inspiration-tile mt-8">
-        <h2 className="text-xl font-semibold">A little feedback goes a long way.</h2>
+        <h2 className="heading-pixel-sm text-white">A little feedback goes a long way.</h2>
         <p className="mt-3 text-sm leading-7 text-text-secondary">
           Tell someone what you enjoyed, describe where you got stuck, or suggest one idea they
           could try. Be specific, kind, and respectful of the experiment they want to make.
