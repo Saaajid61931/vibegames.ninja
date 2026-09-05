@@ -1,11 +1,13 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ArrowUpRight, Sparkles, Play, Upload } from "lucide-react"
+import { ArrowUpRight } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { HomeGameLane } from "@/components/home/home-game-lane"
 import { RecentlyPlayedDeferred } from "@/components/games/recently-played-deferred"
 import { getHomePageData } from "@/lib/home-page-data"
+import { InspirationHero } from "@/components/home/inspiration-hero"
+import { getMonthlyHeroShowcase } from "@/lib/monthly-hero-data"
 import { InspirationCollections } from "@/components/community/inspiration-collections"
 
 export const revalidate = 60
@@ -17,45 +19,17 @@ export const metadata: Metadata = {
 }
 export default async function HomePage() {
   const data = await getHomePageData()
+  const monthlyShowcase = await getMonthlyHeroShowcase()
   return (
     <div className="min-h-screen overflow-x-clip bg-canvas">
       <Header prefetchLinks={false} />
       <main id="main-content">
-        <section className="community-welcome container mx-auto px-4">
-          <div>
-            <p className="mb-3 flex items-center gap-2 text-kicker text-arcade-cyan">
-              <Sparkles className="h-4 w-4" /> Small games. Big ideas.
-            </p>
-            <h1 className="community-hero-title text-balance text-white">
-              Play something unexpected.
-              <br />
-              <span className="text-arcade-yellow">Make something inspired.</span>
-            </h1>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-text-secondary sm:text-base">
-              Discover and share games made with AI. Meet the creators, collect ideas, and share
-              what you make.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link className="community-button primary" href="/games">
-                <Play className="h-4 w-4" /> Explore games
-              </Link>
-              <Link className="community-button" href="/upload">
-                <Upload className="h-4 w-4" /> Share your game
-              </Link>
-            </div>
-          </div>
-          <Link href="/quick-play" className="community-quick-link">
-            <span className="text-kicker text-arcade-cyan">
-              Feeling curious?
-            </span>
-            <span className="mt-3 flex items-center gap-4 heading-pixel-sm text-white">
-              Find your next surprise <ArrowUpRight className="h-5 w-5" />
-            </span>
-            <span className="mt-2 text-sm text-text-secondary">
-              Try mobile-friendly games in Quick play.
-            </span>
-          </Link>
-        </section>
+        <InspirationHero
+          rankedGames={monthlyShowcase.games}
+          fallbackGames={data.games}
+          monthLabel={monthlyShowcase.monthLabel}
+        />
+        <div id="discover-games" className="scroll-mt-24" />
         <HomeGameLane
           eyebrow="Discover"
           title="Worth a play"

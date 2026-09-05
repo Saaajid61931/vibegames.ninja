@@ -83,3 +83,8 @@ Review the git diff before deployment. Application dependencies and lockfiles we
 
 On September 5, 2026, a read-only Prisma migration status query reported all ten repository migrations as unapplied, including historical migrations. No migration was applied. Reconcile the actual deployed schema and migration history before running migrate deploy; do not blindly apply historical CREATE statements or mark migrations as applied without comparing their effects. Cloudflare login also required renewal. Deployment and provider setup are left to the site owner.
 
+
+## Arcade showcase hero
+
+The homepage hero now leads with 'One more play could spark your next idea', a large featured-game thumbnail, two supporting thumbnails, creator credit and direct play actions. Rankings aggregate GameAnalytics.plays for published games from the start of the current UTC calendar month, with a five-minute cache keyed to the month. Empty or unavailable monthly analytics show clearly labelled community picks rather than lifetime counts presented as monthly rankings. Existing discovery sections and community/source flows remain. The preferred pixel type, yellow/cyan/red accents, square cards and hard shadows are retained, with responsive layouts and reduced-motion support. Visual previews were reviewed; no test suite or deployment was run.
+
