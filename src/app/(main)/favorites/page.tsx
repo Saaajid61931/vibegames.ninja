@@ -12,8 +12,8 @@ import prisma from "@/lib/prisma"
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "My Favorites",
-  description: "Your saved favorite games on VibeGames.",
+  title: "Saved games",
+  description: "Keep your next idea close. Revisit games you saved for inspiration.",
 }
 
 export default async function FavoritesPage() {
@@ -89,9 +89,10 @@ export default async function FavoritesPage() {
       <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
+            <Link href="/collections" className="mb-3 inline-block text-sm text-primary-text">Organize into collections →</Link>
             <h1 className="text-2xl font-semibold text-text flex items-center gap-3">
               <Heart className="h-6 w-6 text-arcade-red" />
-              My Favorites
+              Saved games
             </h1>
             <p className="mt-2 text-sm text-text-secondary">
               Saved games stay here so you can return anytime.

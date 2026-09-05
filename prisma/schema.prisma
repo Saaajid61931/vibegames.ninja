@@ -52,6 +52,10 @@ model User {
   accounts      Account[]
   sessions      Session[]
   games         Game[]
+  appreciations GameAppreciation[]
+  collections   InspirationCollection[]
+  sourceOrders  SourceOrder[]
+  payoutAccount CreatorPayoutAccount?
   favorites     Favorite[]
   followers     CreatorFollow[] @relation("CreatorFollowers")
   following     CreatorFollow[] @relation("CreatorFollowing")
@@ -171,6 +175,11 @@ model Game {
   sourceProjectId String? @unique
   sourceProject   BuilderProject? @relation("BuilderSourceGame", fields: [sourceProjectId], references: [id], onDelete: SetNull)
 
+  story        GameStory? @relation("GameStoryOwner")
+  inspiredGames GameStory[] @relation("GameInspiration")
+  sourcePackages SourcePackage[]
+  appreciations GameAppreciation[]
+  collectionItems CollectionItem[]
   analytics    GameAnalytics[]
   favorites    Favorite[]
   comments     Comment[]
@@ -545,4 +554,106 @@ model GameJamVote {
   @@unique([entryId, userId])
   @@index([entryId])
   @@index([userId])
+}
+
+model GameAppreciation {
+  id String @id @default(cuid())
+  userId String
+  gameId String
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  @@unique([userId, gameId])
+  @@index([gameId])
+}
+
+model InspirationCollection {
+  id String @id @default(cuid())
+  userId String
+  name String
+  description String @default("")
+  isPublic Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CollectionItem[]
+  @@index([userId, updatedAt])
+  @@index([isPublic, updatedAt])
+}
+
+model CollectionItem {
+  collectionId String
+  gameId String
+  createdAt DateTime @default(now())
+  collection InspirationCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  @@id([collectionId, gameId])
+  @@index([gameId])
+}
+
+model GameStory {
+  gameId String @id
+  idea String @default("")
+  lessons String @default("")
+  nextIdea String @default("")
+  inspiredById String?
+  builtFromPackageId String?
+  updatedAt DateTime @updatedAt
+  game Game @relation("GameStoryOwner", fields: [gameId], references: [id], onDelete: Cascade)
+  inspiredBy Game? @relation("GameInspiration", fields: [inspiredById], references: [id], onDelete: SetNull)
+  builtFromPackage SourcePackage? @relation(fields: [builtFromPackageId], references: [id], onDelete: SetNull)
+}
+
+model SourcePackage {
+  id String @id @default(cuid())
+  gameId String
+  version String
+  description String
+  readme String
+  license String
+  format String
+  requirements String @default("")
+  exclusions String @default("")
+  priceCents Int @default(0)
+  currency String @default("usd")
+  status String @default("PENDING")
+  storageKey String
+  sha256 String
+  manifest Json
+  createdAt DateTime @default(now())
+  reviewedAt DateTime?
+  reviewNote String?
+  game Game @relation(fields: [gameId], references: [id], onDelete: Restrict)
+  orders SourceOrder[]
+  derivatives GameStory[]
+  @@unique([gameId, version])
+  @@index([status, createdAt])
+}
+
+model SourceOrder {
+  id String @id @default(cuid())
+  buyerId String
+  packageId String
+  amountCents Int
+  platformFeeCents Int @default(0)
+  currency String @default("usd")
+  status String @default("PENDING")
+  checkoutId String? @unique
+  paymentIntentId String? @unique
+  createdAt DateTime @default(now())
+  paidAt DateTime?
+  refundRequestedAt DateTime?
+  refundReason String?
+  supportReply String?
+  buyer User @relation(fields: [buyerId], references: [id], onDelete: Restrict)
+  package SourcePackage @relation(fields: [packageId], references: [id], onDelete: Restrict)
+  @@index([buyerId, status])
+  @@index([packageId, status])
+}
+
+model CreatorPayoutAccount {
+  userId String @id
+  stripeAccountId String @unique
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

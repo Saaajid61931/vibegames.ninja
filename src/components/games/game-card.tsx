@@ -3,6 +3,7 @@ import { Play, Heart, User, Smartphone, SquarePen, Trophy } from "lucide-react"
 import { GameThumbnailSlideshow } from "@/components/games/game-thumbnail-slideshow"
 import { formatNumber, timeAgo, CATEGORIES } from "@/lib/utils"
 import { CreatorLink } from "@/components/games/creator-link"
+import { SaveGameButton } from "@/components/community/save-game-button"
 import { GameThumbnailPlaceholder } from "@/components/games/game-thumbnail-placeholder"
 
 interface GameCardProps {
@@ -10,6 +11,7 @@ interface GameCardProps {
     id: string
     slug: string
     title: string
+    description?: string
     thumbnail?: string | null
     thumbnailSlides?: string[]
     category: string
@@ -56,7 +58,7 @@ export function GameCard({
           : "border-text-secondary text-text-secondary"
 
   return (
-    <article className="group card-arcade flex h-full flex-col">
+    <article className="group community-game-card flex h-full flex-col">
       {/* Thumbnail */}
       <Link href={`/play/${game.slug}`} prefetch={false} aria-label={`Play ${game.title}`}>
         <div className="relative aspect-video overflow-hidden bg-canvas">
@@ -87,8 +89,8 @@ export function GameCard({
       <div className="flex flex-1 flex-col p-3 sm:p-4">
         {/* Category Tag */}
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="text-kicker text-primary-text">
-            {category?.label || "Game"}
+          <span className="text-xs font-medium text-primary-text">
+            {game.category === "OTHER" ? "Experiment" : category?.label || "Game"}
           </span>
           {game.seekingFeedback && (
             <span className="inline-flex items-center gap-1 rounded border border-arcade-orange px-1.5 py-0.5 text-xs text-arcade-orange">
@@ -125,11 +127,7 @@ export function GameCard({
           </Link>
         </h3>
 
-        {game.aiModel && (
-          <p className="mb-2 line-clamp-1 text-xs text-text-tertiary">
-            Model: {game.aiModel}
-          </p>
-        )}
+        {game.description && <p className="mb-3 line-clamp-2 text-sm leading-6 text-text-secondary">{game.description}</p>}
         
         {/* Creator */}
         <div className="flex items-center gap-2 mb-3 text-sm text-text-secondary">
@@ -173,8 +171,10 @@ export function GameCard({
       </div>
       
       {/* Footer */}
-      <div className="border-t border-border bg-surface-2 px-4 py-2 text-xs text-text-secondary">
-        {timeAgo(new Date(game.createdAt))}
+      <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-2 text-xs text-text-secondary">
+        <Link href={`/play/${game.slug}`} className="inline-flex min-h-10 items-center gap-1 font-semibold text-primary-text"><Play className="h-3 w-3" /> Play</Link>
+        <SaveGameButton gameId={game.id} slug={game.slug} compact />
+        <span className="sr-only">{timeAgo(new Date(game.createdAt))}</span>
       </div>
     </article>
   )

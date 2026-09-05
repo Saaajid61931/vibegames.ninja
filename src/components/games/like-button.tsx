@@ -74,7 +74,7 @@ export function LikeButton({ gameId, slug, initialLikes, initialLiked }: LikeBut
       ) : (
         <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
       )}
-      {liked ? "Liked" : "Like"}
+      {liked ? "Appreciated" : "Appreciate"}
       <span className="text-xs opacity-75">{formatNumber(likes)}</span>
     </Button>
   )

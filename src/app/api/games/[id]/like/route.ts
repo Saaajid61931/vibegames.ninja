@@ -56,7 +56,7 @@ export async function POST(
     }
 
     const { liked, likes } = await prisma.$transaction(async (tx) => {
-      const existingFavorite = await tx.favorite.findUnique({
+      const existingFavorite = await tx.gameAppreciation.findUnique({
         where: {
           userId_gameId: {
             userId: session.user.id,
@@ -67,14 +67,14 @@ export async function POST(
       })
 
       if (existingFavorite) {
-        await tx.favorite.deleteMany({
+        await tx.gameAppreciation.deleteMany({
           where: {
             userId: session.user.id,
             gameId,
           },
         })
       } else {
-        await tx.favorite.createMany({
+        await tx.gameAppreciation.createMany({
           data: {
             userId: session.user.id,
             gameId,
@@ -84,7 +84,7 @@ export async function POST(
       }
 
       const [currentFavorite, favoriteCount] = await Promise.all([
-        tx.favorite.findUnique({
+        tx.gameAppreciation.findUnique({
           where: {
             userId_gameId: {
               userId: session.user.id,
@@ -93,7 +93,7 @@ export async function POST(
           },
           select: { id: true },
         }),
-        tx.favorite.count({ where: { gameId } }),
+        tx.gameAppreciation.count({ where: { gameId } }),
       ])
 
       const updated = await tx.game.update({
@@ -158,7 +158,7 @@ export async function GET(
 
     let liked = false
     if (session?.user?.id) {
-      const favorite = await prisma.favorite.findUnique({
+      const favorite = await prisma.gameAppreciation.findUnique({
         where: {
           userId_gameId: {
             userId: session.user.id,

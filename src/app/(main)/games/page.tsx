@@ -116,6 +116,7 @@ async function queryGames(page: number, category: string, sort: DiscoverySort, q
           id: true,
           slug: true,
           title: true,
+          description: true,
           thumbnail: true,
           thumbnailSlides: true,
           category: true,

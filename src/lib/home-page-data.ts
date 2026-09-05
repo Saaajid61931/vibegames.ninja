@@ -8,6 +8,7 @@ import { startOfUtcDay } from "@/lib/game-analytics"
 import { CATEGORIES } from "@/lib/utils"
 
 const mobileReelsGameSelect = {
+  creator: { select: { id: true, name: true, username: true, image: true } },
   id: true,
   slug: true,
   title: true,

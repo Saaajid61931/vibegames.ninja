@@ -176,7 +176,7 @@ export function HomeCommunityCta() {
               <Link href="/upload" prefetch={false}>
                 <Button variant="arcade" size="lg" className="gap-3">
                   <Upload className="h-5 w-5" />
-                  BUILD A GAME
+                  SHARE A GAME
                 </Button>
               </Link>
               <Link href="/games" prefetch={false}>

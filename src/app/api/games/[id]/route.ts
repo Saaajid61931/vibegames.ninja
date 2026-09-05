@@ -422,6 +422,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Not authorized to delete this game" }, { status: 403 })
     }
 
+    if (await prisma.sourcePackage.count({ where: { gameId: id } })) {
+      return NextResponse.json({ error: "This game has source project records. Withdraw its source versions in Creator workspace and contact support to archive the game while preserving purchase access." }, { status: 409 })
+    }
     await prisma.game.delete({ where: { id } })
 
     revalidateTag("games", "max")

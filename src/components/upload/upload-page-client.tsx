@@ -841,8 +841,8 @@ export function UploadPageClient() {
                   View jam entry
                 </Button>
               ) : null}
-              <Button variant="outline" onClick={() => router.push("/creator")}>
-                Creator studio
+              <Button variant="outline" onClick={() => router.push("/creator/projects")}>
+                Add your story or source
               </Button>
             </div>
           </section>

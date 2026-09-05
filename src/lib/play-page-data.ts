@@ -230,7 +230,7 @@ export async function getPlayPageData(
             .then((follow) => Boolean(follow))
         : Promise.resolve(false),
     userId
-      ? prisma.favorite
+      ? prisma.gameAppreciation
           .findUnique({
             where: {
               userId_gameId: {

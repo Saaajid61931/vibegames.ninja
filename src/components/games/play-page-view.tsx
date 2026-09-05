@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { SaveGameButton } from "@/components/community/save-game-button"
+import { GameCommunityPanel } from "@/components/community/game-community-panel"
 import {
   ArrowRight,
   ChevronLeft,
@@ -198,8 +200,11 @@ export function PlayPageView({
                     initialLiked={isLiked}
                   />
                   <ShareButton gameId={game.id} title={game.title} />
+                  <SaveGameButton gameId={game.id} slug={game.slug} />
                 </div>
               </section>
+
+              <GameCommunityPanel gameId={game.id} />
 
               {primaryJam ? (
                 <section className="vg-play-panel border-arcade-yellow/50 p-4 sm:p-5">

@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 
 export default function RegisterPage() {
   const router = useRouter()
+  const getDestination = () => { const value = new URLSearchParams(window.location.search).get("callbackUrl"); return value?.startsWith("/") && !value.startsWith("//") && !value.includes("\\") ? value : "/games" }
   const [formData, setFormData] = useState({
     name: "",
     username: "",
@@ -74,7 +75,7 @@ export default function RegisterPage() {
       })
 
       if (result?.ok) {
-        router.push("/creator")
+        router.push(getDestination())
         router.refresh()
       } else {
         setError("Account created, but automatic sign-in failed. Please sign in manually.")
@@ -226,7 +227,7 @@ export default function RegisterPage() {
                       type="button"
                       variant="arcade-outline"
                       className="font-arcade uppercase"
-                      onClick={() => signIn(provider.id, { callbackUrl: "/creator" })}
+                      onClick={() => signIn(provider.id, { callbackUrl: getDestination() })}
                     >
                       {provider.name}
                     </Button>

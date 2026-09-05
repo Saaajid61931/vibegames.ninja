@@ -1,4 +1,6 @@
 "use client"
+import {SaveGameButton} from "@/components/community/save-game-button"
+
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import Image from "next/image"
@@ -22,7 +24,7 @@ import {
 import { DownloadCodeButton } from "@/components/games/download-code-button"
 import { GameThumbnailPlaceholder } from "@/components/games/game-thumbnail-placeholder"
 import { NinjaConsole } from "@/components/icons/ninja-console"
-import { MobileHomeIntroSlide } from "@/components/home/mobile-home-intro-slide"
+
 import type { HomeBackdropGame } from "@/components/home/home-game-backdrop"
 import type { HomePageData } from "@/lib/home-page-data"
 
@@ -307,8 +309,6 @@ const buildSeamlessFeed = (items: FeedGame[]) => {
 
 export function MobileReelsFeed({
   games,
-  backgroundGames,
-  stats,
 }: MobileReelsFeedProps) {
   const router = useRouter()
   const { data: session } = useSession()
@@ -321,7 +321,7 @@ export function MobileReelsFeed({
   // Endless scrolling randomized feed state
   const [feedGames, setFeedGames] = useState<FeedGame[]>([])
   const [feedLoadState, setFeedLoadState] = useState<FeedLoadState>("loading")
-  const [activeIndex, setActiveIndex] = useState(-1)
+  const [activeIndex, setActiveIndex] = useState(0)
 
   // Fullscreen tracking state
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -534,7 +534,7 @@ export function MobileReelsFeed({
     const slideHeight = Math.max(container.clientHeight, 1)
     const snappedPosition = Math.round(container.scrollTop / slideHeight)
     const maxIndex = Math.max(feedGames.length - 1, 0)
-    const nextIndex = Math.min(Math.max(snappedPosition - 1, -1), maxIndex)
+    const nextIndex = Math.min(Math.max(snappedPosition, 0), maxIndex)
     setActiveIndex((current) => current === nextIndex ? current : nextIndex)
   }, [feedGames.length])
 
@@ -588,7 +588,7 @@ export function MobileReelsFeed({
           ...prev,
           [gameId]: { liked: Boolean(data.liked), count: Number(data.likes) || 0 }
         }))
-        triggerToast(data.liked ? "Saved to your cabinet" : "Removed from favorites")
+        triggerToast(data.liked ? "Appreciation sent" : "Appreciation removed")
       }
     } catch (e) {
       console.error("Like failed:", e)
@@ -726,30 +726,6 @@ export function MobileReelsFeed({
     }
   }
 
-  const scrollToFirstGame = () => {
-    const container = scrollContainerRef.current
-    const firstGame = firstGameSlideRef.current
-    if (!container || !firstGame) return
-
-    const targetTop = firstGame.offsetTop
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-
-    container.scrollTo({
-      top: targetTop,
-      behavior: prefersReducedMotion ? "auto" : "smooth",
-    })
-
-    // Some mobile Safari versions can ignore a smooth scroll on a nested
-    // snap container. Fall back to an immediate scroll if it did not start.
-    if (!prefersReducedMotion) {
-      window.setTimeout(() => {
-        if (Math.abs(container.scrollTop - targetTop) > 2) {
-          container.scrollTo({ top: targetTop, behavior: "auto" })
-        }
-      }, 500)
-    }
-  }
-
   // Measured width and height fallbacks
   const width = frameWidth || (typeof window !== "undefined" ? window.innerWidth : 360)
   const height = frameHeight || (typeof window !== "undefined" ? window.innerHeight - 80 : 480)
@@ -773,7 +749,7 @@ export function MobileReelsFeed({
             prefetch={false}
             className="text-kicker flex h-9 items-center gap-2 border-2 border-arcade-yellow bg-canvas/90 px-3 text-arcade-yellow shadow-hard-2 backdrop-blur hover:bg-arcade-yellow hover:text-canvas"
           >
-            Upload
+            Share
             <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         </nav>
@@ -784,11 +760,7 @@ export function MobileReelsFeed({
         className="scrollbar-none flex min-h-0 w-full flex-1 touch-pan-y snap-y snap-mandatory flex-col overflow-y-scroll overscroll-y-contain"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
-        <MobileHomeIntroSlide
-          backgroundGames={backgroundGames}
-          stats={stats}
-          onStart={scrollToFirstGame}
-        />
+
 
         {feedGames.length === 0 ? (
           <div
@@ -849,7 +821,7 @@ export function MobileReelsFeed({
 
         {feedGames.map((game, index) => {
           const isActive = index === activeIndex
-          const shouldRender = index >= activeIndex - 1 && index <= activeIndex + 2
+          const shouldRender = index === activeIndex
 
           const gameLikes = likesState[game.id] || { liked: false, count: game.likes }
 
@@ -883,6 +855,7 @@ export function MobileReelsFeed({
               className="relative flex h-full w-full shrink-0 snap-start snap-always flex-col overflow-hidden bg-canvas landscape:flex-row"
               style={{ height: "100%" }}
             >
+              {!isFullscreen && <div className="z-30 flex min-h-24 shrink-0 items-end justify-between gap-3 bg-canvas px-4 pb-2 pt-12"><div className="min-w-0"><Link href={`/play/${game.slug}`} className="block truncate text-sm font-semibold">{game.title}</Link>{game.creator?.username && <Link href={`/creator/${game.creator.username}`} className="block truncate text-xs text-primary-text">by {game.creator.name || game.creator.username}</Link>}</div><SaveGameButton gameId={game.id} slug={game.slug} compact /></div>}
               {/* Game Frame Area */}
               <div
                 ref={isActive ? gameFrameRef : null}

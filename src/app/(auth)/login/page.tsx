@@ -14,7 +14,8 @@ import { Label } from "@/components/ui/label"
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get("callbackUrl") || "/creator"
+  const requestedUrl = searchParams.get("callbackUrl")
+  const callbackUrl = requestedUrl?.startsWith("/") && !requestedUrl.startsWith("//") && !requestedUrl.includes("\\") ? requestedUrl : "/games"
   
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -88,7 +89,7 @@ function LoginForm() {
           )}
 
           <div className="space-y-2">
-            <Label variant="arcade">Email</Label>
+            <Label htmlFor="email" variant="arcade">Email</Label>
             <div className="relative">
               <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
               <Input
@@ -108,7 +109,7 @@ function LoginForm() {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label variant="arcade">Password</Label>
+              <Label htmlFor="password" variant="arcade">Password</Label>
               <Link href="/forgot-password" className="text-xs font-arcade text-arcade-yellow hover:underline uppercase">
                 Forgot password?
               </Link>
@@ -179,7 +180,7 @@ function LoginForm() {
 
         <p className="mt-6 text-center text-sm font-arcade text-text-secondary uppercase text-xs">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-arcade-yellow hover:underline ml-1">
+          <Link href={`/register?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="text-arcade-yellow hover:underline ml-1">
             Sign up
           </Link>
         </p>
