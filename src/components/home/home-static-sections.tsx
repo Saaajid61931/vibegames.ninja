@@ -1,34 +1,22 @@
 import Link from "next/link"
-import { Gamepad2, Heart, Lightbulb, Sparkles, Upload } from "lucide-react"
+import { ArrowUpRight, Gamepad2, Heart, Lightbulb, Sparkles, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function HomeCategoryBar() {
   return (
     <section
       aria-labelledby="home-discovery-options"
-      className="overflow-hidden border-b-2 border-border-strong bg-surface-2 py-6 sm:border-b-4"
+      className="border-b border-border bg-surface py-4"
     >
       <div className="container mx-auto px-4">
         <h2 id="home-discovery-options" className="sr-only">Game discovery options</h2>
-        <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-          <Link href="/games" prefetch={false}>
-            <Button variant="arcade-outline" size="sm" className="rounded-full">ALL GAMES</Button>
-          </Link>
-          <Link href="/games?category=action" prefetch={false}>
-            <Button variant="outline" size="sm" className="rounded-full border-arcade-blue text-arcade-blue hover:bg-arcade-blue hover:text-white">ACTION</Button>
-          </Link>
-          <Link href="/games?category=puzzle" prefetch={false}>
-            <Button variant="outline" size="sm" className="rounded-full border-arcade-yellow text-arcade-yellow hover:bg-arcade-yellow hover:text-black">PUZZLE</Button>
-          </Link>
-          <Link href="/games?category=rpg" prefetch={false}>
-            <Button variant="outline" size="sm" className="rounded-full border-arcade-red text-arcade-red hover:bg-arcade-red hover:text-white">RPG</Button>
-          </Link>
-          <Link href="/games?category=adventure" prefetch={false}>
-            <Button variant="outline" size="sm" className="rounded-full border-arcade-green text-arcade-green hover:bg-arcade-green hover:text-black">ADVENTURE</Button>
-          </Link>
-          <Link href="/games?category=arcade" prefetch={false}>
-            <Button variant="outline" size="sm" className="rounded-full border-arcade-orange text-arcade-orange hover:bg-arcade-orange hover:text-black">ARCADE</Button>
-          </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-kicker mr-4 flex items-center gap-2 text-text-secondary"><Gamepad2 className="h-4 w-4 text-arcade-cyan" /> PICK YOUR PLAY</span>
+          {[{ label: "ALL GAMES", value: "" }, { label: "ACTION", value: "action" }, { label: "PUZZLE", value: "puzzle" }, { label: "RPG", value: "rpg" }, { label: "ADVENTURE", value: "adventure" }, { label: "ARCADE", value: "arcade" }].map(({ label, value }) => (
+            <Link key={label} href={value ? `/games?category=${value}` : "/games"} prefetch={false} className="flex min-h-11 items-center gap-3 border border-border-strong bg-canvas px-4 text-[10px] font-bold tracking-wider text-text-secondary transition-colors hover:border-arcade-yellow hover:text-arcade-yellow">
+              {label}<ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+            </Link>
+          ))}
         </div>
       </div>
     </section>

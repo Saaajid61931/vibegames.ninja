@@ -257,43 +257,6 @@ const getNeedsFeedbackGames = unstable_cache(async () => {
   })
 }, ["home-needs-feedback-games"], { revalidate: 60, tags: ["games"] })
 
-const getUpdatedThisWeekGames = unstable_cache(async () => {
-  if (!isPrismaDatasourceConfigured()) {
-    return []
-  }
-
-  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-  return prisma.game.findMany({
-    where: {
-      status: "PUBLISHED",
-      updatedAt: {
-        gte: since,
-      },
-    },
-    select: homeGameCardSelect,
-    orderBy: [{ updatedAt: "desc" }, { publishedAt: "desc" }],
-    take: 4,
-  })
-}, ["home-updated-this-week-games"], { revalidate: 60, tags: ["games"] })
-
-const getBuiltWithToolsGames = unstable_cache(async () => {
-  if (!isPrismaDatasourceConfigured()) {
-    return []
-  }
-
-  return prisma.game.findMany({
-    where: {
-      status: "PUBLISHED",
-      aiTool: {
-        in: ["chatgpt", "claude", "cursor"],
-      },
-    },
-    select: homeGameCardSelect,
-    orderBy: getDiscoveryOrderBy("new"),
-    take: 4,
-  })
-}, ["home-built-with-tools-games"], { revalidate: 60, tags: ["games"] })
-
 const getStats = unstable_cache(async () => {
   if (!isPrismaDatasourceConfigured()) {
     return {
@@ -324,93 +287,6 @@ const getStats = unstable_cache(async () => {
     plays: totalPlays._sum.plays || 0,
   }
 }, ["home-stats-v2"], { revalidate: 60, tags: ["games"] })
-
-const getGameOfTheMonth = unstable_cache(async () => {
-  if (!isPrismaDatasourceConfigured()) {
-    return null
-  }
-
-  const now = new Date()
-  const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
-
-  const gameSelect = {
-    id: true,
-    slug: true,
-    title: true,
-    description: true,
-    thumbnail: true,
-    thumbnailSlides: true,
-    category: true,
-    plays: true,
-    likes: true,
-    avgRating: true,
-    ratingCount: true,
-    aiModel: true,
-    supportsMobile: true,
-    hasLevelEditor: true,
-    createdAt: true,
-    publishedAt: true,
-    status: true,
-    creator: {
-      select: { id: true, name: true, username: true, image: true },
-    },
-    studioProfile: {
-      select: { id: true, handle: true, displayName: true, image: true },
-    },
-  } as const
-
-  const topRated = await prisma.gameRating.groupBy({
-    by: ["gameId"],
-    where: {
-      createdAt: { gte: startOfMonth },
-    },
-    _sum: { score: true },
-    _count: { score: true },
-    orderBy: { _sum: { score: "desc" } },
-    take: 10,
-  })
-
-  const publishedTopRatedGames = topRated.length
-    ? await prisma.game.findMany({
-        where: {
-          id: { in: topRated.map((entry) => entry.gameId) },
-          status: "PUBLISHED",
-        },
-        select: gameSelect,
-      })
-    : []
-
-  const publishedTopRatedGamesById = new Map(
-    publishedTopRatedGames.map((game) => [game.id, game])
-  )
-
-  for (const entry of topRated) {
-    const game = publishedTopRatedGamesById.get(entry.gameId)
-    if (game && game.status === "PUBLISHED") {
-      return {
-        game,
-        monthlyStars: entry._sum.score ?? 0,
-        monthlyRatings: entry._count.score ?? 0,
-      }
-    }
-  }
-
-  const fallback = await prisma.game.findFirst({
-    where: { status: "PUBLISHED", ratingCount: { gt: 0 } },
-    select: gameSelect,
-    orderBy: [{ avgRating: "desc" }, { ratingCount: "desc" }],
-  })
-
-  if (!fallback) {
-    return null
-  }
-
-  return {
-    game: fallback,
-    monthlyStars: 0,
-    monthlyRatings: 0,
-  }
-}, ["home-game-of-the-month"], { revalidate: 60, tags: ["featured", "games"] })
 
 function decorateGameCards<
   T extends {
@@ -467,7 +343,6 @@ export async function getHomePageData() {
         creators: 0,
         plays: 0,
       },
-      gameOfTheMonth: null,
       games: [],
       mobileGames: [],
       allMobileGames: [],
@@ -475,8 +350,6 @@ export async function getHomePageData() {
       editorGames: [],
       justLaunchedGames: [],
       needsFeedbackGames: [],
-      updatedThisWeekGames: [],
-      builtWithToolsGames: [],
       categoryLinks: CATEGORIES.slice(0, 6).map((category) => ({
         ...category,
         href: `/games?category=${category.value.toLowerCase()}`,
@@ -517,11 +390,6 @@ export async function getHomePageData() {
     getEditorGames,
     [] as Awaited<ReturnType<typeof getEditorGames>>,
   )
-  const gameOfTheMonth = await getHomeDataValue(
-    "gameOfTheMonth",
-    getGameOfTheMonth,
-    null as Awaited<ReturnType<typeof getGameOfTheMonth>>
-  )
   const justLaunchedGames = await getHomeDataValue(
     "justLaunchedGames",
     getJustLaunchedGames,
@@ -532,20 +400,9 @@ export async function getHomePageData() {
     getNeedsFeedbackGames,
     [] as Awaited<ReturnType<typeof getNeedsFeedbackGames>>
   )
-  const updatedThisWeekGames = await getHomeDataValue(
-    "updatedThisWeekGames",
-    getUpdatedThisWeekGames,
-    [] as Awaited<ReturnType<typeof getUpdatedThisWeekGames>>
-  )
-  const builtWithToolsGames = await getHomeDataValue(
-    "builtWithToolsGames",
-    getBuiltWithToolsGames,
-    [] as Awaited<ReturnType<typeof getBuiltWithToolsGames>>
-  )
 
   return {
     stats,
-    gameOfTheMonth,
     games: decorateGameCards(games),
     mobileGames: decorateGameCards(mobileGames),
     allMobileGames: allMobileGames,
@@ -553,8 +410,6 @@ export async function getHomePageData() {
     editorGames: decorateGameCards(editorGames),
     justLaunchedGames: decorateGameCards(justLaunchedGames),
     needsFeedbackGames: decorateGameCards(needsFeedbackGames),
-    updatedThisWeekGames: decorateGameCards(updatedThisWeekGames),
-    builtWithToolsGames: decorateGameCards(builtWithToolsGames),
     categoryLinks: CATEGORIES.slice(0, 6).map((category) => ({
       ...category,
       href: `/games?category=${category.value.toLowerCase()}`,
@@ -563,3 +418,12 @@ export async function getHomePageData() {
 }
 
 export type HomePageData = Awaited<ReturnType<typeof getHomePageData>>
+
+// Quick Play only needs the feed and intro; avoid loading every discovery lane.
+// Keep queries sequential to respect the production connection pool.
+export async function getQuickPlayData() {
+  const stats = await getHomeDataValue("stats", getStats, { games: 0, creators: 0, plays: 0 })
+  const allMobileGames = await getHomeDataValue("allMobileGames", getAllMobileGames, [] as Awaited<ReturnType<typeof getAllMobileGames>>)
+  const heroGames = await getHomeDataValue("heroGames", getPreviousDayTopHeroGames, [] as Awaited<ReturnType<typeof getPreviousDayTopHeroGames>>)
+  return { stats, allMobileGames, heroGames }
+}

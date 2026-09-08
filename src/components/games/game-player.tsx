@@ -1,7 +1,7 @@
 "use client"
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react"
-import { Loader2, Play } from "lucide-react"
+import { Loader2, Minimize2, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getMobileOrientationLabel, getMobileOrientationPrompt, type MobileOrientation } from "@/lib/mobile-orientation"
 
@@ -55,6 +55,15 @@ type LockableScreenOrientation = ScreenOrientation & {
   unlock?: () => void
 }
 
+type FullscreenWrapper = HTMLDivElement & {
+  webkitRequestFullscreen?: () => Promise<void> | void
+}
+
+type FullscreenDocument = Document & {
+  webkitFullscreenElement?: Element | null
+  webkitExitFullscreen?: () => Promise<void> | void
+}
+
 type PendingScreenshotRequest = {
   resolve: (imageDataUrl: string) => void
   reject: (error: Error) => void
@@ -102,6 +111,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
   const [fullscreenError, setFullscreenError] = useState("")
   const [isAutoCapturing, setIsAutoCapturing] = useState(false)
   const [playRequested, setPlayRequested] = useState(false)
+  const [isInlinePlaying, setIsInlinePlaying] = useState(false)
   const effectiveMode = mode === "preview" ? "play" : mode
 
   const requiredOrientation = supportsMobile && mobileOrientation !== "BOTH"
@@ -113,7 +123,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
       requiredOrientation &&
       viewportOrientation !== requiredOrientation.toLowerCase()
   )
-  const showPlayOverlay = !isFullscreen && !isAutoCapturing && mode === "play"
+  const showPlayOverlay = !isFullscreen && !isInlinePlaying && !isAutoCapturing && mode === "play"
   const shouldLoadGame =
     playRequested || isFullscreen || isAutoCapturing || mode !== "play"
 
@@ -339,7 +349,8 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      const active = document.fullscreenElement === wrapperRef.current
+      const fullscreenDocument = document as FullscreenDocument
+      const active = (document.fullscreenElement || fullscreenDocument.webkitFullscreenElement) === wrapperRef.current
       setIsFullscreen(active)
 
       if (!active) {
@@ -352,7 +363,11 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
     }
 
     document.addEventListener("fullscreenchange", handleFullscreenChange)
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange)
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange)
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange)
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange)
+    }
   }, [])
 
   useEffect(() => {
@@ -371,9 +386,17 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
     }
 
     setFullscreenError("")
+    setPlayRequested(true)
 
     try {
-      await wrapperRef.current.requestFullscreen()
+      const wrapper = wrapperRef.current as FullscreenWrapper
+      if (wrapper.requestFullscreen) {
+        await wrapper.requestFullscreen()
+      } else if (wrapper.webkitRequestFullscreen) {
+        await wrapper.webkitRequestFullscreen()
+      } else {
+        throw new Error("Fullscreen is unavailable")
+      }
       if (mode === "play") {
         window.dispatchEvent(new Event("vg-game-play-start"))
       }
@@ -388,11 +411,21 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
         }
       }
     } catch {
-      const message = "Fullscreen is required to play. If it did not open, check browser permissions and try again."
+      const message = "Fullscreen could not open. Try again or play in this window."
       setFullscreenError(message)
       throw new Error(message)
     }
   }, [mode, requiredOrientation])
+
+  const exitFullscreen = async () => {
+    try {
+      const fullscreenDocument = document as FullscreenDocument
+      if (fullscreenDocument.exitFullscreen) await fullscreenDocument.exitFullscreen()
+      else await fullscreenDocument.webkitExitFullscreen?.()
+    } catch {
+      // The browser may already have dismissed fullscreen using its own controls.
+    }
+  }
 
   const wait = useCallback((ms: number) => {
     return new Promise<void>((resolve) => {
@@ -660,7 +693,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
   }), [launchFullscreen, runAutoThumbnailCapture])
 
   return (
-    <div ref={wrapperRef} className={`relative min-w-0 max-w-full overflow-hidden ${isFullscreen ? "w-full bg-black" : "w-full border-2 border-border-strong bg-surface shadow-hard-4"}`}>
+    <div ref={wrapperRef} className={`relative min-w-0 max-w-full overflow-hidden ${isFullscreen ? "h-full w-full bg-black" : "w-full border-2 border-border-strong bg-surface shadow-hard-4"}`}>
       {!isFullscreen && (
         <div className="grid min-w-0 grid-cols-1 gap-1.5 border-b-2 border-border-strong bg-surface-2 px-3 py-3 min-[380px]:grid-cols-[minmax(0,1fr)_auto] min-[380px]:items-center min-[380px]:gap-3 sm:px-4">
           <div className="flex min-w-0 items-center gap-2">
@@ -689,7 +722,17 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
         </div>
       )}
 
-      <div className={isFullscreen ? "relative h-[100dvh] w-full bg-black" : "relative w-full bg-black aspect-[4/3] sm:aspect-video"}>
+      <div className={isFullscreen ? "absolute inset-0 bg-black" : "relative w-full bg-black aspect-[4/3] sm:aspect-video"}>
+        {isFullscreen && (
+          <button
+            type="button"
+            onClick={() => void exitFullscreen()}
+            aria-label="Exit fullscreen"
+            className="absolute right-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] z-30 flex h-11 w-11 items-center justify-center border-2 border-white bg-canvas/90 text-white shadow-hard-2 hover:border-arcade-yellow hover:text-arcade-yellow"
+          >
+            <Minimize2 className="h-4 w-4" aria-hidden="true" />
+          </button>
+        )}
         {shouldLoadGame && isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
             <div className="text-center">
@@ -716,17 +759,26 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
                 type="button"
                 size="lg"
                 className="w-full gap-2 px-8 sm:w-auto"
-                onClick={() => {
-                  setPlayRequested(true)
-                  void launchFullscreen()
-                }}
+                onClick={() => void launchFullscreen().catch(() => undefined)}
               >
                 <Play className="h-4 w-4" />
                 Play game
               </Button>
 
               {fullscreenError && (
-                <p className="text-sm text-danger-text">{fullscreenError}</p>
+                <div className="space-y-3">
+                  <p role="status" className="text-sm text-danger-text">{fullscreenError}</p>
+                  <Button
+                    type="button"
+                    variant="arcade-outline"
+                    onClick={() => {
+                      setIsInlinePlaying(true)
+                      window.dispatchEvent(new Event("vg-game-play-start"))
+                    }}
+                  >
+                    Play in this window
+                  </Button>
+                </div>
               )}
             </div>
           </div>
@@ -746,16 +798,16 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
           </div>
         )}
 
-        <iframe
+        {shouldLoadGame && <iframe
           ref={iframeRef}
-          src={shouldLoadGame ? gameUrl : undefined}
+          src={gameUrl}
           title={title}
           sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-forms"
           allow="fullscreen; gamepad; accelerometer; gyroscope"
           allowFullScreen
           className="absolute inset-0 h-full w-full border-0"
           onLoad={() => setIsLoading(false)}
-        />
+        />}
       </div>
     </div>
   )

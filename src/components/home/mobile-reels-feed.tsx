@@ -25,6 +25,7 @@ import {
 import { DownloadCodeButton } from "@/components/games/download-code-button"
 import { GameThumbnailPlaceholder } from "@/components/games/game-thumbnail-placeholder"
 import { NinjaConsole } from "@/components/icons/ninja-console"
+import { getContainedGameViewport, type GameViewport } from "@/lib/game-viewport"
 
 import type { HomeBackdropGame } from "@/components/home/home-game-backdrop"
 import type { HomePageData } from "@/lib/home-page-data"
@@ -58,7 +59,7 @@ interface MobileReelsFeedProps {
 }
 
 type LockableScreenOrientation = ScreenOrientation & {
-  lock?: (orientation: "landscape") => Promise<void>
+  lock?: (orientation: "landscape" | "portrait") => Promise<void>
   unlock?: () => void
 }
 
@@ -68,8 +69,15 @@ type VendorFullscreenElement = HTMLElement & {
 }
 
 type VendorFullscreenDocument = Document & {
+  webkitFullscreenElement?: Element | null
+  msFullscreenElement?: Element | null
   webkitExitFullscreen?: () => Promise<void> | void
   msExitFullscreen?: () => Promise<void> | void
+}
+
+function getFullscreenElement() {
+  const fullscreenDocument = document as VendorFullscreenDocument
+  return fullscreenDocument.fullscreenElement || fullscreenDocument.webkitFullscreenElement || fullscreenDocument.msFullscreenElement
 }
 
 type FeedLoadState = "loading" | "ready" | "empty" | "error"
@@ -126,6 +134,7 @@ interface ActiveGameFrameProps {
   height: number
   logicalWidth: number
   logicalHeight: number
+  fullscreenViewport: GameViewport | null
   onInteractionChange: (interactive: boolean) => void
   onTouchStart: (event: React.TouchEvent) => void
   onTouchEnd: (event: React.TouchEvent) => void
@@ -143,6 +152,7 @@ function ActiveGameFrame({
   height,
   logicalWidth,
   logicalHeight,
+  fullscreenViewport,
   onInteractionChange,
   onTouchStart,
   onTouchEnd,
@@ -166,16 +176,24 @@ function ActiveGameFrame({
     setAttempt((current) => current + 1)
   }
 
-  const exitFullscreen = () => {
+  const exitFullscreen = async () => {
     const fullscreenDocument = document as VendorFullscreenDocument
-    if (fullscreenDocument.exitFullscreen) {
-      void fullscreenDocument.exitFullscreen()
-    } else if (fullscreenDocument.webkitExitFullscreen) {
-      void fullscreenDocument.webkitExitFullscreen()
-    } else if (fullscreenDocument.msExitFullscreen) {
-      void fullscreenDocument.msExitFullscreen()
+    try {
+      if (fullscreenDocument.exitFullscreen) {
+        await fullscreenDocument.exitFullscreen()
+      } else if (fullscreenDocument.webkitExitFullscreen) {
+        await fullscreenDocument.webkitExitFullscreen()
+      } else if (fullscreenDocument.msExitFullscreen) {
+        await fullscreenDocument.msExitFullscreen()
+      }
+    } catch {
+      // Browser gestures can dismiss fullscreen before this button resolves.
     }
   }
+
+  const fittedViewport = fullscreenViewport
+    ? getContainedGameViewport(fullscreenViewport, { width, height }, rotateLandscape)
+    : null
 
   return (
     <div className="relative flex h-full w-full items-center justify-center bg-canvas">
@@ -194,8 +212,18 @@ function ActiveGameFrame({
         } ${isInteractive || isFullscreen ? "pointer-events-auto" : "pointer-events-none"}`}
         sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-forms"
         allow="fullscreen; gamepad; accelerometer; gyroscope"
+        allowFullScreen
         style={
-          rotateLandscape ? {
+          fittedViewport ? {
+            width: fittedViewport.width,
+            height: fittedViewport.height,
+            left: fittedViewport.left,
+            top: fittedViewport.top,
+            transform: fittedViewport.transform,
+            transformOrigin: "center",
+            position: "absolute",
+            maxWidth: "none",
+          } : rotateLandscape ? {
             width: `${logicalWidth}px`,
             height: `${logicalHeight}px`,
             transform: "rotate(90deg)",
@@ -268,7 +296,7 @@ function ActiveGameFrame({
         <button
           type="button"
           onClick={exitFullscreen}
-          className="absolute right-4 top-4 z-30 flex h-9 w-9 items-center justify-center border-2 border-white bg-canvas text-sm text-white [--shadow-color:var(--color-arcade-red)] shadow-hard-2"
+          className="absolute right-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] z-30 flex h-11 w-11 items-center justify-center border-2 border-white bg-canvas text-sm text-white [--shadow-color:var(--color-arcade-red)] shadow-hard-2"
           title="Exit fullscreen"
           aria-label="Exit fullscreen"
         >
@@ -319,7 +347,11 @@ export function MobileReelsFeed({
   const firstGameSlideRef = useRef<HTMLDivElement>(null)
   const gameFrameRef = useRef<HTMLDivElement>(null)
   const scrollFrameRef = useRef<number | null>(null)
+  const activeSlideIndexRef = useRef(-1)
   const recoveryAbortRef = useRef<AbortController | null>(null)
+  const fullscreenSessionRef = useRef<{ index: number; viewport: GameViewport } | null>(null)
+  const restoreScrollFrameRef = useRef<number | null>(null)
+  const fetchedSessionIdsRef = useRef(new Set<string>())
 
   // Endless scrolling randomized feed state
   const [feedGames, setFeedGames] = useState<FeedGame[]>([])
@@ -328,6 +360,7 @@ export function MobileReelsFeed({
 
   // Fullscreen tracking state
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [fullscreenViewport, setFullscreenViewport] = useState<GameViewport | null>(null)
 
   // Fullscreen button animation reminder state
   const [showFullscreenHint, setShowFullscreenHint] = useState(false)
@@ -353,9 +386,6 @@ export function MobileReelsFeed({
   const [feedbackStatus, setFeedbackStatus] = useState<FeedbackStatus>(null)
 
   const [toastMessage, setToastMessage] = useState<string | null>(null)
-
-  // Track session checks we've already done
-  const [fetchedSessionIds, setFetchedSessionIds] = useState<Set<string>>(new Set())
 
   const loadInitialGames = useCallback(async () => {
     recoveryAbortRef.current?.abort()
@@ -429,26 +459,39 @@ export function MobileReelsFeed({
   // Fullscreen change listener to toggle pointer-events and orientation lock
   useEffect(() => {
     const handleFullscreenChange = async () => {
-      const isCurrentlyFullscreen = !!document.fullscreenElement
+      const isCurrentlyFullscreen = getFullscreenElement() === gameFrameRef.current
       setIsFullscreen(isCurrentlyFullscreen)
 
       if (isCurrentlyFullscreen) {
         try {
           const game = feedGames[activeIndex]
           const orientation = screen.orientation as LockableScreenOrientation
-          if (game && game.mobileOrientation === "LANDSCAPE" && orientation.lock) {
-            await orientation.lock("landscape")
+          if (game && game.mobileOrientation !== "BOTH" && orientation?.lock) {
+            await orientation.lock(game.mobileOrientation === "LANDSCAPE" ? "landscape" : "portrait")
           }
         } catch (e) {
           console.warn("Screen orientation lock failed:", e)
         }
-      } else {
+      } else if (fullscreenSessionRef.current) {
+        setFullscreenViewport(null)
         try {
           const orientation = screen.orientation as LockableScreenOrientation
-          orientation.unlock?.()
+          orientation?.unlock?.()
         } catch (e) {
           console.warn("Screen orientation unlock failed:", e)
         }
+        // Fullscreen and orientation changes resize the snap scroller. Preserve
+        // the active game rather than loading a different slide during rotation.
+        if (restoreScrollFrameRef.current !== null) window.cancelAnimationFrame(restoreScrollFrameRef.current)
+        restoreScrollFrameRef.current = window.requestAnimationFrame(() => {
+          const container = scrollContainerRef.current
+          const session = fullscreenSessionRef.current
+          if (container && session) {
+            container.scrollTop = (session.index + 1) * container.clientHeight
+          }
+          fullscreenSessionRef.current = null
+          restoreScrollFrameRef.current = null
+        })
       }
     }
 
@@ -464,6 +507,13 @@ export function MobileReelsFeed({
       document.removeEventListener("MSFullscreenChange", handleFullscreenChange)
     }
   }, [activeIndex, feedGames])
+
+  useEffect(() => () => {
+    if (restoreScrollFrameRef.current !== null) window.cancelAnimationFrame(restoreScrollFrameRef.current)
+    if (fullscreenSessionRef.current) {
+      try { (screen.orientation as LockableScreenOrientation | undefined)?.unlock?.() } catch { /* Unsupported API. */ }
+    }
+  }, [])
 
   // Fullscreen hint timer: turns on after 1 minute of active slide inactivity
   // Also reset inline feed game interaction on active slide change
@@ -499,14 +549,11 @@ export function MobileReelsFeed({
 
     indicesToFetch.forEach(async (idx) => {
       const game = feedGames[idx]
-      if (!game || fetchedSessionIds.has(game.id)) return
+      const sessionKey = `${session.user.id}:${game?.id}`
+      if (!game || fetchedSessionIdsRef.current.has(sessionKey)) return
 
       // Add to fetched list immediately to prevent duplicate concurrent calls
-      setFetchedSessionIds((prev) => {
-        const next = new Set(prev)
-        next.add(game.id)
-        return next
-      })
+      fetchedSessionIdsRef.current.add(sessionKey)
 
       try {
         const res = await fetch(`/api/games/${game.id}/like`)
@@ -514,23 +561,20 @@ export function MobileReelsFeed({
           const data = await res.json()
           setLikesState((prev) => ({
             ...prev,
-            [game.id]: { liked: Boolean(data.liked), count: Number(data.likes) || game.likes }
+            [game.id]: { liked: Boolean(data.liked), count: Number.isFinite(Number(data.likes)) ? Number(data.likes) : game.likes }
           }))
-        }
+        } else fetchedSessionIdsRef.current.delete(sessionKey)
       } catch (e) {
         console.error("Failed to check game like status:", e)
-        setFetchedSessionIds((prev) => {
-          const next = new Set(prev)
-          next.delete(game.id)
-          return next
-        })
+        fetchedSessionIdsRef.current.delete(sessionKey)
       }
     })
-  }, [activeIndex, feedGames, session, fetchedSessionIds])
+  }, [activeIndex, feedGames, session?.user?.id])
 
   // Calculate the snapped slide directly from scroll position. This keeps the
   // active iframe in sync even when a fast swipe skips virtualized slides.
   const syncActiveSlide = useCallback(() => {
+    if (fullscreenSessionRef.current) return
     const container = scrollContainerRef.current
     if (!container) return
 
@@ -538,6 +582,7 @@ export function MobileReelsFeed({
     const snappedPosition = Math.round(container.scrollTop / slideHeight)
     const maxIndex = Math.max(feedGames.length - 1, 0)
     const nextIndex = Math.min(Math.max(snappedPosition - 1, -1), maxIndex)
+    activeSlideIndexRef.current = nextIndex
     setActiveIndex((current) => current === nextIndex ? current : nextIndex)
   }, [feedGames.length])
 
@@ -552,12 +597,17 @@ export function MobileReelsFeed({
 
   useEffect(() => {
     syncActiveSlide()
-    window.addEventListener("resize", syncActiveSlide)
-    window.visualViewport?.addEventListener("resize", syncActiveSlide)
+    const keepActiveSlideOnResize = () => {
+      if (fullscreenSessionRef.current) return
+      const container = scrollContainerRef.current
+      if (container) container.scrollTop = (activeSlideIndexRef.current + 1) * container.clientHeight
+    }
+    window.addEventListener("resize", keepActiveSlideOnResize)
+    window.visualViewport?.addEventListener("resize", keepActiveSlideOnResize)
 
     return () => {
-      window.removeEventListener("resize", syncActiveSlide)
-      window.visualViewport?.removeEventListener("resize", syncActiveSlide)
+      window.removeEventListener("resize", keepActiveSlideOnResize)
+      window.visualViewport?.removeEventListener("resize", keepActiveSlideOnResize)
       if (scrollFrameRef.current !== null) {
         window.cancelAnimationFrame(scrollFrameRef.current)
         scrollFrameRef.current = null
@@ -678,23 +728,33 @@ export function MobileReelsFeed({
   }
 
   // Directly Fullscreen the wrapper container of the active Iframe
-  const toggleFullscreen = (index: number) => {
+  const toggleFullscreen = async (index: number) => {
     const activeId = feedGames[index]?.id
-    if (!activeId) return
+    if (!activeId || fullscreenSessionRef.current) return
     const container = document.getElementById(`frame-container-${activeId}-${index}`)
-    if (container) {
+    const frame = document.getElementById(`iframe-${activeId}-${index}`)
+    if (container && frame) {
+      // Freeze CSS viewport dimensions before requesting fullscreen. Changing
+      // the iframe height itself makes many games zoom their internal camera.
+      const viewport = { width: frame.clientWidth, height: frame.clientHeight }
+      if (viewport.width <= 0 || viewport.height <= 0) return
+      fullscreenSessionRef.current = { index, viewport }
+      setFullscreenViewport(viewport)
       try {
         const fullscreenContainer = container as VendorFullscreenElement
         if (fullscreenContainer.requestFullscreen) {
-          void fullscreenContainer.requestFullscreen()
+          await fullscreenContainer.requestFullscreen()
         } else if (fullscreenContainer.webkitRequestFullscreen) {
-          void fullscreenContainer.webkitRequestFullscreen()
+          await fullscreenContainer.webkitRequestFullscreen()
         } else if (fullscreenContainer.msRequestFullscreen) {
-          void fullscreenContainer.msRequestFullscreen()
-        }
+          await fullscreenContainer.msRequestFullscreen()
+        } else throw new Error("Fullscreen is unavailable")
+        setIsInteractive(true)
       } catch (error) {
         console.error("Fullscreen request failed:", error)
-        router.push(`/play/${feedGames[index].slug}`)
+        fullscreenSessionRef.current = null
+        setFullscreenViewport(null)
+        triggerToast("Fullscreen unavailable. Keep playing here.")
       }
     }
   }
@@ -844,7 +904,8 @@ export function MobileReelsFeed({
           const gameLikes = likesState[game.id] || { liked: false, count: game.likes }
 
           // Check if rotation to landscape is needed on a portrait mobile screen
-          const rotateLandscape = height > width && game.mobileOrientation === "LANDSCAPE"
+          const rotateLandscape = (height > width && game.mobileOrientation === "LANDSCAPE") ||
+            (width > height && game.mobileOrientation === "PORTRAIT")
           const logicalHeight = rotateLandscape ? width : height
           const logicalWidth = rotateLandscape ? height : width
 
@@ -859,7 +920,7 @@ export function MobileReelsFeed({
                 className="relative h-full w-full shrink-0 snap-start snap-always overflow-hidden bg-canvas"
                 style={{ height: "100%" }}
               >
-                <ReelPoster game={game} muted />
+                {Math.abs(index - activeIndex) <= 2 ? <ReelPoster game={game} muted /> : null}
               </div>
             )
           }
@@ -878,7 +939,7 @@ export function MobileReelsFeed({
               <div
                 ref={isActive ? gameFrameRef : null}
                 id={`frame-container-${game.id}-${index}`}
-                className="relative flex w-full flex-1 items-center justify-center overflow-hidden bg-canvas"
+                className="relative flex min-h-0 min-w-0 w-full flex-1 items-center justify-center overflow-hidden bg-canvas fullscreen:h-full fullscreen:w-full"
               >
                 <ActiveGameFrame
                   game={game}
@@ -891,6 +952,7 @@ export function MobileReelsFeed({
                   height={height}
                   logicalWidth={logicalWidth}
                   logicalHeight={logicalHeight}
+                  fullscreenViewport={fullscreenViewport}
                   onInteractionChange={setIsInteractive}
                   onTouchStart={handleTouchStart}
                   onTouchEnd={handleTouchEnd}

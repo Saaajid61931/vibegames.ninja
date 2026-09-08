@@ -7,6 +7,7 @@ import {
   Clock3,
   Cpu,
   Edit3,
+  Gamepad2,
   Heart,
   MessageCircle,
   Play,
@@ -80,19 +81,20 @@ export function PlayPageView({
       <Header />
 
       <main id="main-content" className="flex-1">
-        <div className="container mx-auto max-w-7xl px-4 py-4 sm:py-8">
-          <Link
-            href="/games"
-            className="mb-4 inline-flex items-center gap-2 text-kicker  text-text-secondary transition-colors hover:text-white sm:mb-5"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Browse all games
-          </Link>
+        <div className="container mx-auto max-w-[1440px] px-4 py-4 sm:px-6 sm:py-6">
+          <nav aria-label="Breadcrumb" className="mb-5 flex min-w-0 items-center gap-3 text-xs text-text-secondary">
+            <Link href="/games" className="inline-flex min-h-10 shrink-0 items-center gap-1.5 transition-colors hover:text-arcade-yellow">
+              <ChevronLeft className="h-3.5 w-3.5" />Back to the arcade
+            </Link>
+            <span aria-hidden="true" className="text-border-strong">/</span>
+            <span className="truncate" aria-current="page">{game.title}</span>
+          </nav>
 
           <div className="vg-play-hero mb-6 flex flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
-              <div className="mb-4 flex flex-wrap items-center gap-2">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
                 <span className="vg-chip border-arcade-yellow/35 text-arcade-yellow">
+                  <Gamepad2 className="h-3.5 w-3.5" />
                   {category?.label || "Game"}
                 </span>
                 {game.supportsMobile ? (
@@ -104,11 +106,6 @@ export function PlayPageView({
                 {game.isAIGenerated ? (
                   <span className="vg-chip">Made with AI</span>
                 ) : null}
-                {tagList.slice(0, 3).map((tag) => (
-                  <span key={tag.trim()} className="vg-chip">
-                    #{tag.trim()}
-                  </span>
-                ))}
               </div>
               <h1 className="heading-pixel-lg max-w-4xl break-words font-bold text-white">
                 {game.title}
@@ -129,14 +126,15 @@ export function PlayPageView({
               </p>
             </div>
 
-            {isOwner ? (
-              <Button asChild variant="outline" size="sm" className="w-full gap-2 sm:w-auto">
-                <Link href={`/creator/games/${game.id}/edit`}>
-                  <Edit3 className="h-4 w-4" />
-                  Edit game
-                </Link>
-              </Button>
-            ) : null}
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              <a href="#game-details" className="inline-flex h-10 items-center border border-border-strong bg-canvas/50 px-3 text-xs font-medium text-text-secondary transition-colors hover:border-arcade-cyan hover:text-white">Game details</a>
+              {game.instructions ? <a href="#how-to-play" className="inline-flex h-10 items-center gap-2 border border-border-strong bg-canvas/50 px-3 text-xs font-medium text-text-secondary transition-colors hover:border-arcade-cyan hover:text-white"><Gamepad2 className="h-3.5 w-3.5" />How to play</a> : null}
+              {isOwner ? (
+                <Button asChild variant="outline" size="sm" className="gap-2">
+                  <Link href={`/creator/games/${game.id}/edit`}><Edit3 className="h-4 w-4" />Edit game</Link>
+                </Button>
+              ) : null}
+            </div>
           </div>
 
           <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1fr)_19rem] xl:grid-cols-[minmax(0,1fr)_21rem]">
@@ -166,33 +164,24 @@ export function PlayPageView({
 
               <section
                 aria-label="Game actions and activity"
-                className="vg-play-panel flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="vg-play-panel flex flex-col gap-4 p-4 xl:flex-row xl:items-center xl:justify-between"
               >
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-text-secondary">
-                  <span className="inline-flex items-center gap-2">
-                    <Play className="h-4 w-4 text-arcade-yellow" />
-                    <strong className="font-semibold text-white">
-                      {formatNumber(game.plays)}
-                    </strong>{" "}
-                    plays
-                  </span>
-                  <span className="inline-flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-arcade-red" />
-                    <strong className="font-semibold text-white">
-                      {formatNumber(game.likes)}
-                    </strong>{" "}
-                    likes
-                  </span>
-                  <span className="inline-flex items-center gap-2">
-                    <MessageCircle className="h-4 w-4 text-arcade-cyan" />
-                    <strong className="font-semibold text-white">
-                      {game._count.comments}
-                    </strong>{" "}
-                    comments
-                  </span>
+                <div className="grid grid-cols-3 divide-x divide-border text-text-secondary xl:min-w-72">
+                  <div className="pr-4">
+                    <span className="flex items-center gap-2"><Play className="h-3.5 w-3.5 text-arcade-yellow" /><strong className="text-lg font-semibold tabular-nums text-white">{formatNumber(game.plays)}</strong></span>
+                    <span className="mt-1 block text-[10px] uppercase tracking-wider">Plays</span>
+                  </div>
+                  <div className="px-4">
+                    <span className="flex items-center gap-2"><Heart className="h-3.5 w-3.5 text-arcade-red" /><strong className="text-lg font-semibold tabular-nums text-white">{formatNumber(game.likes)}</strong></span>
+                    <span className="mt-1 block text-[10px] uppercase tracking-wider">Likes</span>
+                  </div>
+                  <a href="#game-discussion" className="pl-4 transition-colors hover:text-white">
+                    <span className="flex items-center gap-2"><MessageCircle className="h-3.5 w-3.5 text-arcade-cyan" /><strong className="text-lg font-semibold tabular-nums text-white">{formatNumber(game._count.comments)}</strong></span>
+                    <span className="mt-1 block text-[10px] uppercase tracking-wider">Comments</span>
+                  </a>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4 xl:border-0 xl:pt-0 [&_button]:min-h-11 [&_button]:rounded-none">
                   <LikeButton
                     gameId={game.id}
                     slug={game.slug}
@@ -203,8 +192,6 @@ export function PlayPageView({
                   <SaveGameButton gameId={game.id} slug={game.slug} />
                 </div>
               </section>
-
-              <GameCommunityPanel gameId={game.id} />
 
               {primaryJam ? (
                 <section className="vg-play-panel border-arcade-yellow/50 p-4 sm:p-5">
@@ -240,20 +227,24 @@ export function PlayPageView({
                 </section>
               ) : null}
 
-              <section className="vg-play-panel p-4 sm:p-6" aria-labelledby="about-game">
-                <span className="vg-kicker">About this game</span>
-                <h2 id="about-game" className="mt-3 text-xl font-semibold text-white">
-                  What to expect
-                </h2>
+              <section id="game-details" className="vg-play-panel scroll-mt-[calc(var(--vg-header-height,6rem)+1rem)] p-4 sm:p-6" aria-labelledby="about-game">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-9 w-9 place-items-center border border-arcade-cyan/30 bg-arcade-cyan/5 text-arcade-cyan"><Gamepad2 className="h-4 w-4" /></span>
+                  <h2 id="about-game" className="heading-pixel-sm text-white">Inside the game</h2>
+                </div>
                 <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-text-secondary sm:text-base">
                   {game.description}
                 </p>
 
+                {tagList.length > 0 ? (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {tagList.map((tag) => <span key={tag.trim()} className="vg-chip">#{tag.trim()}</span>)}
+                  </div>
+                ) : null}
+
                 {game.instructions ? (
-                  <div className="mt-6 border border-border bg-surface p-4">
-                    <h3 className="text-sm font-semibold text-white">
-                      How to play
-                    </h3>
+                  <div id="how-to-play" className="mt-6 scroll-mt-[calc(var(--vg-header-height,6rem)+1rem)] border-l-2 border-arcade-yellow bg-canvas p-4 sm:p-5">
+                    <h3 className="text-kicker text-arcade-yellow">How to play</h3>
                     <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-text-secondary">
                       {game.instructions}
                     </p>
@@ -301,6 +292,8 @@ export function PlayPageView({
                   ) : null}
                 </div>
               </section>
+
+              <GameCommunityPanel gameId={game.id} />
 
               <CompactFeedbackPanel
                 gameId={game.id}
@@ -353,15 +346,17 @@ export function PlayPageView({
                 />
               ) : null}
 
-              <CommentsSection
-                gameId={game.id}
-                slug={game.slug}
-                initialComments={game.comments}
-                initialCommentsCount={game._count.comments}
-              />
+              <div id="game-discussion" className="scroll-mt-[calc(var(--vg-header-height,6rem)+1rem)]">
+                <CommentsSection
+                  gameId={game.id}
+                  slug={game.slug}
+                  initialComments={game.comments}
+                  initialCommentsCount={game._count.comments}
+                />
+              </div>
             </div>
 
-            <aside className="self-start lg:sticky lg:top-24">
+            <aside className="min-w-0 self-start lg:sticky lg:top-[calc(var(--vg-header-height,6rem)+1.5rem)]">
               <PlayPageSidebar
                 game={game}
                 category={category}

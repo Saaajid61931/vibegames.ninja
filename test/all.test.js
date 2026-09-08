@@ -660,6 +660,46 @@ test('gameUploadSchema accepts curated values and rejects unknown ones', () => {
   assert.equal(invalid.success, false)
 })
 
+test('fullscreen keeps the game viewport stable and fits the entire landscape frame', () => {
+  const { getContainedGameViewport } = require('../src/lib/game-viewport')
+  const game = { width: 650, height: 390 }
+  const fit = getContainedGameViewport(game, { width: 844, height: 390 })
+  assert.ok(fit)
+  assert.equal(fit.width, 650)
+  assert.equal(fit.height, 390)
+  assert.equal(fit.scale, 1)
+  assert.equal(fit.left, 97)
+  assert.equal(fit.top, 0)
+})
+
+test('fullscreen rotation contains portrait and landscape games without cropping', () => {
+  const { getContainedGameViewport } = require('../src/lib/game-viewport')
+  for (const game of [{ width: 650, height: 390 }, { width: 390, height: 650 }]) {
+    for (const container of [{ width: 390, height: 844 }, { width: 844, height: 390 }, { width: 320, height: 240 }]) {
+      for (const rotated of [false, true]) {
+        const fit = getContainedGameViewport(game, container, rotated)
+        assert.ok(fit)
+        const renderedWidth = (rotated ? game.height : game.width) * fit.scale
+        const renderedHeight = (rotated ? game.width : game.height) * fit.scale
+        assert.ok(renderedWidth <= container.width + 0.00001)
+        assert.ok(renderedHeight <= container.height + 0.00001)
+        assert.ok(Math.abs(renderedWidth - container.width) < 0.00001 || Math.abs(renderedHeight - container.height) < 0.00001)
+        assert.equal(fit.left + game.width / 2, container.width / 2)
+        assert.equal(fit.top + game.height / 2, container.height / 2)
+        assert.equal(fit.width / fit.height, game.width / game.height)
+      }
+    }
+  }
+})
+
+test('fullscreen ignores empty and invalid measurements during resize', () => {
+  const { getContainedGameViewport } = require('../src/lib/game-viewport')
+  for (const dimension of [0, -1, NaN, Infinity]) {
+    assert.equal(getContainedGameViewport({ width: dimension, height: 390 }, { width: 844, height: 390 }), null)
+    assert.equal(getContainedGameViewport({ width: 650, height: 390 }, { width: 844, height: dimension }), null)
+  }
+})
+
 async function run() {
   let failed = 0
 

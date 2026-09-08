@@ -10,6 +10,7 @@ import { HomeExperience } from "@/components/home/home-experience"
 import { InspirationHero } from "@/components/home/inspiration-hero"
 import { getMonthlyHeroShowcase } from "@/lib/monthly-hero-data"
 import { InspirationCollections } from "@/components/community/inspiration-collections"
+import { HomeCategoryBar } from "@/components/home/home-static-sections"
 
 export const revalidate = 60
 export const metadata: Metadata = {
@@ -30,11 +31,13 @@ export default async function HomePage() {
           rankedGames={monthlyShowcase.games}
           fallbackGames={data.games}
           monthLabel={monthlyShowcase.monthLabel}
+          stats={data.stats}
         />
         <div id="discover-games" className="scroll-mt-24" />
+        <HomeCategoryBar />
         <HomeGameLane
-          eyebrow="Discover"
-          title="Worth a play"
+          eyebrow="01 / COMMUNITY PICKS"
+          title="YOUR NEXT HIGH SCORE"
           description="Community-made games to get your imagination going."
           actionHref="/games"
           actionLabel="Explore all"
@@ -46,8 +49,8 @@ export default async function HomePage() {
         <InspirationCollections />
         {data.justLaunchedGames.length > 0 && (
           <HomeGameLane
-            eyebrow="New voices"
-            title="Fresh experiments"
+            eyebrow="03 / JUST DROPPED"
+            title="FRESH FROM THE CREATORS"
             description="Make someone's first play a good one. Try something new and leave a thoughtful response."
             actionHref="/games?sort=new"
             actionLabel="See new games"
@@ -57,8 +60,8 @@ export default async function HomePage() {
         )}
         {data.needsFeedbackGames.length > 0 && (
           <HomeGameLane
-            eyebrow="Lend a hand"
-            title="Looking for feedback"
+            eyebrow="04 / PLAYER TWO NEEDED"
+            title="HELP SHAPE WHAT'S NEXT"
             description="These creators would love to hear what worked, where you got stuck, or an idea you would try."
             actionHref="/community"
             actionLabel="Meet the community"
@@ -73,16 +76,16 @@ export default async function HomePage() {
         <section className="container mx-auto px-4 py-10">
           <div className="community-invitation">
             <div>
-              <p className="text-sm text-primary-text">Your experiment belongs here</p>
+              <p className="text-kicker text-arcade-cyan">NEXT LEVEL / MAKE SOMETHING</p>
               <h2 className="mt-2 heading-pixel-md text-white">
-                Someone is waiting to discover your idea.
+                YOUR IDEA. SOMEONE&apos;S FAVORITE GAME.
               </h2>
               <p className="mt-3 max-w-2xl leading-7 text-text-secondary">
                 Share a game made with your favorite tools. Tell us what you tried, ask for
                 feedback, and inspire what comes next.
               </p>
             </div>
-            <Link href="/upload" className="community-button primary">
+            <Link href="/upload" prefetch={false} className="community-button primary">
               Share your game <ArrowUpRight className="h-4 w-4" />
             </Link>
           </div>

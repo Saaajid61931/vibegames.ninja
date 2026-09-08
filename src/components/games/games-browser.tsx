@@ -3,7 +3,7 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { AlertTriangle, Gamepad2, Loader2, RefreshCw, Search, Smartphone, SquarePen, X } from "lucide-react"
+import { AlertTriangle, ArrowDown, ArrowUpRight, ChevronDown, Gamepad2, Loader2, RefreshCw, Search, Shuffle, SlidersHorizontal, Smartphone, SquarePen, X } from "lucide-react"
 import { GameCard } from "@/components/games/game-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -107,6 +107,7 @@ export function GamesBrowser({
   const [failedRequest, setFailedRequest] = useState<BrowseRequest | null>(null)
 
   const debouncedQ = useDebounce(q, 500)
+  const gameCards = useMemo(() => games.map((game) => <GameCard key={game.id} game={game} />), [games])
 
   const isFirstRun = useRef(true)
   const isInitialPropsSyncRef = useRef(true)
@@ -153,11 +154,8 @@ export function GamesBrowser({
     const requestId = requestIdRef.current + 1
     requestIdRef.current = requestId
 
-    if (request.append) {
-      setLoadingMore(true)
-    } else {
-      setLoading(true)
-    }
+    setLoadingMore(request.append)
+    setLoading(!request.append)
     setRequestError(null)
     setFailedRequest(null)
 
@@ -270,6 +268,8 @@ export function GamesBrowser({
     setEditorOnly(initialEditorOnly)
     setRequestError(null)
     setFailedRequest(null)
+    setLoading(false)
+    setLoadingMore(false)
   }, [
     initialCategory,
     initialEditorOnly,
@@ -301,32 +301,32 @@ export function GamesBrowser({
     editorOnly,
   ].filter(Boolean).length
 
-  const activeFilterLabels = useMemo(() => {
-    const labels: string[] = []
+  const activeFilters = useMemo(() => {
+    const filters: { key: string; label: string; remove: () => void }[] = []
     const selectedCategory = CATEGORY_OPTIONS.find((option) => option.value === category)
     const selectedSort = SORT_OPTIONS.find((option) => option.key === sort)
 
     if (category !== "all") {
-      labels.push(selectedCategory?.label || category.toUpperCase())
+      filters.push({ key: "category", label: selectedCategory?.label || category.toUpperCase(), remove: () => setCategory("all") })
     }
 
     if (sort !== "trending") {
-      labels.push(selectedSort?.label || sort.toUpperCase())
+      filters.push({ key: "sort", label: selectedSort?.label || sort.toUpperCase(), remove: () => setSort("trending") })
     }
 
     if (q.trim()) {
-      labels.push(`"${q.trim()}"`)
+      filters.push({ key: "search", label: `“${q.trim()}”`, remove: () => setQ("") })
     }
 
     if (supportsMobile) {
-      labels.push("MOBILE")
+      filters.push({ key: "mobile", label: "Mobile friendly", remove: () => setSupportsMobile(false) })
     }
 
     if (editorOnly) {
-      labels.push("EDITOR")
+      filters.push({ key: "editor", label: "Level editor", remove: () => setEditorOnly(false) })
     }
 
-    return labels
+    return filters
   }, [category, editorOnly, q, sort, supportsMobile])
 
   const resetFilters = () => {
@@ -339,227 +339,93 @@ export function GamesBrowser({
   }
 
   return (
-    <div className="community-browser container mx-auto px-4 py-5 sm:py-7">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h1 className="heading-pixel-lg text-white">Explore games</h1><p className="mt-1 hidden text-sm text-text-secondary sm:block">Find something fun. Leave with an idea.</p></div><Link href="/quick-play" className="community-button">Quick play</Link></div>
+    <div className="community-browser container mx-auto px-4 pb-12 pt-5 sm:pb-16 sm:pt-9">
+      <header className="mb-5 flex flex-col justify-between gap-3 sm:mb-7 sm:flex-row sm:items-end">
+        <div>
+          <p className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-arcade-cyan"><span className="h-1.5 w-1.5 bg-arcade-cyan" aria-hidden="true" />01 / The game library</p>
+          <h1 className="heading-pixel-lg text-text">Pick your next<br /><span className="text-arcade-yellow">obsession.</span></h1>
+          <p className="mt-3 max-w-lg text-sm leading-6 text-text-secondary">Fresh ideas. Unexpected favorites. Jump right in.</p>
+        </div>
+        <Link href="/quick-play" prefetch={false} className="inline-flex min-h-12 w-fit items-center justify-center gap-3 border border-border-strong bg-surface px-5 text-xs font-bold uppercase tracking-widest text-text shadow-[3px_3px_0_#05070d] transition-colors hover:border-arcade-cyan hover:text-arcade-cyan focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-arcade-cyan"><Shuffle className="h-4 w-4 text-arcade-cyan" aria-hidden="true" />Surprise me <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
+      </header>
 
-      <>
-        <div className="mb-4 space-y-3">
-          <div className="relative">
+      <section aria-label="Find games" className="mb-5 border border-border-strong bg-surface shadow-[4px_4px_0_#05070d] sm:mb-7">
+        <div className="flex flex-col gap-2 p-3 sm:gap-3 sm:p-5 lg:flex-row">
+          <div className="relative min-w-0 flex-1">
             <label htmlFor="arcade-search" className="sr-only">Search the arcade</label>
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-text-secondary" aria-hidden="true" />
-            <Input
-              id="arcade-search"
-              type="search"
-              value={q}
-              onChange={(event) => setQ(event.target.value)}
-              maxLength={MAX_DISCOVERY_SEARCH_LENGTH}
-              placeholder="Search games, mechanics, or ideas"
-              className="pl-12 pr-12 text-base sm:text-lg"
-            />
-            {q ? (
-              <button
-                type="button"
-                aria-label="Clear search"
-                className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-text-secondary transition-colors hover:bg-surface-2 hover:text-white"
-                onClick={() => setQ("")}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            ) : null}
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-arcade-cyan" aria-hidden="true" />
+            <Input id="arcade-search" type="search" value={q} onChange={(event) => setQ(event.target.value)} maxLength={MAX_DISCOVERY_SEARCH_LENGTH} placeholder="Find your next game" className="h-12 border pl-12 pr-12 text-base focus:border-arcade-cyan [&::-webkit-search-cancel-button]:appearance-none" />
+            {q ? <button type="button" aria-label="Clear search" className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-text-secondary transition-colors hover:text-arcade-cyan focus-visible:outline-2 focus-visible:outline-arcade-cyan" onClick={() => setQ("")}><X className="h-4 w-4" aria-hidden="true" /></button> : null}
           </div>
+          <div className="flex items-center gap-3 border border-border-strong bg-canvas px-3 lg:w-60">
+            <SlidersHorizontal className="h-4 w-4 shrink-0 text-text-secondary" aria-hidden="true" />
+            <label htmlFor="arcade-sort" className="text-xs text-text-secondary">Sort</label>
+            <select id="arcade-sort" value={sort} onChange={(event) => setSort(event.target.value)} className="min-h-12 min-w-0 flex-1 cursor-pointer bg-canvas text-base font-medium text-text focus-visible:outline-2 focus-visible:outline-arcade-cyan">
+              {SORT_OPTIONS.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
+            </select>
+          </div>
+        </div>
 
-          <div className="community-filter-bar">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-kicker text-text-secondary">Filters</span>
-              {activeFilterCount > 0 ? (
-                <span className="rounded border border-arcade-yellow/40 px-2 py-1 text-xs text-arcade-yellow">
-                  {activeFilterCount} active
-                </span>
-              ) : null}
+        <div className="border-t border-border p-3 sm:px-5 sm:py-4">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2 sm:mb-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-secondary">Choose your lane</p>
+            <div className="flex items-center gap-2 text-xs text-text-secondary">
+              {activeFilterCount > 0 ? <><span>{activeFilterCount} {activeFilterCount === 1 ? "filter" : "filters"} active</span><button type="button" className="min-h-9 px-2 font-semibold text-arcade-yellow hover:text-white focus-visible:outline-2 focus-visible:outline-arcade-cyan" onClick={resetFilters}>Reset all</button></> : <span className="hidden min-h-9 content-center sm:block">All play styles welcome</span>}
             </div>
-            {activeFilterCount > 0 ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-auto px-0 py-0 font-arcade text-xs text-arcade-yellow"
-                onClick={resetFilters}
-              >
-                RESET FILTERS
-              </Button>
-            ) : (
-              <span className="font-arcade text-xs text-text-secondary">Showing everything</span>
-            )}
           </div>
-
-          <div className="scrollbar-none mt-3 flex gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible">
-            {SORT_OPTIONS.map((option) => (
-              <Button
-                key={option.key}
-                variant={sort === option.key ? "arcade" : "arcade-outline"}
-                size="sm"
-                className="shrink-0 justify-center"
-                aria-pressed={sort === option.key}
-                onClick={() => setSort(option.key)}
-              >
-                {option.label}
-              </Button>
-            ))}
-            <Button
-              variant={supportsMobile ? "arcade" : "arcade-outline"}
-              size="sm"
-              className="shrink-0 justify-center"
-              aria-pressed={supportsMobile}
-              onClick={() => setSupportsMobile(!supportsMobile)}
-            >
-              <Smartphone className="mr-2 h-4 w-4" />
-              MOBILE
-            </Button>
-            <Button
-              variant={editorOnly ? "arcade" : "arcade-outline"}
-              size="sm"
-              className="shrink-0 justify-center"
-              aria-pressed={editorOnly}
-              onClick={() => setEditorOnly(!editorOnly)}
-            >
-              <SquarePen className="mr-2 h-4 w-4" />
-              EDITOR
-            </Button>
-          </div>
-          </div>
-        </div>
-
-        <div className="mb-4">
-          <div className="flex items-center justify-between gap-3">
-            <span className="sr-only">Select category</span>
-            
-          </div>
-
-          <div className="mt-2 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap">
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Game category">
             {visibleCategories.map((option) => (
-              <Button
-                key={option.value}
-                variant={category === option.value ? "arcade" : "outline"}
-                size="sm"
-                className="shrink-0 justify-center"
-                aria-pressed={category === option.value}
-                onClick={() => setCategory(option.value)}
-              >
-                {option.label}
-              </Button>
+              <button key={option.value} type="button" aria-pressed={category === option.value} onClick={() => setCategory(option.value)} className={`min-h-11 border px-3 text-[11px] font-bold uppercase tracking-wide transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-arcade-cyan ${category === option.value ? "border-arcade-yellow bg-arcade-yellow text-canvas shadow-[2px_2px_0_#05070d]" : "border-border-strong bg-canvas text-text-secondary hover:border-arcade-cyan hover:text-arcade-cyan"}`}>{option.label}</button>
             ))}
+            {CATEGORY_OPTIONS.length > visibleCategories.length || showAllCategories ? <button type="button" aria-expanded={showAllCategories} className="inline-flex min-h-11 items-center gap-1.5 px-2 text-xs text-text-secondary transition-colors hover:text-arcade-cyan focus-visible:outline-2 focus-visible:outline-arcade-cyan" onClick={() => setShowAllCategories(!showAllCategories)}>{showAllCategories ? "Fewer genres" : "More genres"}<ChevronDown className={`h-3.5 w-3.5 ${showAllCategories ? "rotate-180" : ""}`} aria-hidden="true" /></button> : null}
           </div>
-
-          {CATEGORY_OPTIONS.length > visibleCategories.length ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="mt-3 w-full font-arcade text-xs text-arcade-yellow sm:w-auto"
-              onClick={() => setShowAllCategories(true)}
-            >
-              SHOW ALL CATEGORIES
-            </Button>
-          ) : showAllCategories ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="mt-3 w-full font-arcade text-xs text-text-secondary sm:w-auto"
-              onClick={() => setShowAllCategories(false)}
-            >
-              SHOW FEWER CATEGORIES
-            </Button>
-          ) : null}
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3 sm:mt-4 sm:pt-4" role="group" aria-label="Game features">
+            <span className="mr-1 hidden text-[10px] font-bold uppercase tracking-widest text-text-secondary sm:inline">Made for</span>
+            <button type="button" aria-pressed={supportsMobile} onClick={() => setSupportsMobile(!supportsMobile)} className={`inline-flex min-h-11 items-center gap-2 border px-3 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-arcade-cyan ${supportsMobile ? "border-arcade-cyan bg-arcade-cyan/10 text-arcade-cyan" : "border-border-strong text-text-secondary hover:border-arcade-cyan hover:text-text"}`}><Smartphone className="h-4 w-4" aria-hidden="true" />Mobile friendly</button>
+            <button type="button" aria-pressed={editorOnly} onClick={() => setEditorOnly(!editorOnly)} className={`inline-flex min-h-11 items-center gap-2 border px-3 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-arcade-cyan ${editorOnly ? "border-arcade-cyan bg-arcade-cyan/10 text-arcade-cyan" : "border-border-strong text-text-secondary hover:border-arcade-cyan hover:text-text"}`}><SquarePen className="h-4 w-4" aria-hidden="true" />Level editor</button>
+          </div>
         </div>
-      </>
+      </section>
 
       {requestError && failedRequest ? (
-        <div role="alert" className="mb-6 flex flex-col gap-3 border-2 border-arcade-red bg-arcade-red/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div role="alert" className="mb-6 flex flex-col gap-3 border border-arcade-red/60 bg-arcade-red/5 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-arcade-red" aria-hidden="true" />
-            <div>
-              <p className="text-sm font-bold text-white">Arcade update failed</p>
-              <p className="mt-1 text-sm text-text-secondary">{requestError} The current results are still shown.</p>
-            </div>
+            <div><p className="text-sm font-bold text-white">The arcade could not update</p><p className="mt-1 text-sm text-text-secondary">{requestError} Your current results are still here.</p></div>
           </div>
-          <Button
-            type="button"
-            variant="arcade-outline"
-            size="sm"
-            className="shrink-0"
-            disabled={loading || loadingMore}
-            onClick={() => void fetchGames(failedRequest)}
-          >
-            <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
-            RETRY
-          </Button>
+          <Button type="button" variant="arcade-outline" size="sm" className="shrink-0" disabled={loading || loadingMore} onClick={() => void fetchGames(failedRequest)}><RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />Try again</Button>
         </div>
       ) : null}
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="font-arcade text-sm text-text-secondary" role="status" aria-live="polite">
-          {loading ? "Updating arcade floor..." : `${games.length} of ${total} ${total === 1 ? "game" : "games"} shown`}
-        </p>
-        {activeFilterLabels.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {activeFilterLabels.map((label) => (
-              <span
-                key={label}
-                className="rounded border border-border-strong bg-surface px-2 py-1 text-xs text-text"
-              >
-                {label}
-              </span>
-            ))}
-          </div>
-        ) : null}
+      <div className="mb-5 flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex shrink-0 items-center gap-3">
+          <span className="flex h-9 w-9 items-center justify-center border border-border-strong bg-surface text-arcade-cyan"><Gamepad2 className="h-4 w-4" aria-hidden="true" /></span>
+          <div><h2 className="text-sm font-bold text-text">{category === "all" ? "The arcade floor" : `${CATEGORY_OPTIONS.find((option) => option.value === category)?.label || category} games`}</h2><p className="mt-0.5 text-xs text-text-secondary" role="status" aria-live="polite">{loading ? "Finding your next game…" : `${games.length} of ${total} ${total === 1 ? "game" : "games"}`}</p></div>
+          {loading ? <Loader2 className="h-4 w-4 animate-spin text-arcade-cyan motion-reduce:animate-none" aria-hidden="true" /> : null}
+        </div>
+        {activeFilters.length > 0 ? <div className="flex min-w-0 flex-wrap gap-2">{activeFilters.map((filter) => <button key={filter.key} type="button" aria-label={`Remove ${filter.label} filter`} onClick={filter.remove} className="inline-flex min-h-10 max-w-full items-center gap-2 border border-border-strong bg-surface px-2.5 text-xs text-text-secondary transition-colors hover:border-arcade-cyan hover:text-text focus-visible:outline-2 focus-visible:outline-arcade-cyan"><span className="max-w-48 truncate">{filter.label}</span><X className="h-3 w-3 shrink-0" aria-hidden="true" /></button>)}</div> : null}
       </div>
 
-      {loading && games.length === 0 ? (
-        <div aria-label="Updating game results">
-          <LoadingScreen fullScreen={false} message="UPDATING THE ARCADE FLOOR..." />
-        </div>
-      ) : games.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {games.map((game) => (
-            <GameCard key={game.id} game={game} />
-          ))}
-        </div>
-      ) : (
-        <div className="border-4 border-dashed border-border-strong py-20 text-center">
-          <Gamepad2 className="mx-auto mb-4 h-16 w-16 text-text-secondary" />
-          <h3 className="heading-pixel-md mb-2 text-text">No games found</h3>
-          <p className="mb-6 text-sm text-text-secondary">
-            {q.trim() ? `Nothing matches “${q.trim()}” yet.` : "Try a different category or clear the active filters."}
-          </p>
-          <div className="flex flex-col justify-center gap-3 sm:flex-row">
-            <Button variant="arcade" onClick={resetFilters}>Reset filters</Button>
-            <Button asChild variant="arcade-outline">
-              <Link href="/upload">Upload a game</Link>
-            </Button>
+      <div aria-busy={loading || loadingMore}>
+        {loading && games.length === 0 ? (
+          <div aria-label="Updating game results"><LoadingScreen fullScreen={false} message="FINDING YOUR NEXT GAME..." /></div>
+        ) : games.length > 0 ? (
+          <div className={`grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${loading ? "opacity-60" : ""}`}>{gameCards}</div>
+        ) : (
+          <div className="border border-dashed border-border-strong bg-surface px-5 py-14 text-center sm:py-20">
+            <span className="mx-auto mb-6 flex h-16 w-16 items-center justify-center border border-arcade-cyan/40 bg-arcade-cyan/5 text-arcade-cyan shadow-[4px_4px_0_#05070d]"><Gamepad2 className="h-8 w-8" aria-hidden="true" /></span>
+            <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-arcade-cyan">A little too off the beaten path</p>
+            <h3 className="heading-pixel-sm text-text">No games found</h3>
+            <p className="mx-auto mb-6 mt-3 max-w-md break-words text-sm leading-6 text-text-secondary">{q.trim() ? `Nothing matches “${q.trim()}” yet. Try a shorter search or a different genre.` : "There are more worlds to explore. Clear a filter and see what turns up."}</p>
+            <div className="flex flex-col justify-center gap-3 sm:flex-row"><Button variant="arcade" onClick={resetFilters}>Reset filters</Button><Button asChild variant="arcade-outline"><Link href="/upload" prefetch={false}>Publish a game</Link></Button></div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {!loading && games.length > 0 && hasMore ? (
-        <div className="flex justify-center pt-8">
-          <Button
-            variant="arcade-outline"
-            size="arcade-default"
-            onClick={() => {
-              void fetchCurrentGames(page + 1, true)
-            }}
-            disabled={loadingMore}
-          >
-            {loadingMore ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                LOADING...
-              </>
-            ) : (
-              "LOAD MORE"
-            )}
-          </Button>
+      {!loading && games.length > 0 ? (
+        <div className="mt-9 flex flex-col items-center gap-4 border-t border-border pt-7">
+          {hasMore ? <Button variant="arcade-outline" size="arcade-default" className="min-w-56" onClick={() => void fetchCurrentGames(page + 1, true)} disabled={loadingMore}>{loadingMore ? <><Loader2 className="mr-2 h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />Loading games…</> : <>More games to play <ArrowDown className="ml-3 h-4 w-4" aria-hidden="true" /></>}</Button> : <p className="text-xs text-text-secondary">You’ve reached the end. A different filter opens a new door.</p>}
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-tertiary">{games.length} / {total} games explored</p>
         </div>
       ) : null}
     </div>

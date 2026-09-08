@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Play, Heart, User, Smartphone, SquarePen, Trophy } from "lucide-react"
+import { ArrowUpRight, Play, Heart, User, Smartphone, SquarePen, Trophy } from "lucide-react"
 import { GameThumbnailSlideshow } from "@/components/games/game-thumbnail-slideshow"
 import { formatNumber, timeAgo, CATEGORIES } from "@/lib/utils"
 import { CreatorLink } from "@/components/games/creator-link"
@@ -45,7 +45,7 @@ interface GameCardProps {
 
 export function GameCard({
   game,
-  animateThumbnailSlides = true,
+  animateThumbnailSlides = false,
 }: GameCardProps) {
   const category = CATEGORIES.find(c => c.value === game.category)
   const jamTone =
@@ -58,112 +58,99 @@ export function GameCard({
           : "border-text-secondary text-text-secondary"
 
   return (
-    <article className="group card-arcade flex h-full flex-col">
+    <article className="group flex h-full min-w-0 flex-col border border-border-strong bg-surface shadow-[3px_3px_0_#05070d] transition-[border-color,box-shadow] duration-150 hover:border-arcade-cyan/70 hover:shadow-[4px_4px_0_#12343e] focus-within:border-arcade-cyan">
       {/* Thumbnail */}
-      <Link href={`/play/${game.slug}`} prefetch={false} aria-label={`Play ${game.title}`}>
-        <div className="relative aspect-video overflow-hidden bg-canvas">
+      <Link href={`/play/${game.slug}`} prefetch={false} aria-label={`Play ${game.title}`} className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-arcade-cyan">
+        <div className="relative aspect-video overflow-hidden border-b border-border-strong bg-canvas">
           {game.thumbnail ? (
             <GameThumbnailSlideshow
               title={game.title}
               thumbnail={game.thumbnail}
               thumbnailSlides={game.thumbnailSlides}
-              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              imageClassName="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="(max-width: 639px) calc(100vw - 32px), (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 25vw"
+              imageClassName="object-cover"
               animateSlides={animateThumbnailSlides}
+              showIndicators={animateThumbnailSlides}
             />
           ) : (
             <GameThumbnailPlaceholder title={game.title} />
           )}
 
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-black/0 transition-all group-hover:bg-black/40">
-            <div className="opacity-0 transition-opacity group-hover:opacity-100">
-              <span className="heading-pixel-sm bg-arcade-yellow px-4 py-2 text-canvas">
-                Play now
-              </span>
-            </div>
+          <span className="absolute left-3 top-3 z-10 border border-white/20 bg-canvas/95 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-arcade-cyan">
+            {game.category === "OTHER" ? "Experiment" : category?.label || "Game"}
+          </span>
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/30 group-focus-within:bg-black/30">
+            <span className="flex h-12 w-12 items-center justify-center border border-arcade-yellow bg-arcade-yellow text-canvas opacity-0 shadow-[3px_3px_0_#05070d] transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+              <Play className="h-5 w-5 fill-current" aria-hidden="true" />
+            </span>
           </div>
         </div>
       </Link>
 
       {/* Content */}
-      <div className="flex flex-1 flex-col p-3 sm:p-4">
-        {/* Category Tag */}
-        <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="text-kicker text-primary-text">
-            {game.category === "OTHER" ? "Experiment" : category?.label || "Game"}
-          </span>
-          {game.seekingFeedback && (
-            <span className="inline-flex items-center gap-1 rounded border border-arcade-orange px-1.5 py-0.5 text-xs text-arcade-orange">
-              Needs feedback
-            </span>
-          )}
-          {game.supportsMobile && (
-            <span className="inline-flex items-center gap-1 rounded border border-success px-1.5 py-0.5 text-xs text-success">
-              <Smartphone className="h-2.5 w-2.5" />
-              Mobile
-            </span>
-          )}
-          {game.hasLevelEditor && (
-            <span className="inline-flex items-center gap-1 rounded border border-primary px-1.5 py-0.5 text-xs text-primary-text">
-              <SquarePen className="h-2.5 w-2.5" />
-              Editor
-            </span>
-          )}
-          {game.primaryJam && (
-            <span
-              className={`inline-flex max-w-full items-center gap-1 rounded px-1.5 py-0.5 text-xs ${jamTone}`}
-              title={game.primaryJam.title}
-            >
-              <Trophy className="h-2.5 w-2.5 flex-shrink-0" />
-              <span className="truncate">{game.primaryJam.title}</span>
-            </span>
-          )}
-        </div>
-
-        {/* Title */}
-        <h3 className="mb-2 line-clamp-1 font-semibold text-text transition-colors group-hover:text-primary-text">
-          <Link href={`/play/${game.slug}`} prefetch={false}>
+      <div className="flex flex-1 flex-col px-4 pb-3 pt-4">
+        <h3 className="line-clamp-2 text-base font-bold leading-snug text-text transition-colors group-hover:text-arcade-cyan">
+          <Link href={`/play/${game.slug}`} prefetch={false} className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-arcade-cyan">
             {game.title}
           </Link>
         </h3>
 
-        {game.description && <p className="mb-3 line-clamp-2 text-sm leading-6 text-text-secondary">{game.description}</p>}
-        
-        {/* Creator */}
-        <div className="flex items-center gap-2 mb-3 text-sm text-text-secondary">
-          <User className="h-3 w-3" />
+        {game.description && <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-text-secondary">{game.description}</p>}
+
+        <div className="mt-2 flex min-w-0 items-center gap-1.5 text-xs text-text-secondary">
+          <User className="h-3 w-3 shrink-0" aria-hidden="true" />
           {game.studioProfile ? (
-            <CreatorLink
-              href={`/studio/${game.studioProfile.handle}`}
-              className="truncate hover:text-primary-text cursor-pointer"
-            >
+            <CreatorLink href={`/studio/${game.studioProfile.handle}`} className="truncate hover:text-arcade-cyan">
               {game.studioProfile.displayName}
             </CreatorLink>
           ) : game.creator.username ? (
-            <CreatorLink
-              href={`/creator/${game.creator.username}`}
-              className="truncate hover:text-primary-text cursor-pointer"
-            >
+            <CreatorLink href={`/creator/${game.creator.username}`} className="truncate hover:text-arcade-cyan">
               {game.creator.username}
             </CreatorLink>
           ) : (
-            <span className="truncate">
-              {game.creator.name || "Anonymous"}
-            </span>
+            <span className="flex min-h-11 items-center truncate">{game.creator.name || "Anonymous"}</span>
           )}
         </div>
+
+        {/* Capabilities remain visible on touch devices, without hovering. */}
+        {(game.supportsMobile || game.hasLevelEditor || game.seekingFeedback || game.primaryJam) && <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          {game.supportsMobile && (
+            <span className="inline-flex items-center gap-1 border border-arcade-green/25 bg-arcade-green/5 px-1.5 py-1 text-[10px] text-arcade-green">
+              <Smartphone className="h-3 w-3" aria-hidden="true" />
+              Mobile
+            </span>
+          )}
+          {game.hasLevelEditor && (
+            <span className="inline-flex items-center gap-1 border border-arcade-cyan/25 bg-arcade-cyan/5 px-1.5 py-1 text-[10px] text-arcade-cyan">
+              <SquarePen className="h-3 w-3" aria-hidden="true" />
+              Editor
+            </span>
+          )}
+          {game.seekingFeedback && (
+            <span className="border border-arcade-orange/25 bg-arcade-orange/5 px-1.5 py-1 text-[10px] text-arcade-orange">Feedback welcome</span>
+          )}
+          {game.primaryJam && (
+            <span
+              className={`inline-flex max-w-full items-center gap-1 border px-1.5 py-1 text-[10px] ${jamTone}`}
+              title={game.primaryJam.title}
+            >
+              <Trophy className="h-3 w-3 shrink-0" aria-hidden="true" />
+              <span className="truncate">{game.primaryJam.title}</span>
+            </span>
+          )}
+        </div>}
         
         {/* Stats */}
-        <div className="mt-auto space-y-3 border-t border-border pt-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="flex items-center gap-1 text-text-secondary">
-              <Play className="h-3 w-3" />
-              {formatNumber(game.plays)}
+        <div className="mt-auto border-t border-border pt-3">
+          <div className="flex items-center gap-4 text-xs tabular-nums">
+            <span className="flex items-center gap-1.5 text-text-secondary" aria-label={`${game.plays} plays`}>
+              <Play className="h-3 w-3" aria-hidden="true" />
+              {formatNumber(game.plays)} <span className="text-text-tertiary">plays</span>
             </span>
-            <span className={`flex items-center gap-1 ${
+            <span aria-label={`${game.likes} likes`} className={`flex items-center gap-1.5 ${
               game.likes > 0 ? "text-arcade-red" : "text-text-secondary"
             }`}>
-              <Heart className="h-3 w-3" />
+              <Heart className="h-3 w-3" aria-hidden="true" />
               {formatNumber(game.likes)}
             </span>
           </div>
@@ -171,8 +158,8 @@ export function GameCard({
       </div>
       
       {/* Footer */}
-      <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-2 text-xs text-text-secondary">
-        <Link href={`/play/${game.slug}`} className="inline-flex min-h-10 items-center gap-1 font-semibold text-primary-text"><Play className="h-3 w-3" /> Play</Link>
+      <div className="flex items-center justify-between gap-2 border-t border-border bg-canvas/40 px-4 py-1.5 text-xs text-text-secondary">
+        <Link href={`/play/${game.slug}`} prefetch={false} className="inline-flex min-h-11 items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-arcade-yellow transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-arcade-cyan">Play game <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" /></Link>
         <SaveGameButton gameId={game.id} slug={game.slug} compact />
         <span className="sr-only">{timeAgo(new Date(game.createdAt))}</span>
       </div>

@@ -62,7 +62,7 @@
 .portrait-intro-brand > span { font-size: .83rem; font-weight: 800; letter-spacing: .08em; }
 .portrait-intro-brand > span > span { color: var(--color-primary-text); }
 .portrait-intro-brand small { display: block; margin-top: .25rem; color: var(--color-text-secondary); font-size: .43rem; letter-spacing: .18em; }
-.portrait-intro-explore { display: inline-flex; min-height: 44px; align-items: center; gap: .3rem; color: var(--color-text-secondary); font-size: .75rem; }
+.portrait-intro-explore { display: inline-flex; min-height: 44px; align-items: center; gap: .3rem; padding:0 .65rem; border:1px solid var(--color-border-strong); background:var(--color-surface); color: var(--color-text); font-size: .7rem; }
 .portrait-intro-content { display: flex; min-height: 0; flex-direction: column; align-items: center; justify-content: center; gap: clamp(1rem, 3dvh, 1.8rem); padding: .6rem 0; }
 .portrait-game-art { position: relative; flex-shrink: 0; width: min(100%, 320px); height: clamp(120px, 23dvh, 205px); animation: portrait-intro-arrive .65s ease-out both; }
 .portrait-art-glow { position: absolute; inset: 8% 12%; background: radial-gradient(ellipse, rgba(91,94,234,.45), transparent 70%); transform: scale(1.5); }
@@ -90,15 +90,15 @@
 .portrait-intro-eyebrow > span { width: 5px; height: 5px; flex-shrink: 0; background: currentColor; box-shadow: 0 0 9px rgba(32,216,255,.6); }
 .portrait-intro-message h1 { margin-top: .8rem; font-family: var(--font-pixel), monospace; }
 .portrait-intro-message h1 > span { display: block; margin-bottom: .65rem; font-size: clamp(.9rem, 4vw, 1.15rem); line-height: 1.4; }
-.portrait-intro-message h1 > strong { display: block; color: var(--color-arcade-yellow); font-size: clamp(1.9rem, 9vw, 2.6rem); font-weight: 400; line-height: 1.3; text-shadow: 4px 4px 0 var(--color-arcade-red); }
+.portrait-intro-message h1 > strong { display: block; color: var(--color-arcade-yellow); font-size: clamp(1rem, 4.6vw, 1.45rem); font-weight: 400; line-height: 1.65; text-shadow: 3px 3px 0 var(--color-arcade-red); }
 .portrait-intro-description { margin-top: 1rem; color: var(--color-text-secondary); font-size: clamp(.74rem, 3.2vw, .88rem); line-height: 1.75; }
 .portrait-intro-count { margin-top: .8rem; color: var(--color-text-secondary); font-size: .65rem; }
 .portrait-intro-count > span { color: white; font-weight: 700; }
 .portrait-intro-footer { width: 100%; max-width: 25rem; justify-self: center; }
-.portrait-start-button { display: flex; width: calc(100% - 4px); min-height: 52px; align-items: center; justify-content: center; gap: .8rem; padding: .85rem 1rem; border: 2px solid white; background: var(--color-primary); box-shadow: 4px 4px 0 var(--color-primary-text); color: white; font-family: var(--font-pixel), monospace; font-size: .65rem; line-height: 1.7; cursor: pointer; transition: background .15s, transform .15s, box-shadow .15s; }
+.portrait-start-button { display: flex; width: calc(100% - 4px); min-height: 56px; align-items: center; justify-content: center; gap: .8rem; padding: .85rem 1rem; border: 2px solid var(--color-arcade-yellow); background: var(--color-arcade-yellow); box-shadow: 4px 4px 0 var(--color-arcade-red); color: var(--color-canvas); font-family: var(--font-pixel), monospace; font-size: .6rem; line-height: 1.7; cursor: pointer; transition: background .15s, transform .15s, box-shadow .15s; }
 .portrait-start-button > svg:last-child { margin-left: auto; }
 .portrait-start-button > svg:first-child { margin-right: auto; }
-.portrait-start-button:hover { background: #6c6ff5; }
+.portrait-start-button:hover { background: #fde047; }
 .portrait-start-button:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--color-primary-text); }
 .portrait-swipe-hint { display: flex; width: 100%; min-height: 44px; align-items: center; justify-content: center; gap: .25rem; margin-top: .25rem; color: var(--color-text-secondary); font-size: .64rem; cursor: pointer; }
 .portrait-swipe-hint svg { flex-shrink: 0; color: var(--color-arcade-cyan); animation: portrait-swipe-nudge 1.5s ease-in-out 3; }
@@ -113,7 +113,7 @@
 @media (max-height: 740px) {
   .portrait-intro-content { gap: 1rem; }
   .portrait-game-art { height: clamp(115px, 21dvh, 155px); width: 270px; max-width: 100%; }
-  .portrait-intro-message h1 > strong { font-size: clamp(1.75rem, 8vw, 2.15rem); }
+  .portrait-intro-message h1 > strong { font-size: clamp(1rem, 4.6vw, 1.45rem); }
   .portrait-intro-count { display: none; }
   .portrait-intro-description { margin-top: .65rem; }
 }
@@ -125,7 +125,7 @@
   .portrait-intro-content { gap: .65rem; }
   .portrait-intro-message h1 { margin-top: .45rem; }
   .portrait-intro-message h1 > span { margin-bottom: .35rem; font-size: .8rem; }
-  .portrait-intro-message h1 > strong { font-size: 1.6rem; line-height: 1.25; }
+  .portrait-intro-message h1 > strong { font-size: clamp(.95rem, 4.4vw, 1.3rem); line-height: 1.5; }
   .portrait-intro-description { font-size: .72rem; margin-top: .5rem; }
   .portrait-start-button { min-height: 46px; padding: .65rem 1rem; }
 }
@@ -133,7 +133,7 @@
   .portrait-game-art { display: none; }
   .portrait-intro-content { padding: .35rem 0; }
   .portrait-intro-eyebrow { font-size: .4rem; }
-  .portrait-intro-message h1 > strong { display: inline; font-size: clamp(1.2rem, 5vw, 1.7rem); }
+  .portrait-intro-message h1 > strong { display: inline; font-size: clamp(.75rem, 2.4vw, 1.15rem); }
   .portrait-intro-message h1 > strong + strong { margin-left: .6em; }
   .portrait-intro-description { font-size: .7rem; line-height: 1.5; }
 }

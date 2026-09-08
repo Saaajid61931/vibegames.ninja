@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowDown, ArrowUpRight, Gamepad2, Play, Plus, Sparkles, Trophy } from "lucide-react"
+import { ArrowDown, ArrowUpRight, Gamepad2, Play, Plus, Sparkles, Trophy, Zap } from "lucide-react"
 import { GameThumbnailPlaceholder } from "@/components/games/game-thumbnail-placeholder"
 import { formatNumber } from "@/lib/utils"
 import "./inspiration-hero.css"
@@ -13,7 +13,7 @@ type ShowcaseGame = {
   creator: { name: string | null; username: string | null }
   monthlyPlays?: number
 }
-type Props = { rankedGames: ShowcaseGame[]; fallbackGames: ShowcaseGame[]; monthLabel: string }
+type Props = { rankedGames: ShowcaseGame[]; fallbackGames: ShowcaseGame[]; monthLabel: string; stats: { games: number; creators: number; plays: number } }
 
 function Thumbnail({ game, featured = false }: { game: ShowcaseGame; featured?: boolean }) {
   return game.thumbnail ? (
@@ -21,7 +21,6 @@ function Thumbnail({ game, featured = false }: { game: ShowcaseGame; featured?: 
       src={game.thumbnail}
       alt={`${game.title} gameplay`}
       fill
-      unoptimized
       sizes={
         featured
           ? "(max-width: 767px) 92vw, (max-width: 1023px) 85vw, 620px"
@@ -35,7 +34,7 @@ function Thumbnail({ game, featured = false }: { game: ShowcaseGame; featured?: 
   )
 }
 
-export function InspirationHero({ rankedGames, fallbackGames, monthLabel }: Props) {
+export function InspirationHero({ rankedGames, fallbackGames, monthLabel, stats }: Props) {
   const monthly = rankedGames.length > 0
   const games = (monthly ? rankedGames : fallbackGames).slice(0, 3)
   const [featured, ...runnersUp] = games
@@ -50,38 +49,43 @@ export function InspirationHero({ rankedGames, fallbackGames, monthLabel }: Prop
         <div className="inspiration-hero-layout">
           <div className="inspiration-hero-copy">
             <div className="hero-eyebrow">
-              <span className="hero-status-light" /> SMALL GAMES. LIMITLESS IDEAS.
+              <span className="hero-status-light" /> YOUR NEXT FAVORITE IS IN HERE
             </div>
             <h1 id="inspiration-hero-title" className="inspiration-hero-heading">
-              <span>One more</span>
+              <span>PRESS START.</span>
               <span className="hero-word-play">
-                play
+                PLAY
                 <span className="hero-heading-star" aria-hidden="true">
                   <Sparkles className="h-full w-full" strokeWidth={1.5} />
                 </span>
               </span>
               <span className="hero-heading-finish">
-                could spark
+                SOMETHING
                 <br />
-                your next idea.
+                UNEXPECTED.
               </span>
             </h1>
             <p className="hero-description">
-              Discover what happens when imagination meets AI. Play a little. Get inspired. Share
-              something only you would make.
+              Big ideas. Small games. Zero installs. Step into an arcade built by
+              people experimenting with AI — and discover what you could make next.
             </p>
             <div className="hero-actions">
-              <Link href="/games" className="hero-play-button">
+              <Link href="/games" prefetch={false} className="hero-play-button">
                 <Play className="h-4 w-4" fill="currentColor" /> FIND YOUR NEXT GAME{" "}
                 <ArrowUpRight className="h-4 w-4" />
               </Link>
-              <Link href="/upload" className="hero-share-button">
-                <Plus className="h-4 w-4" /> Share your creation
+              <Link href="/upload" prefetch={false} className="hero-share-button">
+                <Plus className="h-4 w-4" /> Share a game
               </Link>
             </div>
             <p className="hero-free-note">
-              <Gamepad2 className="h-4 w-4" /> Free to play. Made to inspire.
+              <Gamepad2 className="h-4 w-4" /> Always free to play. No account needed.
             </p>
+            <div className="hero-scoreboard" aria-label="Arcade community stats">
+              {([{ key: "games", label: "GAMES TO DISCOVER" }, { key: "creators", label: "CREATIVE MINDS" }, { key: "plays", label: "TIMES PLAYED" }] as const).map(({ key, label }) => (
+                <div key={key}><strong>{formatNumber(stats[key])}</strong><span>{label}</span></div>
+              ))}
+            </div>
           </div>
 
           <div className="hero-showcase">
@@ -95,11 +99,13 @@ export function InspirationHero({ rankedGames, fallbackGames, monthLabel }: Prop
             {featured ? (
               <>
                 <Link
+                  prefetch={false}
                   href={`/play/${featured.slug}`}
                   className="showcase-featured"
                   aria-label={`Play ${featured.title}${monthly ? ", most played this month" : ""}`}
                 >
-                  <div className="showcase-featured-screen" style={{ position: "relative", overflow: "hidden", aspectRatio: "16 / 9" }}>
+                  <div className="showcase-cabinet-bar" aria-hidden="true"><span><i /><i /><i /></span><span>PLAYER 01 · READY</span><Gamepad2 className="h-4 w-4" /></div>
+                  <div className="showcase-featured-screen">
                     <Thumbnail game={featured} featured />
                     <div className="showcase-image-shade" />
                     <span className="showcase-rank">
@@ -144,6 +150,7 @@ export function InspirationHero({ rankedGames, fallbackGames, monthLabel }: Prop
                     {runnersUp.map((game, index) => (
                       <Link
                         key={game.id}
+                        prefetch={false}
                         href={`/play/${game.slug}`}
                         className="showcase-mini"
                         aria-label={`Play ${game.title}`}
@@ -171,7 +178,7 @@ export function InspirationHero({ rankedGames, fallbackGames, monthLabel }: Prop
                 )}
                 <p className="hero-ranking-note">
                   {monthly
-                    ? "Ranked by recorded plays this calendar month · UTC"
+                    ? "The games you keep coming back to. Monthly plays · UTC."
                     : "Explore these community picks while this month's chart takes shape."}
                 </p>
               </>
@@ -183,7 +190,7 @@ export function InspirationHero({ rankedGames, fallbackGames, monthLabel }: Prop
                   <br />
                   could be yours.
                 </h2>
-                <Link href="/upload" className="hero-share-button">
+                <Link href="/upload" prefetch={false} className="hero-share-button">
                   Share the first spark <ArrowUpRight className="h-4 w-4" />
                 </Link>
               </div>
@@ -192,10 +199,10 @@ export function InspirationHero({ rankedGames, fallbackGames, monthLabel }: Prop
         </div>
         <div className="hero-bottom-strip">
           <span>
-            <Sparkles className="h-4 w-4" /> PLAY. COLLECT IDEAS. CREATE SOMETHING NEW.
+            <Zap className="h-4 w-4" /> NO DOWNLOADS. NO WAITING. JUST ONE MORE GO.
           </span>
           <Link href="#discover-games">
-            LET CURIOSITY TAKE OVER <ArrowDown className="h-3.5 w-3.5" />
+            EXPLORE THE ARCADE <ArrowDown className="h-3.5 w-3.5" />
           </Link>
         </div>
       </div>
