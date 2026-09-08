@@ -29,6 +29,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { GhostSharingSetupGuide } from "@/components/games/ghost-sharing-setup-guide"
 import { LevelEditorSetupGuide } from "@/components/games/level-editor-setup-guide"
 import { MOBILE_ORIENTATION_OPTIONS } from "@/lib/mobile-orientation"
+import { formatThumbnailOptimization, optimizeThumbnailFile } from "@/lib/thumbnail-image"
 import { CATEGORIES, AI_MODELS, AI_TOOLS } from "@/lib/utils"
 
 interface GameData {
@@ -65,6 +66,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
   const [gameFile, setGameFile] = useState<File | null>(null)
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
+  const [thumbnailOptimization, setThumbnailOptimization] = useState("")
 
   const [formData, setFormData] = useState({
     title: "",
@@ -150,7 +152,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
     setError("Please upload a .zip file containing your game or a single .html file")
   }, [])
 
-  const onDropThumbnail = useCallback((acceptedFiles: File[]) => {
+  const onDropThumbnail = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
     if (!file) return
 
@@ -160,10 +162,29 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
       return
     }
 
-    setThumbnailFile(file)
-    setThumbnailPreview(URL.createObjectURL(file))
-    setError("")
+    try {
+      const optimized = await optimizeThumbnailFile(file)
+      setThumbnailFile(optimized.file)
+      setThumbnailPreview((current) => {
+        if (current?.startsWith("blob:")) URL.revokeObjectURL(current)
+        return optimized.previewUrl
+      })
+      setThumbnailOptimization(formatThumbnailOptimization(optimized))
+      setError("")
+    } catch (optimizationError) {
+      setError(
+        optimizationError instanceof Error
+          ? optimizationError.message
+          : "Could not optimize the thumbnail image",
+      )
+    }
   }, [])
+
+  useEffect(() => {
+    return () => {
+      if (thumbnailPreview?.startsWith("blob:")) URL.revokeObjectURL(thumbnailPreview)
+    }
+  }, [thumbnailPreview])
 
   const {
     getRootProps: getGameRootProps,
@@ -260,6 +281,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
       setGameFile(null)
       setThumbnailFile(null)
       setThumbnailPreview(null)
+      setThumbnailOptimization("")
       if (warnings.length === 0) {
         setTimeout(() => {
           router.push("/creator")
@@ -305,6 +327,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
           setGameFile(null)
           setThumbnailFile(null)
           setThumbnailPreview(null)
+          setThumbnailOptimization("")
           if (warnings.length === 0) {
             setTimeout(() => {
               router.push("/creator")
@@ -424,7 +447,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
               <CardHeader variant="arcade">
                 <CardTitle className="font-arcade text-sm text-white">CHANGE THUMBNAIL (OPTIONAL)</CardTitle>
                 <CardDescription className="font-arcade text-xs text-text-secondary">
-                  Upload a new thumbnail image. Max 5MB | PNG, JPG, GIF, or WebP
+                  Upload PNG, JPG, GIF, or WebP up to 5MB. It will be resized and compressed automatically.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -450,7 +473,12 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                         className="max-h-48 w-auto rounded-none border-2 border-border-strong"
                       />
                       <div className="flex items-center gap-3 font-arcade">
-                        <p className="text-sm text-white">{thumbnailFile?.name}</p>
+                        <div>
+                          <p className="text-sm text-white">{thumbnailFile?.name}</p>
+                          {thumbnailOptimization ? (
+                            <p className="mt-1 text-xs text-arcade-green">{thumbnailOptimization}</p>
+                          ) : null}
+                        </div>
                         <button
                           type="button"
                           aria-label="Remove selected thumbnail"
@@ -458,6 +486,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                             e.stopPropagation()
                             setThumbnailFile(null)
                             setThumbnailPreview(null)
+                            setThumbnailOptimization("")
                           }}
                           className="p-1 text-text-secondary hover:text-white cursor-pointer"
                         >

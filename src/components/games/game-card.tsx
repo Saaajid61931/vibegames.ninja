@@ -45,7 +45,7 @@ interface GameCardProps {
 
 export function GameCard({
   game,
-  animateThumbnailSlides = false,
+  animateThumbnailSlides = true,
 }: GameCardProps) {
   const category = CATEGORIES.find(c => c.value === game.category)
   const jamTone =

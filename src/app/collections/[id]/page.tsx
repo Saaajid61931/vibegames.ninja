@@ -42,7 +42,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
       </p>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {collection.items.map((i) => (
-          <GameCard key={i.gameId} game={i.game} animateThumbnailSlides={false} />
+          <GameCard key={i.gameId} game={i.game} />
         ))}
       </div>
       {collection.items.length === 0 && (

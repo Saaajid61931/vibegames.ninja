@@ -700,6 +700,28 @@ test('fullscreen ignores empty and invalid measurements during resize', () => {
   }
 })
 
+test('thumbnail optimization preserves aspect ratio and never upscales images', () => {
+  const { getContainedThumbnailDimensions } = require('../src/lib/thumbnail-image')
+  assert.deepEqual(
+    getContainedThumbnailDimensions({ width: 3840, height: 2160 }, { width: 1280, height: 720 }),
+    { width: 1280, height: 720 },
+  )
+  assert.deepEqual(
+    getContainedThumbnailDimensions({ width: 640, height: 360 }, { width: 1280, height: 720 }),
+    { width: 640, height: 360 },
+  )
+  assert.deepEqual(
+    getContainedThumbnailDimensions({ width: 1200, height: 1600 }, { width: 1280, height: 720 }),
+    { width: 540, height: 720 },
+  )
+})
+
+test('thumbnail optimization rejects invalid image measurements', () => {
+  const { getContainedThumbnailDimensions } = require('../src/lib/thumbnail-image')
+  assert.equal(getContainedThumbnailDimensions({ width: 0, height: 720 }, { width: 1280, height: 720 }), null)
+  assert.equal(getContainedThumbnailDimensions({ width: 1280, height: NaN }, { width: 1280, height: 720 }), null)
+})
+
 async function run() {
   let failed = 0
 

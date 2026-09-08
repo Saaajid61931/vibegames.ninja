@@ -76,7 +76,7 @@ export default async function CommunityPage({
       )}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {games.map((game) => (
-          <GameCard key={game.id} game={game} animateThumbnailSlides={false} />
+          <GameCard key={game.id} game={game} />
         ))}
       </div>
       {games.length === 0 && (

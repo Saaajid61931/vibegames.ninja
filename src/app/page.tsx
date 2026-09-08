@@ -42,7 +42,6 @@ export default async function HomePage() {
           actionHref="/games"
           actionLabel="Explore all"
           games={data.games.slice(0, 4)}
-          animateThumbnailSlides={false}
           emptyTitle="Your next idea starts here"
           emptyDescription="Share a playable experiment and help this community grow."
         />
@@ -55,7 +54,6 @@ export default async function HomePage() {
             actionHref="/games?sort=new"
             actionLabel="See new games"
             games={data.justLaunchedGames.slice(0, 4)}
-            animateThumbnailSlides={false}
           />
         )}
         {data.needsFeedbackGames.length > 0 && (
@@ -66,12 +64,10 @@ export default async function HomePage() {
             actionHref="/community"
             actionLabel="Meet the community"
             games={data.needsFeedbackGames.slice(0, 4)}
-            animateThumbnailSlides={false}
           />
         )}
         <RecentlyPlayedDeferred
           games={[...data.games, ...data.mobileGames, ...data.editorGames]}
-          animateThumbnailSlides={false}
         />
         <section className="container mx-auto px-4 py-10">
           <div className="community-invitation">

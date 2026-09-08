@@ -29,6 +29,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { GhostSharingSetupGuide } from "@/components/games/ghost-sharing-setup-guide"
 import { LevelEditorSetupGuide } from "@/components/games/level-editor-setup-guide"
 import { MOBILE_ORIENTATION_OPTIONS } from "@/lib/mobile-orientation"
+import {
+  formatThumbnailOptimization,
+  optimizeThumbnailDataUrl,
+  optimizeThumbnailFile,
+  THUMBNAIL_MAX_HEIGHT,
+  THUMBNAIL_MAX_WIDTH,
+  THUMBNAIL_WEBP_QUALITY,
+} from "@/lib/thumbnail-image"
 import { CATEGORIES } from "@/lib/utils"
 
 type ActiveJamOption = {
@@ -156,49 +164,21 @@ function injectPreviewCaptureBridgeIntoHtml(html: string) {
   return `${bridge}\n${normalizedHtml}`
 }
 
-async function loadImageElement(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const image = new window.Image()
-    image.onload = () => resolve(image)
-    image.onerror = () => reject(new Error("Could not prepare thumbnail image."))
-    image.src = src
-  })
-}
-
 async function buildResponsiveSlidePayload(imageDataUrl: string): Promise<ResponsiveSlideUpload> {
-  const image = await loadImageElement(imageDataUrl)
-  const variants: ResponsiveSlideUpload["variants"] = []
-
-  for (const targetWidth of RESPONSIVE_SLIDE_WIDTHS) {
-    if (!image.naturalWidth || image.naturalWidth <= targetWidth) {
-      continue
-    }
-
-    const scale = targetWidth / image.naturalWidth
-    const canvas = document.createElement("canvas")
-    canvas.width = targetWidth
-    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale))
-
-    const context = canvas.getContext("2d")
-    if (!context) {
-      continue
-    }
-
-    context.imageSmoothingEnabled = true
-    context.imageSmoothingQuality = "high"
-    context.drawImage(image, 0, 0, canvas.width, canvas.height)
-
-    const webpDataUrl = canvas.toDataURL("image/webp", 0.64)
-    variants.push({
-      width: targetWidth,
-      image: webpDataUrl.startsWith("data:image/webp")
-        ? webpDataUrl
-        : canvas.toDataURL("image/jpeg", 0.64),
-    })
-  }
+  const original = await optimizeThumbnailDataUrl(
+    imageDataUrl,
+    { width: THUMBNAIL_MAX_WIDTH, height: THUMBNAIL_MAX_HEIGHT },
+    THUMBNAIL_WEBP_QUALITY,
+  )
+  const variants = await Promise.all(
+    RESPONSIVE_SLIDE_WIDTHS.map(async (width) => ({
+      width,
+      image: await optimizeThumbnailDataUrl(original, { width, height: width * 4 }, 0.64),
+    })),
+  )
 
   return {
-    original: imageDataUrl,
+    original,
     variants,
   }
 }
@@ -228,6 +208,7 @@ export function UploadPageClient() {
   )
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
+  const [thumbnailOptimization, setThumbnailOptimization] = useState("")
   const [activeJams, setActiveJams] = useState<ActiveJamOption[]>([])
   const [selectedJamSlug, setSelectedJamSlug] = useState("")
   const [loadingJams, setLoadingJams] = useState(true)
@@ -544,14 +525,26 @@ export function UploadPageClient() {
     }
   }, [])
 
-  const onDropThumbnail = useCallback((acceptedFiles: File[]) => {
+  const onDropThumbnail = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
     if (file) {
       if (file.type.startsWith("image/")) {
-        setThumbnailFile(file)
-        const reader = new FileReader()
-        reader.onload = (e) => setThumbnailPreview(e.target?.result as string)
-        reader.readAsDataURL(file)
+        try {
+          const optimized = await optimizeThumbnailFile(file)
+          setThumbnailFile(optimized.file)
+          setThumbnailPreview((current) => {
+            if (current?.startsWith("blob:")) URL.revokeObjectURL(current)
+            return optimized.previewUrl
+          })
+          setThumbnailOptimization(formatThumbnailOptimization(optimized))
+          setError("")
+        } catch (optimizationError) {
+          setError(
+            optimizationError instanceof Error
+              ? optimizationError.message
+              : "Could not optimize the thumbnail image",
+          )
+        }
       } else {
         setError("Please upload an image file for the thumbnail")
       }
@@ -609,8 +602,14 @@ export function UploadPageClient() {
     autoThumbnailImages.length > 0
       ? `${autoThumbnailImages.length} auto screenshot${autoThumbnailImages.length === 1 ? "" : "s"} ready`
       : thumbnailPreview
-        ? "Manual thumbnail uploaded"
+        ? `Manual thumbnail optimized${thumbnailOptimization ? ` · ${thumbnailOptimization}` : ""}`
         : "No thumbnail selected yet"
+
+  useEffect(() => {
+    return () => {
+      if (thumbnailPreview?.startsWith("blob:")) URL.revokeObjectURL(thumbnailPreview)
+    }
+  }, [thumbnailPreview])
 
   const startAutoThumbnailCapture = useCallback(() => {
     if (!previewGameUrl || !previewPlayerRef.current || autoThumbnailState === "capturing") {
@@ -1447,7 +1446,7 @@ export function UploadPageClient() {
                   <div>
                     <Label>Game thumbnail</Label>
                     <p className="mt-1 text-xs text-text-tertiary">
-                      Optional · 16:9 works best, for example 800 × 450 pixels.
+                      Optional · 16:9 works best. Large images are resized and compressed before upload.
                     </p>
                   </div>
                   <div
@@ -1477,6 +1476,7 @@ export function UploadPageClient() {
                             event.stopPropagation()
                             setThumbnailFile(null)
                             setThumbnailPreview(null)
+                            setThumbnailOptimization("")
                           }}
                           className="absolute right-2 top-2 grid h-9 w-9 place-items-center rounded-lg bg-black/75 text-white"
                         >

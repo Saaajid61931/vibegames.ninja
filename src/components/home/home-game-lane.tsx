@@ -27,7 +27,7 @@ export function HomeGameLane({
   sectionClassName = "",
   emptyTitle = "NO GAMES FOUND",
   emptyDescription = "Be the first to deploy!",
-  animateThumbnailSlides = false,
+  animateThumbnailSlides = true,
 }: HomeGameLaneProps) {
   return (
     <section className={`home-game-lane border-b border-border py-8 sm:py-12 ${sectionClassName}`.trim()}>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import { isRenderableImageSrc } from "@/lib/image-src"
 import { GameThumbnailPlaceholder } from "@/components/games/game-thumbnail-placeholder"
@@ -68,8 +68,11 @@ export function GameThumbnailSlideshow({
 
   const [activeIndex, setActiveIndex] = useState(0)
   const [failedFrames, setFailedFrames] = useState<Set<string>>(() => new Set())
+  const [isVisible, setIsVisible] = useState(true)
+  const [documentVisible, setDocumentVisible] = useState(true)
+  const slideshowRef = useRef<HTMLDivElement>(null)
   const canAutoAnimate = useCanAutoAnimateSlides()
-  const shouldAnimateSlides = animateSlides && canAutoAnimate
+  const shouldAnimateSlides = animateSlides && canAutoAnimate && isVisible && documentVisible
   const frameKey = frames.join("|")
   const usableFrames = frames.filter((frame) => !failedFrames.has(frame))
   const visibleIndex =
@@ -79,6 +82,27 @@ export function GameThumbnailSlideshow({
         ? activeIndex % usableFrames.length
         : 0
   const currentSrc = usableFrames[visibleIndex]
+
+  useEffect(() => {
+    const element = slideshowRef.current
+    if (!element || typeof IntersectionObserver === "undefined") {
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(Boolean(entry?.isIntersecting)),
+      { rootMargin: "120px 0px", threshold: 0.05 },
+    )
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const update = () => setDocumentVisible(document.visibilityState !== "hidden")
+    update()
+    document.addEventListener("visibilitychange", update)
+    return () => document.removeEventListener("visibilitychange", update)
+  }, [])
 
   useEffect(() => {
     if (!shouldAnimateSlides || usableFrames.length < 2) {
@@ -99,7 +123,7 @@ export function GameThumbnailSlideshow({
   }
 
   return (
-    <>
+    <div ref={slideshowRef} className="absolute inset-0">
       <Image
         key={`${frameKey}-${visibleIndex}`}
         src={currentSrc}
@@ -127,6 +151,6 @@ export function GameThumbnailSlideshow({
           ))}
         </div>
       )}
-    </>
+    </div>
   )
 }
