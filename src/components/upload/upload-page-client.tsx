@@ -20,6 +20,7 @@ import {
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { GamePlayer, type GamePlayerHandle } from "@/components/games/game-player"
+import { ThumbnailCropEditor } from "@/components/games/thumbnail-crop-editor"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -32,7 +33,6 @@ import { MOBILE_ORIENTATION_OPTIONS } from "@/lib/mobile-orientation"
 import {
   formatThumbnailOptimization,
   optimizeThumbnailDataUrl,
-  optimizeThumbnailFile,
   THUMBNAIL_MAX_HEIGHT,
   THUMBNAIL_MAX_WIDTH,
   THUMBNAIL_WEBP_QUALITY,
@@ -207,6 +207,7 @@ export function UploadPageClient() {
     "Capture 5 live screenshots from the preview. We'll keep the preview in this tab while the browser shares the game."
   )
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
+  const [thumbnailCropFile, setThumbnailCropFile] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [thumbnailOptimization, setThumbnailOptimization] = useState("")
   const [activeJams, setActiveJams] = useState<ActiveJamOption[]>([])
@@ -525,26 +526,12 @@ export function UploadPageClient() {
     }
   }, [])
 
-  const onDropThumbnail = useCallback(async (acceptedFiles: File[]) => {
+  const onDropThumbnail = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
     if (file) {
       if (file.type.startsWith("image/")) {
-        try {
-          const optimized = await optimizeThumbnailFile(file)
-          setThumbnailFile(optimized.file)
-          setThumbnailPreview((current) => {
-            if (current?.startsWith("blob:")) URL.revokeObjectURL(current)
-            return optimized.previewUrl
-          })
-          setThumbnailOptimization(formatThumbnailOptimization(optimized))
-          setError("")
-        } catch (optimizationError) {
-          setError(
-            optimizationError instanceof Error
-              ? optimizationError.message
-              : "Could not optimize the thumbnail image",
-          )
-        }
+        setThumbnailCropFile(file)
+        setError("")
       } else {
         setError("Please upload an image file for the thumbnail")
       }
@@ -1446,7 +1433,7 @@ export function UploadPageClient() {
                   <div>
                     <Label>Game thumbnail</Label>
                     <p className="mt-1 text-xs text-text-tertiary">
-                      Optional · 16:9 works best. Large images are resized and compressed before upload.
+                      Optional · crop to 16:9, reposition, and zoom. The result is compressed before upload.
                     </p>
                   </div>
                   <div
@@ -1579,6 +1566,24 @@ export function UploadPageClient() {
             </section>
           </aside>
         </form>
+        <ThumbnailCropEditor
+          file={thumbnailCropFile}
+          onCancel={() => setThumbnailCropFile(null)}
+          onError={(message) => {
+            setError(message)
+            setThumbnailCropFile(null)
+          }}
+          onApply={(optimized) => {
+            setThumbnailFile(optimized.file)
+            setThumbnailPreview((current) => {
+              if (current?.startsWith("blob:")) URL.revokeObjectURL(current)
+              return optimized.previewUrl
+            })
+            setThumbnailOptimization(formatThumbnailOptimization(optimized))
+            setThumbnailCropFile(null)
+            setError("")
+          }}
+        />
       </main>
 
       <Footer />

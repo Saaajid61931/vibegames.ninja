@@ -15,6 +15,12 @@ export type OptimizedThumbnail = {
   format: "WebP" | "JPEG"
 }
 
+export type ThumbnailCrop = {
+  zoom: number
+  offsetX: number
+  offsetY: number
+}
+
 export function getContainedThumbnailDimensions(
   source: ThumbnailDimensions,
   limits: ThumbnailDimensions,
@@ -42,6 +48,23 @@ function loadImageElement(src: string): Promise<HTMLImageElement> {
 
 function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number) {
   return new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality))
+}
+
+export function getCroppedThumbnailDimensions(
+  source: ThumbnailDimensions,
+  zoom: number,
+): ThumbnailDimensions | null {
+  const values = [source.width, source.height, zoom]
+  if (!values.every((value) => Number.isFinite(value) && value > 0)) {
+    return null
+  }
+
+  const availableWidth = Math.min(source.width, source.height * (16 / 9)) / Math.max(1, zoom)
+  const width = Math.max(16, Math.floor(Math.min(THUMBNAIL_MAX_WIDTH, availableWidth) / 16) * 16)
+  return {
+    width,
+    height: Math.round(width * (9 / 16)),
+  }
 }
 
 async function encodeImage(
@@ -84,6 +107,79 @@ async function encodeImage(
 function optimizedFileName(originalName: string, format: "WebP" | "JPEG") {
   const stem = originalName.replace(/\.[^.]+$/, "").replace(/[^a-z0-9_-]+/gi, "-") || "thumbnail"
   return `${stem}.${format === "WebP" ? "webp" : "jpg"}`
+}
+
+export async function cropAndOptimizeThumbnailFile(
+  file: File,
+  crop: ThumbnailCrop,
+): Promise<OptimizedThumbnail> {
+  const sourceUrl = URL.createObjectURL(file)
+  try {
+    const image = await loadImageElement(sourceUrl)
+    const dimensions = getCroppedThumbnailDimensions(
+      { width: image.naturalWidth, height: image.naturalHeight },
+      crop.zoom,
+    )
+    if (!dimensions) {
+      throw new Error("The selected thumbnail has invalid dimensions.")
+    }
+
+    const canvas = document.createElement("canvas")
+    canvas.width = dimensions.width
+    canvas.height = dimensions.height
+    const context = canvas.getContext("2d")
+    if (!context) {
+      throw new Error("This browser could not crop the thumbnail.")
+    }
+
+    const zoom = Math.min(3, Math.max(1, crop.zoom))
+    const offsetX = Math.min(1, Math.max(-1, crop.offsetX))
+    const offsetY = Math.min(1, Math.max(-1, crop.offsetY))
+    const coverScale = Math.max(
+      canvas.width / image.naturalWidth,
+      canvas.height / image.naturalHeight,
+    ) * zoom
+    const drawnWidth = image.naturalWidth * coverScale
+    const drawnHeight = image.naturalHeight * coverScale
+    const overflowX = Math.max(0, (drawnWidth - canvas.width) / 2)
+    const overflowY = Math.max(0, (drawnHeight - canvas.height) / 2)
+
+    context.imageSmoothingEnabled = true
+    context.imageSmoothingQuality = "high"
+    context.drawImage(
+      image,
+      -overflowX + offsetX * overflowX,
+      -overflowY + offsetY * overflowY,
+      drawnWidth,
+      drawnHeight,
+    )
+
+    const webp = await canvasToBlob(canvas, "image/webp", THUMBNAIL_WEBP_QUALITY)
+    const encoded = webp?.type === "image/webp"
+      ? { blob: webp, format: "WebP" as const }
+      : {
+          blob: await canvasToBlob(canvas, "image/jpeg", THUMBNAIL_WEBP_QUALITY),
+          format: "JPEG" as const,
+        }
+    if (!encoded.blob) {
+      throw new Error("This browser could not optimize the thumbnail.")
+    }
+
+    const optimizedFile = new File(
+      [encoded.blob],
+      optimizedFileName(file.name, encoded.format),
+      { type: encoded.blob.type, lastModified: Date.now() },
+    )
+    return {
+      file: optimizedFile,
+      previewUrl: URL.createObjectURL(optimizedFile),
+      originalBytes: file.size,
+      optimizedBytes: optimizedFile.size,
+      format: encoded.format,
+    }
+  } finally {
+    URL.revokeObjectURL(sourceUrl)
+  }
 }
 
 export async function optimizeThumbnailFile(file: File): Promise<OptimizedThumbnail> {

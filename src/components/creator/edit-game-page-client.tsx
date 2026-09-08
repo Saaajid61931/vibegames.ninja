@@ -20,6 +20,7 @@ import {
 } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { ThumbnailCropEditor } from "@/components/games/thumbnail-crop-editor"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -29,7 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { GhostSharingSetupGuide } from "@/components/games/ghost-sharing-setup-guide"
 import { LevelEditorSetupGuide } from "@/components/games/level-editor-setup-guide"
 import { MOBILE_ORIENTATION_OPTIONS } from "@/lib/mobile-orientation"
-import { formatThumbnailOptimization, optimizeThumbnailFile } from "@/lib/thumbnail-image"
+import { formatThumbnailOptimization } from "@/lib/thumbnail-image"
 import { CATEGORIES, AI_MODELS, AI_TOOLS } from "@/lib/utils"
 
 interface GameData {
@@ -65,6 +66,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
   const [game, setGame] = useState<GameData | null>(null)
   const [gameFile, setGameFile] = useState<File | null>(null)
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
+  const [thumbnailCropFile, setThumbnailCropFile] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [thumbnailOptimization, setThumbnailOptimization] = useState("")
 
@@ -152,7 +154,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
     setError("Please upload a .zip file containing your game or a single .html file")
   }, [])
 
-  const onDropThumbnail = useCallback(async (acceptedFiles: File[]) => {
+  const onDropThumbnail = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
     if (!file) return
 
@@ -162,22 +164,8 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
       return
     }
 
-    try {
-      const optimized = await optimizeThumbnailFile(file)
-      setThumbnailFile(optimized.file)
-      setThumbnailPreview((current) => {
-        if (current?.startsWith("blob:")) URL.revokeObjectURL(current)
-        return optimized.previewUrl
-      })
-      setThumbnailOptimization(formatThumbnailOptimization(optimized))
-      setError("")
-    } catch (optimizationError) {
-      setError(
-        optimizationError instanceof Error
-          ? optimizationError.message
-          : "Could not optimize the thumbnail image",
-      )
-    }
+    setThumbnailCropFile(file)
+    setError("")
   }, [])
 
   useEffect(() => {
@@ -447,7 +435,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
               <CardHeader variant="arcade">
                 <CardTitle className="font-arcade text-sm text-white">CHANGE THUMBNAIL (OPTIONAL)</CardTitle>
                 <CardDescription className="font-arcade text-xs text-text-secondary">
-                  Upload PNG, JPG, GIF, or WebP up to 5MB. It will be resized and compressed automatically.
+                  Upload PNG, JPG, GIF, or WebP up to 5MB, then crop, reposition, and zoom before saving.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -853,6 +841,24 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
               </Button>
             </div>
           </form>
+          <ThumbnailCropEditor
+            file={thumbnailCropFile}
+            onCancel={() => setThumbnailCropFile(null)}
+            onError={(message) => {
+              setError(message)
+              setThumbnailCropFile(null)
+            }}
+            onApply={(optimized) => {
+              setThumbnailFile(optimized.file)
+              setThumbnailPreview((current) => {
+                if (current?.startsWith("blob:")) URL.revokeObjectURL(current)
+                return optimized.previewUrl
+              })
+              setThumbnailOptimization(formatThumbnailOptimization(optimized))
+              setThumbnailCropFile(null)
+              setError("")
+            }}
+          />
         </div>
       </main>
 

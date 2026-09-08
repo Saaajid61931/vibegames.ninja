@@ -722,6 +722,19 @@ test('thumbnail optimization rejects invalid image measurements', () => {
   assert.equal(getContainedThumbnailDimensions({ width: 1280, height: NaN }, { width: 1280, height: 720 }), null)
 })
 
+test('thumbnail crops use a 16:9 output without upscaling the source', () => {
+  const { getCroppedThumbnailDimensions } = require('../src/lib/thumbnail-image')
+  assert.deepEqual(getCroppedThumbnailDimensions({ width: 3840, height: 2160 }, 1), { width: 1280, height: 720 })
+  assert.deepEqual(getCroppedThumbnailDimensions({ width: 800, height: 1200 }, 1), { width: 800, height: 450 })
+  assert.deepEqual(getCroppedThumbnailDimensions({ width: 800, height: 1200 }, 2), { width: 400, height: 225 })
+})
+
+test('thumbnail crop measurements reject invalid source data', () => {
+  const { getCroppedThumbnailDimensions } = require('../src/lib/thumbnail-image')
+  assert.equal(getCroppedThumbnailDimensions({ width: 0, height: 720 }, 1), null)
+  assert.equal(getCroppedThumbnailDimensions({ width: 1280, height: 720 }, 0), null)
+})
+
 async function run() {
   let failed = 0
 
