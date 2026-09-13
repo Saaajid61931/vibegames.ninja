@@ -1,7 +1,7 @@
 "use client"
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react"
-import { Loader2, Minimize2, Play } from "lucide-react"
+import { Loader2, Play } from "lucide-react"
 import { GameThumbnailSlideshow } from "@/components/games/game-thumbnail-slideshow"
 import { Button } from "@/components/ui/button"
 import { getMobileOrientationLabel, getMobileOrientationPrompt, type MobileOrientation } from "@/lib/mobile-orientation"
@@ -420,16 +420,6 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
     }
   }, [mode, requiredOrientation])
 
-  const exitFullscreen = async () => {
-    try {
-      const fullscreenDocument = document as FullscreenDocument
-      if (fullscreenDocument.exitFullscreen) await fullscreenDocument.exitFullscreen()
-      else await fullscreenDocument.webkitExitFullscreen?.()
-    } catch {
-      // The browser may already have dismissed fullscreen using its own controls.
-    }
-  }
-
   const wait = useCallback((ms: number) => {
     return new Promise<void>((resolve) => {
       window.setTimeout(resolve, ms)
@@ -726,16 +716,6 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
       )}
 
       <div className={isFullscreen ? "absolute inset-0 bg-black" : "relative w-full bg-black aspect-[4/3] sm:aspect-video"}>
-        {isFullscreen && (
-          <button
-            type="button"
-            onClick={() => void exitFullscreen()}
-            aria-label="Exit fullscreen"
-            className="absolute right-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] z-30 flex h-11 w-11 items-center justify-center border-2 border-white bg-canvas/90 text-white shadow-hard-2 hover:border-arcade-yellow hover:text-arcade-yellow"
-          >
-            <Minimize2 className="h-4 w-4" aria-hidden="true" />
-          </button>
-        )}
         {shouldLoadGame && isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
             <div className="text-center">
