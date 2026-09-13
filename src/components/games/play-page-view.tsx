@@ -148,6 +148,7 @@ export function PlayPageView({
                 gameId={game.id}
                 title={game.title}
                 gameUrl={game.gameUrl}
+                thumbnail={game.thumbnail}
                 runtimeLabel={`${game.title
                   .toLowerCase()
                   .replace(/\s+/g, "_")}.exe`}

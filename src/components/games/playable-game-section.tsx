@@ -214,6 +214,7 @@ interface PlayableGameSectionProps {
   gameId: string
   title: string
   gameUrl: string
+  thumbnail?: string | null
   runtimeLabel: string
   supportsMobile?: boolean
   mobileOrientation?: MobileOrientation
@@ -230,6 +231,7 @@ export function PlayableGameSection({
   gameId,
   title,
   gameUrl,
+  thumbnail,
   runtimeLabel,
   supportsMobile = false,
   mobileOrientation = "BOTH",
@@ -676,6 +678,7 @@ export function PlayableGameSection({
           ref={playerRef}
           title={title}
           gameUrl={gameUrl}
+          thumbnail={thumbnail}
           runtimeLabel={runtimeLabel}
           supportsMobile={supportsMobile}
           mobileOrientation={mobileOrientation}

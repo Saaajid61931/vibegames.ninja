@@ -2,6 +2,7 @@
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react"
 import { Loader2, Minimize2, Play } from "lucide-react"
+import { GameThumbnailSlideshow } from "@/components/games/game-thumbnail-slideshow"
 import { Button } from "@/components/ui/button"
 import { getMobileOrientationLabel, getMobileOrientationPrompt, type MobileOrientation } from "@/lib/mobile-orientation"
 
@@ -13,6 +14,7 @@ const AUTO_THUMBNAIL_EXPORT_QUALITY = 0.68
 interface GamePlayerProps {
   title: string
   gameUrl: string
+  thumbnail?: string | null
   runtimeLabel: string
   supportsMobile?: boolean
   mobileOrientation?: MobileOrientation
@@ -79,6 +81,7 @@ type DisplayMediaOptions = DisplayMediaStreamOptions & {
 export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function GamePlayer({
   title,
   gameUrl,
+  thumbnail,
   runtimeLabel,
   supportsMobile = false,
   mobileOrientation = "BOTH",
@@ -694,7 +697,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
 
   return (
     <div ref={wrapperRef} className={`relative min-w-0 max-w-full overflow-hidden ${isFullscreen ? "h-full w-full bg-black" : "w-full border-2 border-border-strong bg-surface shadow-hard-4"}`}>
-      {!isFullscreen && (
+      {!isFullscreen && !showPlayOverlay && (
         <div className="grid min-w-0 grid-cols-1 gap-1.5 border-b-2 border-border-strong bg-surface-2 px-3 py-3 min-[380px]:grid-cols-[minmax(0,1fr)_auto] min-[380px]:items-center min-[380px]:gap-3 sm:px-4">
           <div className="flex min-w-0 items-center gap-2">
             <span className="h-2 w-2 shrink-0 bg-success" />
@@ -712,7 +715,7 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
         </div>
       )}
 
-      {!isFullscreen && mode === "play" && (
+      {!isFullscreen && !showPlayOverlay && mode === "play" && (
         <div className="border-b border-border-strong bg-surface px-3 py-2.5 text-xs leading-5 text-text-secondary sm:px-4">
           {isAutoCapturing
             ? "Share this browser tab when prompted and keep playing while screenshots are captured."
@@ -743,44 +746,42 @@ export const GamePlayer = forwardRef<GamePlayerHandle, GamePlayerProps>(function
         )}
 
         {showPlayOverlay && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-canvas/90 p-4">
-            <div className="w-full max-w-md space-y-5 border-2 border-border-strong bg-surface p-5 text-center shadow-hard-4 sm:p-6">
-              <div className="space-y-2">
-                <span className="text-kicker  text-arcade-yellow">Ready when you are</span>
-                <h3 className="heading-pixel-md break-words font-semibold text-white">Play {title}</h3>
-                <p className="text-sm leading-6 text-text-secondary">
-                  {requiredOrientation
-                    ? `This game is designed for ${getMobileOrientationLabel(requiredOrientation).toLowerCase()}.`
-                    : "Open the game in fullscreen for the best experience."}
-                </p>
+          <div className="absolute inset-0 z-20 overflow-hidden bg-canvas">
+            <GameThumbnailSlideshow
+              title={title}
+              thumbnail={thumbnail}
+              sizes="(min-width: 1024px) 70vw, 100vw"
+              showIndicators={false}
+              animateSlides={false}
+            />
+            <div className="pointer-events-none absolute inset-0 bg-black/20 transition-colors" aria-hidden="true" />
+            <button
+              type="button"
+              aria-label={`Play ${title}`}
+              className="group absolute inset-0 flex items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-arcade-yellow"
+              onClick={() => void launchFullscreen().catch(() => undefined)}
+            >
+              <span className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-white bg-black/70 text-white shadow-hard-4 transition-transform group-hover:scale-105 group-hover:border-arcade-yellow group-hover:text-arcade-yellow sm:h-20 sm:w-20">
+                <Play className="h-7 w-7 translate-x-0.5 fill-current sm:h-9 sm:w-9" aria-hidden="true" />
+              </span>
+            </button>
+
+            {fullscreenError && (
+              <div className="absolute inset-x-3 bottom-3 z-10 flex flex-col items-center gap-2 border border-danger-border bg-canvas/95 p-3 text-center sm:inset-x-auto sm:left-1/2 sm:w-max sm:max-w-[calc(100%-1.5rem)] sm:-translate-x-1/2 sm:flex-row">
+                <p role="status" className="text-xs text-danger-text">{fullscreenError}</p>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="arcade-outline"
+                  onClick={() => {
+                    setIsInlinePlaying(true)
+                    window.dispatchEvent(new Event("vg-game-play-start"))
+                  }}
+                >
+                  Play in this window
+                </Button>
               </div>
-
-              <Button
-                type="button"
-                size="lg"
-                className="w-full gap-2 px-8 sm:w-auto"
-                onClick={() => void launchFullscreen().catch(() => undefined)}
-              >
-                <Play className="h-4 w-4" />
-                Play game
-              </Button>
-
-              {fullscreenError && (
-                <div className="space-y-3">
-                  <p role="status" className="text-sm text-danger-text">{fullscreenError}</p>
-                  <Button
-                    type="button"
-                    variant="arcade-outline"
-                    onClick={() => {
-                      setIsInlinePlaying(true)
-                      window.dispatchEvent(new Event("vg-game-play-start"))
-                    }}
-                  >
-                    Play in this window
-                  </Button>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         )}
 
