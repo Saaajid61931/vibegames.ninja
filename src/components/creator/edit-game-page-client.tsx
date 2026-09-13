@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
@@ -17,9 +17,11 @@ import {
   FileArchive,
   X,
   Image as ImageIcon,
+  Camera,
 } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { GamePlayer, type GamePlayerHandle } from "@/components/games/game-player"
 import { ThumbnailCropEditor } from "@/components/games/thumbnail-crop-editor"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,8 +32,42 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { GhostSharingSetupGuide } from "@/components/games/ghost-sharing-setup-guide"
 import { LevelEditorSetupGuide } from "@/components/games/level-editor-setup-guide"
 import { MOBILE_ORIENTATION_OPTIONS } from "@/lib/mobile-orientation"
-import { formatThumbnailOptimization } from "@/lib/thumbnail-image"
+import {
+  formatThumbnailOptimization,
+  optimizeThumbnailDataUrl,
+  THUMBNAIL_MAX_HEIGHT,
+  THUMBNAIL_MAX_WIDTH,
+  THUMBNAIL_WEBP_QUALITY,
+} from "@/lib/thumbnail-image"
 import { CATEGORIES, AI_MODELS, AI_TOOLS } from "@/lib/utils"
+
+type AutoThumbnailState = "idle" | "capturing" | "ready" | "error"
+
+type ResponsiveSlideUpload = {
+  original: string
+  variants: Array<{
+    width: number
+    image: string
+  }>
+}
+
+const RESPONSIVE_SLIDE_WIDTHS = [320, 640]
+
+async function buildResponsiveSlidePayload(imageDataUrl: string): Promise<ResponsiveSlideUpload> {
+  const original = await optimizeThumbnailDataUrl(
+    imageDataUrl,
+    { width: THUMBNAIL_MAX_WIDTH, height: THUMBNAIL_MAX_HEIGHT },
+    THUMBNAIL_WEBP_QUALITY,
+  )
+  const variants = await Promise.all(
+    RESPONSIVE_SLIDE_WIDTHS.map(async (width) => ({
+      width,
+      image: await optimizeThumbnailDataUrl(original, { width, height: width * 4 }, 0.64),
+    })),
+  )
+
+  return { original, variants }
+}
 
 interface GameData {
   id: string
@@ -48,6 +84,7 @@ interface GameData {
   hasGhostSharing: boolean
   seekingFeedback: boolean
   latestUpdateNote: string | null
+  gameUrl: string
   thumbnail: string | null
 }
 
@@ -69,6 +106,12 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
   const [thumbnailCropFile, setThumbnailCropFile] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [thumbnailOptimization, setThumbnailOptimization] = useState("")
+  const [autoThumbnailImages, setAutoThumbnailImages] = useState<string[]>([])
+  const [autoThumbnailState, setAutoThumbnailState] = useState<AutoThumbnailState>("idle")
+  const [autoThumbnailMessage, setAutoThumbnailMessage] = useState(
+    "Capture 5 live screenshots from the current game. They will be saved when you save your changes."
+  )
+  const previewPlayerRef = useRef<GamePlayerHandle | null>(null)
 
   const [formData, setFormData] = useState({
     title: "",
@@ -204,6 +247,93 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
     maxSize: 5 * 1024 * 1024,
   })
 
+  const startAutoThumbnailCapture = useCallback(() => {
+    if (!previewPlayerRef.current || autoThumbnailState === "capturing") {
+      return
+    }
+
+    setAutoThumbnailImages([])
+    setAutoThumbnailState("capturing")
+    setAutoThumbnailMessage(
+      "Your browser may ask to share this tab. Keep the game running while screenshots are captured."
+    )
+    void previewPlayerRef.current.startAutoThumbnailCapture()
+  }, [autoThumbnailState])
+
+  const handleAutoThumbnailCaptureProgress = useCallback(({ captured, total }: { captured: number; total: number }) => {
+    setAutoThumbnailState("capturing")
+    setAutoThumbnailMessage(`Captured ${captured}/${total} screenshots. Keep playing until the capture finishes.`)
+  }, [])
+
+  const handleAutoThumbnailCaptureComplete = useCallback((images: string[]) => {
+    setAutoThumbnailImages(images)
+    setAutoThumbnailState(images.length > 0 ? "ready" : "error")
+    setAutoThumbnailMessage(
+      images.length > 0
+        ? `Captured ${images.length} screenshot${images.length === 1 ? "" : "s"}. Save changes to use them as this game's thumbnails.`
+        : "No screenshots were captured."
+    )
+  }, [])
+
+  const handleAutoThumbnailCaptureError = useCallback((message: string) => {
+    setAutoThumbnailImages([])
+    setAutoThumbnailState("error")
+    setAutoThumbnailMessage(message)
+  }, [])
+
+  const saveAutoThumbnails = useCallback(async () => {
+    if (autoThumbnailImages.length === 0) {
+      return
+    }
+
+    const payloadImages = await Promise.all(
+      autoThumbnailImages.map((image) => buildResponsiveSlidePayload(image))
+    )
+    const thumbnailRes = await fetch(`/api/games/${gameId}/thumbnail-slides`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ images: payloadImages }),
+    })
+    const thumbnailData = await thumbnailRes.json()
+
+    if (!thumbnailRes.ok) {
+      throw new Error(thumbnailData.error || "Failed to save auto thumbnails")
+    }
+  }, [autoThumbnailImages, gameId])
+
+  const finishSuccessfulUpdate = useCallback(async (warnings: string[]) => {
+    const nextWarnings = [...warnings]
+
+    if (autoThumbnailImages.length > 0) {
+      try {
+        await saveAutoThumbnails()
+      } catch (thumbnailError) {
+        nextWarnings.push(
+          thumbnailError instanceof Error
+            ? `Auto thumbnails were not saved: ${thumbnailError.message}`
+            : "Auto thumbnails were not saved."
+        )
+      }
+    }
+
+    setUpdateWarnings(nextWarnings)
+    setSuccess(true)
+    setGameFile(null)
+    setThumbnailFile(null)
+    setThumbnailPreview(null)
+    setThumbnailOptimization("")
+    setAutoThumbnailImages([])
+    setAutoThumbnailState("idle")
+
+    if (nextWarnings.length === 0) {
+      window.setTimeout(() => {
+        router.push("/creator")
+      }, 1500)
+    }
+  }, [autoThumbnailImages.length, router, saveAutoThumbnails])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -263,18 +393,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
       const warnings = Array.isArray(result.data.warnings)
         ? result.data.warnings.filter((item: unknown): item is string => typeof item === "string")
         : []
-      setUpdateWarnings(warnings)
-
-      setSuccess(true)
-      setGameFile(null)
-      setThumbnailFile(null)
-      setThumbnailPreview(null)
-      setThumbnailOptimization("")
-      if (warnings.length === 0) {
-        setTimeout(() => {
-          router.push("/creator")
-        }, 1500)
-      }
+      await finishSuccessfulUpdate(warnings)
     } catch (err) {
       if (err instanceof TypeError && (thumbnailFile || gameFile)) {
         try {
@@ -309,18 +428,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
           const warnings = Array.isArray(fallbackData.warnings)
             ? fallbackData.warnings.filter((item: unknown): item is string => typeof item === "string")
             : []
-          setUpdateWarnings(warnings)
-
-          setSuccess(true)
-          setGameFile(null)
-          setThumbnailFile(null)
-          setThumbnailPreview(null)
-          setThumbnailOptimization("")
-          if (warnings.length === 0) {
-            setTimeout(() => {
-              router.push("/creator")
-            }, 1500)
-          }
+          await finishSuccessfulUpdate(warnings)
         } catch (fallbackErr) {
           setError(fallbackErr instanceof Error ? fallbackErr.message : "Something went wrong")
         }
@@ -377,7 +485,7 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
               <h2 className="text-xl font-semibold text-white mb-2 font-arcade">Game Updated!</h2>
               {updateWarnings.length > 0 ? (
                 <div className="space-y-3 text-left">
-                  <p className="text-text-secondary text-sm font-arcade text-center">Game updated, but the platform hooks still need a few fixes before everything is live.</p>
+                  <p className="text-text-secondary text-sm font-arcade text-center">Game updated, but some changes still need your attention.</p>
                   <div className="border-2 border-arcade-yellow bg-arcade-yellow/10 p-3 text-xs text-white font-arcade">
                     {updateWarnings.map((warning) => (
                       <p key={warning}>{warning}</p>
@@ -430,6 +538,95 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                 {error.toUpperCase()}
               </div>
             )}
+
+            {game?.gameUrl ? (
+              <Card variant="arcade">
+                <CardHeader variant="arcade">
+                  <CardTitle className="font-arcade text-sm text-white">AUTOMATIC THUMBNAILS (OPTIONAL)</CardTitle>
+                  <CardDescription className="font-arcade text-xs text-text-secondary">
+                    Capture five live screenshots from the current game, then save changes to replace its thumbnail slideshow.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <GamePlayer
+                    ref={previewPlayerRef}
+                    title={game.title}
+                    gameUrl={game.gameUrl}
+                    runtimeLabel="Current game preview"
+                    mode="preview"
+                    onAutoThumbnailCaptureProgress={handleAutoThumbnailCaptureProgress}
+                    onAutoThumbnailCaptureComplete={handleAutoThumbnailCaptureComplete}
+                    onAutoThumbnailCaptureError={handleAutoThumbnailCaptureError}
+                  />
+
+                  <div className="flex flex-col gap-3 border-2 border-border-strong bg-surface-2 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-white font-arcade">AUTOMATIC SCREENSHOTS</p>
+                      <p className="mt-1 text-xs leading-5 text-text-secondary">{autoThumbnailMessage}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant={autoThumbnailState === "ready" ? "arcade-outline" : "arcade"}
+                        className="gap-2 font-arcade"
+                        onClick={startAutoThumbnailCapture}
+                        disabled={saving || autoThumbnailState === "capturing"}
+                      >
+                        {autoThumbnailState === "capturing" ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Camera className="h-4 w-4" />
+                        )}
+                        {autoThumbnailState === "capturing"
+                          ? "Capturing..."
+                          : autoThumbnailState === "ready"
+                            ? "Capture again"
+                            : "Capture screenshots"}
+                      </Button>
+                      {autoThumbnailImages.length > 0 ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => {
+                            setAutoThumbnailImages([])
+                            setAutoThumbnailState("idle")
+                            setAutoThumbnailMessage(
+                              "Capture 5 live screenshots from the current game. They will be saved when you save your changes."
+                            )
+                          }}
+                          disabled={saving}
+                        >
+                          Clear
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  {autoThumbnailImages.length > 0 ? (
+                    <div>
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <p className="text-sm font-medium text-white">Captured screenshots</p>
+                        <span className="text-xs text-text-secondary">{autoThumbnailImages.length} ready</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                        {autoThumbnailImages.map((image, index) => (
+                          <div key={String(index) + image.slice(0, 24)} className="overflow-hidden border-2 border-border-strong">
+                            <Image
+                              src={image}
+                              alt={`Automatic thumbnail ${index + 1}`}
+                              width={640}
+                              height={360}
+                              unoptimized
+                              className="aspect-video h-full w-full object-cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </CardContent>
+              </Card>
+            ) : null}
 
             <Card variant="arcade">
               <CardHeader variant="arcade">
@@ -826,7 +1023,12 @@ export function EditGamePageClient({ gameId }: EditGamePageClientProps) {
                   Cancel
                 </Button>
               </Link>
-              <Button type="submit" variant="arcade" disabled={saving} className="w-full sm:w-auto font-arcade">
+              <Button
+                type="submit"
+                variant="arcade"
+                disabled={saving || autoThumbnailState === "capturing"}
+                className="w-full sm:w-auto font-arcade"
+              >
                 {saving ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
